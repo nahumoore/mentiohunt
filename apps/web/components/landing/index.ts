@@ -1,0 +1,6 @@
+export { Footer } from "./footer"
+export { Hero } from "./hero"
+export { HowItWorks } from "./how-it-works"
+export { Navbar } from "./navbar"
+export { Pricing } from "./pricing"
+export { TargetPersonas } from "./target-personas"

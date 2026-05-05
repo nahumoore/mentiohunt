@@ -1,10 +1,12 @@
 {
-  "name": "mentions",
+  "name": "Mentiohunt",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter=server --filter=web",
+    "dev:server": "turbo dev --filter=server",
+    "dev:web": "turbo dev --filter=web",
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck"

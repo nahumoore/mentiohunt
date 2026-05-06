@@ -1,0 +1,14 @@
+{
+  "name": "@workspace/openrouter",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@openrouter/agent": "^0.5.0"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./generate-text": "./generate-text.ts",
+    "./models": "./models.ts"
+  }
+}

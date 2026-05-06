@@ -24,6 +24,7 @@ import {
   type OpportunityTypeId,
 } from "@/consts/onboarding"
 import { useOnboardingStore } from "@/stores/onboarding-store"
+import { IconArrowLeft } from "@tabler/icons-react"
 
 export function OnboardingWizard() {
   const router = useRouter()
@@ -34,7 +35,6 @@ export function OnboardingWizard() {
     setCurrentStep,
     updateData,
     setIsCompleted,
-    reset,
   } = useOnboardingStore()
   const [fieldErrors, setFieldErrors] = useState<OnboardingFieldErrors>({})
   const [submitMessage, setSubmitMessage] = useState("")
@@ -164,12 +164,6 @@ export function OnboardingWizard() {
     return true
   }
 
-  const handleReset = () => {
-    reset()
-    setFieldErrors({})
-    setSubmitMessage("")
-  }
-
   const nextStep = () => {
     if (!validateCurrentStep()) {
       return
@@ -266,23 +260,12 @@ export function OnboardingWizard() {
   return (
     <div className="relative mx-auto flex h-screen max-h-screen w-full max-w-3xl items-center overflow-hidden px-4 py-4 sm:px-6 lg:px-8">
       <Button
-        variant="outline"
-        className="group fixed top-4 left-4 z-10 gap-2 transition-transform duration-200 hover:-translate-x-1 sm:top-6 sm:left-6"
+        variant="ghost"
+        className="group fixed top-4 left-4 z-10 gap-2 sm:top-6 sm:left-6"
         onClick={() => void handleSignOut()}
         disabled={isSigningOut}
       >
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
+        <IconArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
         {isSigningOut ? "Signing out..." : "Sign out"}
       </Button>
 
@@ -291,29 +274,13 @@ export function OnboardingWizard() {
           <>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ background: "var(--blaze-orange)" }}
-                  />
-                  <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                    Step {currentStep + 1} of {ONBOARDING_STEPS.length}
-                  </p>
-                </div>
-                <h2 className="mt-3 font-heading text-3xl font-medium tracking-tight">
+                <h2 className="font-heading text-3xl font-medium tracking-tight">
                   {ONBOARDING_STEPS[currentStep]!.title}
                 </h2>
                 <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
                   {ONBOARDING_STEPS[currentStep]!.description}
                 </p>
               </div>
-              <Button
-                variant="link"
-                className="h-auto p-0 text-muted-foreground"
-                onClick={handleReset}
-              >
-                Reset
-              </Button>
             </div>
 
             <div className="mt-6 flex gap-2">

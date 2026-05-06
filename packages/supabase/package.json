@@ -11,7 +11,7 @@
   "exports": {
     "./admin": "./admin.ts",
     "./client": "./client.ts",
-    "./database.types": "./database.types.ts",
+    "./database-types": "./database-types.ts",
     "./middleware": "./middleware.ts",
     "./server": "./server.ts"
   }

@@ -1,8 +1,13 @@
+import type { Metadata } from "next"
 import { Inter, Outfit } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import { Toaster } from "sonner"
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://mentiohunt.com"),
+}
 
 const outfitHeading = Outfit({
   subsets: ["latin"],

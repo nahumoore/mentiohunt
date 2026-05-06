@@ -1,4 +1,9 @@
+import type { Metadata } from "next"
 import { AppSidebar } from "@/components/app-sidebar"
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 import {
   Breadcrumb,
   BreadcrumbItem,

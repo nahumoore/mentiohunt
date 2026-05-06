@@ -8,6 +8,20 @@ export const metadata: Metadata = {
   title: "Pricing – Mentiohunt",
   description:
     "Simple, transparent pricing for backlink prospecting. Start free, upgrade when ready.",
+  openGraph: {
+    title: "Pricing – Mentiohunt",
+    description:
+      "Simple, transparent pricing for backlink prospecting. Start free, upgrade when ready.",
+    url: "https://mentiohunt.com/pricing",
+    siteName: "Mentiohunt",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pricing – Mentiohunt",
+    description:
+      "Simple, transparent pricing for backlink prospecting. Start free, upgrade when ready.",
+  },
 }
 
 export default async function PricingPage() {

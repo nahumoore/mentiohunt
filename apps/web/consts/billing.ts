@@ -1,4 +1,4 @@
-import type { Database } from "@workspace/supabase/database.types"
+import type { Database } from "@workspace/supabase/database-types"
 
 export const FREE_TRIAL_DAYS = 7
 

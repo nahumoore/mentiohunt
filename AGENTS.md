@@ -10,85 +10,6 @@ Users provide their site, product description, niche, target keywords, and compe
 
 This product is about opportunity discovery and outreach preparation, not guaranteed backlink acquisition.
 
-## Core User Outcome
-
-Users should open the product and quickly understand:
-
-- which sites are worth pursuing this week
-- why each site is a fit
-- what action to take next
-- what outreach angle to use
-- who to contact when contact data is available
-
-Every feature should move the product toward a simple daily queue of backlink actions rather than a generic SEO dashboard.
-
-## ICP
-
-### Primary ICP
-
-Small SaaS founders and indie founders trying to build backlinks without hiring an SEO agency.
-
-### Secondary ICP
-
-Small SEO or content agencies that need repeatable backlink prospecting for multiple clients.
-
-### Best-Fit Users
-
-- have a live SaaS, tool, newsletter, marketplace, or content site
-- have at least 3 to 10 known competitors
-- understand that backlinks matter for SEO
-- already publish content or are starting SEO seriously
-- do not want to manually search Google for opportunities
-- do not want to manually inspect competitor backlink profiles
-- want a simple daily queue of backlink actions
-- are willing to pay roughly $49 to $99 per month
-- prefer self-serve software over hiring a link-building agency
-
-## What The Product Should Find
-
-Discovery should focus on opportunities such as:
-
-- directories
-- niche resource pages
-- listicles
-- "best tools" articles
-- competitor mention pages
-- alternative pages
-- partner pages
-- blogs covering similar products
-
-The product should favor actionable, explainable opportunities over large undifferentiated domain lists.
-
-## Opportunity Record Expectations
-
-Each opportunity should aim to include:
-
-- relevance score
-- opportunity type
-- target site or page
-- why the site is a fit
-- suggested next step
-- suggested outreach angle
-- contact info when available
-- ready-to-send outreach draft
-
-Examples of next steps:
-
-- submit to this directory
-- pitch this listicle
-- ask to be added to this resource page
-- contact this site owner
-- mention a competitor gap
-- send this personalized outreach draft
-
-## Product Principles
-
-- Actionability over volume: a smaller queue of strong opportunities is better than a large noisy export.
-- Explainability over black box scoring: users should understand why an opportunity was surfaced.
-- Recurring value over one-time scans: the product should feel like a daily operating system for backlink work.
-- Self-serve simplicity over agency complexity: avoid workflows that assume dedicated SEO specialists.
-- Draft assistance over false promises: help users prepare strong outreach, but do not imply guaranteed placements.
-
 ## Current Repo Shape
 
 This repository is a pnpm monorepo.
@@ -141,24 +62,6 @@ For app-specific work:
 - When showing scores or recommendations, pair them with plain-language reasoning.
 - Empty states should teach users what inputs improve discovery quality, especially competitors and keywords.
 
-## Early Feature Bias
+## Frontend Guidance
 
-When tradeoffs are unclear, bias toward features that improve:
-
-- opportunity discovery quality
-- recurring daily queue usefulness
-- outreach preparation speed
-- trust in why opportunities were selected
-
-Bias away from:
-
-- broad SEO reporting
-- vanity metrics
-- backlink monitoring features unrelated to discovery
-- CRM-like complexity unless it directly supports outreach execution
-
-## Notes For Future Contributors
-
-- Replace the template `README.md` with product-specific documentation as the app takes shape.
-- Treat `.next` output as generated artifacts, not source of truth.
-- If adding new flows, anchor naming around prospects, opportunities, queues, outreach, and competitors.
+- Always use Tabler icons, don't use lucide-react, don't create the svgs yourself or any other icon library.

@@ -1,6 +1,6 @@
 import { FREE_TRIAL_DAYS } from "@/consts/billing"
 import { supabaseServer } from "@/lib/supabase/server"
-import type { TablesInsert } from "@workspace/supabase/database.types"
+import type { TablesInsert } from "@workspace/supabase/database-types"
 import { NextResponse, type NextRequest } from "next/server"
 
 function getFreeTrialEndsAt(startedAt: Date) {
@@ -29,7 +29,9 @@ export async function GET(request: NextRequest) {
 
   if (!user.email) {
     await supabase.auth.signOut()
-    return NextResponse.redirect(`${origin}/signin?auth_error=profile_creation_error`)
+    return NextResponse.redirect(
+      `${origin}/signin?auth_error=profile_creation_error`
+    )
   }
 
   const { data: profile } = await supabase
@@ -51,8 +53,8 @@ export async function GET(request: NextRequest) {
       onboarding_completed: false,
       tier: "free",
       active_trial: true,
-      trial_started_at: trialStartedAt,
-      trial_ends_at: getFreeTrialEndsAt(new Date(trialStartedAt)),
+      billing_period_start_at: trialStartedAt,
+      billing_period_end_at: getFreeTrialEndsAt(new Date(trialStartedAt)),
     }
 
     const { error } = await supabase.from("profiles").insert(profileInsert)

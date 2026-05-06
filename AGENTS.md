@@ -4,7 +4,9 @@
 
 Mentiohunt is a self-serve backlink and mentions prospecting tool.
 
-It helps founders and small agencies discover relevant websites where they can potentially earn backlinks or brand mentions. Users provide their site, product description, niche, target keywords, and competitors. The product then runs recurring discovery jobs and produces a weekly queue of qualified outreach opportunities with clear next steps.
+It helps founders and small agencies discover relevant websites where they can potentially earn backlinks or brand mentions.
+
+Users provide their site, product description, niche, target keywords, and competitors. The product then runs recurring discovery jobs and produces a daily queue of qualified outreach opportunities with clear next steps.
 
 This product is about opportunity discovery and outreach preparation, not guaranteed backlink acquisition.
 
@@ -18,7 +20,7 @@ Users should open the product and quickly understand:
 - what outreach angle to use
 - who to contact when contact data is available
 
-Every feature should move the product toward a simple weekly queue of backlink actions rather than a generic SEO dashboard.
+Every feature should move the product toward a simple daily queue of backlink actions rather than a generic SEO dashboard.
 
 ## ICP
 
@@ -38,7 +40,7 @@ Small SEO or content agencies that need repeatable backlink prospecting for mult
 - already publish content or are starting SEO seriously
 - do not want to manually search Google for opportunities
 - do not want to manually inspect competitor backlink profiles
-- want a simple weekly queue of backlink actions
+- want a simple daily queue of backlink actions
 - are willing to pay roughly $49 to $99 per month
 - prefer self-serve software over hiring a link-building agency
 
@@ -83,7 +85,7 @@ Examples of next steps:
 
 - Actionability over volume: a smaller queue of strong opportunities is better than a large noisy export.
 - Explainability over black box scoring: users should understand why an opportunity was surfaced.
-- Recurring value over one-time scans: the product should feel like a weekly operating system for backlink work.
+- Recurring value over one-time scans: the product should feel like a daily operating system for backlink work.
 - Self-serve simplicity over agency complexity: avoid workflows that assume dedicated SEO specialists.
 - Draft assistance over false promises: help users prepare strong outreach, but do not imply guaranteed placements.
 
@@ -144,7 +146,7 @@ For app-specific work:
 When tradeoffs are unclear, bias toward features that improve:
 
 - opportunity discovery quality
-- recurring weekly queue usefulness
+- recurring daily queue usefulness
 - outreach preparation speed
 - trust in why opportunities were selected
 

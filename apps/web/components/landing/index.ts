@@ -1,3 +1,4 @@
+export { Benefits } from "./benefits"
 export { Footer } from "./footer"
 export { Hero } from "./hero"
 export { HowItWorks } from "./how-it-works"

@@ -21,7 +21,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Weekly Queue</SidebarGroupLabel>
+      <SidebarGroupLabel>Daily Queue</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>

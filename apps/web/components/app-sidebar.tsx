@@ -3,6 +3,7 @@
 import Link from "next/link"
 
 import { NavMain } from "@/components/nav-main"
+import { IconLayoutRows, IconTargetArrow } from "@tabler/icons-react"
 import {
   Sidebar,
   SidebarContent,
@@ -12,16 +13,13 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
-import { IconLayoutRows, IconTargetArrow } from "@tabler/icons-react"
 
 const data = {
   navMain: [
     {
       title: "Opportunities",
       url: "/dashboard",
-      icon: (
-        <IconTargetArrow />
-      ),
+      icon: <IconTargetArrow />,
       isActive: true,
     },
   ],
@@ -41,7 +39,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Mentions</span>
                   <span className="truncate text-xs text-sidebar-foreground/70">
-                    Weekly backlink queue
+                    Daily backlink queue
                   </span>
                 </div>
               </Link>

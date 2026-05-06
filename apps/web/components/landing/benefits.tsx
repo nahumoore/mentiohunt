@@ -20,9 +20,9 @@ const benefits = [
       "Get suggested pitch ideas tailored to each opportunity. You're not copying generic templates; you're starting with a relevant angle that makes your outreach feel specific, not like automated spam.",
   },
   {
-    title: "A Weekly Queue That Keeps You Organized",
+    title: "A Daily Queue That Keeps You Organized",
     description:
-      "Your backlink work shows up in your inbox (or dashboard) each week, ready to go. No more chasing opportunities, no more forgotten outreach—just a steady stream of actionable prospects.",
+      "Your backlink work shows up in your inbox (or dashboard) each day, ready to go. No more chasing opportunities, no more forgotten outreach-just a steady stream of actionable prospects.",
   },
 ]
 
@@ -35,7 +35,7 @@ export function Benefits() {
             Stop Wasting Time on Backlink Research
           </h2>
           <p className="mt-4 text-base text-muted-foreground">
-            Mentiohunt turns your niche, keywords, and competitors into a weekly queue
+            Mentiohunt turns your niche, keywords, and competitors into a daily queue
             of qualified outreach opportunities—so you can focus on pitching instead of
             searching.
           </p>

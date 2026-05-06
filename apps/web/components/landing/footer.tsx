@@ -1,37 +1,164 @@
 import Link from "next/link"
 
-const links = [
+import { Button } from "@workspace/ui/components/button"
+
+const navLinks = [
   { href: "#how-it-works", label: "How it Works" },
-  { href: "#target-personas", label: "For Who" },
+  { href: "#target-personas", label: "Who It's For" },
   { href: "#pricing", label: "Pricing" },
-  { href: "#hero", label: "Back to Top" },
+]
+
+const legalLinks = [
+  { href: "/privacy", label: "Privacy Policy" },
+  { href: "/tos", label: "Terms of Service" },
+]
+
+const stats = [
+  { value: "Daily", label: "opportunity queue" },
+  { value: "AI", label: "fit scoring" },
+  { value: "Zero", label: "cold prospecting" },
 ]
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-background">
-      <div className="container mx-auto flex flex-col gap-8 px-4 py-10 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8">
-        <div className="max-w-md space-y-3">
-          <p className="font-heading text-lg font-semibold tracking-tight">
-            Mentiohunt
-          </p>
-          <p className="text-sm text-muted-foreground">
-            A weekly operating system for backlink prospecting, fit scoring, and
-            outreach prep.
-          </p>
+    <footer className="relative overflow-hidden border-t border-border bg-background">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-glow)]/60 to-transparent" />
+
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.022]"
+        style={{
+          backgroundImage: `linear-gradient(var(--color-foreground) 1px, transparent 1px), linear-gradient(90deg, var(--color-foreground) 1px, transparent 1px)`,
+          backgroundSize: "48px 48px",
+        }}
+      />
+
+      <div className="container relative mx-auto px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+        <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/20 bg-[linear-gradient(135deg,var(--color-background)_0%,color-mix(in_oklab,var(--color-background)_74%,var(--color-amber-glow)_26%)_100%)] shadow-[0_32px_100px_-40px_rgba(255,133,0,0.36)]">
+          <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/70 to-transparent" />
+          <div className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full bg-[var(--color-princeton-orange)]/12 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 left-16 h-56 w-56 rounded-full bg-[var(--color-blaze-orange)]/10 blur-3xl" />
+
+          <div className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 select-none font-heading text-[10rem] font-bold leading-none tracking-[-0.06em] text-[var(--color-amber-glow)]/[0.07] lg:right-14 lg:text-[14rem]">
+            Q
+          </div>
+
+          <div className="relative grid gap-10 px-6 py-10 sm:px-8 sm:py-12 lg:grid-cols-[1fr_auto] lg:items-center lg:px-12 lg:py-14">
+            <div className="max-w-xl">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-princeton-orange)]" />
+                Your next backlink opportunities, ready
+              </div>
+
+              <h2 className="mt-5 font-heading text-3xl font-semibold tracking-[-0.04em] text-balance sm:text-4xl lg:text-[2.75rem]">
+                Stop searching for prospects.{" "}
+                <span className="text-[var(--color-princeton-orange)]">
+                  Start working a queue.
+                </span>
+              </h2>
+
+              <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
+                Mentiohunt turns your site, niche, keywords, and competitors
+                into a recurring stream of outreach opportunities — each with
+                fit rationale and a clear next step.
+              </p>
+
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-11 rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
+                >
+                  <Link href="/signup">Start your first queue</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="lg"
+                  className="h-11 rounded-full px-6 text-sm text-muted-foreground hover:text-foreground"
+                >
+                  <Link href="#how-it-works">See how it works →</Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex flex-row gap-8 lg:flex-col lg:gap-6 lg:text-right">
+              {stats.map((s) => (
+                <div key={s.label} className="space-y-0.5">
+                  <p className="font-heading text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">
+                    {s.value}
+                  </p>
+                  <p className="text-xs leading-4 text-muted-foreground">
+                    {s.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:gap-6">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
-          <p>2026 Mentiohunt. Built for recurring backlink work.</p>
+        <div className="mt-10 grid gap-10 border-t border-border/60 pt-10 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto] lg:items-start">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-blaze-orange)] text-white shadow-sm">
+                <span className="text-sm font-bold leading-none">M</span>
+              </div>
+              <p className="font-heading text-lg font-semibold tracking-tight">
+                Mentiohunt
+              </p>
+            </div>
+            <p className="max-w-xs text-sm leading-6 text-muted-foreground">
+              Daily backlink queue for founders and agencies. Qualified
+              opportunities, plain-English fit rationale, and outreach prep —
+              ready each morning.
+            </p>
+            <p className="text-xs text-muted-foreground/50">
+              © 2026 Mentiohunt · Built for recurring backlink work
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+              Product
+            </p>
+            <ul className="space-y-2">
+              {navLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground transition-colors hover:text-[var(--color-princeton-orange)]"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+              Legal
+            </p>
+            <ul className="space-y-2">
+              {legalLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground transition-colors hover:text-[var(--color-princeton-orange)]"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link
+                  href="#hero"
+                  className="text-sm text-muted-foreground transition-colors hover:text-[var(--color-princeton-orange)]"
+                >
+                  ↑ Back to top
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </footer>

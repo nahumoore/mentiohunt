@@ -2,7 +2,7 @@ const personas = [
   {
     title: "SaaS Founders",
     description:
-      "Building backlinks without an SEO agency. You publish content or are starting SEO seriously and want a simple weekly queue of actionable opportunities.",
+      "Building backlinks without an SEO agency. You publish content or are starting SEO seriously and want a simple daily queue of actionable opportunities.",
     traits: [
       "Have a live SaaS, tool, newsletter, or content site",
       "Understand that backlinks matter for SEO",
@@ -25,7 +25,7 @@ const personas = [
       "Need repeatable backlink prospecting for multiple clients. You want to move beyond one-time scans to recurring discovery.",
     traits: [
       "Manage SEO for 2-5 client sites",
-      "Want a simple weekly queue per client",
+      "Want a simple daily queue per client",
       "Need outreach prep that scales",
     ],
   },

@@ -58,7 +58,7 @@ Core pain points to write from:
 Writing principles:
 
 - Lead with the practical outcome, not abstract platform language.
-- Emphasize weekly queue, fit, rationale, next step, and outreach angle.
+- Emphasize daily queue, fit, rationale, next step, and outreach angle.
 - Keep copy concrete, specific, and plain-English.
 - Preserve the product's self-serve, action-oriented positioning.
 - Prefer "opportunities" over vague words like "insights" or "discoveries" unless the context truly calls for them.

@@ -1,0 +1,18 @@
+{
+  "name": "@workspace/supabase",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.57.4",
+    "next": "16.1.6"
+  },
+  "exports": {
+    "./admin": "./admin.ts",
+    "./client": "./client.ts",
+    "./database.types": "./database.types.ts",
+    "./middleware": "./middleware.ts",
+    "./server": "./server.ts"
+  }
+}

@@ -4,7 +4,7 @@ export const ONBOARDING_STEPS = [
   {
     title: "Mentiohunt",
     description:
-      "A simple weekly queue for backlink opportunities your team can actually act on.",
+      "A simple daily queue for backlink opportunities your team can actually act on.",
   },
   {
     title: "Your site",
@@ -19,7 +19,7 @@ export const ONBOARDING_STEPS = [
   {
     title: "Opportunity types",
     description:
-      "Choose the outreach motions you want to prioritize in your weekly queue.",
+      "Choose the outreach motions you want to prioritize in your daily queue.",
   },
   {
     title: "Discovery source",

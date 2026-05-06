@@ -132,7 +132,7 @@ export function HeroIllustration() {
   return (
     <div className="relative mx-auto w-full max-w-xl lg:max-w-none">
       <div className="absolute inset-x-10 top-8 -z-10 h-36 rounded-full bg-primary/10 blur-3xl" />
-      <div className="overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-[0_18px_60px_-30px_rgba(0,0,0,0.22)] sm:p-8">
+      <div className="overflow-hidden rounded-3xl border border-border bg-background/75 p-5 sm:p-6">
         <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:gap-3">
           <Step number="01" label="Scan the web">
             <WebGraph />

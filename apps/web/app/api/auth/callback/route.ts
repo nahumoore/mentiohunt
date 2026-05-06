@@ -1,0 +1,76 @@
+import { FREE_TRIAL_DAYS } from "@/consts/billing"
+import { supabaseServer } from "@/lib/supabase/server"
+import type { TablesInsert } from "@workspace/supabase/database.types"
+import { NextResponse, type NextRequest } from "next/server"
+
+function getFreeTrialEndsAt(startedAt: Date) {
+  const endsAt = new Date(startedAt)
+  endsAt.setDate(endsAt.getDate() + FREE_TRIAL_DAYS)
+
+  return endsAt.toISOString()
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get("code")
+
+  if (!code) {
+    return NextResponse.redirect(`${origin}/signin?auth_error=1`)
+  }
+
+  const supabase = await supabaseServer()
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+
+  if (error || !data.user) {
+    return NextResponse.redirect(`${origin}/signin?auth_error=1`)
+  }
+
+  const user = data.user
+
+  if (!user.email) {
+    await supabase.auth.signOut()
+    return NextResponse.redirect(`${origin}/signin?auth_error=profile_creation_error`)
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, onboarding_completed")
+    .eq("id", user.id)
+    .single()
+
+  if (!profile) {
+    const name =
+      (user.user_metadata?.full_name as string | undefined) ??
+      (user.user_metadata?.name as string | undefined) ??
+      null
+    const trialStartedAt = new Date().toISOString()
+    const profileInsert: TablesInsert<"profiles"> = {
+      id: user.id,
+      email: user.email,
+      name,
+      onboarding_completed: false,
+      tier: "free",
+      active_trial: true,
+      trial_started_at: trialStartedAt,
+      trial_ends_at: getFreeTrialEndsAt(new Date(trialStartedAt)),
+    }
+
+    const { error } = await supabase.from("profiles").insert(profileInsert)
+
+    if (error) {
+      console.error("Error creating profile:", error)
+      await supabase.auth.signOut()
+      return NextResponse.redirect(
+        `${origin}/signin?auth_error=profile_creation_error`
+      )
+    }
+
+    return NextResponse.redirect(`${origin}/onboarding`)
+  }
+
+  if (!profile.onboarding_completed) {
+    return NextResponse.redirect(`${origin}/onboarding`)
+  }
+
+  return NextResponse.redirect(`${origin}/dashboard`)
+}

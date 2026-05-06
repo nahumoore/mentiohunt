@@ -8,7 +8,7 @@ const steps = [
   },
   {
     number: "02",
-    title: "Weekly discovery runs",
+    title: "Daily discovery runs",
     description: "Our system scans for directories, resource pages, listicles, and competitor mention opportunities.",
   },
   {

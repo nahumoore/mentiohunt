@@ -1,5 +1,7 @@
 "use client"
 
+import { supabaseClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { Button } from "@workspace/ui/components/button"
@@ -24,10 +26,19 @@ import {
 import { useOnboardingStore } from "@/stores/onboarding-store"
 
 export function OnboardingWizard() {
-  const { hasHydrated, currentStep, data, setCurrentStep, updateData, reset } =
-    useOnboardingStore()
+  const router = useRouter()
+  const {
+    hasHydrated,
+    currentStep,
+    data,
+    setCurrentStep,
+    updateData,
+    setIsCompleted,
+    reset,
+  } = useOnboardingStore()
   const [fieldErrors, setFieldErrors] = useState<OnboardingFieldErrors>({})
   const [submitMessage, setSubmitMessage] = useState("")
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   const getCurrentStepErrors = (): OnboardingFieldErrors => {
     switch (currentStep) {
@@ -225,11 +236,21 @@ export function OnboardingWizard() {
     }
 
     updateData(result.data)
+    setIsCompleted(true)
     setFieldErrors({})
     console.log("Submitting onboarding data:", result.data)
     setSubmitMessage(
       "Setup looks good. Your progress is saved locally while the backend is not connected yet."
     )
+  }
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+
+    const supabase = supabaseClient()
+    await supabase.auth.signOut()
+    router.replace("/signin")
+    router.refresh()
   }
 
   if (!hasHydrated) {
@@ -243,15 +264,42 @@ export function OnboardingWizard() {
   }
 
   return (
-    <div className="mx-auto flex h-screen max-h-screen w-full max-w-3xl items-center overflow-hidden px-4 py-4 sm:px-6 lg:px-8">
+    <div className="relative mx-auto flex h-screen max-h-screen w-full max-w-3xl items-center overflow-hidden px-4 py-4 sm:px-6 lg:px-8">
+      <Button
+        variant="outline"
+        className="group fixed top-4 left-4 z-10 gap-2 transition-transform duration-200 hover:-translate-x-1 sm:top-6 sm:left-6"
+        onClick={() => void handleSignOut()}
+        disabled={isSigningOut}
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+        {isSigningOut ? "Signing out..." : "Sign out"}
+      </Button>
+
       <div className="flex h-[80vh] min-h-0 w-full flex-col overflow-hidden rounded-[2rem] border border-border bg-card p-6 sm:p-8">
         {currentStep > 0 && (
           <>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                  Step {currentStep + 1} of {ONBOARDING_STEPS.length}
-                </p>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: "var(--blaze-orange)" }}
+                  />
+                  <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                    Step {currentStep + 1} of {ONBOARDING_STEPS.length}
+                  </p>
+                </div>
                 <h2 className="mt-3 font-heading text-3xl font-medium tracking-tight">
                   {ONBOARDING_STEPS[currentStep]!.title}
                 </h2>
@@ -276,13 +324,18 @@ export function OnboardingWizard() {
                   <div
                     key={step.title}
                     className={cn(
-                      "h-1.5 flex-1 rounded-full transition-colors",
-                      stepNumber === currentStep
-                        ? "bg-primary"
-                        : stepNumber < currentStep
-                          ? "bg-primary/45"
-                          : "bg-muted"
+                      "h-1.5 flex-1 rounded-full transition-all duration-300",
+                      stepNumber > currentStep ? "bg-muted" : ""
                     )}
+                    style={
+                      stepNumber <= currentStep
+                        ? {
+                            background:
+                              "linear-gradient(90deg, var(--blaze-orange), var(--amber-flame))",
+                            opacity: stepNumber < currentStep ? 0.45 : 1,
+                          }
+                        : undefined
+                    }
                   />
                 )
               })}
@@ -334,24 +387,19 @@ export function OnboardingWizard() {
           </div>
         )}
 
-        <div className="mt-8 flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
-            Progress is saved in this browser.
-          </p>
-          <div className="flex items-center justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={prevStep}
-              disabled={currentStep === 0}
-            >
-              Back
-            </Button>
-            {currentStep < ONBOARDING_STEPS.length - 1 ? (
-              <Button onClick={nextStep}>Continue</Button>
-            ) : (
-              <Button onClick={handleSubmit}>Complete setup</Button>
-            )}
-          </div>
+        <div className="mt-8 flex items-center justify-end gap-3 border-t border-border pt-6">
+          <Button
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 0}
+          >
+            Back
+          </Button>
+          {currentStep < ONBOARDING_STEPS.length - 1 ? (
+            <Button onClick={nextStep}>Continue</Button>
+          ) : (
+            <Button onClick={handleSubmit}>Complete setup</Button>
+          )}
         </div>
       </div>
     </div>
@@ -360,8 +408,25 @@ export function OnboardingWizard() {
 
 function StepWelcome() {
   return (
-    <div className="flex h-full flex-col justify-center text-center">
-      <div className="mx-auto max-w-xl">
+    <div className="flex h-full flex-col justify-center">
+      <div className="mx-auto max-w-xl text-center">
+        <div
+          className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-2xl"
+          style={{
+            background:
+              "linear-gradient(135deg, var(--blaze-orange), var(--amber-flame))",
+            boxShadow:
+              "0 6px 20px color-mix(in oklch, var(--pumpkin-spice) 35%, transparent)",
+          }}
+        >
+          <svg
+            className="h-6 w-6 text-white"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
         <h3 className="font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
           Mentiohunt
         </h3>
@@ -397,7 +462,13 @@ function SimpleBenefitCard({
   description: string
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-border bg-[linear-gradient(180deg,#f3f7ff_0%,#ffffff_100%)] p-4 text-left">
+    <div
+      className="rounded-[1.5rem] border border-border p-4 text-left"
+      style={{
+        background:
+          "linear-gradient(160deg, color-mix(in oklch, var(--primary) 7%, var(--card)) 0%, var(--card) 100%)",
+      }}
+    >
       <p className="text-sm font-medium text-foreground">{title}</p>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
         {description}
@@ -793,12 +864,18 @@ function StepReview({ data }: { data: OnboardingData }) {
           </p>
         </div>
 
-        <div className="rounded-[1.5rem] border border-border bg-[linear-gradient(180deg,#f3f7ff_0%,#ffffff_100%)] p-4">
+        <div
+          className="rounded-[1.5rem] border border-border p-4"
+          style={{
+            background:
+              "linear-gradient(160deg, color-mix(in oklch, var(--primary) 7%, var(--card)) 0%, var(--card) 100%)",
+          }}
+        >
           <p className="text-sm font-medium text-foreground">
             Ready for the first queue
           </p>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Once the backend is connected, these answers can drive weekly
+            Once the backend is connected, these answers can drive daily
             discovery jobs, fit reasoning, and outreach preparation.
           </p>
         </div>

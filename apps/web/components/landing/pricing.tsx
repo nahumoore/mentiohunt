@@ -10,7 +10,7 @@ const plans = [
     features: [
       "1 website",
       "Up to 10 competitors",
-      "Weekly discovery runs",
+      "Daily discovery runs",
       "Ranked opportunity queue",
       "Fit scores & rationale",
       "Suggested outreach angles",
@@ -26,7 +26,7 @@ const plans = [
     features: [
       "Up to 5 websites",
       "Unlimited competitors per site",
-      "Weekly discovery runs",
+      "Daily discovery runs",
       "Ranked opportunity queue",
       "Fit scores & rationale",
       "Suggested outreach angles",

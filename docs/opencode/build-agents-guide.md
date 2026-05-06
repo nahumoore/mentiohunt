@@ -109,7 +109,7 @@ Agent prompts should include:
 
 For Mentiohunt, that means grounding agents in terms like:
 
-- weekly queue
+- daily queue
 - opportunities
 - fit
 - outreach angle
@@ -271,7 +271,7 @@ For Mentiohunt, useful beliefs include:
 
 - actionability matters more than volume
 - explainability matters more than black-box scoring
-- recurring weekly value matters more than one-time scans
+- recurring daily value matters more than one-time scans
 - self-serve simplicity matters more than agency-style complexity
 
 ### Add explicit red lines
@@ -424,7 +424,7 @@ The best OpenCode agents are narrow, opinionated, and grounded in the product th
 
 For Mentiohunt, that means agents should push toward:
 
-- clear weekly opportunities
+- clear daily opportunities
 - explainable fit
 - useful outreach preparation
 - plainspoken founder-friendly communication

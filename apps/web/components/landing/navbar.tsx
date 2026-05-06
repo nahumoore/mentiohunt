@@ -11,44 +11,48 @@ const navigation = [
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-40 px-4 pt-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 px-4 pt-4 pb-1 sm:px-6 lg:px-8 bg-gradient-to-b from-background/95 to-transparent backdrop-blur-sm">
       <div className="container mx-auto">
-        <div className="flex items-center justify-between gap-4 rounded-full border border-border bg-card/90 px-4 py-3 shadow-md backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:px-5">
-          <Link
-            href="/"
-            className="flex items-center gap-3 text-sm font-semibold tracking-tight"
-          >
-            <span className="flex size-9 items-center justify-center rounded-full border border-border bg-card text-base font-semibold">
-              m
+        <div className="flex items-center justify-between gap-4 rounded-full border border-border/70 bg-card/85 px-4 py-2.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] ring-1 ring-inset ring-white/10 backdrop-blur-xl sm:px-5 dark:shadow-[0_2px_20px_-4px_rgba(0,0,0,0.35)]">
+
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-blaze-orange)] to-[var(--color-amber-flame)] text-sm font-bold text-white shadow-sm">
+              M
             </span>
-            <span className="font-heading text-base">Mentiohunt</span>
+            <span className="font-heading text-base font-semibold tracking-tight">
+              <span className="text-foreground">Mentio</span>
+              <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
+                hunt
+              </span>
+            </span>
           </Link>
 
-          <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
+          <nav className="hidden items-center gap-1 text-sm text-muted-foreground md:flex">
             {navigation.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="transition-colors hover:text-foreground"
+                className="rounded-full px-3.5 py-1.5 transition-colors hover:bg-accent hover:text-foreground"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
             <Button
               asChild
               variant="ghost"
               size="sm"
-              className="hidden rounded-full sm:inline-flex"
+              className="hidden rounded-full text-muted-foreground hover:text-foreground sm:inline-flex"
             >
-              <Link href="#pricing">Pricing</Link>
+              <Link href="/signin">Login</Link>
             </Button>
-            <Button asChild size="sm" className="rounded-full">
-              <Link href="#queue-preview">See Demo</Link>
+            <Button asChild size="sm" className="rounded-full px-5 shadow-sm shadow-primary/20">
+              <Link href="/signup">Start for free</Link>
             </Button>
           </div>
+
         </div>
       </div>
     </header>

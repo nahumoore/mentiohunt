@@ -23,13 +23,15 @@ const opportunities = [
     name: "Indie Launch Directory",
     type: "Directory",
     fit: "Accepts self-serve submissions from small SaaS products with clear positioning.",
-    nextStep: "Submit the product with a short value prop focused on weekly opportunity discovery.",
+    nextStep:
+      "Submit the product with a short value prop focused on daily opportunity discovery.",
   },
   {
     name: "SEO Ops Resources",
     type: "Resource page",
     fit: "Curates tools for lean SEO workflows and links to outreach prep resources.",
-    nextStep: "Ask to be added with an angle around explainable backlink opportunities.",
+    nextStep:
+      "Ask to be added with an angle around explainable backlink opportunities.",
   },
 ]
 
@@ -61,8 +63,8 @@ export default function Page() {
                 Opportunities
               </h1>
               <p className="text-sm text-muted-foreground">
-                Focus this week on the backlink opportunities that are easiest to explain,
-                prioritize, and act on.
+                Focus this week on the backlink opportunities that are easiest
+                to explain, prioritize, and act on.
               </p>
             </div>
           </section>
@@ -72,7 +74,9 @@ export default function Page() {
               <p className="mt-2 text-3xl font-semibold">12</p>
             </div>
             <div className="rounded-2xl border bg-card p-5">
-              <p className="text-sm text-muted-foreground">High-fit prospects</p>
+              <p className="text-sm text-muted-foreground">
+                High-fit prospects
+              </p>
               <p className="mt-2 text-3xl font-semibold">5</p>
             </div>
             <div className="rounded-2xl border bg-card p-5">
@@ -101,7 +105,9 @@ export default function Page() {
                   <div className="grid gap-3 text-sm md:grid-cols-2">
                     <div>
                       <p className="font-medium">Why it fits</p>
-                      <p className="mt-1 text-muted-foreground">{opportunity.fit}</p>
+                      <p className="mt-1 text-muted-foreground">
+                        {opportunity.fit}
+                      </p>
                     </div>
                     <div>
                       <p className="font-medium">Next step</p>

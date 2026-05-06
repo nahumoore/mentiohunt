@@ -1,34 +1,41 @@
-"use client"
-
-import { motion } from "framer-motion"
-
 import { HeroContent } from "./hero-content"
 
 export function Hero() {
   return (
     <section
       id="hero"
-      className="relative bg-background pt-24 pb-24 sm:pt-32 sm:pb-32 lg:pt-40 lg:pb-40"
+      className="relative overflow-hidden bg-background pt-24 pb-20 sm:pt-32 sm:pb-24 lg:pt-36 lg:pb-32"
     >
-      {/* Dot grid */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0.05)_1px,transparent_1px)] [background-size:28px_28px] dark:bg-[radial-gradient(circle,rgba(255,255,255,0.04)_1px,transparent_1px)]" />
+      {/* Warm glow source at top-center */}
+      <div className="pointer-events-none absolute inset-x-0 -top-20 flex justify-center">
+        <div className="h-[380px] w-[760px] rounded-full bg-[var(--color-princeton-orange)]/9 blur-[110px] dark:bg-[var(--color-princeton-orange)]/12" />
+      </div>
 
-      {/* Animated blobs */}
-      <motion.div
-        className="pointer-events-none absolute -top-60 -left-60 h-[700px] w-[700px] rounded-full bg-primary/10 blur-[140px]"
-        animate={{ x: [0, 60, -30, 0], y: [0, -50, 30, 0] }}
-        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="pointer-events-none absolute top-1/2 -right-60 h-[500px] w-[500px] rounded-full bg-orange-400/8 blur-[120px]"
-        animate={{ x: [0, -50, 20, 0], y: [0, 40, -30, 0] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-      />
-      <motion.div
-        className="pointer-events-none absolute -bottom-40 left-1/3 h-[400px] w-[400px] rounded-full bg-primary/6 blur-[100px]"
-        animate={{ x: [0, -30, 50, 0], y: [0, -40, 20, 0] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 8 }}
-      />
+      {/* Concentric rings radiating from top-center */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center overflow-hidden">
+        <svg
+          className="w-full max-w-5xl"
+          viewBox="0 0 1000 700"
+          fill="none"
+          aria-hidden="true"
+        >
+          {[130, 240, 350, 460, 570, 680, 790, 900].map((r, i) => (
+            <ellipse
+              key={r}
+              cx="500"
+              cy="0"
+              rx={r}
+              ry={r * 0.56}
+              stroke="var(--princeton-orange)"
+              strokeWidth="0.8"
+              opacity={Math.max(0.04, 0.12 - i * 0.011)}
+            />
+          ))}
+        </svg>
+      </div>
+
+      {/* Bottom fade */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-b from-transparent to-background" />
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <HeroContent />

@@ -9,15 +9,21 @@ import { redirect } from "next/navigation"
 
 export default async function OnboardingPage() {
   const supabase = await supabaseServer()
-  const { data: claimsData, error } = await supabase.auth.getClaims()
+  const { data: userData, error } = await supabase.auth.getUser()
 
-  if (error || !claimsData) {
+  if (error || !userData.user) {
     redirect("/")
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("name")
+    .eq("id", userData.user.id)
+    .single()
+
   return (
     <main className="min-h-screen bg-background">
-      <OnboardingWizard />
+      <OnboardingWizard userName={profile?.name ?? null} />
     </main>
   )
 }

@@ -1,6 +1,6 @@
 import { OpenRouter } from "@openrouter/agent"
 
-import { DEFAULT_TEXT_MODEL, type OpenRouterModel } from "./models.js"
+import { DEFAULT_TEXT_MODEL, type OpenRouterModel } from "./models"
 
 type ProcessEnv = {
   env?: Record<string, string | undefined>
@@ -22,11 +22,13 @@ function getOpenRouterApiKey() {
 export type GenerateTextOptions = {
   model?: OpenRouterModel
   input: string
+  systemInstructions?: string
 }
 
 export async function generateText({
   model = DEFAULT_TEXT_MODEL,
   input,
+  systemInstructions,
 }: GenerateTextOptions) {
   const openrouter = new OpenRouter({
     apiKey: getOpenRouterApiKey(),
@@ -35,6 +37,7 @@ export async function generateText({
   const result = openrouter.callModel({
     model,
     input,
+    instructions: systemInstructions,
   })
 
   return await result.getText()

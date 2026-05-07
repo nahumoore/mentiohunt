@@ -1,4 +1,5 @@
 import { supabaseServer } from "@/lib/supabase/server"
+import type { Tables } from "@workspace/supabase/database-types"
 import { redirect } from "next/navigation"
 
 export default async function DashboardLayout({
@@ -25,13 +26,10 @@ export default async function DashboardLayout({
     redirect("/onboarding")
   }
 
-  const billingProfile = profile as
-    | {
-        onboarding_completed: boolean
-        tier: "free" | "pro" | "agency"
-        active_trial?: boolean | null
-      }
-    | null
+  const billingProfile = profile as Pick<
+    Tables<"profiles">,
+    "onboarding_completed" | "tier" | "active_trial"
+  > | null
 
   if (
     billingProfile?.tier === "free" &&

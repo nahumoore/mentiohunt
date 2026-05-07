@@ -1,5 +1,12 @@
+import { lookup } from "node:dns/promises"
+import { isIP } from "node:net"
+import { parse } from "node-html-parser"
+
 const REQUEST_TIMEOUT_MS = 12_000
-const MAX_HTML_LENGTH = 200_000
+const MAX_HTML_BYTES = 200_000
+const MAX_REDIRECTS = 5
+const HTML_CONTENT_TYPES = ["text/html", "application/xhtml+xml"]
+const BLOCKED_HOSTNAMES = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"])
 
 type ExtractedMeta = {
   name: string
@@ -8,6 +15,9 @@ type ExtractedMeta = {
 
 export type FetchedSiteDetails = {
   finalUrl: string
+  contentType: string | null
+  status: number
+  wasTruncated: boolean
   title: string | null
   metaDescription: string | null
   metaTags: ExtractedMeta[]
@@ -16,68 +26,100 @@ export type FetchedSiteDetails = {
   paragraphs: string[]
 }
 
-function stripTags(value: string) {
-  return value.replace(/<[^>]*>/g, " ")
-}
-
-function decodeHtmlEntities(value: string) {
-  return value
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ")
-}
-
 function normalizeText(value: string) {
-  return decodeHtmlEntities(stripTags(value)).replace(/\s+/g, " ").trim()
+  return value.replace(/\s+/g, " ").trim()
 }
 
-function extractTagContents(html: string, tagName: string) {
-  const pattern = new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}>`, "gi")
-  const matches = Array.from(html.matchAll(pattern))
-
-  return matches
-    .map((match) => normalizeText(match[1] ?? ""))
-    .filter(Boolean)
+function dedupeTexts(values: string[], limit: number, minLength = 1) {
+  return Array.from(
+    new Set(values.map(normalizeText).filter((value) => value.length >= minLength))
+  ).slice(0, limit)
 }
 
-function extractTitle(html: string) {
-  const match = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)
-  return match ? normalizeText(match[1] ?? "") || null : null
+function isPrivateIpv4(ip: string) {
+  const parts = ip.split(".").map(Number)
+
+  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part))) {
+    return false
+  }
+
+  const [first, second] = parts as [number, number, number, number]
+
+  return (
+    first === 10 ||
+    first === 127 ||
+    first === 0 ||
+    (first === 169 && second === 254) ||
+    (first === 172 && second >= 16 && second <= 31) ||
+    (first === 192 && second === 168)
+  )
 }
 
-function extractMetaTags(html: string) {
-  const metaMatches = Array.from(html.matchAll(/<meta\b[^>]*>/gi))
+function isPrivateIpv6(ip: string) {
+  const normalized = ip.toLowerCase()
 
-  return metaMatches
-    .map((match) => {
-      const tag = match[0]
-      const nameMatch = tag.match(/(?:name|property)=(["'])(.*?)\1/i)
-      const contentMatch = tag.match(/content=(["'])([\s\S]*?)\1/i)
-
-      const name = nameMatch?.[2]?.trim().toLowerCase()
-      const content = contentMatch ? normalizeText(contentMatch[2] ?? "") : ""
-
-      if (!name || !content) {
-        return null
-      }
-
-      return { name, content }
-    })
-    .filter((meta): meta is ExtractedMeta => meta !== null)
+  return (
+    normalized === "::1" ||
+    normalized.startsWith("fc") ||
+    normalized.startsWith("fd") ||
+    normalized.startsWith("fe80:") ||
+    normalized.startsWith("::ffff:127.") ||
+    normalized.startsWith("::ffff:10.") ||
+    normalized.startsWith("::ffff:192.168.")
+  )
 }
 
-export async function fetchSiteDetails(url: string): Promise<FetchedSiteDetails> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+function isBlockedIpAddress(ip: string) {
+  const version = isIP(ip)
 
-  try {
-    const response = await fetch(url, {
-      redirect: "follow",
-      signal: controller.signal,
+  if (version === 4) {
+    return isPrivateIpv4(ip)
+  }
+
+  if (version === 6) {
+    return isPrivateIpv6(ip)
+  }
+
+  return false
+}
+
+async function assertSafeUrl(rawUrl: string) {
+  const url = new URL(rawUrl)
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    throw new Error("Only HTTP and HTTPS websites are supported")
+  }
+
+  const hostname = url.hostname.toLowerCase()
+
+  if (BLOCKED_HOSTNAMES.has(hostname)) {
+    throw new Error("Local and private network addresses are not allowed")
+  }
+
+  if (isBlockedIpAddress(hostname)) {
+    throw new Error("Local and private network addresses are not allowed")
+  }
+
+  const addresses = await lookup(hostname, { all: true, verbatim: true })
+
+  if (addresses.some((address) => isBlockedIpAddress(address.address))) {
+    throw new Error("Local and private network addresses are not allowed")
+  }
+}
+
+async function fetchWithValidatedRedirects(
+  initialUrl: string,
+  signal: AbortSignal
+) {
+  let currentUrl = initialUrl
+
+  // Validate every hop to avoid following redirects into internal networks.
+  for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
+    await assertSafeUrl(currentUrl)
+
+    const response = await fetch(currentUrl, {
+      redirect: "manual",
+      signal,
       headers: {
         accept: "text/html,application/xhtml+xml",
         "user-agent":
@@ -86,18 +128,159 @@ export async function fetchSiteDetails(url: string): Promise<FetchedSiteDetails>
       cache: "no-store",
     })
 
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location")
+
+      if (!location) {
+        throw new Error("Homepage redirect did not include a location")
+      }
+
+      currentUrl = new URL(location, currentUrl).toString()
+      continue
+    }
+
+    return response
+  }
+
+  throw new Error("Homepage redirected too many times")
+}
+
+async function readHtmlBody(response: Response) {
+  if (!response.body) {
+    return { html: "", wasTruncated: false }
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  const chunks: string[] = []
+  let totalBytes = 0
+  let wasTruncated = false
+
+  while (true) {
+    const { done, value } = await reader.read()
+
+    if (done) {
+      break
+    }
+
+    totalBytes += value.byteLength
+
+    if (totalBytes > MAX_HTML_BYTES) {
+      const remainingBytes = Math.max(
+        MAX_HTML_BYTES - (totalBytes - value.byteLength),
+        0
+      )
+
+      if (remainingBytes > 0) {
+        chunks.push(decoder.decode(value.subarray(0, remainingBytes), { stream: true }))
+      }
+
+      wasTruncated = true
+      await reader.cancel()
+      break
+    }
+
+    chunks.push(decoder.decode(value, { stream: true }))
+  }
+
+  chunks.push(decoder.decode())
+
+  return {
+    html: chunks.join(""),
+    wasTruncated,
+  }
+}
+
+function removeBoilerplate(root: ReturnType<typeof parse>) {
+  for (const selector of [
+    "script",
+    "style",
+    "noscript",
+    "template",
+    "svg",
+    "form",
+    "nav",
+    "footer",
+    "aside",
+    '[role="dialog"]',
+    '[aria-modal="true"]',
+    '[data-nosnippet="true"]',
+  ]) {
+    for (const element of root.querySelectorAll(selector)) {
+      element.remove()
+    }
+  }
+}
+
+function extractMetaTags(root: ReturnType<typeof parse>) {
+  return dedupeTexts(
+    root.querySelectorAll("meta").flatMap((meta) => {
+      const name = meta.getAttribute("name") ?? meta.getAttribute("property")
+      const content = meta.getAttribute("content")
+
+      if (!name || !content) {
+        return []
+      }
+
+      return [JSON.stringify({ name: name.toLowerCase(), content })]
+    }),
+    24
+  ).map((entry) => JSON.parse(entry) as ExtractedMeta)
+}
+
+function extractTextContent(root: ReturnType<typeof parse>, selector: string, options?: {
+  limit: number
+  minLength?: number
+}) {
+  return dedupeTexts(
+    root.querySelectorAll(selector).map((node) => node.textContent),
+    options?.limit ?? 10,
+    options?.minLength ?? 1
+  )
+}
+
+function extractTitle(root: ReturnType<typeof parse>) {
+  return normalizeText(root.querySelector("title")?.textContent ?? "") || null
+}
+
+function extractMainParagraphs(root: ReturnType<typeof parse>) {
+  const contentRoot =
+    root.querySelector("main") ?? root.querySelector("article") ?? root.querySelector("body") ?? root
+
+  return dedupeTexts(
+    contentRoot.querySelectorAll("p").map((paragraph) => paragraph.textContent),
+    8,
+    40
+  )
+}
+
+function isHtmlContentType(contentType: string) {
+  const normalized = contentType.toLowerCase()
+  return HTML_CONTENT_TYPES.some((allowedType) => normalized.includes(allowedType))
+}
+
+export async function fetchSiteDetails(url: string): Promise<FetchedSiteDetails> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
+  try {
+    const response = await fetchWithValidatedRedirects(url, controller.signal)
+
     if (!response.ok) {
       throw new Error(`Homepage request failed with status ${response.status}`)
     }
 
     const contentType = response.headers.get("content-type") ?? ""
 
-    if (!contentType.toLowerCase().includes("text/html")) {
+    if (!isHtmlContentType(contentType)) {
       throw new Error("Homepage did not return HTML")
     }
 
-    const html = (await response.text()).slice(0, MAX_HTML_LENGTH)
-    const metaTags = extractMetaTags(html)
+    const { html, wasTruncated } = await readHtmlBody(response)
+    const root = parse(html)
+    removeBoilerplate(root)
+
+    const metaTags = extractMetaTags(root)
 
     const metaDescription =
       metaTags.find((tag) => tag.name === "description")?.content ??
@@ -107,12 +290,15 @@ export async function fetchSiteDetails(url: string): Promise<FetchedSiteDetails>
 
     return {
       finalUrl: response.url,
-      title: extractTitle(html),
+      contentType: contentType || null,
+      status: response.status,
+      wasTruncated,
+      title: extractTitle(root),
       metaDescription,
-      metaTags: metaTags.slice(0, 24),
-      h1: extractTagContents(html, "h1").slice(0, 6),
-      h2: extractTagContents(html, "h2").slice(0, 12),
-      paragraphs: extractTagContents(html, "p").slice(0, 8),
+      metaTags,
+      h1: extractTextContent(root, "h1", { limit: 6, minLength: 4 }),
+      h2: extractTextContent(root, "h2", { limit: 12, minLength: 4 }),
+      paragraphs: extractMainParagraphs(root),
     }
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {

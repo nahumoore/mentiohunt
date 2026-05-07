@@ -25,7 +25,7 @@ const generatedDetailsSchema = z.object({
   competitors: z.array(z.string().url()).min(8).max(10),
 })
 
-function buildPrompt(site: Awaited<ReturnType<typeof fetchSiteDetails>>) {
+function buildSystemInstructions() {
   return [
     "You are helping populate onboarding data for a backlink prospecting product called Mentiohunt.",
     "Analyze the homepage signals and infer what the company sells, who it helps, and which companies are realistic competitors.",
@@ -38,9 +38,11 @@ function buildPrompt(site: Awaited<ReturnType<typeof fetchSiteDetails>>) {
     "- Use absolute HTTPS URLs only.",
     "- Do not include the input site itself.",
     "- If the homepage is ambiguous, still produce the best plausible competitor list from the available signals.",
-    "Homepage signals:",
-    JSON.stringify(site, null, 2),
   ].join("\n")
+}
+
+function buildUserInput(site: Awaited<ReturnType<typeof fetchSiteDetails>>) {
+  return ["Homepage signals:", JSON.stringify(site, null, 2)].join("\n")
 }
 
 function extractJsonObject(input: string) {
@@ -83,7 +85,10 @@ export async function POST(request: Request) {
 
   try {
     const site = await fetchSiteDetails(parsedRequest.data.websiteUrl)
-    const modelOutput = await generateText({ input: buildPrompt(site) })
+    const modelOutput = await generateText({
+      input: buildUserInput(site),
+      systemInstructions: buildSystemInstructions(),
+    })
     const json = extractJsonObject(modelOutput)
     const parsedGenerated = generatedDetailsSchema.safeParse(JSON.parse(json))
 

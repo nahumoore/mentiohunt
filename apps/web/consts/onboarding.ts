@@ -9,7 +9,12 @@ export const ONBOARDING_STEPS = [
   {
     title: "Your site",
     description:
-      "Tell us what you are building so we can surface relevant backlink opportunities.",
+      "Enter your website and we'll analyze your homepage to get started.",
+  },
+  {
+    title: "Product description",
+    description:
+      "We've auto-detected a description from your homepage. Edit it until it's accurate.",
   },
   {
     title: "Competitors",
@@ -144,14 +149,21 @@ const competitorUrlSchema = z
   .transform(normalizeUrl)
   .pipe(z.string().url("Enter a valid competitor URL."))
 
-export const websiteStepSchema = z.object({
+export const websiteUrlStepSchema = z.object({
   websiteUrl: siteUrlSchema,
+})
+
+export const productDescriptionStepSchema = z.object({
   productDescription: z
     .string()
     .trim()
     .min(24, "Add a short description with at least 24 characters.")
     .max(280, "Keep the description under 280 characters."),
 })
+
+export const websiteStepSchema = websiteUrlStepSchema.merge(
+  productDescriptionStepSchema
+)
 
 export const competitorsStepSchema = z.object({
   competitors: z

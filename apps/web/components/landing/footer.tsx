@@ -2,10 +2,15 @@ import Link from "next/link"
 
 import { Button } from "@workspace/ui/components/button"
 
-const navLinks = [
-  { href: "#how-it-works", label: "How it Works" },
-  { href: "#target-personas", label: "Who It's For" },
-  { href: "#pricing", label: "Pricing" },
+const productLinks = [
+  { href: "/#how-it-works", label: "How it Works" },
+  { href: "/#target-personas", label: "Who It's For" },
+  { href: "/#pricing", label: "Pricing" },
+]
+
+const resourceLinks = [
+  { href: "/about", label: "About" },
+  { href: "/alternatives", label: "Alternatives" },
 ]
 
 const legalLinks = [
@@ -76,7 +81,7 @@ export function Footer() {
                   size="lg"
                   className="h-11 rounded-full px-6 text-sm text-muted-foreground hover:text-foreground"
                 >
-                  <Link href="#how-it-works">See how it works →</Link>
+                  <Link href="/#how-it-works">See how it works →</Link>
                 </Button>
               </div>
             </div>
@@ -96,7 +101,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-10 border-t border-border/60 pt-10 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto] lg:items-start">
+        <div className="mt-10 grid gap-10 border-t border-border/60 pt-10 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto] lg:items-start">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-blaze-orange)] text-white shadow-sm">
@@ -121,7 +126,25 @@ export function Footer() {
               Product
             </p>
             <ul className="space-y-2">
-              {navLinks.map((link) => (
+              {productLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground transition-colors hover:text-[var(--color-princeton-orange)]"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+              Resources
+            </p>
+            <ul className="space-y-2">
+              {resourceLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -149,16 +172,17 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link
-                  href="#hero"
-                  className="text-sm text-muted-foreground transition-colors hover:text-[var(--color-princeton-orange)]"
-                >
-                  ↑ Back to top
-                </Link>
-              </li>
             </ul>
           </div>
+        </div>
+
+        <div className="mt-8 flex justify-start border-t border-border/40 pt-6 sm:justify-end">
+          <Link
+            href="#"
+            className="text-sm text-muted-foreground transition-colors hover:text-[var(--color-princeton-orange)]"
+          >
+            ↑ Back to top
+          </Link>
         </div>
       </div>
     </footer>

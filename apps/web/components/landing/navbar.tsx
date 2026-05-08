@@ -3,9 +3,10 @@ import Link from "next/link"
 import { Button } from "@workspace/ui/components/button"
 
 const navigation = [
-  { href: "#how-it-works", label: "How it Works" },
-  { href: "#target-personas", label: "For Who" },
-  { href: "#pricing", label: "Pricing" },
+  { href: "/#how-it-works", label: "How it Works" },
+  { href: "/#target-personas", label: "For Who" },
+  { href: "/#pricing", label: "Pricing" },
+  { href: "/about", label: "About" },
 ]
 
 export function Navbar() {

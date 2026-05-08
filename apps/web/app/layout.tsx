@@ -7,6 +7,12 @@ import { Toaster } from "sonner"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
+  title: {
+    default: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
+    template: "%s — Mentiohunt",
+  },
+  description:
+    "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details, email drafts, and real-time alerts.",
 }
 
 const outfitHeading = Outfit({

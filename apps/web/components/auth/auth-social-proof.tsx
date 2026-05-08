@@ -71,7 +71,7 @@ export function AuthSocialProof() {
         <figcaption className="flex items-center gap-3">
           <Image
             src={Founder}
-            alt="Nicolas Moreno"
+            alt="Nicolas More"
             width={40}
             height={40}
             className="rounded-full object-cover ring-2 ring-primary-foreground/20"

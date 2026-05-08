@@ -1,0 +1,1 @@
+Playful 2D vector SaaS illustration for Mentiohunt, with a clean white background, orange as the primary brand color, rounded website cards, curved backlink arrows, highlighted text snippets, cursor and search/magnifying elements, soft shadows, friendly animated feel, simple modern startup aesthetic, consistent blog image style, no realistic people, no 3D.

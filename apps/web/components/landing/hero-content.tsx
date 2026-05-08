@@ -115,6 +115,7 @@ export function HeroContent() {
                   <span className="ml-1.5 text-lg font-bold text-foreground">
                     4.9
                   </span>
+                  <span className="font-medium text-muted-foreground">/5</span>
                 </div>
               </div>
               <p className="text-sm font-medium text-muted-foreground">
@@ -122,7 +123,7 @@ export function HeroContent() {
                 <span className="font-semibold text-foreground">
                   100+ founders
                 </span>{" "}
-                building backlinks daily
+                distributing their products
               </p>
             </div>
           </motion.div>

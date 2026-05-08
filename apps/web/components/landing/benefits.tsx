@@ -49,9 +49,9 @@ const benefits = [
 const proofPoints = ["Scored fit", "Outreach prep", "Daily queue"]
 
 export function Benefits() {
-  const featured = benefits[0]
+  const featured = benefits[0]!
   const FeaturedIcon = featured.icon
-  const footer = benefits[5]
+  const footer = benefits[5]!
   const FooterIcon = footer.icon
   const middle = benefits.slice(1, 5)
 

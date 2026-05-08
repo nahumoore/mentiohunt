@@ -8,7 +8,7 @@ const softwareApplicationSchema = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description:
-    "Backlink opportunity queue for founders and agencies. Surfaces qualified directories, listicles, and resource pages worth pitching — with fit rationale, outreach angles, and contact info.",
+    "Distribution tool for founders and small marketing teams. Build backlinks from your articles and monitor Reddit for posts where your product fits — with contact details, outreach drafts, and real-time alerts.",
   offers: {
     "@type": "Offer",
     price: "49",

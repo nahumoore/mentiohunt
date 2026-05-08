@@ -13,22 +13,22 @@ import {
 } from "@/components/landing"
 
 export const metadata: Metadata = {
-  title: "Mentiohunt – Backlink Opportunity Queue for Founders",
+  title: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
   description:
-    "Turn your site, keywords, and competitors into a daily queue of qualified backlink opportunities — with fit rationale, outreach angles, and contact info when available.",
+    "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details, email drafts, and real-time alerts.",
   openGraph: {
-    title: "Mentiohunt – Backlink Opportunity Queue for Founders",
+    title: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
     description:
-      "Turn your site, keywords, and competitors into a daily queue of qualified backlink opportunities — with fit rationale, outreach angles, and contact info when available.",
+      "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details, email drafts, and real-time alerts.",
     url: "https://mentiohunt.com",
     siteName: "Mentiohunt",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mentiohunt – Backlink Opportunity Queue for Founders",
+    title: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
     description:
-      "Turn your site, keywords, and competitors into a daily queue of qualified backlink opportunities — with fit rationale, outreach angles, and contact info when available.",
+      "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details, email drafts, and real-time alerts.",
   },
 }
 

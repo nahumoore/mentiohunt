@@ -7,11 +7,11 @@ import { PricingClientPage } from "./client-page"
 export const metadata: Metadata = {
   title: "Pricing – Mentiohunt",
   description:
-    "Simple, transparent pricing for backlink prospecting. Start free, upgrade when ready.",
+    "Simple, transparent pricing for backlink building and community monitoring. Start free, upgrade when ready.",
   openGraph: {
     title: "Pricing – Mentiohunt",
     description:
-      "Simple, transparent pricing for backlink prospecting. Start free, upgrade when ready.",
+      "Simple, transparent pricing for backlink building and community monitoring. Start free, upgrade when ready.",
     url: "https://mentiohunt.com/pricing",
     siteName: "Mentiohunt",
     type: "website",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Pricing – Mentiohunt",
     description:
-      "Simple, transparent pricing for backlink prospecting. Start free, upgrade when ready.",
+      "Simple, transparent pricing for backlink building and community monitoring. Start free, upgrade when ready.",
   },
 }
 

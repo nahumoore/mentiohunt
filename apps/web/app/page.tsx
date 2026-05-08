@@ -1,11 +1,13 @@
 import type { Metadata } from "next"
 import {
   Benefits,
+  DiscoverySurfaces,
   Footer,
   Hero,
   HowItWorks,
   Navbar,
   Pricing,
+  SoftwareApplicationSchema,
   TargetPersonas,
   Testimonials,
 } from "@/components/landing"
@@ -33,43 +35,14 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: "Mentiohunt",
-            url: "https://mentiohunt.com",
-            applicationCategory: "BusinessApplication",
-            operatingSystem: "Web",
-            description:
-              "Backlink opportunity queue for founders and agencies. Surfaces qualified directories, listicles, and resource pages worth pitching — with fit rationale, outreach angles, and contact info.",
-            offers: {
-              "@type": "Offer",
-              price: "49",
-              priceCurrency: "USD",
-              priceSpecification: {
-                "@type": "UnitPriceSpecification",
-                price: "49",
-                priceCurrency: "USD",
-                billingDuration: "P1M",
-              },
-            },
-            publisher: {
-              "@type": "Organization",
-              name: "Mentiohunt",
-              url: "https://mentiohunt.com",
-            },
-          }),
-        }}
-      />
+      <SoftwareApplicationSchema />
       <main className="min-h-screen bg-background text-foreground">
         <Navbar />
         <Hero />
+        <DiscoverySurfaces />
+        <Benefits />
         <HowItWorks />
         <TargetPersonas />
-        <Benefits />
         <Testimonials />
         <Pricing />
         <Footer />

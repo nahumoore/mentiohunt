@@ -1,6 +1,13 @@
+import { AppSidebar } from "@/components/app-sidebar"
+import { DashboardHeader } from "@/components/dashboard-header"
+import { DashboardStoreHydrator } from "@/components/dashboard-store-hydrator"
 import { supabaseServer } from "@/lib/supabase/server"
 import type { Tables } from "@workspace/supabase/database-types"
 import { redirect } from "next/navigation"
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@workspace/ui/components/sidebar"
 
 export default async function DashboardLayout({
   children,
@@ -16,11 +23,23 @@ export default async function DashboardLayout({
     redirect("/signin")
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("onboarding_completed, tier, active_trial")
-    .eq("id", user.id)
-    .maybeSingle()
+  const [profileResult, productResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, email, name, onboarding_completed, tier, active_trial")
+      .eq("id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("products")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ])
+
+  const profile = profileResult.data
+  const product = productResult.data
 
   if (!profile?.onboarding_completed) {
     redirect("/onboarding")
@@ -38,5 +57,21 @@ export default async function DashboardLayout({
     redirect("/expired-trial")
   }
 
-  return children
+  const sidebarUser = {
+    name: (user.user_metadata?.full_name as string | undefined) ?? user.email ?? "User",
+    email: user.email ?? "",
+    avatar: (user.user_metadata?.avatar_url as string | undefined) ?? "",
+  }
+
+  return (
+    <DashboardStoreHydrator profile={profile} product={product}>
+      <SidebarProvider>
+        <AppSidebar user={sidebarUser} initialProduct={product} />
+        <SidebarInset>
+          <DashboardHeader />
+          <div className="p-6">{children}</div>
+        </SidebarInset>
+      </SidebarProvider>
+    </DashboardStoreHydrator>
+  )
 }

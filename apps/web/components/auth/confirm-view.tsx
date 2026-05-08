@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { FieldDescription, FieldGroup } from "@/components/ui/field";
+import { Button } from "@workspace/ui/components/button";
+import { FieldDescription, FieldGroup } from "@workspace/ui/components/field";
 import { captureEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import {
@@ -95,18 +95,17 @@ export function ConfirmView({
         </div>
 
         {isValid ? (
-          <Button
-            type="button"
-            variant="animated"
-            disabled={isLoading}
-            onClick={handleConfirm}
-            className="w-full"
-          >
-            {isLoading ? (
-              <IconLoader2 className="size-4 animate-spin" />
-            ) : null}
-            {isSignup ? "Confirm your account" : "Log in"}
-          </Button>
+            <Button
+              type="button"
+              disabled={isLoading}
+              onClick={handleConfirm}
+              className="w-full"
+            >
+              {isLoading ? (
+                <IconLoader2 className="size-4 animate-spin" />
+              ) : null}
+              {isSignup ? "Confirm your account" : "Log in"}
+            </Button>
         ) : (
           <Button variant="outline" className="w-full" asChild>
             <Link href="/signin">Back to sign in</Link>

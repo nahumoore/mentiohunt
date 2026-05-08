@@ -2,18 +2,16 @@
 
 import { supabaseClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { cn } from "@workspace/ui/lib/utils"
 
 import {
-  DISCOVERY_SOURCES,
   ONBOARDING_STEPS,
   OPPORTUNITY_TYPES,
   competitorsStepSchema,
-  discoveryStepSchema,
   normalizeUrl,
   onboardingSchema,
   opportunityTypesStepSchema,
@@ -33,7 +31,6 @@ import {
   IconFileDescription,
   IconListCheck,
   IconLoader2,
-  IconSearch,
   IconTarget,
   IconUsersGroup,
   IconWorld,
@@ -46,7 +43,6 @@ const STEP_ICONS = [
   IconFileDescription,
   IconUsersGroup,
   IconTarget,
-  IconSearch,
   IconListCheck,
 ]
 
@@ -64,6 +60,14 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
   const [submitMessage, setSubmitMessage] = useState("")
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    const lastStepIndex = ONBOARDING_STEPS.length - 1
+    if (currentStep > lastStepIndex) {
+      setCurrentStep(lastStepIndex)
+    }
+  }, [currentStep, setCurrentStep])
 
   const getCurrentStepErrors = (): OnboardingFieldErrors => {
     switch (currentStep) {
@@ -106,16 +110,6 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
               opportunityTypes:
                 result.error.issues[0]?.message ??
                 "Select at least one opportunity type.",
-            }
-      }
-      case 5: {
-        const result = discoveryStepSchema.safeParse(data)
-        return result.success
-          ? {}
-          : {
-              discoverySource:
-                result.error.issues[0]?.message ??
-                "Choose how you heard about mentions.",
             }
       }
       default:
@@ -167,11 +161,6 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
       }
       case 4: {
         const result = opportunityTypesStepSchema.safeParse(data)
-        if (result.success) updateData(result.data)
-        break
-      }
-      case 5: {
-        const result = discoveryStepSchema.safeParse(data)
         if (result.success) updateData(result.data)
         break
       }
@@ -239,7 +228,9 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     setSubmitMessage("")
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (isSubmitting) return
+
     const normalizedData = {
       ...data,
       websiteUrl: normalizeUrl(data.websiteUrl),
@@ -264,7 +255,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
           case 4:
             return opportunityTypesStepSchema.safeParse(normalizedData)
           case 5:
-            return discoveryStepSchema.safeParse(normalizedData)
+            return { success: true } as const
           default:
             return { success: true } as const
         }
@@ -289,12 +280,33 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     }
 
     updateData(result.data)
-    setIsCompleted(true)
     setFieldErrors({})
-    console.log("Submitting onboarding data:", result.data)
-    setSubmitMessage(
-      "Setup looks good. Your progress is saved locally while the backend is not connected yet."
-    )
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch("/api/onboarding/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result.data),
+      })
+
+      const json = (await response.json().catch(() => null)) as {
+        error?: string
+      } | null
+
+      if (!response.ok) {
+        setSubmitMessage(json?.error ?? "Failed to complete onboarding.")
+        return
+      }
+
+      setIsCompleted(true)
+      router.replace("/dashboard")
+      router.refresh()
+    } catch {
+      setSubmitMessage("Failed to reach the server. Check your connection.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleSignOut = async () => {
@@ -327,7 +339,6 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
   const StepIcon = STEP_ICONS[currentStep] ?? null
   const totalSteps = ONBOARDING_STEPS.length - 1
   const isLastStep = currentStep === ONBOARDING_STEPS.length - 1
-  const progressPct = (currentStep / totalSteps) * 100
 
   return (
     <div className="mx-auto flex h-screen max-h-screen w-full max-w-xl items-center overflow-hidden px-4 py-4 sm:px-6">
@@ -424,14 +435,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
               error={fieldErrors.opportunityTypes}
             />
           )}
-          {currentStep === 5 && (
-            <StepDiscovery
-              data={data}
-              updateField={updateField}
-              error={fieldErrors.discoverySource}
-            />
-          )}
-          {currentStep === 6 && <StepReview data={data} />}
+          {currentStep === 5 && <StepReview data={data} />}
         </div>
 
         {submitMessage && (
@@ -454,15 +458,25 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
 
           {isLastStep ? (
             <Button
-              onClick={handleSubmit}
+              onClick={() => void handleSubmit()}
+              disabled={isSubmitting}
               className="gap-2 rounded-full px-7 font-medium text-white"
               style={{
                 background:
                   "linear-gradient(135deg, var(--blaze-orange), var(--amber-flame))",
               }}
             >
-              <IconCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
-              Complete setup
+              {isSubmitting ? (
+                <>
+                  <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <IconCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  Complete setup
+                </>
+              )}
             </Button>
           ) : (
             <Button
@@ -996,45 +1010,6 @@ function StepOpportunityTypes({
   )
 }
 
-function StepDiscovery({
-  data,
-  updateField,
-  error,
-}: {
-  data: OnboardingData
-  updateField: <Key extends OnboardingField>(
-    field: Key,
-    value: OnboardingData[Key]
-  ) => void
-  error?: string
-}) {
-  return (
-    <div className="h-full overflow-y-auto pr-1">
-      <div className="space-y-2 pb-2">
-        {DISCOVERY_SOURCES.map((source) => {
-          const selected = data.discoverySource === source.id
-          return (
-            <button
-              key={source.id}
-              type="button"
-              onClick={() => updateField("discoverySource", source.id)}
-              className={cn(
-                "w-full rounded-2xl border px-4 py-3.5 text-left text-sm font-medium transition-all",
-                selected
-                  ? "border-primary bg-primary/5 text-foreground"
-                  : "border-border bg-background text-muted-foreground hover:border-primary/30 hover:text-foreground"
-              )}
-            >
-              {source.label}
-            </button>
-          )
-        })}
-      </div>
-      {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
-    </div>
-  )
-}
-
 function ReviewRow({
   label,
   children,
@@ -1096,15 +1071,6 @@ function StepReview({ data }: { data: OnboardingData }) {
               </span>
             ))}
           </div>
-        </ReviewRow>
-
-        <ReviewRow label="Found through">
-          <p className="text-sm text-foreground">
-            {
-              DISCOVERY_SOURCES.find((s) => s.id === data.discoverySource)
-                ?.label
-            }
-          </p>
         </ReviewRow>
       </div>
     </div>

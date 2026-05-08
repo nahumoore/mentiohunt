@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@workspace/ui/components/button";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+} from "@workspace/ui/components/field";
+import { Input } from "@workspace/ui/components/input";
 import { captureEvent, identifyAnalyticsUser } from "@/lib/analytics";
 import { supabaseClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -262,7 +262,6 @@ export function SignupForm({
           <Field>
             <Button
               type="submit"
-              variant="animated"
               disabled={isLoading}
               className="w-full relative"
             >

@@ -130,7 +130,7 @@ function Step({
 
 export function HeroIllustration() {
   return (
-    <div className="relative mx-auto w-full max-w-xl lg:max-w-none">
+    <div className="relative isolate mx-auto w-full max-w-xl lg:max-w-none">
       <div className="absolute inset-x-10 top-8 -z-10 h-36 rounded-full bg-primary/10 blur-3xl" />
       <div className="overflow-hidden rounded-3xl border border-border bg-background/75 p-5 sm:p-6">
         <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:gap-3">

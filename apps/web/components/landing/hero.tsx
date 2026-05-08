@@ -4,7 +4,7 @@ export function Hero() {
   return (
     <section
       id="hero"
-      className="relative overflow-hidden bg-background pt-24 pb-20 sm:pt-32 sm:pb-24 lg:pt-36 lg:pb-32"
+      className="relative overflow-x-clip bg-background pt-24 pb-20 sm:pt-32 sm:pb-24 lg:pt-14 lg:pb-6 xl:pt-16 xl:pb-8"
     >
       {/* Warm glow source at top-center */}
       <div className="pointer-events-none absolute inset-x-0 -top-20 flex justify-center">

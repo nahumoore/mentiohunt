@@ -2,13 +2,13 @@
 
 ## Project
 
-Mentiohunt is a self-serve backlink and mentions prospecting tool.
+Mentiohunt is a self-serve distribution tool for founders and small marketing teams. Two parallel engines:
 
-It helps founders and small agencies discover relevant websites where they can potentially earn backlinks or brand mentions.
+**Backlink Building** — user provides sitemap or article URLs. System auto-fetches daily, finds websites where each article fits well, surfaces contact details for the site owner/founder, and generates a ready-to-send email draft with the recipient address attached.
 
-Users provide their site, product description, niche, target keywords, and competitors. The product then runs recurring discovery jobs and produces a daily queue of qualified outreach opportunities with clear next steps.
+**Community Monitoring** — system continuously watches relevant communities (Reddit, forums, etc.) for posts that match the user's product. When a fit is found, it generates a suggested reply mentioning the product and sends an email alert so the user can respond while the thread is active.
 
-This product is about opportunity discovery and outreach preparation, not guaranteed backlink acquisition.
+ICP is founders and small marketing teams. Agency workflows may come later but should not drive early product decisions unless explicitly requested.
 
 ## Current Repo Shape
 
@@ -50,7 +50,7 @@ For app-specific work:
 - Avoid generic SEO wording when more specific backlink prospecting language is available.
 - Prefer small, composable additions over premature platform abstractions.
 - Default to building the thinnest useful version of a workflow before adding automation depth.
-- Preserve room for future recurring jobs, queue management, and multi-client agency workflows.
+- Preserve room for future recurring jobs, queue management, and eventual multi-client agency workflows without making agencies the initial ICP.
 - Do not present outputs as verified contact intelligence unless the system actually verified them.
 - Do not imply backlink acquisition is guaranteed.
 

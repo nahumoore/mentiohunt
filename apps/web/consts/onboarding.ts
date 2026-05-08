@@ -27,10 +27,6 @@ export const ONBOARDING_STEPS = [
       "Choose the outreach motions you want to prioritize in your daily queue.",
   },
   {
-    title: "Discovery source",
-    description: "Help us understand how you found mentions.",
-  },
-  {
     title: "Review",
     description:
       "Confirm your inputs before we prepare the first opportunity queue.",
@@ -191,4 +187,9 @@ export const discoveryStepSchema = z.object({
 export const onboardingSchema = websiteStepSchema
   .merge(competitorsStepSchema)
   .merge(opportunityTypesStepSchema)
-  .merge(discoveryStepSchema)
+  .extend({
+    discoverySource: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      discoveryStepSchema.shape.discoverySource.optional()
+    ),
+  })

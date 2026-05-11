@@ -1,3 +1,3 @@
 export * from "@openrouter/agent";
-export * from "./generate-text.js";
-export * from "./models.js";
+export * from "./generate-text";
+export * from "./models";

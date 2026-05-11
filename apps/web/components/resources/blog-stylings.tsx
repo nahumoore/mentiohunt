@@ -127,17 +127,31 @@ export default function BlogStylings(): MDXComponents {
         {...props}
       />
     ),
-    a: (props) => (
-      <Link
-        {...props}
-        href={props.href || ""}
-        className="font-medium text-primary underline decoration-foreground/10 underline-offset-4 transition-colors hover:decoration-foreground/25"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {props.children}
-      </Link>
-    ),
+    a: ({ href, rel, target, className, ...props }) => {
+      const hrefValue = href || ""
+      const isExternal = /^https?:\/\//.test(hrefValue)
+      const relParts = new Set(rel?.split(/\s+/).filter(Boolean))
+
+      if (isExternal) {
+        relParts.add("noopener")
+        relParts.add("noreferrer")
+      }
+
+      return (
+        <Link
+          {...props}
+          href={hrefValue}
+          className={cn(
+            "font-medium text-primary underline decoration-foreground/10 underline-offset-4 transition-colors hover:decoration-foreground/25",
+            className
+          )}
+          target={target ?? (isExternal ? "_blank" : undefined)}
+          rel={relParts.size > 0 ? Array.from(relParts).join(" ") : undefined}
+        >
+          {props.children}
+        </Link>
+      )
+    },
     table: (props) => (
       <div className="my-6 w-full overflow-x-auto rounded-lg border border-border">
         <table

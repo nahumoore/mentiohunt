@@ -76,7 +76,7 @@ export default async function AlternativePage({ params }: Props) {
       <Navbar />
 
       <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-border/60 px-4 pt-12 pb-14 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden border-b border-border/60 pt-12 pb-14">
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.025]"
             style={{
@@ -87,7 +87,7 @@ export default async function AlternativePage({ params }: Props) {
           <div className="pointer-events-none absolute top-0 -right-32 h-80 w-80 rounded-full bg-[var(--color-blaze-orange)]/8 blur-3xl" />
           <div className="pointer-events-none absolute bottom-0 -left-20 h-56 w-56 rounded-full bg-[var(--color-amber-glow)]/6 blur-3xl" />
 
-          <div className="relative container mx-auto max-w-5xl">
+          <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
             <Link
               href="/alternatives"
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -146,7 +146,7 @@ export default async function AlternativePage({ params }: Props) {
           </div>
         </section>
 
-        <div className="container mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-0">
+        <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
           <article className="text-foreground lg:max-w-[720px]">
             <MDXContent source={content} />
 

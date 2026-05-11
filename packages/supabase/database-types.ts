@@ -14,67 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
-      opportunities: {
+      backlink_prospects: {
         Row: {
+          action_type: Database["public"]["Enums"]["prospect_action_type"]
           contact_email: string | null
           contact_name: string | null
-          contact_role: string | null
+          created_at: string
+          directory_id: string | null
           discovered_at: string
           domain: string
-          domain_rating: number | null
           email_body: string
           email_subject: string
-          fit_reason: string
-          fit_score: number
           id: string
-          monthly_traffic: number | null
-          page_title: string
-          page_url: string
+          mention_snippet: string | null
           product_id: string
-          status: Database["public"]["Enums"]["opportunity_status"]
-          type: Database["public"]["Enums"]["opportunity_type"]
+          source_competitor_url: string | null
+          status: Database["public"]["Enums"]["prospect_status"]
+          target_url: string
+          tier: Database["public"]["Enums"]["prospect_tier"]
         }
         Insert: {
+          action_type: Database["public"]["Enums"]["prospect_action_type"]
           contact_email?: string | null
           contact_name?: string | null
-          contact_role?: string | null
+          created_at?: string
+          directory_id?: string | null
           discovered_at?: string
           domain: string
-          domain_rating?: number | null
           email_body?: string
           email_subject?: string
-          fit_reason: string
-          fit_score: number
           id?: string
-          monthly_traffic?: number | null
-          page_title: string
-          page_url: string
+          mention_snippet?: string | null
           product_id: string
-          status?: Database["public"]["Enums"]["opportunity_status"]
-          type: Database["public"]["Enums"]["opportunity_type"]
+          source_competitor_url?: string | null
+          status?: Database["public"]["Enums"]["prospect_status"]
+          target_url: string
+          tier: Database["public"]["Enums"]["prospect_tier"]
         }
         Update: {
+          action_type?: Database["public"]["Enums"]["prospect_action_type"]
           contact_email?: string | null
           contact_name?: string | null
-          contact_role?: string | null
+          created_at?: string
+          directory_id?: string | null
           discovered_at?: string
           domain?: string
-          domain_rating?: number | null
           email_body?: string
           email_subject?: string
-          fit_reason?: string
-          fit_score?: number
           id?: string
-          monthly_traffic?: number | null
-          page_title?: string
-          page_url?: string
+          mention_snippet?: string | null
           product_id?: string
-          status?: Database["public"]["Enums"]["opportunity_status"]
-          type?: Database["public"]["Enums"]["opportunity_type"]
+          source_competitor_url?: string | null
+          status?: Database["public"]["Enums"]["prospect_status"]
+          target_url?: string
+          tier?: Database["public"]["Enums"]["prospect_tier"]
         }
         Relationships: [
           {
-            foreignKeyName: "opportunities_product_id_fkey"
+            foreignKeyName: "backlink_prospects_directory_id_fkey"
+            columns: ["directory_id"]
+            isOneToOne: false
+            referencedRelation: "directories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backlink_prospects_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -82,73 +86,53 @@ export type Database = {
           },
         ]
       }
-      product_articles: {
+      directories: {
         Row: {
-          added_at: string
-          description: string | null
+          category: string | null
+          check_method: Database["public"]["Enums"]["directory_check_method"]
+          created_at: string
+          domain: string
           id: string
-          product_id: string
-          sitemap_id: string | null
-          source: Database["public"]["Enums"]["article_source"]
-          status: Database["public"]["Enums"]["article_status"]
-          target_keywords: string[]
-          title: string
-          topics: string[]
-          url: string
-          word_count: number | null
+          is_active: boolean
+          is_free: boolean
+          name: string
+          slug_pattern: string | null
+          submit_url: string
         }
         Insert: {
-          added_at?: string
-          description?: string | null
+          category?: string | null
+          check_method?: Database["public"]["Enums"]["directory_check_method"]
+          created_at?: string
+          domain: string
           id?: string
-          product_id: string
-          sitemap_id?: string | null
-          source?: Database["public"]["Enums"]["article_source"]
-          status?: Database["public"]["Enums"]["article_status"]
-          target_keywords?: string[]
-          title: string
-          topics?: string[]
-          url: string
-          word_count?: number | null
+          is_active?: boolean
+          is_free?: boolean
+          name: string
+          slug_pattern?: string | null
+          submit_url: string
         }
         Update: {
-          added_at?: string
-          description?: string | null
+          category?: string | null
+          check_method?: Database["public"]["Enums"]["directory_check_method"]
+          created_at?: string
+          domain?: string
           id?: string
-          product_id?: string
-          sitemap_id?: string | null
-          source?: Database["public"]["Enums"]["article_source"]
-          status?: Database["public"]["Enums"]["article_status"]
-          target_keywords?: string[]
-          title?: string
-          topics?: string[]
-          url?: string
-          word_count?: number | null
+          is_active?: boolean
+          is_free?: boolean
+          name?: string
+          slug_pattern?: string | null
+          submit_url?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "product_articles_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_articles_sitemap_id_fkey"
-            columns: ["sitemap_id"]
-            isOneToOne: false
-            referencedRelation: "product_sitemaps"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      product_discovery_settings: {
+      product_backlink_discovery_settings: {
         Row: {
           dofollow_only: boolean
           domain_age_min: number
           dr_max: number | null
           dr_min: number
           languages: string[]
+          opportunity_types: Database["public"]["Enums"]["prospect_tier"][]
           product_id: string
           traffic_min: number
           updated_at: string
@@ -159,6 +143,7 @@ export type Database = {
           dr_max?: number | null
           dr_min?: number
           languages?: string[]
+          opportunity_types?: Database["public"]["Enums"]["prospect_tier"][]
           product_id: string
           traffic_min?: number
           updated_at?: string
@@ -169,6 +154,7 @@ export type Database = {
           dr_max?: number | null
           dr_min?: number
           languages?: string[]
+          opportunity_types?: Database["public"]["Enums"]["prospect_tier"][]
           product_id?: string
           traffic_min?: number
           updated_at?: string
@@ -183,51 +169,13 @@ export type Database = {
           },
         ]
       }
-      product_sitemaps: {
-        Row: {
-          articles_discovered: number
-          created_at: string
-          id: string
-          last_crawled_at: string | null
-          product_id: string
-          status: Database["public"]["Enums"]["sitemap_status"]
-          url: string
-        }
-        Insert: {
-          articles_discovered?: number
-          created_at?: string
-          id?: string
-          last_crawled_at?: string | null
-          product_id: string
-          status?: Database["public"]["Enums"]["sitemap_status"]
-          url: string
-        }
-        Update: {
-          articles_discovered?: number
-          created_at?: string
-          id?: string
-          last_crawled_at?: string | null
-          product_id?: string
-          status?: Database["public"]["Enums"]["sitemap_status"]
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_sitemaps_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       products: {
         Row: {
           competitors: string[]
           created_at: string
           id: string
-          opportunity_types: Database["public"]["Enums"]["opportunity_type"][]
           product_description: string
+          product_name: string
           updated_at: string
           user_id: string
           website_url: string
@@ -236,8 +184,8 @@ export type Database = {
           competitors?: string[]
           created_at?: string
           id?: string
-          opportunity_types?: Database["public"]["Enums"]["opportunity_type"][]
           product_description: string
+          product_name: string
           updated_at?: string
           user_id: string
           website_url: string
@@ -246,8 +194,8 @@ export type Database = {
           competitors?: string[]
           created_at?: string
           id?: string
-          opportunity_types?: Database["public"]["Enums"]["opportunity_type"][]
           product_description?: string
+          product_name?: string
           updated_at?: string
           user_id?: string
           website_url?: string
@@ -301,18 +249,17 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      article_source: "manual" | "sitemap"
-      article_status: "active" | "disabled"
       billing_tier: "free" | "pro" | "agency"
-      opportunity_status: "new" | "contacted" | "replied" | "won" | "dismissed"
-      opportunity_type:
-        | "directories"
-        | "resource_pages"
-        | "listicles"
-        | "alternatives"
-        | "competitor_mentions"
-        | "niche_blogs"
-      sitemap_status: "active" | "paused" | "error"
+      directory_check_method: "head_check" | "serp_check"
+      prospect_action_type: "self_service" | "email_outreach"
+      prospect_status:
+        | "new"
+        | "submitted"
+        | "contacted"
+        | "replied"
+        | "won"
+        | "dismissed"
+      prospect_tier: "directory" | "competitor_backlink" | "unlinked_mention"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -440,19 +387,18 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      article_source: ["manual", "sitemap"],
-      article_status: ["active", "disabled"],
       billing_tier: ["free", "pro", "agency"],
-      opportunity_status: ["new", "contacted", "replied", "won", "dismissed"],
-      opportunity_type: [
-        "directories",
-        "resource_pages",
-        "listicles",
-        "alternatives",
-        "competitor_mentions",
-        "niche_blogs",
+      directory_check_method: ["head_check", "serp_check"],
+      prospect_action_type: ["self_service", "email_outreach"],
+      prospect_status: [
+        "new",
+        "submitted",
+        "contacted",
+        "replied",
+        "won",
+        "dismissed",
       ],
-      sitemap_status: ["active", "paused", "error"],
+      prospect_tier: ["directory", "competitor_backlink", "unlinked_mention"],
     },
   },
 } as const

@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import {
-  IconRadar,
   IconLayoutGrid,
   IconAdjustmentsHorizontal,
   IconChartBar,
@@ -10,6 +9,7 @@ import {
   IconCalendar,
   IconWorld,
   IconLink,
+  IconExternalLink,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import {
@@ -22,6 +22,7 @@ import { Switch } from "@workspace/ui/components/switch"
 
 import { TYPE_CONFIG } from "@/lib/opportunity-types"
 import type { OpportunityType } from "@/lib/opportunity-types"
+import { useProductStore } from "@/stores/product-store"
 
 const OPPORTUNITY_TYPES = Object.keys(TYPE_CONFIG) as OpportunityType[]
 
@@ -42,6 +43,14 @@ const LANGUAGE_OPTIONS = [
   { value: "pt", label: "Portuguese" },
   { value: "it", label: "Italian" },
 ]
+
+function getHostname(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "")
+  } catch {
+    return url.replace(/^https?:\/\//, "").replace(/^www\./, "")
+  }
+}
 
 function RangeRow({
   label,
@@ -172,6 +181,7 @@ function MinRow({
 }
 
 export default function DiscoverySetupPage() {
+  const product = useProductStore((state) => state.product)
   const [activeTypes, setActiveTypes] = useState<Set<OpportunityType>>(
     () => new Set(OPPORTUNITY_TYPES)
   )
@@ -209,19 +219,49 @@ export default function DiscoverySetupPage() {
     filters.dofollowOnly,
     filters.languages.length > 0,
   ].filter(Boolean).length
+  const competitors = product?.competitors ?? []
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-3xl border border-orange/20 bg-[linear-gradient(135deg,var(--color-card)_0%,color-mix(in_oklch,var(--color-amber-glow)_10%,var(--color-card))_55%,var(--color-background)_100%)] p-4 shadow-sm ring-1 shadow-orange/5 ring-foreground/5 sm:p-5">
-        <div className="max-w-2xl">
-          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            <IconRadar className="size-7 shrink-0" />
-            Discovery Setup
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Control which types of backlink opportunities Mentiohunt discovers
-            and how they are prioritised in your queue.
-          </p>
+      <div className="border-b border-border/70 pb-5">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="mb-3 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <span>Discovery controls</span>
+              <span className="h-px w-8 bg-orange" />
+              <span className="tabular-nums">
+                {activeTypes.size} types active
+              </span>
+            </div>
+            <h1 className="font-heading text-3xl font-semibold tracking-[-0.035em] text-foreground sm:text-4xl">
+              Discovery setup
+            </h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+              Choose which sources should feed your backlink queue. Start broad,
+              then pause anything that feels noisy.
+            </p>
+          </div>
+
+          <div className="flex max-w-full gap-1 overflow-x-auto rounded-full border border-border/70 bg-card p-1 shadow-sm">
+            <span className="shrink-0 rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-foreground">
+              Backlink types
+              <span className="ml-1.5 tabular-nums opacity-65">
+                {activeTypes.size}/{OPPORTUNITY_TYPES.length}
+              </span>
+            </span>
+            <span className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+              Website filters
+              <span className="ml-1.5 tabular-nums opacity-65">
+                {activeWebsiteFilters}
+              </span>
+            </span>
+            <span className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+              Competitors
+              <span className="ml-1.5 tabular-nums opacity-65">
+                {competitors.length}
+              </span>
+            </span>
+          </div>
         </div>
       </div>
 
@@ -241,10 +281,21 @@ export default function DiscoverySetupPage() {
               {activeWebsiteFilters}
             </span>
           </TabsTrigger>
+          <TabsTrigger value="competitors">
+            <IconUsers className="size-4" />
+            <span>Competitors</span>
+            <span data-slot="tab-count">{competitors.length}</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="backlink-types">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="overflow-hidden rounded-3xl border border-border/70 bg-card">
+            <div className="border-b border-border/70 px-5 py-4">
+              <p className="text-sm font-medium">Backlink types</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Choose the sources you want Mentiohunt to look for.
+              </p>
+            </div>
             {OPPORTUNITY_TYPES.map((type) => {
               const cfg = TYPE_CONFIG[type]
               const Icon = cfg.icon
@@ -261,21 +312,28 @@ export default function DiscoverySetupPage() {
                   aria-checked={isActive}
                   tabIndex={0}
                   className={cn(
-                    "flex cursor-pointer gap-4 rounded-3xl bg-card p-5 ring-1 ring-foreground/5 shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                    !isActive && "opacity-50 grayscale"
+                    "group flex cursor-pointer items-center gap-4 border-b border-border/70 px-5 py-4 transition-colors last:border-b-0 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+                    !isActive && "opacity-50 grayscale hover:opacity-80"
                   )}
                 >
                   <div
                     className={cn(
-                      "flex size-10 shrink-0 items-center justify-center rounded-2xl",
+                      "flex size-9 shrink-0 items-center justify-center rounded-2xl",
                       cfg.color
                     )}
                   >
-                    <Icon className="size-5" />
+                    <Icon className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm">{cfg.label}</p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <p className="text-sm font-medium">{cfg.label}</p>
+                      {!isActive && (
+                        <span className="text-xs text-muted-foreground">
+                          Paused
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
                       {cfg.description}
                     </p>
                   </div>
@@ -381,6 +439,49 @@ export default function DiscoverySetupPage() {
               </div>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="competitors">
+          {competitors.length === 0 ? (
+            <div className="rounded-3xl bg-card p-6 ring-1 ring-foreground/5 shadow-sm">
+              <div className="max-w-xl">
+                <p className="text-sm font-medium">No competitors added yet</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Add competitor sites during product setup so discovery can find
+                  overlap, comparison pages, and alternative-page opportunities.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {competitors.map((competitor) => (
+                <a
+                  key={competitor}
+                  href={competitor}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex gap-4 rounded-3xl bg-card p-5 ring-1 ring-foreground/5 shadow-sm transition-all hover:-translate-y-0.5 hover:ring-orange/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-orange/10">
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${getHostname(competitor)}&sz=32`}
+                      className="size-5 rounded"
+                      alt=""
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
+                      {getHostname(competitor)}
+                    </p>
+                    <p className="mt-1 truncate text-xs leading-5 text-muted-foreground">
+                      {competitor}
+                    </p>
+                  </div>
+                  <IconExternalLink className="mt-1 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+                </a>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

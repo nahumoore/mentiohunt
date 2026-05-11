@@ -2,8 +2,14 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { IconChevronRight, IconSearch } from "@tabler/icons-react"
+import { IconChevronRight, IconInfoCircle } from "@tabler/icons-react"
 import { Card } from "@workspace/ui/components/card"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   MOCK_OPPORTUNITIES,
@@ -69,6 +75,35 @@ function StatusBadge({ status }: { status: OpportunityStatus }) {
   )
 }
 
+function ColumnHeader({
+  label,
+  description,
+}: {
+  label: string
+  description: string
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span>{label}</span>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            aria-label={`About ${label}`}
+            className="rounded-full text-muted-foreground/70 transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <IconInfoCircle className="size-3.5" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="start">
+          {description}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  )
+}
+
 export default function OpportunitiesPage() {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState<OpportunityStatus | "all">(
@@ -94,37 +129,40 @@ export default function OpportunitiesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-3xl border border-orange/20 bg-[linear-gradient(135deg,var(--color-card)_0%,color-mix(in_oklch,var(--color-amber-glow)_10%,var(--color-card))_55%,var(--color-background)_100%)] p-4 shadow-sm ring-1 shadow-orange/5 ring-foreground/5 sm:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="border-b border-border/70 pb-5">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              <IconSearch className="size-7 shrink-0" />
-              Backlink prospects
+            <div className="mb-3 flex items-center gap-3 text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+              <span>Backlink prospects</span>
+              <span className="h-px w-8 bg-orange" />
+              <span className="tabular-nums">{filtered.length} shown</span>
+            </div>
+            <h1 className="font-heading text-3xl font-semibold tracking-[-0.035em] text-foreground sm:text-4xl">
+              Opportunity queue
             </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Qualified sites where Mentiohunt found a realistic path to a
-              backlink, ranked so your next move is obvious.
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+              Prioritized sites where there is a realistic path to a backlink.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 lg:max-w-md lg:justify-end">
+          <div className="flex max-w-full gap-1 overflow-x-auto rounded-full border border-border/70 bg-card p-1 shadow-sm">
             {STATUS_FILTERS.map((f) => (
               <button
                 key={f.value}
                 onClick={() => setStatusFilter(f.value)}
                 className={cn(
-                  "rounded-full px-3 py-1.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
+                  "shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
                   statusFilter === f.value
-                    ? "bg-foreground text-background shadow-sm"
-                    : "bg-background/60 text-muted-foreground ring-1 ring-border/70 hover:bg-orange/10 hover:text-foreground hover:ring-orange/30"
+                    ? "bg-orange text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 {f.label}
-                {f.value !== "all" && (
-                  <span className="ml-1.5 tabular-nums opacity-60">
-                    {statusCounts[f.value]}
-                  </span>
-                )}
+                <span className="ml-1.5 tabular-nums opacity-65">
+                  {f.value === "all"
+                    ? MOCK_OPPORTUNITIES.length
+                    : statusCounts[f.value]}
+                </span>
               </button>
             ))}
           </div>
@@ -133,74 +171,96 @@ export default function OpportunitiesPage() {
 
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/60">
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground">
-                  Domain
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                  Type
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                  Fit score
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                  DR
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                  Traffic
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                  Status
-                </th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="px-6 py-12 text-center text-sm text-muted-foreground"
+          <TooltipProvider>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/60">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground">
+                    <ColumnHeader
+                      label="Domain"
+                      description="The site where this backlink opportunity was found."
+                    />
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                    <ColumnHeader
+                      label="Type"
+                      description="The outreach angle or opportunity source for this prospect."
+                    />
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                    <ColumnHeader
+                      label="Backlink power"
+                      description="Estimated authority and traffic value if this prospect links back."
+                    />
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                    <ColumnHeader
+                      label="DR"
+                      description="Domain rating, a shorthand for the site's backlink authority."
+                    />
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                    <ColumnHeader
+                      label="Traffic"
+                      description="Estimated monthly organic visits to the prospect domain."
+                    />
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                    <ColumnHeader
+                      label="Status"
+                      description="Where this prospect sits in your outreach workflow."
+                    />
+                  </th>
+                  <th className="px-4 py-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-6 py-12 text-center text-sm text-muted-foreground"
+                    >
+                      No prospects with this status yet.
+                    </td>
+                  </tr>
+                )}
+                {filtered.map((opp) => (
+                  <tr
+                    key={opp.id}
+                    onClick={() =>
+                      router.push(
+                        `/dashboard/link-building/prospects/${opp.id}`
+                      )
+                    }
+                    className="cursor-pointer border-b border-border/40 transition-colors last:border-0 hover:bg-muted/40"
                   >
-                    No prospects with this status yet.
-                  </td>
-                </tr>
-              )}
-              {filtered.map((opp) => (
-                <tr
-                  key={opp.id}
-                  onClick={() =>
-                    router.push(`/dashboard/link-building/prospects/${opp.id}`)
-                  }
-                  className="cursor-pointer border-b border-border/40 transition-colors last:border-0 hover:bg-muted/40"
-                >
-                  <td className="px-6 py-3.5">
-                    <span className="font-medium">{opp.domain}</span>
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <TypeBadge type={opp.type} />
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <ScoreBadge score={opp.fitScore} />
-                  </td>
-                  <td className="px-4 py-3.5 text-muted-foreground tabular-nums">
-                    {opp.domainRating}
-                  </td>
-                  <td className="px-4 py-3.5 text-muted-foreground tabular-nums">
-                    {formatTraffic(opp.monthlyTraffic)}
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <StatusBadge status={opp.status} />
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <IconChevronRight className="size-4 text-muted-foreground" />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <td className="px-6 py-3.5">
+                      <span className="font-medium">{opp.domain}</span>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <TypeBadge type={opp.type} />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <ScoreBadge score={opp.backlinkPower} />
+                    </td>
+                    <td className="px-4 py-3.5 text-muted-foreground tabular-nums">
+                      {opp.domainRating}
+                    </td>
+                    <td className="px-4 py-3.5 text-muted-foreground tabular-nums">
+                      {formatTraffic(opp.monthlyTraffic)}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <StatusBadge status={opp.status} />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <IconChevronRight className="size-4 text-muted-foreground" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TooltipProvider>
         </div>
       </Card>
     </div>

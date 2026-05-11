@@ -65,3 +65,7 @@ For app-specific work:
 ## Frontend Guidance
 
 - Always use Tabler icons, don't use lucide-react, don't create the svgs yourself or any other icon library.
+
+## Database Guidance
+
+- Never use `*` for select queries, always specify the columns you need.

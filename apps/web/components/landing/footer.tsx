@@ -116,6 +116,14 @@ export function Footer() {
               opportunities, plain-English fit rationale, and outreach prep —
               ready each morning.
             </p>
+            <div className="space-y-1 text-xs leading-5 text-muted-foreground/65">
+              <p>Made with ❤️ from 🇺🇸</p>
+              <p>
+                131 Continental Dr. Suite 305,
+                <br />
+                19713, Delaware.
+              </p>
+            </div>
             <p className="text-xs text-muted-foreground/50">
               © 2026 Mentiohunt · Built for recurring backlink work
             </p>

@@ -42,6 +42,7 @@ const tabsListVariants = cva(
 
 function TabsList({
   className,
+  children,
   variant = "default",
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> &
@@ -50,9 +51,15 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       data-variant={variant}
-      className={cn(tabsListVariants({ variant }), className)}
+      className={cn(
+        "relative gap-1",
+        tabsListVariants({ variant }),
+        className
+      )}
       {...props}
-    />
+    >
+      {children}
+    </TabsPrimitive.List>
   )
 }
 
@@ -65,7 +72,8 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       className={cn(
         "relative inline-flex flex-none items-center justify-center gap-2 whitespace-nowrap border border-transparent! text-sm font-medium text-foreground/60 transition-all hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 dark:text-muted-foreground dark:hover:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        "h-10 rounded-full px-3.5 py-2 data-[state=active]:bg-[linear-gradient(135deg,var(--color-crimson-carrot),var(--color-orange))] data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-orange/20 data-[state=active]:hover:text-white sm:px-4",
+        "h-10 rounded-full px-3.5 py-2 data-[state=active]:text-white data-[state=active]:hover:text-white sm:px-4",
+        "group-data-[variant=default]/tabs-list:data-[state=active]:bg-[linear-gradient(135deg,var(--color-crimson-carrot),var(--color-orange))] group-data-[variant=default]/tabs-list:data-[state=active]:shadow-md group-data-[variant=default]/tabs-list:data-[state=active]:shadow-orange/20",
         "[&_[data-slot=tab-count]]:ml-1 [&_[data-slot=tab-count]]:rounded-full [&_[data-slot=tab-count]]:bg-background [&_[data-slot=tab-count]]:px-2 [&_[data-slot=tab-count]]:py-0.5 [&_[data-slot=tab-count]]:text-[11px] [&_[data-slot=tab-count]]:leading-none [&_[data-slot=tab-count]]:font-bold [&_[data-slot=tab-count]]:text-muted-foreground [&_[data-slot=tab-count]]:tabular-nums [&_[data-slot=tab-count]]:ring-1 [&_[data-slot=tab-count]]:ring-border/60 data-[state=active]:[&_[data-slot=tab-count]]:bg-white/20 data-[state=active]:[&_[data-slot=tab-count]]:text-white data-[state=active]:[&_[data-slot=tab-count]]:ring-white/20",
         "group-data-[variant=line]/tabs-list:h-auto group-data-[variant=line]/tabs-list:rounded-none group-data-[variant=line]/tabs-list:px-4 group-data-[variant=line]/tabs-list:pb-3 group-data-[variant=line]/tabs-list:pt-1 group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent group-data-[variant=line]/tabs-list:data-[state=active]:text-foreground group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none",
         "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-[variant=line]/tabs-list:after:inset-x-0 group-data-[variant=line]/tabs-list:after:bottom-[-5px] group-data-[variant=line]/tabs-list:after:h-0.5 group-data-[variant=line]/tabs-list:data-[state=active]:after:opacity-100 group-data-vertical/tabs:after:inset-y-0 group-data-vertical/tabs:after:-right-1 group-data-vertical/tabs:after:w-0.5",

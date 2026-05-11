@@ -35,11 +35,8 @@ export const ONBOARDING_STEPS = [
 
 export const OPPORTUNITY_TYPE_IDS = [
   "directories",
-  "resource_pages",
-  "listicles",
-  "alternatives",
-  "competitor_mentions",
-  "niche_blogs",
+  "competitor_backlinks",
+  "unlinked_mentions",
 ] as const
 
 export const DISCOVERY_SOURCE_IDS = [
@@ -55,33 +52,19 @@ export const DISCOVERY_SOURCE_IDS = [
 export const OPPORTUNITY_TYPES = [
   {
     id: "directories",
-    label: "Directories",
-    description: "Submit your product to niche directories.",
+    label: "Directory listings",
+    description: "Submit your product to curated niche directories.",
   },
   {
-    id: "resource_pages",
-    label: "Resource pages",
-    description: "Get listed on relevant curated resource pages.",
+    id: "competitor_backlinks",
+    label: "Competitor backlinks",
+    description:
+      "Find sites linking to competitors and pitch your product as an alternative.",
   },
   {
-    id: "listicles",
-    label: "Best tools articles",
-    description: "Pitch listicles that compare products in your category.",
-  },
-  {
-    id: "alternatives",
-    label: "Alternatives pages",
-    description: "Show up on competitor comparison and alternative pages.",
-  },
-  {
-    id: "competitor_mentions",
-    label: "Competitor mentions",
-    description: "Find pages that already mention competitors but not you.",
-  },
-  {
-    id: "niche_blogs",
-    label: "Niche blogs",
-    description: "Prioritize editorial sites that cover your market closely.",
+    id: "unlinked_mentions",
+    label: "Unlinked mentions",
+    description: "Find pages that mention your product but forgot to link to you.",
   },
 ] as const
 

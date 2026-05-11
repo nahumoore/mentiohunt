@@ -29,6 +29,7 @@ dist
 
 
 # Debug
+.logs/
 npm-debug.log*
 
 # Misc

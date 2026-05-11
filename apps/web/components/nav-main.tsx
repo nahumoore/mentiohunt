@@ -1,20 +1,19 @@
 "use client"
 
 import {
-  IconBroadcast,
-  IconLink,
   IconMessage2Share,
-  IconNotes,
   IconRadar,
   IconSearch,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import type { ReactNode } from "react"
 
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -25,43 +24,47 @@ import {
 const linkBuildingHref = "/dashboard/link-building"
 const communityMentionsHref = "/dashboard/community-mentions"
 
-const NAV_ITEMS = [
+type NavItem = {
+  title: string
+  url: string
+  icon: ReactNode
+  disabled?: boolean
+  badge?: string
+  items?: NavItem[]
+}
+
+type NavSection = {
+  label: string
+  items: NavItem[]
+}
+
+const NAV_SECTIONS: NavSection[] = [
   {
-    title: "Link Building",
-    url: linkBuildingHref,
-    icon: <IconLink />,
+    label: "Link Building",
     items: [
       {
-        title: "Prospects Found",
+        title: "Prospects",
         url: `${linkBuildingHref}/prospects`,
         icon: <IconSearch />,
-      },
-      {
-        title: "Content Library",
-        url: `${linkBuildingHref}/content-library`,
-        icon: <IconNotes />,
-      },
-      {
-        title: "Discovery Setup",
-        url: `${linkBuildingHref}/discovery-setup`,
-        icon: <IconRadar />,
+        items: [
+          {
+            title: "Discovery Setup",
+            url: `${linkBuildingHref}/discovery-setup`,
+            icon: <IconRadar />,
+          },
+        ],
       },
     ],
   },
   {
-    title: "Community Mentions",
-    url: communityMentionsHref,
-    icon: <IconBroadcast />,
+    label: "Community Mentions",
     items: [
       {
         title: "Reply Queue",
         url: `${communityMentionsHref}/reply-queue`,
         icon: <IconMessage2Share />,
-      },
-      {
-        title: "Listening Setup",
-        url: `${communityMentionsHref}/listening-setup`,
-        icon: <IconRadar />,
+        disabled: true,
+        badge: "Soon",
       },
     ],
   },
@@ -71,70 +74,102 @@ export function NavMain() {
   const pathname = usePathname()
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
-      <SidebarMenu className="gap-4">
-        {NAV_ITEMS.map((item) => {
-          const hasActiveSubItem = item.items?.some((subItem) =>
-            isRouteActive(pathname, subItem.url)
-          )
-          const isActive =
-            isRouteActive(pathname, item.url) && !hasActiveSubItem
+    <>
+      {NAV_SECTIONS.map((section) => (
+        <SidebarGroup key={section.label}>
+          <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+          <SidebarMenu>
+            {section.items.map((item) => {
+              const isActive = isRouteActive(pathname, item.url)
 
-          return (
-            <SidebarMenuItem key={item.url}>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive}
-                tooltip={item.title}
-                className={
-                  isActive
-                    ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
-                    : undefined
-                }
-              >
-                <Link
-                  href={item.url}
-                  aria-current={pathname === item.url ? "page" : undefined}
-                >
-                  {item.icon}
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-              {item.items?.length ? (
-                <SidebarMenuSub>
-                  {item.items.map((subItem) => {
-                    const isSubItemActive = isRouteActive(pathname, subItem.url)
+              return (
+                <SidebarMenuItem key={item.url}>
+                  {item.disabled ? (
+                    <SidebarMenuButton
+                      disabled
+                      tooltip={`${item.title} (coming soon)`}
+                      className="pr-14"
+                    >
+                      {item.icon}
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  ) : (
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.title}
+                      className={
+                        isActive
+                          ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                          : undefined
+                      }
+                    >
+                      <Link
+                        href={item.url}
+                        aria-current={isActive ? "page" : undefined}
+                      >
+                        {item.icon}
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  )}
+                  {item.badge ? (
+                    <SidebarMenuBadge className="right-2 bg-orange/10 px-1.5 text-[10px] font-semibold tracking-wide text-primary uppercase ring-1 ring-orange/20">
+                      {item.badge}
+                    </SidebarMenuBadge>
+                  ) : null}
+                  {item.items ? (
+                    <SidebarMenuSub>
+                      {item.items.map((subItem) => {
+                        const isSubItemActive = isRouteActive(
+                          pathname,
+                          subItem.url
+                        )
 
-                    return (
-                      <SidebarMenuSubItem key={subItem.url}>
-                        <SidebarMenuSubButton
-                          asChild
-                          isActive={isSubItemActive}
-                          className={
-                            isSubItemActive
-                              ? "bg-primary/10 font-medium text-primary hover:bg-primary/10 hover:text-primary"
-                              : undefined
-                          }
-                        >
-                          <Link
-                            href={subItem.url}
-                            aria-current={isSubItemActive ? "page" : undefined}
-                          >
-                            {subItem.icon}
-                            <span>{subItem.title}</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    )
-                  })}
-                </SidebarMenuSub>
-              ) : null}
-            </SidebarMenuItem>
-          )
-        })}
-      </SidebarMenu>
-    </SidebarGroup>
+                        return (
+                          <SidebarMenuSubItem key={subItem.url}>
+                            {subItem.disabled ? (
+                              <SidebarMenuSubButton
+                                aria-disabled="true"
+                                tabIndex={-1}
+                                className="pointer-events-none pr-12 opacity-50"
+                              >
+                                {subItem.icon}
+                                <span>{subItem.title}</span>
+                              </SidebarMenuSubButton>
+                            ) : (
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={isSubItemActive}
+                              >
+                                <Link
+                                  href={subItem.url}
+                                  aria-current={
+                                    isSubItemActive ? "page" : undefined
+                                  }
+                                >
+                                  {subItem.icon}
+                                  <span>{subItem.title}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            )}
+                            {subItem.badge ? (
+                              <span className="pointer-events-none absolute top-1 right-1 rounded-full bg-orange/10 px-1.5 py-0.5 text-[10px] leading-4 font-semibold tracking-wide text-primary uppercase ring-1 ring-orange/20">
+                                {subItem.badge}
+                              </span>
+                            ) : null}
+                          </SidebarMenuSubItem>
+                        )
+                      })}
+                    </SidebarMenuSub>
+                  ) : null}
+                </SidebarMenuItem>
+              )
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
   )
 }
 

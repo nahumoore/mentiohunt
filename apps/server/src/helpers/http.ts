@@ -9,6 +9,8 @@ export type FetchResult = {
   contentType: string;
 };
 
+export { AbortError };
+
 export async function fetchWithRetry(
   url: string,
   opts: {

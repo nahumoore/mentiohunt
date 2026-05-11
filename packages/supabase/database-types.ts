@@ -26,9 +26,8 @@ export type Database = {
           email_body: string
           email_subject: string
           id: string
-          mention_snippet: string | null
+          notes: string | null
           product_id: string
-          source_competitor_url: string | null
           status: Database["public"]["Enums"]["prospect_status"]
           target_url: string
           tier: Database["public"]["Enums"]["prospect_tier"]
@@ -44,9 +43,8 @@ export type Database = {
           email_body?: string
           email_subject?: string
           id?: string
-          mention_snippet?: string | null
+          notes?: string | null
           product_id: string
-          source_competitor_url?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url: string
           tier: Database["public"]["Enums"]["prospect_tier"]
@@ -62,9 +60,8 @@ export type Database = {
           email_body?: string
           email_subject?: string
           id?: string
-          mention_snippet?: string | null
+          notes?: string | null
           product_id?: string
-          source_competitor_url?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string
           tier?: Database["public"]["Enums"]["prospect_tier"]
@@ -89,38 +86,32 @@ export type Database = {
       directories: {
         Row: {
           category: string | null
-          check_method: Database["public"]["Enums"]["directory_check_method"]
           created_at: string
           domain: string
           id: string
           is_active: boolean
           is_free: boolean
           name: string
-          slug_pattern: string | null
           submit_url: string
         }
         Insert: {
           category?: string | null
-          check_method?: Database["public"]["Enums"]["directory_check_method"]
           created_at?: string
           domain: string
           id?: string
           is_active?: boolean
           is_free?: boolean
           name: string
-          slug_pattern?: string | null
           submit_url: string
         }
         Update: {
           category?: string | null
-          check_method?: Database["public"]["Enums"]["directory_check_method"]
           created_at?: string
           domain?: string
           id?: string
           is_active?: boolean
           is_free?: boolean
           name?: string
-          slug_pattern?: string | null
           submit_url?: string
         }
         Relationships: []
@@ -250,7 +241,6 @@ export type Database = {
     }
     Enums: {
       billing_tier: "free" | "pro" | "agency"
-      directory_check_method: "head_check" | "serp_check"
       prospect_action_type: "self_service" | "email_outreach"
       prospect_status:
         | "new"
@@ -388,7 +378,6 @@ export const Constants = {
   public: {
     Enums: {
       billing_tier: ["free", "pro", "agency"],
-      directory_check_method: ["head_check", "serp_check"],
       prospect_action_type: ["self_service", "email_outreach"],
       prospect_status: [
         "new",

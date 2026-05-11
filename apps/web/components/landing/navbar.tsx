@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { Button } from "@workspace/ui/components/button"
+import { cn } from "@workspace/ui/lib/utils"
 
 const navigation = [
   { href: "/#how-it-works", label: "How it Works" },
@@ -9,11 +10,16 @@ const navigation = [
   { href: "/about", label: "About" },
 ]
 
-export function Navbar() {
+export function Navbar({ overlay = false }: { overlay?: boolean }) {
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-b from-background/95 to-transparent px-4 pt-4 pb-1 backdrop-blur-sm sm:px-6 lg:px-8">
+    <header
+      className={cn(
+        "z-40 px-4 pt-4 pb-1 sm:px-6 lg:px-8",
+        overlay ? "fixed inset-x-0 top-0" : "sticky top-0"
+      )}
+    >
       <div className="container mx-auto">
-        <div className="flex items-center justify-between gap-4 rounded-full border border-border/70 bg-card/85 px-4 py-2.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] ring-1 ring-white/10 backdrop-blur-xl ring-inset sm:px-5 dark:shadow-[0_2px_20px_-4px_rgba(0,0,0,0.35)]">
+        <div className="flex items-center justify-between gap-4 rounded-full border border-border/70 bg-card/75 px-4 py-2.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] ring-1 ring-white/10 backdrop-blur-xl ring-inset sm:px-5 dark:shadow-[0_2px_20px_-4px_rgba(0,0,0,0.35)]">
           <Link href="/" className="flex items-center gap-2.5">
             <span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-blaze-orange)] to-[var(--color-amber-flame)] text-sm font-bold text-white shadow-sm">
               M

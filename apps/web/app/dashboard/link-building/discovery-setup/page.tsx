@@ -3,12 +3,7 @@
 import { useState } from "react"
 import {
   IconLayoutGrid,
-  IconAdjustmentsHorizontal,
-  IconChartBar,
   IconUsers,
-  IconCalendar,
-  IconWorld,
-  IconLink,
   IconExternalLink,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
@@ -26,24 +21,6 @@ import { useProductStore } from "@/stores/product-store"
 
 const OPPORTUNITY_TYPES = Object.keys(TYPE_CONFIG) as OpportunityType[]
 
-interface TargetWebsiteFilters {
-  drMin: number
-  drMax: number
-  trafficMin: number
-  domainAgeMin: number
-  dofollowOnly: boolean
-  languages: string[]
-}
-
-const LANGUAGE_OPTIONS = [
-  { value: "en", label: "English" },
-  { value: "es", label: "Spanish" },
-  { value: "de", label: "German" },
-  { value: "fr", label: "French" },
-  { value: "pt", label: "Portuguese" },
-  { value: "it", label: "Italian" },
-]
-
 function getHostname(url: string) {
   try {
     return new URL(url).hostname.replace(/^www\./, "")
@@ -52,147 +29,11 @@ function getHostname(url: string) {
   }
 }
 
-function RangeRow({
-  label,
-  description,
-  icon: Icon,
-  minValue,
-  maxValue,
-  onMinChange,
-  onMaxChange,
-  minPlaceholder,
-  maxPlaceholder,
-  min,
-  max,
-  unit,
-}: {
-  label: string
-  description: string
-  icon: React.ElementType
-  minValue: number
-  maxValue: number
-  onMinChange: (v: number) => void
-  onMaxChange: (v: number) => void
-  minPlaceholder: string
-  maxPlaceholder: string
-  min: number
-  max: number
-  unit?: string
-}) {
-  return (
-    <div className="flex gap-4 rounded-3xl bg-card p-5 ring-1 ring-foreground/5 shadow-sm">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-orange/10 text-orange">
-        <Icon className="size-5" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{label}</p>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          {description}
-        </p>
-        <div className="mt-3 flex items-center gap-2">
-          <div className="relative flex-1">
-            <input
-              type="number"
-              value={minValue || ""}
-              onChange={(e) => onMinChange(Number(e.target.value))}
-              placeholder={minPlaceholder}
-              min={min}
-              max={max}
-              className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-sm tabular-nums placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            {unit && (
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                {unit}
-              </span>
-            )}
-          </div>
-          <span className="shrink-0 text-xs text-muted-foreground">to</span>
-          <div className="relative flex-1">
-            <input
-              type="number"
-              value={maxValue || ""}
-              onChange={(e) => onMaxChange(Number(e.target.value))}
-              placeholder={maxPlaceholder}
-              min={min}
-              max={max}
-              className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-sm tabular-nums placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            {unit && (
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                {unit}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function MinRow({
-  label,
-  description,
-  icon: Icon,
-  value,
-  onChange,
-  placeholder,
-  min,
-  unit,
-}: {
-  label: string
-  description: string
-  icon: React.ElementType
-  value: number
-  onChange: (v: number) => void
-  placeholder: string
-  min: number
-  unit?: string
-}) {
-  return (
-    <div className="flex gap-4 rounded-3xl bg-card p-5 ring-1 ring-foreground/5 shadow-sm">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-orange/10 text-orange">
-        <Icon className="size-5" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{label}</p>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          {description}
-        </p>
-        <div className="mt-3">
-          <div className="relative max-w-[180px]">
-            <input
-              type="number"
-              value={value || ""}
-              onChange={(e) => onChange(Number(e.target.value))}
-              placeholder={placeholder}
-              min={min}
-              className="w-full rounded-xl border border-border bg-background px-3 py-1.5 pr-10 text-sm tabular-nums placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            {unit && (
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                {unit}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function DiscoverySetupPage() {
   const product = useProductStore((state) => state.product)
   const [activeTypes, setActiveTypes] = useState<Set<OpportunityType>>(
     () => new Set(OPPORTUNITY_TYPES)
   )
-  const [filters, setFilters] = useState<TargetWebsiteFilters>({
-    drMin: 0,
-    drMax: 0,
-    trafficMin: 0,
-    domainAgeMin: 0,
-    dofollowOnly: true,
-    languages: ["en"],
-  })
 
   function toggle(type: OpportunityType) {
     setActiveTypes((prev) => {
@@ -202,23 +43,6 @@ export default function DiscoverySetupPage() {
       return next
     })
   }
-
-  function toggleLanguage(lang: string) {
-    setFilters((prev) => {
-      const next = prev.languages.includes(lang)
-        ? prev.languages.filter((l) => l !== lang)
-        : [...prev.languages, lang]
-      return { ...prev, languages: next }
-    })
-  }
-
-  const activeWebsiteFilters = [
-    filters.drMin > 0 || filters.drMax > 0,
-    filters.trafficMin > 0,
-    filters.domainAgeMin > 0,
-    filters.dofollowOnly,
-    filters.languages.length > 0,
-  ].filter(Boolean).length
   const competitors = product?.competitors ?? []
 
   return (
@@ -250,12 +74,6 @@ export default function DiscoverySetupPage() {
               </span>
             </span>
             <span className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-              Website filters
-              <span className="ml-1.5 tabular-nums opacity-65">
-                {activeWebsiteFilters}
-              </span>
-            </span>
-            <span className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground">
               Competitors
               <span className="ml-1.5 tabular-nums opacity-65">
                 {competitors.length}
@@ -270,21 +88,10 @@ export default function DiscoverySetupPage() {
           <TabsTrigger value="backlink-types">
             <IconLayoutGrid className="size-4" />
             <span>Backlink Types</span>
-            <span data-slot="tab-count">
-              {activeTypes.size}/{OPPORTUNITY_TYPES.length}
-            </span>
-          </TabsTrigger>
-          <TabsTrigger value="target-websites">
-            <IconAdjustmentsHorizontal className="size-4" />
-            <span>Target Websites</span>
-            <span data-slot="tab-count">
-              {activeWebsiteFilters}
-            </span>
           </TabsTrigger>
           <TabsTrigger value="competitors">
             <IconUsers className="size-4" />
             <span>Competitors</span>
-            <span data-slot="tab-count">{competitors.length}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -347,97 +154,6 @@ export default function DiscoverySetupPage() {
                 </div>
               )
             })}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="target-websites">
-          <div className="flex flex-col gap-3">
-            <RangeRow
-              label="Domain Rating (DR)"
-              description="Only surface opportunities from sites within this DR range. Leave blank for no limit."
-              icon={IconChartBar}
-              minValue={filters.drMin}
-              maxValue={filters.drMax}
-              onMinChange={(v) => setFilters((p) => ({ ...p, drMin: v }))}
-              onMaxChange={(v) => setFilters((p) => ({ ...p, drMax: v }))}
-              minPlaceholder="Min DR"
-              maxPlaceholder="Max DR"
-              min={0}
-              max={100}
-            />
-
-            <MinRow
-              label="Monthly Traffic"
-              description="Exclude sites below this estimated monthly visitor threshold."
-              icon={IconUsers}
-              value={filters.trafficMin}
-              onChange={(v) => setFilters((p) => ({ ...p, trafficMin: v }))}
-              placeholder="e.g. 10000"
-              min={0}
-            />
-
-            <MinRow
-              label="Domain Age"
-              description="Minimum site age. Older domains tend to carry more authority and consistent traffic."
-              icon={IconCalendar}
-              value={filters.domainAgeMin}
-              onChange={(v) => setFilters((p) => ({ ...p, domainAgeMin: v }))}
-              placeholder="e.g. 2"
-              min={0}
-              unit="yr"
-            />
-
-            {/* Dofollow only */}
-            <div className="flex gap-4 rounded-3xl bg-card p-5 ring-1 ring-foreground/5 shadow-sm">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-orange/10 text-orange">
-                <IconLink className="size-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">Dofollow only</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Skip sites that are known to nofollow all outbound links.
-                </p>
-              </div>
-              <Switch
-                checked={filters.dofollowOnly}
-                onCheckedChange={(v) =>
-                  setFilters((p) => ({ ...p, dofollowOnly: v }))
-                }
-                className="mt-0.5 shrink-0"
-              />
-            </div>
-
-            {/* Language */}
-            <div className="flex gap-4 rounded-3xl bg-card p-5 ring-1 ring-foreground/5 shadow-sm">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-orange/10 text-orange">
-                <IconWorld className="size-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">Site language</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Restrict discovery to sites in these languages.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {LANGUAGE_OPTIONS.map((lang) => {
-                    const active = filters.languages.includes(lang.value)
-                    return (
-                      <button
-                        key={lang.value}
-                        onClick={() => toggleLanguage(lang.value)}
-                        className={cn(
-                          "rounded-full px-3 py-1 text-xs font-medium transition-colors",
-                          active
-                            ? "bg-foreground text-background"
-                            : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                        )}
-                      >
-                        {lang.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
           </div>
         </TabsContent>
 

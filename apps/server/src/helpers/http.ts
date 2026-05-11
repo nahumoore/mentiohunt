@@ -1,4 +1,4 @@
-import pRetry, { AbortError } from "p-retry";
+import pRetry from "p-retry";
 
 const USER_AGENT = "MentiohuntBot/1.0 (+https://mentiohunt.com/bot)";
 const BODY_SIZE_LIMIT = 2 * 1024 * 1024; // 2 MB
@@ -9,7 +9,15 @@ export type FetchResult = {
   contentType: string;
 };
 
-export { AbortError };
+export class HttpStatusError extends Error {
+  constructor(
+    readonly status: number,
+    readonly url: string,
+  ) {
+    super(`HTTP ${status} for ${url}`);
+    this.name = "HttpStatusError";
+  }
+}
 
 export async function fetchWithRetry(
   url: string,
@@ -47,12 +55,8 @@ export async function fetchWithRetry(
       }
       clearTimeout(timer);
 
-      if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-        throw new AbortError(`HTTP ${response.status} for ${url}`);
-      }
-
-      if (response.status >= 500 || response.status === 429) {
-        throw new Error(`HTTP ${response.status} for ${url}`);
+      if (response.status >= 400) {
+        throw new HttpStatusError(response.status, url);
       }
 
       const contentType = response.headers.get("content-type") ?? "";
@@ -95,6 +99,13 @@ export async function fetchWithRetry(
       minTimeout: 500,
       factor: 2,
       randomize: true,
+      shouldRetry: (err) => {
+        if (err instanceof HttpStatusError && err.status >= 400 && err.status < 500 && err.status !== 429) {
+          return false;
+        }
+
+        return true;
+      },
       onFailedAttempt: (err) => {
         console.warn(
           `[http] attempt ${err.attemptNumber}/${maxAttempts} failed for ${url}: ${err.message}`,

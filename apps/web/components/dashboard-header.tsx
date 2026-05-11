@@ -4,12 +4,30 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import * as React from "react"
 
+import { useProspectStore } from "@/stores/prospect-store"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 import { Separator } from "@workspace/ui/components/separator"
 
+const prospectHref = "/dashboard/link-building/prospects"
+
 export function DashboardHeader() {
   const pathname = usePathname()
-  const breadcrumbs = getBreadcrumbs(pathname)
+  const currentProspectId = getCurrentProspectId(pathname)
+  const currentProspectLabel = useProspectStore((state) => {
+    if (!currentProspectId) return undefined
+
+    return (
+      state.prospectDetailsById[currentProspectId]?.domain ??
+      state.prospects.find((prospect) => prospect.id === currentProspectId)
+        ?.domain ??
+      "Current prospect"
+    )
+  })
+  const breadcrumbs = getBreadcrumbs(
+    pathname,
+    currentProspectId,
+    currentProspectLabel
+  )
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
@@ -41,7 +59,11 @@ export function DashboardHeader() {
   )
 }
 
-function getBreadcrumbs(pathname: string) {
+function getBreadcrumbs(
+  pathname: string,
+  currentProspectId?: string | null,
+  currentProspectLabel?: string
+) {
   const segments = pathname.split("/").filter(Boolean)
   const dashboardIndex = segments.indexOf("dashboard")
   const visibleSegments = dashboardIndex >= 0 ? segments.slice(dashboardIndex + 1) : segments
@@ -52,12 +74,28 @@ function getBreadcrumbs(pathname: string) {
 
   return visibleSegments.map((segment, index) => {
     const hrefSegments = segments.slice(0, dashboardIndex + 2 + index)
+    const isCurrentProspect =
+      segment === currentProspectId &&
+      visibleSegments[index - 2] === "link-building" &&
+      visibleSegments[index - 1] === "prospects"
 
     return {
-      label: titleizeSegment(segment),
+      label: isCurrentProspect
+        ? (currentProspectLabel ?? "Current prospect")
+        : titleizeSegment(segment),
       href: `/${hrefSegments.join("/")}`,
     }
   })
+}
+
+function getCurrentProspectId(pathname: string) {
+  const prospectPath = `${prospectHref}/`
+
+  if (!pathname.startsWith(prospectPath)) return null
+
+  const [prospectId] = pathname.slice(prospectPath.length).split("/")
+
+  return prospectId || null
 }
 
 function titleizeSegment(segment: string) {

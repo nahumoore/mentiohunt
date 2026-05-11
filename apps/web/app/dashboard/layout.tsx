@@ -2,6 +2,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardStoreHydrator } from "@/components/dashboard-store-hydrator"
 import { supabaseServer } from "@/lib/supabase/server"
+import type { ProspectListItem } from "@/stores/prospect-store"
 import type { Tables } from "@workspace/supabase/database-types"
 import { redirect } from "next/navigation"
 import {
@@ -31,7 +32,9 @@ export default async function DashboardLayout({
       .maybeSingle(),
     supabase
       .from("products")
-      .select("*")
+      .select(
+        "id, user_id, website_url, product_name, product_description, competitors, created_at, updated_at"
+      )
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false })
       .limit(1)
@@ -57,6 +60,24 @@ export default async function DashboardLayout({
     redirect("/expired-trial")
   }
 
+  let prospects: ProspectListItem[] = []
+
+  if (product) {
+    const { data: prospectRows, error: prospectsError } = await supabase
+      .from("backlink_prospects")
+      .select(
+        "id, product_id, domain, target_url, tier, action_type, status, discovered_at"
+      )
+      .eq("product_id", product.id)
+      .order("discovered_at", { ascending: false })
+
+    if (prospectsError) {
+      console.error("Error fetching backlink prospects:", prospectsError)
+    }
+
+    prospects = prospectRows ?? []
+  }
+
   const sidebarUser = {
     name: (user.user_metadata?.full_name as string | undefined) ?? user.email ?? "User",
     email: user.email ?? "",
@@ -64,7 +85,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <DashboardStoreHydrator profile={profile} product={product}>
+    <DashboardStoreHydrator
+      profile={profile}
+      product={product}
+      prospects={prospects}
+    >
       <SidebarProvider>
         <AppSidebar user={sidebarUser} initialProduct={product} />
         <SidebarInset>

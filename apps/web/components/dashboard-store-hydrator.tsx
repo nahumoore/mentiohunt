@@ -4,24 +4,29 @@ import { useEffect, type ReactNode } from "react"
 
 import type { DashboardProduct } from "@/stores/product-store"
 import { useProductStore } from "@/stores/product-store"
+import type { ProspectListItem } from "@/stores/prospect-store"
+import { useProspectStore } from "@/stores/prospect-store"
 import type { DashboardProfile } from "@/stores/profile-store"
 import { useProfileStore } from "@/stores/profile-store"
 
 type DashboardStoreHydratorProps = {
   profile: DashboardProfile | null
   product: DashboardProduct | null
+  prospects: ProspectListItem[]
   children: ReactNode
 }
 
 export function DashboardStoreHydrator({
   profile,
   product,
+  prospects,
   children,
 }: DashboardStoreHydratorProps) {
   useEffect(() => {
     useProfileStore.getState().setProfile(profile)
     useProductStore.getState().setProduct(product)
-  }, [profile, product])
+    useProspectStore.getState().setProspects(prospects)
+  }, [profile, product, prospects])
 
   return children
 }

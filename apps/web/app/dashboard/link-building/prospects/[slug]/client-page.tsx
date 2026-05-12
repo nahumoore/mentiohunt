@@ -226,6 +226,77 @@ function GuidanceCard({
   )
 }
 
+function SelfServeActionCard({
+  href,
+  icon: Icon,
+  eyebrow,
+  title,
+  description,
+  primary = false,
+}: {
+  href: string
+  icon: typeof IconInfoCircle
+  eyebrow: string
+  title: string
+  description: string
+  primary?: boolean
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(
+        "group relative overflow-hidden rounded-3xl p-5 text-left transition-all hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
+        primary
+          ? "bg-foreground text-background shadow-lg shadow-orange/10"
+          : "border border-border/70 bg-card shadow-sm hover:border-orange/30"
+      )}
+    >
+      {primary && (
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,color-mix(in_oklab,var(--orange)_35%,transparent),transparent_32%),linear-gradient(135deg,transparent,color-mix(in_oklab,var(--blaze-orange)_18%,transparent))] opacity-90" />
+      )}
+      <div className="relative flex items-start justify-between gap-4">
+        <div
+          className={cn(
+            "flex size-11 shrink-0 items-center justify-center rounded-2xl transition-transform group-hover:scale-105",
+            primary ? "bg-background/15" : "bg-orange/10 text-orange-700"
+          )}
+        >
+          <Icon className="size-5" />
+        </div>
+        <IconArrowUpRight
+          className={cn(
+            "size-4 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5",
+            primary ? "text-background/70" : "text-muted-foreground"
+          )}
+        />
+      </div>
+      <div className="relative mt-5">
+        <p
+          className={cn(
+            "text-[11px] font-semibold tracking-widest uppercase",
+            primary ? "text-background/60" : "text-muted-foreground"
+          )}
+        >
+          {eyebrow}
+        </p>
+        <h3 className="mt-2 font-heading text-lg font-semibold tracking-tight">
+          {title}
+        </h3>
+        <p
+          className={cn(
+            "mt-2 text-sm leading-6",
+            primary ? "text-background/75" : "text-muted-foreground"
+          )}
+        >
+          {description}
+        </p>
+      </div>
+    </a>
+  )
+}
+
 function getTargetLabel(targetUrl: string) {
   try {
     const url = new URL(targetUrl)
@@ -335,34 +406,23 @@ function SelfServeDirectorySections({
         </section>
 
         <section>
-          <SectionLabel>Directory actions</SectionLabel>
-          <div className="rounded-3xl bg-card p-5 shadow-sm ring-1 ring-foreground/5">
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Button asChild className="justify-start gap-2">
-                <a
-                  href={prospect.target_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <IconArrowUpRight className="size-4" />
-                  Open submission page
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="justify-start gap-2">
-                <a href={serpUrl} target="_blank" rel="noopener noreferrer">
-                  <IconSearch className="size-4" />
-                  Check Google SERP
-                </a>
-              </Button>
-              <Button variant="outline" className="justify-start gap-2">
-                <IconCircleCheck className="size-4" />
-                Mark as submitted
-              </Button>
-              <Button variant="destructive" className="justify-start gap-2">
-                <IconCircleX className="size-4" />
-                Dismiss
-              </Button>
-            </div>
+          <SectionLabel>Next moves</SectionLabel>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SelfServeActionCard
+              href={prospect.target_url}
+              icon={IconClipboardCheck}
+              eyebrow="Step 1"
+              title="Open the submission page"
+              description="Add the product details where the directory accepts listings. Use the exact product name and domain so future checks can match it."
+              primary
+            />
+            <SelfServeActionCard
+              href={serpUrl}
+              icon={IconSearch}
+              eyebrow="Step 2"
+              title="Check whether Google sees it"
+              description="Run the same SERP check Mentiohunt uses to confirm whether the listing is indexed for the product and domain."
+            />
           </div>
         </section>
       </div>
@@ -582,9 +642,11 @@ export function ProspectClientPage({
             </span>
           </a>
 
-          <div className="mt-1">
-            <StatusPipeline status={currentProspect.status} />
-          </div>
+          {!isSelfServe && (
+            <div className="mt-1">
+              <StatusPipeline status={currentProspect.status} />
+            </div>
+          )}
         </div>
       </div>
 

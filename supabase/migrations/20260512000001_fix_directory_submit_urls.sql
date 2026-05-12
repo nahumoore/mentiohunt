@@ -1,0 +1,13 @@
+UPDATE directories SET submit_url = 'https://openhunts.com/projects/new',           submit_url_ok = true WHERE domain = 'openhunts.com';
+UPDATE directories SET submit_url = 'https://startupstash.com/add-listing/',           submit_url_ok = true WHERE domain = 'startupstash.com';
+UPDATE directories SET submit_url = 'https://www.devpages.io/submit-a-tool',           submit_url_ok = true WHERE domain = 'devpages.io';
+UPDATE directories SET submit_url = 'https://opentools.ai/friends/launch-tool',        submit_url_ok = true WHERE domain = 'opentools.ai';
+UPDATE directories SET submit_url = 'https://www.basedtools.ai/submit',                submit_url_ok = true WHERE domain = 'basedtools.ai';
+UPDATE directories SET submit_url = 'https://aitoptools.com/login?redirect_to=submit', submit_url_ok = true WHERE domain = 'aitoptools.com';
+UPDATE directories SET submit_url = 'https://microlaunch.net/hq',                      submit_url_ok = true WHERE domain = 'microlaunch.net';
+UPDATE directories SET is_active   = false                                              WHERE domain = 'betapage.co';
+UPDATE directories SET submit_url = 'https://vendor.revleads.com/user/signup',         submit_url_ok = true WHERE domain = 'crozdesk.com';
+UPDATE directories SET submit_url = 'https://www.uneed.best/submit-a-tool',            submit_url_ok = true WHERE domain = 'uneed.best';
+UPDATE directories SET submit_url = 'https://launched.io/newsubmission',               submit_url_ok = true WHERE domain = 'launched.io';
+UPDATE directories SET submit_url = 'https://www.saashub.com/submit/list',             submit_url_ok = true WHERE domain = 'saashub.com';
+UPDATE directories SET submit_url = 'https://www.g2.com/products/new',                 submit_url_ok = true WHERE domain = 'g2.com';

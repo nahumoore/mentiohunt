@@ -1,6 +1,7 @@
 import express from "express"
 import "./env.js"
 import { directoryOpportunitiesRouter } from "./routes/find-directory-opportunities.js"
+import { verifyDirectoryUrlsRouter } from "./routes/verify-directory-urls.js"
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -15,6 +16,7 @@ app.get("/health", (_req, res) => {
 
 if (isDev) {
   app.use(directoryOpportunitiesRouter)
+  app.use(verifyDirectoryUrlsRouter)
 }
 
 app.listen(PORT, () => {

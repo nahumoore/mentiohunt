@@ -1,9 +1,11 @@
 import Link from "next/link"
 
 import { Button } from "@workspace/ui/components/button"
+import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
 
 const productLinks = [
   { href: "/#how-it-works", label: "How it Works" },
+  { href: "/features", label: "Features" },
   { href: "/#target-personas", label: "Who It's For" },
   { href: "/#pricing", label: "Pricing" },
 ]
@@ -105,9 +107,7 @@ export function Footer() {
         <div className="mt-10 grid gap-10 border-t border-border/60 pt-10 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto] lg:items-start">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-blaze-orange)] text-white shadow-sm">
-                <span className="text-sm font-bold leading-none">M</span>
-              </div>
+              <IconBrandMentiohunt className="size-5 rotate-12 text-primary" />
               <p className="font-heading text-lg font-semibold tracking-tight">
                 Mentiohunt
               </p>

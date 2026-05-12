@@ -28,9 +28,9 @@ export function HeroContent() {
             animate="animate"
             transition={{ duration: 0.55, delay: 0.07, ease }}
           >
-            Know exactly where to{" "}
+            The distribution queue{" "}
             <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
-              pitch your product next.
+              for founders.
             </span>
           </motion.h1>
 

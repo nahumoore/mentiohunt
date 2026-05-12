@@ -66,6 +66,40 @@ For app-specific work:
 
 - Always use Tabler icons, don't use lucide-react, don't create the svgs yourself or any other icon library.
 
+### Landing Section Pattern
+
+Every landing section must follow this structure consistently:
+
+**Section wrapper**
+```tsx
+<section className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32">
+```
+
+**Ambient background blobs** (decorative, pointer-events-none)
+```tsx
+<div className="pointer-events-none absolute inset-0">
+  <div className="absolute ... rounded-full bg-princeton-orange/7 blur-[100px]" />
+</div>
+```
+
+**Centered section header** — always `mx-auto max-w-2xl text-center`, never a sidebar/split layout:
+```tsx
+<div className="mx-auto max-w-2xl text-center">
+  <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+    Eyebrow
+  </span>
+  <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
+  <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
+    Heading
+  </h2>
+  <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
+    Subtext
+  </p>
+</div>
+```
+
+**Content area** — placed below the header, typically `mx-auto mt-14 max-w-6xl`.
+
 ## Database Guidance
 
 - Never use `*` for select queries, always specify the columns you need.

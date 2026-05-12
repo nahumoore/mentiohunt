@@ -1,33 +1,34 @@
+import {
+  IconBriefcase2,
+  IconRocket,
+  IconUsers,
+} from "@tabler/icons-react"
+import Image from "next/image"
+
 const personas = [
   {
     title: "SaaS Founders",
+    eyebrow: "Founder-led growth",
+    image: "/landing/user_2.webp",
     description:
-      "Building backlinks without an SEO agency. You publish content or are starting SEO seriously and want a simple daily queue of actionable opportunities.",
-    traits: [
-      "Have a live SaaS, tool, newsletter, or content site",
-      "Understand that backlinks matter for SEO",
-      "Want to avoid manual Google searches",
-    ],
+      "For founders who publish, ship, and need a clearer way to find backlink and community opportunities without hiring an agency.",
+    Icon: IconRocket,
   },
   {
-    title: "Indie Founders",
+    title: "Small Marketing Teams",
+    eyebrow: "Lean growth teams",
+    image: "/landing/user_4.webp",
     description:
-      "Self-serve backlink prospecting as part of your growth stack. You prefer software over hiring a link-building agency.",
-    traits: [
-      "Have at least 3-10 known competitors",
-      "Already publish content or are starting SEO",
-      "Willing to pay $49-$99/month for recurring value",
-    ],
+      "For small teams managing content, SEO, and community touchpoints who need repeatable discovery instead of scattered prospecting.",
+    Icon: IconUsers,
   },
   {
     title: "Small Agencies",
+    eyebrow: "Client delivery",
+    image: "/landing/user_5.webp",
     description:
-      "Need repeatable backlink prospecting for multiple clients. You want to move beyond one-time scans to recurring discovery.",
-    traits: [
-      "Manage SEO for 2-5 client sites",
-      "Want a simple daily queue per client",
-      "Need outreach prep that scales",
-    ],
+      "For lean agencies that want recurring opportunity discovery and outreach prep for a handful of client sites.",
+    Icon: IconBriefcase2,
   },
 ]
 
@@ -35,44 +36,66 @@ export function TargetPersonas() {
   return (
     <section
       id="target-personas"
-      className="bg-background py-20 sm:py-24 lg:py-28"
+      className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-28"
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute top-20 left-1/2 h-[26rem] w-[26rem] -translate-x-1/2 rounded-full bg-[var(--color-princeton-orange)]/6 blur-[100px]" />
+      </div>
+
+      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[42px]">
-            Who Mentiohunt is for
+          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-[var(--color-blaze-orange)] uppercase">
+            Who it is for
+          </span>
+          <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />
+          <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
+            Built for teams that need distribution momentum.
           </h2>
-          <p className="mt-4 text-base text-muted-foreground">
-            Built for founders and small teams who want recurring backlink
-            opportunities, not vanity metrics.
+          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
+            Mentiohunt is for founders and lean marketing teams who want a
+            practical queue of opportunities, not another analytics dashboard.
           </p>
         </div>
 
-        <div className="mt-14 grid gap-6 lg:grid-cols-3 lg:gap-8">
-          {personas.map((persona) => (
-            <div
-              key={persona.title}
-              className="rounded-2xl border border-border bg-card p-6"
-            >
-              <h3 className="font-heading text-xl font-semibold tracking-tight">
-                {persona.title}
-              </h3>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                {persona.description}
-              </p>
-              <ul className="mt-5 space-y-2">
-                {persona.traits.map((trait) => (
-                  <li
-                    key={trait}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                  >
-                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-border" />
-                    {trait}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <div className="mt-14 grid gap-6 lg:grid-cols-3 lg:gap-7">
+          {personas.map((persona, index) => {
+            const Icon = persona.Icon
+
+            return (
+              <article
+                key={persona.title}
+                className="relative overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-[0_18px_60px_-46px_rgba(0,0,0,0.45)]"
+              >
+                <div className="relative h-64 overflow-hidden bg-card sm:h-72 lg:h-64 xl:h-72">
+                  <Image
+                    src={persona.image}
+                    alt={`${persona.title} persona`}
+                    fill
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover"
+                    priority={index === 0}
+                  />
+                </div>
+
+                <div className="relative z-10 -mt-px bg-card p-6 before:absolute before:inset-x-0 before:-top-16 before:h-16 before:bg-gradient-to-t before:from-card before:via-card/85 before:to-transparent before:content-['']">
+                  <div className="mb-5 flex items-center justify-between gap-4">
+                    <p className="text-[0.65rem] font-bold tracking-[0.2em] text-[var(--color-blaze-orange)] uppercase">
+                      {persona.eyebrow}
+                    </p>
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-blaze-orange)]/10 text-[var(--color-blaze-orange)]">
+                      <Icon className="h-4.5 w-4.5" />
+                    </div>
+                  </div>
+                  <h3 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
+                    {persona.title}
+                  </h3>
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    {persona.description}
+                  </p>
+                </div>
+              </article>
+            )
+          })}
         </div>
       </div>
     </section>

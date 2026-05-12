@@ -301,7 +301,7 @@ export function SigninForm({
             className="flex size-12 items-center justify-center rounded-xl bg-primary/10 ring-2 ring-primary/20"
             style={{ boxShadow: "0 0 28px color-mix(in oklch, var(--crimson-carrot) 22%, transparent)" }}
           >
-            <IconBrandMentiohunt className="size-7 text-primary" />
+            <IconBrandMentiohunt className="size-7 rotate-12 text-primary" />
           </div>
           <IconLoader2 className="size-6 animate-spin text-muted-foreground" />
         </div>
@@ -320,7 +320,7 @@ export function SigninForm({
             className="flex size-12 items-center justify-center rounded-xl bg-primary/10 ring-2 ring-primary/20"
             style={{ boxShadow: "0 0 28px color-mix(in oklch, var(--crimson-carrot) 22%, transparent)" }}
           >
-            <IconBrandMentiohunt className="size-7 text-primary" />
+            <IconBrandMentiohunt className="size-7 rotate-12 text-primary" />
           </div>
           <span className="sr-only">Mentiohunt</span>
         </Link>
@@ -407,7 +407,7 @@ export function SigninForm({
           className="flex size-12 items-center justify-center rounded-xl bg-primary/10 ring-2 ring-primary/20"
           style={{ boxShadow: "0 0 28px color-mix(in oklch, var(--crimson-carrot) 22%, transparent)" }}
         >
-          <IconBrandMentiohunt className="size-7 text-primary" />
+          <IconBrandMentiohunt className="size-7 rotate-12 text-primary" />
         </div>
         <span className="sr-only">Mentiohunt</span>
       </Link>

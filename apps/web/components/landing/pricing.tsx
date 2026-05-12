@@ -1,9 +1,15 @@
+import {
+  IconArrowRight,
+  IconCircleCheck,
+  IconSparkles,
+} from "@tabler/icons-react"
 import Link from "next/link"
 
-import { Button } from "@workspace/ui/components/button"
+import { FREE_TRIAL_DAYS } from "@/consts/billing"
 
 const plans = [
   {
+    key: "starter",
     name: "Starter",
     price: "49",
     description: "For individual founders building their backlink queue.",
@@ -14,12 +20,12 @@ const plans = [
       "Ranked opportunity queue",
       "Fit scores & rationale",
       "Suggested outreach angles",
-      "14-day free trial",
+      `${FREE_TRIAL_DAYS}-day free trial`,
     ],
-    cta: "Start Free Trial",
-    popular: false,
+    popular: true,
   },
   {
+    key: "pro",
     name: "Pro",
     price: "99",
     description: "For teams and agencies managing multiple sites.",
@@ -32,109 +38,116 @@ const plans = [
       "Suggested outreach angles",
       "Export to CSV",
       "Priority support",
-      "14-day free trial",
+      `${FREE_TRIAL_DAYS}-day free trial`,
     ],
-    cta: "Start Free Trial",
-    popular: true,
+    popular: false,
   },
 ]
 
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-background py-20 sm:py-24 lg:py-28">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section
+      id="pricing"
+      className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32"
+    >
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="absolute inset-x-0 top-0 mx-auto h-[34rem] w-[52rem] rounded-full bg-princeton-orange/10 blur-[120px]" />
+        <div className="absolute right-0 bottom-20 h-[26rem] w-[26rem] translate-x-1/3 rounded-full bg-amber-flame/8 blur-[100px]" />
+      </div>
+
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[42px]">
-            Simple, transparent pricing
+          <span className="inline-flex items-center gap-2 rounded-full border border-blaze-orange/20 bg-blaze-orange/8 px-3 py-1 text-xs font-bold tracking-[0.12em] text-blaze-orange uppercase">
+            <IconSparkles className="h-3.5 w-3.5" />
+            {FREE_TRIAL_DAYS}-day free trial
+          </span>
+          <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
+            Start with the plan that gets your{" "}
+            <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
+              distribution queue moving.
+            </span>
           </h2>
-          <p className="mt-4 text-base text-muted-foreground">
-            One price. No hidden fees. Cancel anytime.
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+            Two simple plans for recurring backlink discovery and community
+            monitoring. Start free, upgrade when you need more sites.
           </p>
         </div>
 
-        <div className="mt-14 grid gap-6 lg:grid-cols-2 lg:gap-8 lg:max-w-4xl lg:mx-auto">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`relative rounded-2xl border p-6 ${
-                plan.popular
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card"
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-                  Most Popular
+        <div className="mx-auto mt-14 grid max-w-6xl gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-7">
+          {plans.map((plan) => {
+            const isFeatured = plan.popular
+
+            return (
+              <article
+                key={plan.key}
+                className={`relative flex min-h-full flex-col overflow-hidden rounded-[2rem] border p-6 shadow-[0_18px_70px_-48px_rgba(0,0,0,0.55)] transition duration-300 hover:-translate-y-1 sm:p-8 ${
+                  isFeatured
+                    ? "border-blaze-orange/35 bg-gradient-to-br from-blaze-orange/10 via-card to-amber-flame/8 shadow-[0_26px_90px_-54px_rgba(255,84,0,0.9)]"
+                    : "border-border bg-card"
+                }`}
+              >
+                {isFeatured && (
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-crimson-carrot via-blaze-orange to-amber-flame" />
+                )}
+
+                {isFeatured && (
+                  <div className="absolute top-5 right-5 rounded-full bg-blaze-orange px-3 py-1 text-xs font-bold text-white shadow-[0_12px_28px_-16px_rgba(255,84,0,0.95)]">
+                    Most Popular
+                  </div>
+                )}
+
+                <div className="flex-1">
+                  <div className="max-w-[17rem]">
+                    <p className="text-[0.7rem] font-bold tracking-[0.18em] text-blaze-orange uppercase">
+                      {plan.name}
+                    </p>
+                    <h3 className="mt-4 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
+                      ${plan.price}
+                      <span className="ml-1 text-base font-medium tracking-normal text-muted-foreground">
+                        /month
+                      </span>
+                    </h3>
+                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                      {plan.description}
+                    </p>
+                  </div>
+
+                  <div className="my-7 h-px bg-gradient-to-r from-border via-border to-transparent" />
+
+                  <ul className="space-y-3.5">
+                    {plan.features.map((feature) => (
+                      <li
+                        key={feature}
+                        className="flex items-start gap-3 text-sm leading-6 text-foreground"
+                      >
+                        <IconCircleCheck className="mt-0.5 h-4.5 w-4.5 shrink-0 text-blaze-orange" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              )}
-              <div className="flex items-baseline gap-1">
-                <span className="font-heading text-4xl font-semibold tracking-tight">
-                  ${plan.price}
-                </span>
-                <span
-                  className={`text-sm ${
-                    plan.popular ? "text-primary-foreground/70" : "text-muted-foreground"
-                  }`}
-                >
-                  /month
-                </span>
-              </div>
-              <p
-                className={`mt-2 text-sm ${
-                  plan.popular ? "text-primary-foreground/70" : "text-muted-foreground"
-                }`}
-              >
-                {plan.description}
-              </p>
 
-              <ul
-                className={`mt-6 space-y-3 ${
-                  plan.popular ? "text-primary-foreground" : ""
-                }`}
-              >
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm">
-                    <svg
-                      className={`size-4 shrink-0 ${
-                        plan.popular
-                          ? "text-primary-foreground"
-                          : "text-muted-foreground"
-                      }`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-6">
-                <Button
-                  asChild
-                  className={`w-full ${
-                    plan.popular
-                      ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-                      : ""
-                  }`}
-                  size="lg"
-                >
-                  <Link href="#queue-preview">{plan.cta}</Link>
-                </Button>
-              </div>
-            </div>
-          ))}
+                <div className="mt-8">
+                  <Link
+                    href="/signup"
+                    className={`group flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
+                      isFeatured
+                        ? "bg-blaze-orange text-white shadow-[0_16px_38px_-20px_rgba(255,84,0,0.95)] hover:bg-blaze-orange-2"
+                        : "border border-border bg-background text-foreground hover:border-blaze-orange/30 hover:text-blaze-orange"
+                    }`}
+                  >
+                    Start free trial
+                    <IconArrowRight className="ml-2 h-4 w-4 transition duration-200 group-hover:translate-x-1" />
+                  </Link>
+                </div>
+              </article>
+            )
+          })}
         </div>
 
-        <p className="mt-8 text-center text-sm text-muted-foreground">
-          Both plans include a 14-day free trial. No credit card required to start.
+        <p className="mt-8 text-center text-sm leading-6 text-muted-foreground">
+          Both plans include a {FREE_TRIAL_DAYS}-day free trial. No credit card
+          required to start.
         </p>
       </div>
     </section>

@@ -1,154 +1,195 @@
 import {
-  IconArticle,
-  IconListCheck,
+  IconAlertTriangle,
+  IconClockHour4,
   IconMailFast,
   IconRadar2,
+  IconSearch,
   IconTargetArrow,
-  IconTrendingUp,
 } from "@tabler/icons-react"
+import type { ComponentType } from "react"
 
-const benefits = [
+type Point = {
+  title: string
+  description: string
+  Icon: ComponentType<{ className?: string }>
+}
+
+const problems: Point[] = [
   {
-    title: "Every article can open 1,000+ fits",
+    title: "Research starts from zero",
     description:
-      "For each article you publish, there are relevant pages, roundups, directories, and resource lists where it may fit for a backlink. You just need to find them and ask well.",
-    icon: IconArticle,
+      "Manual searches, stale lists, and tabs you have to qualify one by one.",
+    Icon: IconSearch,
   },
   {
-    title: "Know what to do next",
+    title: "Fit is hard to explain",
     description:
-      "Every surfaced opportunity comes with a recommended action, so you are not sorting tabs, spreadsheets, and half-qualified prospects.",
-    icon: IconListCheck,
+      "A domain might look useful, but the pitch angle is still unclear.",
+    Icon: IconAlertTriangle,
   },
   {
-    title: "Prioritize by fit, not volume",
+    title: "Threads move too fast",
     description:
-      "See why an opportunity matches your product, audience, or article before spending time on outreach.",
-    icon: IconTargetArrow,
-  },
-  {
-    title: "Start with a real angle",
-    description:
-      "Get outreach context, suggested positioning, and contact details when available without pretending acquisition is guaranteed.",
-    icon: IconMailFast,
-  },
-  {
-    title: "Catch conversations while they matter",
-    description:
-      "Community mentions and backlink prospects land in the same distribution workflow, so timely opportunities do not slip away.",
-    icon: IconRadar2,
-  },
-  {
-    title: "Build long-term search momentum",
-    description:
-      "Work toward hundreds of legitimate backlinks from relevant sites, the compounding channel that helps your site grow long after a campaign ends.",
-    icon: IconTrendingUp,
+      "Relevant Reddit and forum conversations are often found after the moment has passed.",
+    Icon: IconClockHour4,
   },
 ]
 
-const proofPoints = ["Scored fit", "Outreach prep", "Daily queue"]
+const benefits: Point[] = [
+  {
+    title: "Ranked opportunities",
+    description:
+      "A daily queue of backlink prospects and active community conversations worth reviewing.",
+    Icon: IconTargetArrow,
+  },
+  {
+    title: "Plain-language rationale",
+    description:
+      "See why the opportunity fits before deciding whether it deserves outreach.",
+    Icon: IconRadar2,
+  },
+  {
+    title: "Drafted next steps",
+    description:
+      "Get the outreach angle, email draft, or suggested reply ready for a founder review.",
+    Icon: IconMailFast,
+  },
+]
+
+const outcomes = [
+  "Less manual searching",
+  "More qualified opportunities",
+  "Faster outreach decisions",
+]
+
+function ProblemPoint({ point }: { point: Point }) {
+  const Icon = point.Icon
+
+  return (
+    <li className="flex gap-4 border-t border-border/70 py-5 first:border-t-0 first:pt-0 last:pb-0">
+      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground">
+        <Icon className="h-5 w-5" />
+      </div>
+      <div>
+        <h3 className="text-sm font-semibold text-foreground">{point.title}</h3>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          {point.description}
+        </p>
+      </div>
+    </li>
+  )
+}
+
+function BenefitPoint({ point }: { point: Point }) {
+  const Icon = point.Icon
+
+  return (
+    <li className="flex gap-4 border-t border-[var(--color-blaze-orange)]/20 py-5 first:border-t-0 first:pt-0 last:pb-0">
+      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-blaze-orange)] text-white">
+        <Icon className="h-5 w-5" />
+      </div>
+      <div>
+        <h3 className="text-sm font-semibold text-foreground">{point.title}</h3>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          {point.description}
+        </p>
+      </div>
+    </li>
+  )
+}
 
 export function Benefits() {
-  const featured = benefits[0]!
-  const FeaturedIcon = featured.icon
-  const footer = benefits[5]!
-  const FooterIcon = footer.icon
-  const middle = benefits.slice(1, 5)
-
   return (
     <section
       id="benefits"
-      className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-28"
+      className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32"
+      aria-labelledby="benefits-title"
     >
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -right-32 -top-16 h-[520px] w-[520px] rounded-full bg-[var(--color-princeton-orange)]/8 blur-[110px]" />
-        <div className="absolute left-1/3 -bottom-24 h-[400px] w-[400px] rounded-full bg-[var(--color-amber-flame)]/6 blur-[90px]" />
+        <div className="absolute top-16 left-1/2 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-[var(--color-princeton-orange)]/7 blur-[110px]" />
+        <div className="absolute right-0 bottom-20 h-[22rem] w-[22rem] translate-x-1/3 rounded-full bg-[var(--color-amber-flame)]/8 blur-[90px]" />
       </div>
 
-      <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-[0.85fr_1.4fr] lg:items-start lg:gap-20">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/10 px-3 py-1 text-[0.65rem] font-semibold tracking-[0.16em] text-[var(--color-blaze-orange)] uppercase">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-blaze-orange)]" />
-              Why it works
-            </span>
-            <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
-              From scattered research to a daily opportunity queue
-            </h2>
-            <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-              Mentiohunt turns links, keywords, competitors, and community
-              signals into ranked actions you can review, trust, and send.
-            </p>
+      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-[var(--color-blaze-orange)] uppercase">
+            Benefits
+          </span>
+          <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />
+          <h2
+            id="benefits-title"
+            className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]"
+          >
+            Distribution should not start in a blank spreadsheet.
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+            Mentiohunt turns scattered backlink research and community
+            monitoring into a daily queue of scored opportunities, context, and
+            outreach-ready next steps.
+          </p>
+        </div>
 
-            <div className="mt-8 flex flex-wrap gap-2">
-              {proofPoints.map((point) => (
-                <span
-                  key={point}
-                  className="rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground shadow-sm"
-                >
-                  {point}
-                </span>
-              ))}
+        <div className="mt-14 grid overflow-hidden rounded-[2rem] border border-border bg-card shadow-[0_24px_80px_-52px_rgba(0,0,0,0.55)] lg:grid-cols-2">
+          <div className="relative p-6 sm:p-8 lg:p-10">
+            <div className="relative">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[0.68rem] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+                    The old way
+                  </p>
+                  <h3 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-foreground">
+                    Scattered work, unclear payoff
+                  </h3>
+                </div>
+                <div className="hidden rounded-full border border-border bg-background px-3 py-1.5 text-[0.68rem] font-bold tracking-[0.14em] text-muted-foreground uppercase sm:block">
+                  Manual
+                </div>
+              </div>
+
+              <ul className="mt-8">
+                {problems.map((point) => (
+                  <ProblemPoint key={point.title} point={point} />
+                ))}
+              </ul>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            {/* Card 01 — featured */}
-            <article className="group relative col-span-2 overflow-hidden rounded-2xl border border-[var(--color-blaze-orange)]/20 bg-card p-6 transition duration-300 hover:-translate-y-0.5 sm:p-7">
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-blaze-orange)]/50 to-transparent" />
-              <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--color-blaze-orange)] text-white shadow-[0_4px_16px_-2px_rgba(255,84,0,0.5)]">
-                  <FeaturedIcon className="h-6 w-6" />
-                </div>
+          <div className="relative border-t border-border bg-gradient-to-br from-[var(--color-blaze-orange)]/7 via-card to-[var(--color-amber-flame)]/8 p-6 sm:p-8 lg:border-t-0 lg:border-l lg:p-10">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-blaze-orange)]/70 to-transparent lg:inset-y-0 lg:left-0 lg:h-auto lg:w-px lg:bg-gradient-to-b" />
+            <div className="relative">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <h3 className="font-heading text-xl font-semibold tracking-tight sm:text-2xl">
-                    {featured.title}
-                  </h3>
-                  <p className="mt-2.5 text-sm leading-6 text-muted-foreground sm:text-base">
-                    {featured.description}
+                  <p className="text-[0.68rem] font-bold tracking-[0.2em] text-[var(--color-blaze-orange)] uppercase">
+                    With Mentiohunt
                   </p>
+                  <h3 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-foreground">
+                    Discovers opportunities in auto-pilot
+                  </h3>
+                </div>
+                <div className="hidden rounded-full bg-[var(--color-blaze-orange)] px-3 py-1.5 text-[0.68rem] font-bold tracking-[0.14em] text-white uppercase shadow-[0_12px_28px_-16px_rgba(255,84,0,0.95)] sm:block">
+                  Ready
                 </div>
               </div>
-            </article>
 
-            {/* Cards 02–05 */}
-            {middle.map((benefit) => {
-              const Icon = benefit.icon
-              return (
-                <article
-                  key={benefit.title}
-                  className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-[var(--color-blaze-orange)]/25 hover:shadow-[0_8px_40px_-12px_rgba(255,84,0,0.15)] sm:p-6"
-                >
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-blaze-orange)] ring-1 ring-[var(--color-blaze-orange)]/15 transition duration-300 group-hover:bg-[var(--color-blaze-orange)] group-hover:text-white group-hover:shadow-[0_4px_12px_-2px_rgba(255,84,0,0.35)] group-hover:ring-transparent">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="font-heading text-base font-semibold tracking-tight">
-                    {benefit.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {benefit.description}
-                  </p>
-                </article>
-              )
-            })}
-
-            {/* Card 06 — footer */}
-            <article className="group relative col-span-2 overflow-hidden rounded-2xl border border-border bg-card p-5 transition duration-300 hover:-translate-y-0.5 hover:border-[var(--color-blaze-orange)]/20 sm:p-6">
-              <div className="relative flex items-start gap-5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-blaze-orange)] ring-1 ring-[var(--color-blaze-orange)]/15 transition duration-300 group-hover:bg-[var(--color-blaze-orange)] group-hover:text-white group-hover:shadow-[0_4px_12px_-2px_rgba(255,84,0,0.35)] group-hover:ring-transparent">
-                  <FooterIcon className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-heading text-base font-semibold tracking-tight">
-                    {footer.title}
-                  </h3>
-                  <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-                    {footer.description}
-                  </p>
-                </div>
-              </div>
-            </article>
+              <ul className="mt-8">
+                {benefits.map((point) => (
+                  <BenefitPoint key={point.title} point={point} />
+                ))}
+              </ul>
+            </div>
           </div>
+        </div>
+
+        <div className="mx-auto mt-6 grid max-w-5xl gap-3 sm:grid-cols-3">
+          {outcomes.map((outcome) => (
+            <div
+              key={outcome}
+              className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/70 px-4 py-3 text-center text-sm font-semibold text-foreground"
+            >
+              <span className="h-2 w-2 rounded-full bg-[var(--color-blaze-orange)]" />
+              {outcome}
+            </div>
+          ))}
         </div>
       </div>
     </section>

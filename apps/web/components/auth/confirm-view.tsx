@@ -54,7 +54,7 @@ export function ConfirmView({
             className="transition-opacity hover:opacity-80"
           >
             <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-              <IconBrandMentiohunt className="size-6 text-primary" />
+              <IconBrandMentiohunt className="size-6 rotate-12 text-primary" />
             </div>
           </Link>
 

@@ -8,6 +8,7 @@ import {
   IconTargetArrow,
 } from "@tabler/icons-react"
 
+import { IconBrandMentiohunt } from "@/components/custom-icons/brand-mentiohunt"
 import { Footer, Navbar } from "@/components/landing"
 import { Button } from "@workspace/ui/components/button"
 
@@ -328,7 +329,10 @@ export default function FreeToolsPage() {
                   size="lg"
                   className="h-11 rounded-full px-6 text-sm text-muted-foreground hover:text-foreground"
                 >
-                  <Link href="/">See Mentiohunt</Link>
+                  <Link href="/">
+                    <IconBrandMentiohunt className="size-4 rotate-12" />
+                    See Mentiohunt
+                  </Link>
                 </Button>
               </div>
             </div>

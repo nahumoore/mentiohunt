@@ -1,5 +1,10 @@
 "use client"
 
+import {
+  IconArrowRight,
+  IconCircleCheck,
+  IconSparkles,
+} from "@tabler/icons-react"
 import Link from "next/link"
 import type { BillingTier } from "@/consts/billing"
 import { FREE_TRIAL_DAYS, PLAN_TIERS } from "@/consts/billing"
@@ -19,7 +24,7 @@ const plans = [
       "Suggested outreach angles",
       `${FREE_TRIAL_DAYS}-day free trial`,
     ],
-    popular: false,
+    popular: true,
   },
   {
     key: "pro" as const,
@@ -37,7 +42,7 @@ const plans = [
       "Priority support",
       `${FREE_TRIAL_DAYS}-day free trial`,
     ],
-    popular: true,
+    popular: false,
   },
 ]
 
@@ -53,22 +58,6 @@ function getPlanStatus(
   return "upgrade"
 }
 
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      aria-hidden
-      style={{ color: "var(--blaze-orange)" }}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-  )
-}
-
 export function PricingClientPage({
   userTier,
 }: {
@@ -76,143 +65,106 @@ export function PricingClientPage({
 }) {
   return (
     <div className="relative overflow-hidden bg-background">
-      {/* ambient glow */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 flex justify-center"
-        aria-hidden
-      >
-        <div
-          className="h-[480px] w-[700px] rounded-full opacity-10 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, var(--blaze-orange) 0%, var(--pumpkin-spice) 40%, transparent 70%)",
-          }}
-        />
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="absolute inset-x-0 top-0 mx-auto h-[34rem] w-[52rem] rounded-full bg-[var(--color-princeton-orange)]/10 blur-[120px]" />
+        <div className="absolute right-0 bottom-20 h-[26rem] w-[26rem] translate-x-1/3 rounded-full bg-[var(--color-amber-flame)]/8 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-5xl px-4 pb-24 pt-20 sm:px-6 lg:px-8">
-        {/* header */}
+      <div className="relative z-10 mx-auto max-w-6xl px-4 pt-20 pb-24 sm:px-6 lg:px-8 lg:pt-24">
         <div className="mx-auto max-w-2xl text-center">
-          <span
-            className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium"
-            style={{
-              borderColor:
-                "color-mix(in oklch, var(--blaze-orange) 40%, transparent)",
-              color: "var(--pumpkin-spice)",
-              background:
-                "color-mix(in oklch, var(--blaze-orange) 8%, transparent)",
-            }}
-          >
-            Simple pricing
+          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-xs font-bold tracking-[0.12em] text-[var(--color-blaze-orange)] uppercase">
+            <IconSparkles className="h-3.5 w-3.5" />
+            7-day free trial
           </span>
-          <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-[52px]">
-            One tool. One daily queue.
-            <br />
-            <span
-              style={{
-                background:
-                  "linear-gradient(90deg, var(--crimson-carrot), var(--amber-glow))",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              No agency required.
+          <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl lg:text-[56px]">
+            Start with the plan that gets your{" "}
+            <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
+              distribution queue moving.
             </span>
           </h1>
-          <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-            Discover qualified backlink opportunities every day. Upgrade when
-            you&apos;re ready — cancel anytime.
+          <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+            Two simple plans for recurring backlink discovery and community
+            monitoring. Start free, upgrade when you need more sites.
           </p>
         </div>
 
-        {/* cards */}
-        <div className="mt-14 grid gap-6 lg:grid-cols-2 lg:gap-8">
+        <div className="mt-14 grid gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-7">
           {plans.map((plan) => {
             const status = getPlanStatus(plan.key, userTier)
             const isCurrent = status === "current"
+            const isFeatured = plan.popular
 
             return (
-              <div
+              <article
                 key={plan.key}
-                className="relative rounded-2xl border p-8 transition-shadow"
-                style={
-                  plan.popular
-                    ? {
-                        background:
-                          "linear-gradient(145deg, color-mix(in oklch, var(--blaze-orange) 12%, var(--card)) 0%, var(--card) 60%)",
-                        borderColor:
-                          "color-mix(in oklch, var(--blaze-orange) 35%, transparent)",
-                        boxShadow:
-                          "0 8px 32px color-mix(in oklch, var(--blaze-orange) 12%, transparent)",
-                      }
-                    : undefined
-                }
+                className={`relative flex min-h-full flex-col overflow-hidden rounded-[2rem] border p-6 shadow-[0_18px_70px_-48px_rgba(0,0,0,0.55)] transition duration-300 hover:-translate-y-1 sm:p-8 ${
+                  isFeatured
+                    ? "border-[var(--color-blaze-orange)]/35 bg-gradient-to-br from-[var(--color-blaze-orange)]/10 via-card to-[var(--color-amber-flame)]/8 shadow-[0_26px_90px_-54px_rgba(255,84,0,0.9)]"
+                    : "border-border bg-card"
+                }`}
               >
-                {/* Popular badge */}
-                {plan.popular && !isCurrent && (
-                  <div
-                    className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-xs font-semibold text-white"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, var(--crimson-carrot), var(--pumpkin-spice))",
-                    }}
-                  >
+                {isFeatured && (
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[var(--color-crimson-carrot)] via-[var(--color-blaze-orange)] to-[var(--color-amber-flame)]" />
+                )}
+
+                {isFeatured && !isCurrent && (
+                  <div className="absolute top-5 right-5 rounded-full bg-[var(--color-blaze-orange)] px-3 py-1 text-xs font-bold text-white shadow-[0_12px_28px_-16px_rgba(255,84,0,0.95)]">
                     Most Popular
                   </div>
                 )}
 
-                {/* Current plan badge */}
                 {isCurrent && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
+                  <div className="absolute top-5 right-5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-muted-foreground">
                     Current plan
                   </div>
                 )}
 
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                <div className="flex-1">
+                  <div className="max-w-[17rem]">
+                    <p className="text-[0.7rem] font-bold tracking-[0.18em] text-[var(--color-blaze-orange)] uppercase">
                       {plan.name}
                     </p>
-                    <div className="mt-1 flex items-baseline gap-1">
-                      <span className="font-heading text-5xl font-semibold tracking-tight text-foreground">
-                        ${plan.price}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
+                    <h2 className="mt-4 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
+                      ${plan.price}
+                      <span className="ml-1 text-base font-medium tracking-normal text-muted-foreground">
                         /month
                       </span>
-                    </div>
+                    </h2>
+                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                      {plan.description}
+                    </p>
                   </div>
+
+                  <div className="my-7 h-px bg-gradient-to-r from-border via-border to-transparent" />
+
+                  <ul className="space-y-3.5">
+                    {plan.features.map((feature) => (
+                      <li
+                        key={feature}
+                        className="flex items-start gap-3 text-sm leading-6 text-foreground"
+                      >
+                        <IconCircleCheck className="mt-0.5 h-4.5 w-4.5 shrink-0 text-[var(--color-blaze-orange)]" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {plan.description}
-                </p>
-
-                <ul className="mt-7 space-y-3">
-                  {plan.features.map((feature) => (
-                    <li
-                      key={feature}
-                      className="flex items-center gap-3 text-sm text-foreground"
-                    >
-                      <CheckIcon className="size-4 shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
 
                 <div className="mt-8">
-                  <PlanCta status={status} planName={plan.name} />
+                  <PlanCta
+                    status={status}
+                    planName={plan.name}
+                    featured={isFeatured}
+                  />
                 </div>
-              </div>
+              </article>
             )
           })}
         </div>
 
-        {/* footnote */}
-        <p className="mt-8 text-center text-sm text-muted-foreground">
-          Both plans include a {FREE_TRIAL_DAYS}-day free trial. No credit card required to
-          start.
+        <p className="mt-8 text-center text-sm leading-6 text-muted-foreground">
+          Both plans include a {FREE_TRIAL_DAYS}-day free trial. No credit card
+          required to start.
         </p>
       </div>
     </div>
@@ -222,13 +174,15 @@ export function PricingClientPage({
 function PlanCta({
   status,
   planName,
+  featured,
 }: {
   status: "current" | "upgrade" | "unauthenticated"
   planName: string
+  featured: boolean
 }) {
   if (status === "current") {
     return (
-      <div className="flex w-full items-center justify-center rounded-xl border bg-muted/50 py-3 text-sm font-medium text-muted-foreground">
+      <div className="flex w-full items-center justify-center rounded-2xl border border-border bg-muted/50 py-3.5 text-sm font-semibold text-muted-foreground">
         Current plan
       </div>
     )
@@ -238,15 +192,14 @@ function PlanCta({
     return (
       <Link
         href="/dashboard/billing"
-        className="flex w-full items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
-        style={{
-          background:
-            "linear-gradient(135deg, var(--crimson-carrot) 0%, var(--pumpkin-spice) 100%)",
-          boxShadow:
-            "0 4px 20px color-mix(in oklch, var(--blaze-orange) 30%, transparent)",
-        }}
+        className={`group flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
+          featured
+            ? "bg-[var(--color-blaze-orange)] text-white shadow-[0_16px_38px_-20px_rgba(255,84,0,0.95)] hover:bg-[var(--color-blaze-orange-2)]"
+            : "border border-border bg-background text-foreground hover:border-[var(--color-blaze-orange)]/30 hover:text-[var(--color-blaze-orange)]"
+        }`}
       >
         Upgrade to {planName}
+        <IconArrowRight className="ml-2 h-4 w-4 transition duration-200 group-hover:translate-x-1" />
       </Link>
     )
   }
@@ -254,15 +207,14 @@ function PlanCta({
   return (
     <Link
       href="/signup"
-      className="flex w-full items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
-      style={{
-        background:
-          "linear-gradient(135deg, var(--crimson-carrot) 0%, var(--pumpkin-spice) 100%)",
-        boxShadow:
-          "0 4px 20px color-mix(in oklch, var(--blaze-orange) 30%, transparent)",
-      }}
+      className={`group flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
+        featured
+          ? "bg-[var(--color-blaze-orange)] text-white shadow-[0_16px_38px_-20px_rgba(255,84,0,0.95)] hover:bg-[var(--color-blaze-orange-2)]"
+          : "border border-border bg-background text-foreground hover:border-[var(--color-blaze-orange)]/30 hover:text-[var(--color-blaze-orange)]"
+      }`}
     >
       Start free trial
+      <IconArrowRight className="ml-2 h-4 w-4 transition duration-200 group-hover:translate-x-1" />
     </Link>
   )
 }

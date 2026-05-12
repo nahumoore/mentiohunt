@@ -1,4 +1,4 @@
-export const IconBrandMentiohunt = ({ className }: { className?: string }) => {
+export const IconBrandReddinbox = ({ className }: { className?: string }) => {
   return (
     <svg
       version="1.0"
@@ -21,7 +21,5 @@ export const IconBrandMentiohunt = ({ className }: { className?: string }) => {
         <path d="M3642 1630 c-52 -12 -77 -44 -112 -143 -87 -245 -202 -430 -374 -601 -222 -222 -485 -368 -785 -437 -127 -29 -410 -37 -558 -15 -459 68 -870 344 -1110 746 -56 93 -120 233 -148 322 -12 36 -31 70 -52 90 -30 29 -41 33 -88 33 -46 0 -58 -4 -85 -30 -17 -16 -35 -46 -42 -67 -10 -33 -7 -48 26 -143 225 -651 797 -1121 1486 -1221 141 -20 428 -15 563 10 576 108 1078 487 1327 1001 69 141 123 301 116 344 -13 82 -83 129 -164 111z" />
       </g>
     </svg>
-  );
-};
-
-export const IconBrandReddinbox = IconBrandMentiohunt;
+  )
+}

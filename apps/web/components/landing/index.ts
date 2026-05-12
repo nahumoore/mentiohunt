@@ -1,4 +1,6 @@
 export { Benefits } from "./benefits"
+export { Faq } from "./faq"
+export { BigTestimonial } from "./big-testimonial"
 export { DiscoverySurfaces } from "./discovery-surfaces"
 export { Footer } from "./footer"
 export { Hero } from "./hero"

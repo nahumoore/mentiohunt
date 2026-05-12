@@ -7,7 +7,7 @@ import { IconStarFilled } from "@tabler/icons-react"
 import Image from "next/image"
 import Link from "next/link"
 import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
-import { IconBrandReddinbox } from "../custom-icons/brand-reddinbox"
+import { IconBrandReddinbox } from "../custom-icons/trusted/brand-reddinbox"
 
 export function AuthSocialProof() {
   return (
@@ -44,7 +44,7 @@ export function AuthSocialProof() {
         className="relative flex w-fit items-center gap-2.5 font-semibold transition-opacity hover:opacity-80"
       >
         <div className="flex size-8 items-center justify-center rounded-md bg-primary-foreground/14 ring-1 ring-primary-foreground/18 backdrop-blur-sm">
-          <IconBrandMentiohunt className="size-5 text-primary-foreground" />
+          <IconBrandMentiohunt className="size-5 rotate-12 text-primary-foreground" />
         </div>
         <span className="text-sm text-primary-foreground">Mentiohunt</span>
       </Link>

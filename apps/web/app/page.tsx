@@ -1,7 +1,8 @@
-import type { Metadata } from "next"
 import {
   Benefits,
+  BigTestimonial,
   DiscoverySurfaces,
+  Faq,
   Footer,
   Hero,
   HowItWorks,
@@ -11,6 +12,7 @@ import {
   TargetPersonas,
   Testimonials,
 } from "@/components/landing"
+import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
@@ -40,11 +42,13 @@ export default function Page() {
         <Navbar />
         <Hero />
         <DiscoverySurfaces />
-        <Benefits />
+        <BigTestimonial />
         <HowItWorks />
+        <Benefits />
         <TargetPersonas />
-        <Testimonials />
         <Pricing />
+        <Testimonials />
+        <Faq />
         <Footer />
       </main>
     </>

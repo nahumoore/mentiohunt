@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { supabaseServer } from "@workspace/supabase/server"
 import type { BillingTier } from "@/consts/billing"
-import { Navbar, Footer, Testimonials } from "@/components/landing"
+import { Navbar, Footer, Testimonials, Faq } from "@/components/landing"
 import { PricingClientPage } from "./client-page"
 
 export const metadata: Metadata = {
@@ -51,6 +51,7 @@ export default async function PricingPage() {
       <Navbar />
       <PricingClientPage userTier={userTier} />
       <Testimonials />
+      <Faq />
       <Footer />
     </main>
   )

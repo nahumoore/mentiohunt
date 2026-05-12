@@ -3,9 +3,9 @@
 import * as React from "react"
 import Link from "next/link"
 
+import { IconBrandMentiohunt } from "@/components/custom-icons/brand-mentiohunt"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
-import { IconBrandReddinbox } from "@/components/custom-icons/brand-reddinbox"
 import {
   type DashboardProduct,
   getProductDisplayName,
@@ -41,8 +41,8 @@ export function AppSidebar({
           <div className="pointer-events-none absolute -top-12 -right-10 size-28 rounded-full bg-blaze-orange/10 blur-2xl transition-all duration-500 ease-out group-hover/header:scale-125 group-hover/header:bg-blaze-orange/18 group-data-[collapsible=icon]:hidden" />
           <div className="pointer-events-none absolute inset-x-3 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-flame/0 to-transparent transition-colors duration-300 group-hover/header:via-amber-flame/60 group-data-[collapsible=icon]:hidden" />
           <div className="relative flex min-w-0 items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-crimson-carrot via-pumpkin-spice to-amber-flame text-white shadow-[0_10px_24px_rgba(255,84,0,0.26)] ring-1 ring-white/35 transition-all duration-300 ease-out group-hover/header:rotate-3 group-hover/header:scale-105 group-hover/header:shadow-[0_14px_30px_rgba(255,84,0,0.34)] group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-lg">
-              <IconBrandReddinbox className="size-5" />
+            <div className="flex size-10 shrink-0 items-center justify-center text-primary transition-all duration-300 ease-out group-hover/header:scale-105 group-data-[collapsible=icon]:size-8">
+              <IconBrandMentiohunt className="size-6 rotate-12 group-data-[collapsible=icon]:size-5" />
             </div>
             <div className="min-w-0 group-data-[collapsible=icon]:hidden">
               <p className="font-heading truncate text-sm leading-5 font-semibold tracking-tight transition-transform duration-300 ease-out group-hover/header:translate-x-0.5">

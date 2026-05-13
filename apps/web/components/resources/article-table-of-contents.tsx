@@ -80,7 +80,7 @@ export function ArticleTableOfContents({
             Contents
           </div>
           <p className="mt-2 text-xs leading-5 text-muted-foreground">
-            Jump to the comparison details that matter most.
+            Jump to the sections that matter most.
           </p>
         </div>
         <nav aria-label="Article contents" className="relative p-2">

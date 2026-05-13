@@ -13,6 +13,8 @@ export type BlogPostMeta = {
   date: string
   tags: string[]
   slug: string
+  metaTitle?: string
+  metaDescription?: string
   author?: string
   excerpt?: string
   image?: string
@@ -23,7 +25,12 @@ export type BlogPostMeta = {
   featured?: boolean
 }
 
-export type ContentType = "blog" | "free-tools" | "guides" | "alternatives"
+export type ContentType =
+  | "blog"
+  | "articles"
+  | "free-tools"
+  | "guides"
+  | "alternatives"
 
 function getContentDirectory(contentType: ContentType = "blog"): string {
   return path.join(process.cwd(), "resources", contentType)
@@ -33,6 +40,7 @@ function getDefaultCategory(contentType: ContentType): string {
   if (contentType === "alternatives") return "Alternative"
   if (contentType === "guides") return "Guide"
   if (contentType === "free-tools") return "Free Tool"
+  if (contentType === "articles") return "Article"
   return "Blog"
 }
 
@@ -87,6 +95,8 @@ export function getPostBySlug(
         slug,
         title: toStringValue(data.title, "Untitled"),
         description: toStringValue(data.description, toStringValue(data.excerpt)),
+        metaTitle: toStringValue(data.metaTitle) || undefined,
+        metaDescription: toStringValue(data.metaDescription) || undefined,
         date: toStringValue(data.date, new Date().toISOString()),
         author: toStringValue(data.author, "Unknown"),
         tags: toStringArray(data.tags),

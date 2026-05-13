@@ -5,6 +5,7 @@ import { getResourceSlugs } from "@/lib/mdx"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const altSlugs = getResourceSlugs("alternatives")
+  const articleSlugs = getResourceSlugs("articles")
 
   return [
     { url: "https://mentiohunt.com", lastModified: new Date("2026-05-08"), priority: 1 },
@@ -14,6 +15,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...features.map((feature) => ({
       url: `https://mentiohunt.com/features/${feature.slug}`,
       lastModified: new Date(feature.updatedAt),
+      priority: 0.75 as const,
+    })),
+    { url: "https://mentiohunt.com/blog", lastModified: new Date("2026-05-13"), priority: 0.8 },
+    ...articleSlugs.map((slug) => ({
+      url: `https://mentiohunt.com/blog/${slug}`,
       priority: 0.75 as const,
     })),
     { url: "https://mentiohunt.com/alternatives", lastModified: new Date("2026-05-08"), priority: 0.8 },

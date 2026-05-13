@@ -2,10 +2,6 @@
 
 ### Backlink building / outreach tools
 
-- BacklinkGPT — AI backlink outreach agent that finds prospects, discovers contacts, drafts emails, and tracks backlink opportunities.
-- Respona — PR and link-building outreach platform for prospecting, contact finding, personalization, and email campaigns.
-- Postaga — Outreach tool focused on campaign templates like guest posts, skyscraper outreach, resource pages, and podcast outreach.
-- Pitchbox — Enterprise-level link-building outreach platform for agencies and teams running large automated campaigns.
 - BuzzStream — Outreach CRM for managing prospects, relationships, email history, follow-ups, and link-building workflows.
 - Semrush Link Building Tool — Backlink prospecting and outreach workflow inside Semrush, mainly useful for SEO teams already using Semrush.
 - Ahrefs — Backlink research and competitor analysis tool used to find link prospects, but not mainly built for outreach automation.

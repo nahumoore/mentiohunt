@@ -13,6 +13,7 @@ const productLinks = [
 ]
 
 const resourceLinks = [
+  { href: "/blog", label: "Blog" },
   { href: "/free-tools", label: "Free Tools" },
   { href: "/about", label: "About" },
   { href: "/alternatives", label: "Alternatives" },

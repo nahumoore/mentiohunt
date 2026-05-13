@@ -22,7 +22,7 @@ export default async function ProspectPage({
   const { data: prospect, error } = await supabase
     .from("backlink_prospects")
     .select(
-      "id, product_id, domain, target_url, tier, action_type, status, discovered_at, email_subject, email_body, contact_name, contact_email, notes, created_at, directory_id"
+      "id, product_id, domain, target_url, tier, action_type, status, discovered_at, email_subject, email_body, contact_name, contact_email, notes, created_at, directory_id, directory:directories(id, name, domain, submit_url, category, is_free, is_active, domain_authority, spam_score, linking_root_domains, ranking_keywords, seo_metrics_details, seo_metrics_updated_at, submit_url_ok, submit_url_verified_at)"
     )
     .eq("id", slug)
     .maybeSingle()
@@ -46,7 +46,12 @@ export default async function ProspectPage({
     notFound()
   }
 
-  const prospectDetail: ProspectDetail = prospect
+  const prospectDetail: ProspectDetail = {
+    ...prospect,
+    directory: Array.isArray(prospect.directory)
+      ? (prospect.directory[0] ?? null)
+      : prospect.directory,
+  }
 
   return (
     <ProspectClientPage

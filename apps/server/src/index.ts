@@ -1,8 +1,7 @@
 import express from "express"
 import "./env.js"
-import { directoryOpportunitiesRouter } from "./routes/find-directory-opportunities.js"
-import { directoryOpportunitiesByUrlRouter } from "./routes/find-directory-opportunities-by-url.js"
-import { verifyDirectoryUrlsRouter } from "./routes/verify-directory-urls.js"
+import { registerJobs } from "./jobs/index.js"
+import { registerRoutes } from "./routes/index.js"
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -15,13 +14,12 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" })
 })
 
-app.use(directoryOpportunitiesByUrlRouter)
-
-if (isDev) {
-  app.use(directoryOpportunitiesRouter)
-  app.use(verifyDirectoryUrlsRouter)
-}
+registerRoutes(app, isDev)
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
+
+  if (!isDev) {
+    registerJobs()
+  }
 })

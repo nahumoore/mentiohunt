@@ -74,7 +74,7 @@ export async function checkProductDirectoryOpportunities(
       headLimit(async () => {
         try {
           const result = await headCheck(dir, slug)
-          log.info("head_check finished", { productId, domain: dir.domain, status: result.status })
+          log.info("head_check finished", { productId, domain: dir.domain, status: result.status, reason: result.reason })
           return { dir, result }
         } catch (err) {
           return { dir, result: { status: "error" as const, url: dir.submit_url, reason: String(err) } }

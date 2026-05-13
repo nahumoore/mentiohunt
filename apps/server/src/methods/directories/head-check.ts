@@ -15,7 +15,7 @@ export async function headCheck(directory: Directory, slug: string): Promise<Che
   const url = directory.slug_pattern.replace("{slug}", encodeURIComponent(slug))
 
   try {
-    await fetchWithRetry(url, { maxAttempts: 2, timeoutMs: 10_000 })
+    await fetchWithRetry(url, { maxAttempts: 2, timeoutMs: 10_000, rangeBytes: 8192 })
     return { status: "listed", url }
   } catch (err) {
     if (err instanceof HttpStatusError && [404, 410].includes(err.status)) {

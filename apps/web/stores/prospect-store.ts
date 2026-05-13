@@ -5,6 +5,26 @@ import { create } from "zustand"
 import type { Tables } from "@workspace/supabase/database-types"
 
 type BacklinkProspect = Tables<"backlink_prospects">
+type Directory = Tables<"directories">
+
+export type ProspectDirectory = Pick<
+  Directory,
+  | "id"
+  | "name"
+  | "domain"
+  | "submit_url"
+  | "category"
+  | "is_free"
+  | "is_active"
+  | "domain_authority"
+  | "spam_score"
+  | "linking_root_domains"
+  | "ranking_keywords"
+  | "seo_metrics_details"
+  | "seo_metrics_updated_at"
+  | "submit_url_ok"
+  | "submit_url_verified_at"
+>
 
 export type ProspectListItem = Pick<
   BacklinkProspect,
@@ -28,12 +48,18 @@ export type ProspectDetail = ProspectListItem &
     | "notes"
     | "created_at"
     | "directory_id"
-  >
+  > & {
+    directory: ProspectDirectory | null
+  }
 
 type ProspectStore = {
   prospects: ProspectListItem[]
   prospectDetailsById: Record<string, ProspectDetail>
   setProspects: (prospects: ProspectListItem[]) => void
+  updateProspectStatuses: (
+    prospectIds: string[],
+    status: BacklinkProspect["status"]
+  ) => void
   upsertProspectDetail: (prospect: ProspectDetail) => void
   clearProspects: () => void
 }
@@ -55,6 +81,25 @@ export const useProspectStore = create<ProspectStore>()((set) => ({
   prospects: [],
   prospectDetailsById: {},
   setProspects: (prospects) => set({ prospects }),
+  updateProspectStatuses: (prospectIds, status) =>
+    set((state) => {
+      const idSet = new Set(prospectIds)
+      const prospectDetailsById = { ...state.prospectDetailsById }
+
+      prospectIds.forEach((id) => {
+        const prospect = prospectDetailsById[id]
+        if (prospect) {
+          prospectDetailsById[id] = { ...prospect, status }
+        }
+      })
+
+      return {
+        prospects: state.prospects.map((prospect) =>
+          idSet.has(prospect.id) ? { ...prospect, status } : prospect
+        ),
+        prospectDetailsById,
+      }
+    }),
   upsertProspectDetail: (prospect) =>
     set((state) => {
       const listItem = toListItem(prospect)

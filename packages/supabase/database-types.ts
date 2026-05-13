@@ -86,33 +86,63 @@ export type Database = {
       directories: {
         Row: {
           category: string | null
+          check_method: Database["public"]["Enums"]["directory_check_method"]
           created_at: string
           domain: string
+          domain_authority: number | null
           id: string
           is_active: boolean
           is_free: boolean
+          linking_root_domains: number | null
           name: string
+          ranking_keywords: number | null
+          seo_metrics_details: Json | null
+          seo_metrics_updated_at: string | null
+          slug_pattern: string | null
+          spam_score: number | null
           submit_url: string
+          submit_url_ok: boolean
+          submit_url_verified_at: string | null
         }
         Insert: {
           category?: string | null
+          check_method?: Database["public"]["Enums"]["directory_check_method"]
           created_at?: string
           domain: string
+          domain_authority?: number | null
           id?: string
           is_active?: boolean
           is_free?: boolean
+          linking_root_domains?: number | null
           name: string
+          ranking_keywords?: number | null
+          seo_metrics_details?: Json | null
+          seo_metrics_updated_at?: string | null
+          slug_pattern?: string | null
+          spam_score?: number | null
           submit_url: string
+          submit_url_ok?: boolean
+          submit_url_verified_at?: string | null
         }
         Update: {
           category?: string | null
+          check_method?: Database["public"]["Enums"]["directory_check_method"]
           created_at?: string
           domain?: string
+          domain_authority?: number | null
           id?: string
           is_active?: boolean
           is_free?: boolean
+          linking_root_domains?: number | null
           name?: string
+          ranking_keywords?: number | null
+          seo_metrics_details?: Json | null
+          seo_metrics_updated_at?: string | null
+          slug_pattern?: string | null
+          spam_score?: number | null
           submit_url?: string
+          submit_url_ok?: boolean
+          submit_url_verified_at?: string | null
         }
         Relationships: []
       }
@@ -241,6 +271,7 @@ export type Database = {
     }
     Enums: {
       billing_tier: "free" | "pro" | "agency"
+      directory_check_method: "serp_check" | "head_check"
       prospect_action_type: "self_service" | "email_outreach"
       prospect_status:
         | "new"
@@ -378,6 +409,7 @@ export const Constants = {
   public: {
     Enums: {
       billing_tier: ["free", "pro", "agency"],
+      directory_check_method: ["serp_check", "head_check"],
       prospect_action_type: ["self_service", "email_outreach"],
       prospect_status: [
         "new",

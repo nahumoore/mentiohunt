@@ -1,6 +1,7 @@
 import {
   IconCircleX,
   IconClipboardCheck,
+  IconListDetails,
   IconLayoutGrid,
   IconLink,
   IconMailForward,
@@ -36,6 +37,17 @@ export interface ActionTypeConfig {
   description: string
   icon: ElementType
   color: string
+}
+
+export interface ProspectFilterConfig {
+  value: ProspectStatus | "all"
+  label: string
+  icon: ElementType
+}
+
+export const ALL_FILTER_CONFIG = {
+  label: "All",
+  icon: IconListDetails,
 }
 
 export const TYPE_CONFIG: Record<ProspectTier, TierConfig> = {
@@ -110,14 +122,30 @@ export const ACTION_TYPE_CONFIG: Record<ProspectActionType, ActionTypeConfig> = 
   },
 }
 
-export const STATUS_FILTERS: { value: ProspectStatus | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "new", label: "New" },
-  { value: "submitted", label: "Submitted" },
-  { value: "contacted", label: "Contacted" },
-  { value: "replied", label: "Replied" },
-  { value: "won", label: "Won" },
-  { value: "dismissed", label: "Dismissed" },
+export const STATUS_FILTERS: ProspectFilterConfig[] = [
+  { value: "all", label: ALL_FILTER_CONFIG.label, icon: ALL_FILTER_CONFIG.icon },
+  { value: "new", label: STATUS_CONFIG.new.label, icon: STATUS_CONFIG.new.icon },
+  {
+    value: "submitted",
+    label: STATUS_CONFIG.submitted.label,
+    icon: STATUS_CONFIG.submitted.icon,
+  },
+  {
+    value: "contacted",
+    label: STATUS_CONFIG.contacted.label,
+    icon: STATUS_CONFIG.contacted.icon,
+  },
+  {
+    value: "replied",
+    label: STATUS_CONFIG.replied.label,
+    icon: STATUS_CONFIG.replied.icon,
+  },
+  { value: "won", label: STATUS_CONFIG.won.label, icon: STATUS_CONFIG.won.icon },
+  {
+    value: "dismissed",
+    label: STATUS_CONFIG.dismissed.label,
+    icon: STATUS_CONFIG.dismissed.icon,
+  },
 ]
 
 export function formatDate(iso: string): string {

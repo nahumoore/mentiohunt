@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
 import { createLogger } from "../../helpers/logger.js"
 import { headCheck } from "./head-check.js"
-import { serpCheck } from "./serp-check.js"
+import { SERP_BATCH_SIZE, serpBatchCheck } from "./serp-check.js"
 import { toSlug } from "./slug.js"
 
 const log = createLogger("directory-opportunities-check")
@@ -16,10 +16,15 @@ export type DirectoryOpportunitiesCheckResult = {
   prospectsCreated: number
 }
 
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+  return out
+}
+
 export async function checkProductDirectoryOpportunities(
   productId: string
 ): Promise<DirectoryOpportunitiesCheckResult> {
-  // Step 1: Load the product we are checking directory opportunities for.
   const { data: product, error: productError } = await supabaseAdmin
     .from("products")
     .select("id, product_name, website_url")
@@ -30,12 +35,10 @@ export async function checkProductDirectoryOpportunities(
     throw new Error(`Product not found: ${productId}`)
   }
 
-  // Step 2: Ensure the product has a name we can use to derive listing URLs and SERP queries.
   if (!product.product_name) {
     throw new Error(`Product ${productId} has no product_name set`)
   }
 
-  // Step 3: Load backlink discovery settings to confirm directory opportunities are enabled.
   const { data: settings } = await supabaseAdmin
     .from("product_backlink_discovery_settings")
     .select("opportunity_types")
@@ -44,113 +47,85 @@ export async function checkProductDirectoryOpportunities(
 
   if (settings && !settings.opportunity_types.includes("directory")) {
     log.info("directory type not enabled for product, skipping", { productId })
-    return {
-      productId,
-      checked: 0,
-      listed: 0,
-      gaps: 0,
-      errors: 0,
-      prospectsCreated: 0,
-    }
+    return { productId, checked: 0, listed: 0, gaps: 0, errors: 0, prospectsCreated: 0 }
   }
 
-  // Step 4: Load every active directory that should be checked for this product.
   const { data: directories, error: dirError } = await supabaseAdmin
     .from("directories")
     .select("id, domain, submit_url, slug_pattern, check_method")
     .eq("is_active", true)
 
-  if (dirError)
-    throw new Error(`Failed to load directories: ${dirError.message}`)
+  if (dirError) throw new Error(`Failed to load directories: ${dirError.message}`)
   if (!directories || directories.length === 0) {
     log.warn("no active directories found")
-    return {
-      productId,
-      checked: 0,
-      listed: 0,
-      gaps: 0,
-      errors: 0,
-      prospectsCreated: 0,
-    }
+    return { productId, checked: 0, listed: 0, gaps: 0, errors: 0, prospectsCreated: 0 }
   }
 
   const slug = toSlug(product.product_name)
   log.info(`checking ${directories.length} directories`, { productId, slug })
 
-  // Step 5: Limit concurrent checks so we do not fan out too aggressively.
-  const limit = pLimit(8)
+  // Phase 1: head_check directories concurrently
+  const headDirs = directories.filter((d) => d.check_method === "head_check")
+  const serpOnlyDirs = directories.filter((d) => d.check_method !== "head_check")
 
-  // Step 6: Check each directory — head_check first when configured, serp_check as fallback.
-  const results = await Promise.all(
-    directories.map((dir) =>
-      limit(async () => {
-        const startedAt = Date.now()
-
-        log.info("directory check started", {
-          productId,
-          directoryId: dir.id,
-          domain: dir.domain,
-          method: dir.check_method,
-          submitUrl: dir.submit_url,
-        })
-
+  const headLimit = pLimit(8)
+  const headResults = await Promise.all(
+    headDirs.map((dir) =>
+      headLimit(async () => {
         try {
-          let result = dir.check_method === "head_check"
-            ? await headCheck(dir, slug)
-            : await serpCheck(dir, product.product_name)
-
-          if (result.status === "error" && dir.check_method === "head_check") {
-            log.info("head_check blocked, falling back to serp_check", {
-              productId,
-              directoryId: dir.id,
-              domain: dir.domain,
-              reason: result.reason,
-            })
-            result = await serpCheck(dir, product.product_name)
-          }
-
-          log.info("directory check finished", {
-            productId,
-            directoryId: dir.id,
-            domain: dir.domain,
-            status: result.status,
-            resultUrl: result.url,
-            reason: result.reason,
-            durationMs: Date.now() - startedAt,
-          })
-
+          const result = await headCheck(dir, slug)
+          log.info("head_check finished", { productId, domain: dir.domain, status: result.status })
           return { dir, result }
         } catch (err) {
-          log.error("directory check threw unexpectedly", {
-            productId,
-            directoryId: dir.id,
-            domain: dir.domain,
-            submitUrl: dir.submit_url,
-            err: String(err),
-            durationMs: Date.now() - startedAt,
-          })
-
-          return {
-            dir,
-            result: {
-              status: "error" as const,
-              url: dir.submit_url,
-              reason: String(err),
-            },
-          }
+          return { dir, result: { status: "error" as const, url: dir.submit_url, reason: String(err) } }
         }
       })
     )
   )
 
-  // Step 8: Summarize check results into listed, gap, and error counts.
+  // Phase 2: batch SERP for serp-only dirs + head_check fallbacks
+  const headFallbackDirs = headResults.filter((r) => r.result.status === "error").map((r) => r.dir)
+  const headSuccess = headResults.filter((r) => r.result.status !== "error")
+
+  const serpDirs = [...serpOnlyDirs, ...headFallbackDirs]
+  const batches = chunk(serpDirs, SERP_BATCH_SIZE)
+
+  log.info(`serp batch: ${serpDirs.length} dirs → ${batches.length} queries`, { productId })
+
+  const batchLimit = pLimit(2)
+  const batchMaps = await Promise.all(
+    batches.map((batch, i) =>
+      batchLimit(async () => {
+        log.info(`serp batch ${i + 1}/${batches.length} started`, {
+          productId,
+          domains: batch.map((d) => d.domain),
+        })
+        const map = await serpBatchCheck(batch, product.product_name)
+        log.info(`serp batch ${i + 1}/${batches.length} finished`, { productId })
+        return map
+      })
+    )
+  )
+
+  const serpResultMap = new Map(batchMaps.flatMap((m) => [...m]))
+
+  const serpResults = serpDirs.map((dir) => ({
+    dir,
+    result: serpResultMap.get(dir.domain) ?? {
+      status: "error" as const,
+      url: dir.submit_url,
+      reason: "missing from batch result",
+    },
+  }))
+
+  const results = [...headSuccess, ...serpResults]
+
   const listed = results.filter((r) => r.result.status === "listed").length
   const gaps = results.filter((r) => r.result.status === "gap")
   const errors = results.filter((r) => r.result.status === "error").length
 
   let prospectsCreated = 0
 
-  // Step 9: Create backlink prospects for directory gaps, ignoring duplicates from earlier runs.
   if (gaps.length > 0) {
     const rows = gaps.map(({ dir }) => ({
       product_id: productId,
@@ -167,12 +142,10 @@ export async function checkProductDirectoryOpportunities(
       .from("backlink_prospects")
       .upsert(rows, { ignoreDuplicates: true, count: "exact" })
 
-    if (upsertError)
-      throw new Error(`Failed to upsert prospects: ${upsertError.message}`)
+    if (upsertError) throw new Error(`Failed to upsert prospects: ${upsertError.message}`)
     prospectsCreated = count ?? 0
   }
 
-  // Step 10: Log and return the final listing-check summary.
   log.success(`done`, { listed, gaps: gaps.length, errors, prospectsCreated })
 
   return {

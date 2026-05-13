@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
 import { createLogger } from "../../helpers/logger.js"
 import { headCheck } from "./head-check.js"
-import { serpCheck } from "./serp-check.js"
+import { SERP_BATCH_SIZE, serpBatchCheck } from "./serp-check.js"
 import { toSlug } from "./slug.js"
 
 const log = createLogger("directory-opportunities-by-url")
@@ -27,6 +27,12 @@ export type DirectoryOpportunitiesByUrlResult = {
   directories: GapDirectory[]
 }
 
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+  return out
+}
+
 export async function checkDirectoryOpportunitiesByUrl(input: {
   url: string
   productName: string
@@ -47,66 +53,61 @@ export async function checkDirectoryOpportunitiesByUrl(input: {
 
   log.info(`checking ${directories.length} directories`, { url, slug })
 
-  const limit = pLimit(8)
+  // Phase 1: head_check directories concurrently
+  const headDirs = directories.filter((d) => d.check_method === "head_check")
+  const serpOnlyDirs = directories.filter((d) => d.check_method !== "head_check")
 
-  const results = await Promise.all(
-    directories.map((dir) =>
-      limit(async () => {
-        const startedAt = Date.now()
-
-        log.info("directory check started", {
-          url,
-          directoryId: dir.id,
-          domain: dir.domain,
-          method: dir.check_method,
-        })
-
+  const headLimit = pLimit(8)
+  const headResults = await Promise.all(
+    headDirs.map((dir) =>
+      headLimit(async () => {
         try {
-          let result =
-            dir.check_method === "head_check"
-              ? await headCheck(dir, slug)
-              : await serpCheck(dir, productName)
-
-          if (result.status === "error" && dir.check_method === "head_check") {
-            log.info("head_check blocked, falling back to serp_check", {
-              url,
-              directoryId: dir.id,
-              domain: dir.domain,
-              reason: result.reason,
-            })
-            result = await serpCheck(dir, productName)
-          }
-
-          log.info("directory check finished", {
-            url,
-            directoryId: dir.id,
-            domain: dir.domain,
-            status: result.status,
-            durationMs: Date.now() - startedAt,
-          })
-
+          const result = await headCheck(dir, slug)
+          log.info("head_check finished", { url, domain: dir.domain, status: result.status })
           return { dir, result }
         } catch (err) {
-          log.error("directory check threw unexpectedly", {
-            url,
-            directoryId: dir.id,
-            domain: dir.domain,
-            err: String(err),
-            durationMs: Date.now() - startedAt,
-          })
-
-          return {
-            dir,
-            result: {
-              status: "error" as const,
-              url: dir.submit_url,
-              reason: String(err),
-            },
-          }
+          return { dir, result: { status: "error" as const, url: dir.submit_url, reason: String(err) } }
         }
       })
     )
   )
+
+  // Phase 2: batch SERP for serp-only dirs + head_check fallbacks
+  const headFallbackDirs = headResults.filter((r) => r.result.status === "error").map((r) => r.dir)
+  const headSuccess = headResults.filter((r) => r.result.status !== "error")
+
+  const serpDirs = [...serpOnlyDirs, ...headFallbackDirs]
+  const batches = chunk(serpDirs, SERP_BATCH_SIZE)
+
+  log.info(`serp batch: ${serpDirs.length} dirs → ${batches.length} queries`, { url })
+
+  const batchLimit = pLimit(2)
+  const batchMaps = await Promise.all(
+    batches.map((batch, i) =>
+      batchLimit(async () => {
+        log.info(`serp batch ${i + 1}/${batches.length} started`, {
+          url,
+          domains: batch.map((d) => d.domain),
+        })
+        const map = await serpBatchCheck(batch, productName)
+        log.info(`serp batch ${i + 1}/${batches.length} finished`, { url })
+        return map
+      })
+    )
+  )
+
+  const serpResultMap = new Map(batchMaps.flatMap((m) => [...m]))
+
+  const serpResults = serpDirs.map((dir) => ({
+    dir,
+    result: serpResultMap.get(dir.domain) ?? {
+      status: "error" as const,
+      url: dir.submit_url,
+      reason: "missing from batch result",
+    },
+  }))
+
+  const results = [...headSuccess, ...serpResults]
 
   const listed = results.filter((r) => r.result.status === "listed").length
   const gapResults = results.filter((r) => r.result.status === "gap")

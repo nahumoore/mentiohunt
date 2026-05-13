@@ -1,8 +1,8 @@
-import type { Metadata } from "next"
-import { Inter, Outfit } from "next/font/google"
-
+import { GoogleAnalytics } from "@next/third-parties/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
+import type { Metadata } from "next"
+import { Inter, Outfit } from "next/font/google"
 import { Toaster } from "sonner"
 
 import { PostHogInitializer } from "../components/posthog-initializer"
@@ -10,7 +10,8 @@ import { PostHogInitializer } from "../components/posthog-initializer"
 export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
   title: {
-    default: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
+    default:
+      "Mentiohunt – Backlink Building & Community Monitoring for Founders",
     template: "%s — Mentiohunt",
   },
   description:
@@ -46,9 +47,18 @@ export default function RootLayout({
     >
       <body className="overflow-x-hidden">
         {/* <ThemeProvider> */}
-        <PostHogInitializer />
         {children}
         <Toaster richColors position="top-center" />
+
+        {process.env.NODE_ENV !== "development" && (
+          <>
+            {/* GOOGLE ANALYTICS */}
+            <GoogleAnalytics gaId="G-61WK6YY5RC" />
+
+            {/* POSTHOG */}
+            <PostHogInitializer />
+          </>
+        )}
         {/* </ThemeProvider> */}
       </body>
     </html>

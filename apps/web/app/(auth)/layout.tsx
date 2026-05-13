@@ -7,7 +7,7 @@ export default async function AuthLayout({
 }: {
   children: React.ReactNode
 }) {
-  if (process.env.NODE_END !== "dev") {
+  if (process.env.NODE_ENV !== "development") {
     return <AuthComingSoon />
   }
 

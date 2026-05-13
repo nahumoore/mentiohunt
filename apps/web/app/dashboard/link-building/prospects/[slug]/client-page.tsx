@@ -6,7 +6,6 @@ import {
   IconAlertCircle,
   IconArrowLeft,
   IconArrowUpRight,
-  IconBrandGoogle,
   IconCheck,
   IconChevronRight,
   IconCircleCheck,
@@ -198,45 +197,15 @@ function Metric({ label, value }: { label: string; value: string }) {
   )
 }
 
-function GuidanceCard({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: typeof IconInfoCircle
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="rounded-3xl bg-card p-5 shadow-sm ring-1 ring-foreground/5">
-      <div className="flex gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-orange/10 text-orange-600">
-          <Icon className="size-5" />
-        </div>
-        <div>
-          <h3 className="font-heading text-base font-semibold tracking-tight">
-            {title}
-          </h3>
-          <div className="mt-2 text-sm leading-6 text-muted-foreground">
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function SelfServeActionCard({
+function SelfServeActionLink({
   href,
   icon: Icon,
-  eyebrow,
   title,
   description,
   primary = false,
 }: {
   href: string
   icon: typeof IconInfoCircle
-  eyebrow: string
   title: string
   description: string
   primary?: boolean
@@ -247,53 +216,47 @@ function SelfServeActionCard({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "group relative overflow-hidden rounded-3xl p-5 text-left transition-all hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
+        "group flex items-start gap-3 rounded-2xl p-3.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
         primary
-          ? "bg-foreground text-background shadow-lg shadow-orange/10"
-          : "border border-border/70 bg-card shadow-sm hover:border-orange/30"
+          ? "bg-foreground text-background hover:bg-foreground/90"
+          : "border border-border/70 bg-background hover:border-orange/25 hover:bg-orange/5"
       )}
     >
-      {primary && (
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,color-mix(in_oklab,var(--orange)_35%,transparent),transparent_32%),linear-gradient(135deg,transparent,color-mix(in_oklab,var(--blaze-orange)_18%,transparent))] opacity-90" />
-      )}
-      <div className="relative flex items-start justify-between gap-4">
-        <div
-          className={cn(
-            "flex size-11 shrink-0 items-center justify-center rounded-2xl transition-transform group-hover:scale-105",
-            primary ? "bg-background/15" : "bg-orange/10 text-orange-700"
-          )}
-        >
-          <Icon className="size-5" />
-        </div>
-        <IconArrowUpRight
-          className={cn(
-            "size-4 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5",
-            primary ? "text-background/70" : "text-muted-foreground"
-          )}
-        />
+      <div
+        className={cn(
+          "flex size-9 shrink-0 items-center justify-center rounded-xl",
+          primary ? "bg-background/15" : "bg-orange/10 text-orange-700"
+        )}
+      >
+        <Icon className="size-4" />
       </div>
-      <div className="relative mt-5">
+      <div className="min-w-0 flex-1">
+        <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
         <p
           className={cn(
-            "text-[11px] font-semibold tracking-widest uppercase",
-            primary ? "text-background/60" : "text-muted-foreground"
-          )}
-        >
-          {eyebrow}
-        </p>
-        <h3 className="mt-2 font-heading text-lg font-semibold tracking-tight">
-          {title}
-        </h3>
-        <p
-          className={cn(
-            "mt-2 text-sm leading-6",
-            primary ? "text-background/75" : "text-muted-foreground"
+            "mt-1 text-xs leading-5",
+            primary ? "text-background/70" : "text-muted-foreground"
           )}
         >
           {description}
         </p>
       </div>
+      <IconArrowUpRight
+        className={cn(
+          "mt-1 size-4 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5",
+          primary ? "text-background/70" : "text-muted-foreground"
+        )}
+      />
     </a>
+  )
+}
+
+function CompactFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 border-l border-border/70 pl-3">
+      <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
+      <p className="mt-0.5 truncate text-sm font-semibold">{value}</p>
+    </div>
   )
 }
 
@@ -345,102 +308,79 @@ function SelfServeDirectorySections({
   const productHost = getHostname(product.websiteUrl)
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-      <div className="flex flex-col gap-8">
-        <section className="relative overflow-hidden rounded-[2rem] border border-orange/15 bg-[radial-gradient(circle_at_top_left,var(--orange)/18,transparent_34%),linear-gradient(135deg,var(--card),var(--muted))] p-6 shadow-sm sm:p-8">
-          <div className="absolute top-0 right-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-orange/10 blur-2xl" />
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-orange/10 px-3 py-1 text-xs font-semibold text-orange-700">
-                <IconClipboardCheck className="size-3.5" />
-                Directory submission needed
-              </span>
-              <h2 className="mt-5 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-                Submit {product.productName} to {prospect.domain}
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <SectionLabel>Submission brief</SectionLabel>
+              <h2 className="font-heading text-xl font-semibold tracking-tight">
+                Submit once, then confirm indexing.
               </h2>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-                This is a self-serve opportunity, usually a directory or listing
-                site. Open the submission page, add your product details, and
-                keep the listing moving until Google can index it.
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                This is a self-serve directory opportunity. Use the target page to
+                add {product.productName}, then verify whether Google can find the
+                listing for the product and domain.
               </p>
             </div>
-            <div className="grid gap-2 rounded-3xl bg-background/80 p-3 ring-1 ring-foreground/5 backdrop-blur sm:min-w-64">
-              <Metric label="Product" value={product.productName} />
-              <Metric label="Product domain" value={productHost} />
-            </div>
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-orange/10 px-3 py-1 text-xs font-semibold text-orange-700">
+              <IconClipboardCheck className="size-3.5" />
+              Self-serve
+            </span>
           </div>
-        </section>
 
-        <section>
-          <SectionLabel>How we found it</SectionLabel>
-          <GuidanceCard icon={IconBrandGoogle} title="SERP-based submission check">
-            <p>
-              Mentiohunt checks Google SERP results for this directory together
-              with your product name and domain. If we cannot find an indexed
-              listing for {product.productName}, we keep the directory in your
-              opportunity queue.
-            </p>
-          </GuidanceCard>
-        </section>
+          <div className="grid gap-3 rounded-2xl bg-muted/35 p-4 sm:grid-cols-3">
+            <CompactFact label="Product" value={product.productName} />
+            <CompactFact label="Product domain" value={productHost} />
+            <CompactFact label="Added" value={formatDate(prospect.created_at)} />
+          </div>
 
-        <section>
-          <SectionLabel>If you already submitted</SectionLabel>
-          <div className="rounded-3xl border border-amber-500/20 bg-amber-500/10 p-5">
-            <div className="flex gap-3">
-              <IconAlertCircle className="mt-0.5 size-5 shrink-0 text-amber-600" />
-              <div>
-                <h3 className="font-heading text-base font-semibold tracking-tight">
-                  Treat this as an indexing problem, not a duplicate task.
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  If your product was already submitted but still appears here,
-                  the product page is not showing in Google for the SERP checks
-                  we run. That means the backlink is unlikely to pass useful
-                  link value yet. Contact the directory owner to get the listing
-                  indexed, or add a backlink to that listing page yourself until
-                  Google indexes it.
-                </p>
+          <div className="grid gap-3 lg:grid-cols-2">
+            <div className="rounded-2xl border border-border/70 bg-background p-4">
+              <p className="text-sm font-semibold">Why it is queued</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Mentiohunt could not find an indexed listing for {product.productName}
+                when checking this directory with your product name and domain.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
+              <div className="flex gap-3">
+                <IconAlertCircle className="mt-0.5 size-4 shrink-0 text-amber-600" />
+                <div>
+                  <p className="text-sm font-semibold">Already submitted?</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Treat it as an indexing issue. The listing may need an owner
+                    nudge or an extra internal backlink before Google sees it.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section>
+      <aside className="flex flex-col gap-4">
+        <section className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
           <SectionLabel>Next moves</SectionLabel>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <SelfServeActionCard
+          <div className="flex flex-col gap-2.5">
+            <SelfServeActionLink
               href={prospect.target_url}
               icon={IconClipboardCheck}
-              eyebrow="Step 1"
-              title="Open the submission page"
-              description="Add the product details where the directory accepts listings. Use the exact product name and domain so future checks can match it."
+              title="Open submission page"
+              description="Submit the product directly on the directory."
               primary
             />
-            <SelfServeActionCard
+            <SelfServeActionLink
               href={serpUrl}
               icon={IconSearch}
-              eyebrow="Step 2"
-              title="Check whether Google sees it"
-              description="Run the same SERP check Mentiohunt uses to confirm whether the listing is indexed for the product and domain."
+              title="Check Google result"
+              description="Confirm whether the listing is indexed."
             />
           </div>
         </section>
-      </div>
 
-      <div className="flex flex-col gap-5">
-        <div className="rounded-3xl bg-card p-5 shadow-sm ring-1 ring-foreground/5">
-          <SectionLabel>Queue data</SectionLabel>
-          <div className="grid gap-3">
-            <Metric label="Type" value={TYPE_CONFIG[prospect.tier].label} />
-            <Metric
-              label="Action"
-              value={ACTION_TYPE_CONFIG[prospect.action_type].label}
-            />
-            <Metric label="Created" value={formatDate(prospect.created_at)} />
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-orange/15 bg-orange/5 p-5">
+        <section className="rounded-3xl border border-orange/15 bg-orange/5 p-4">
           <SectionLabel>Target page</SectionLabel>
           <a
             href={prospect.target_url}
@@ -451,12 +391,11 @@ function SelfServeDirectorySections({
             <IconExternalLink className="size-4 shrink-0" />
             <span className="truncate">{getTargetLabel(prospect.target_url)}</span>
           </a>
-          <p className="mt-3 text-xs leading-5 text-muted-foreground">
-            Use this URL first. If it redirects to a broader directory page,
-            submit there and save the final listing URL for follow-up.
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">
+            If it redirects, submit on the final directory page.
           </p>
-        </div>
-      </div>
+        </section>
+      </aside>
     </div>
   )
 }

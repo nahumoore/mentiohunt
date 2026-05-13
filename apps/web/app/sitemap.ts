@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: "https://mentiohunt.com/features", lastModified: new Date("2026-05-12"), priority: 0.8 },
     ...features.map((feature) => ({
       url: `https://mentiohunt.com/features/${feature.slug}`,
-      lastModified: new Date("2026-05-12"),
+      lastModified: new Date(feature.updatedAt),
       priority: 0.75 as const,
     })),
     { url: "https://mentiohunt.com/alternatives", lastModified: new Date("2026-05-08"), priority: 0.8 },

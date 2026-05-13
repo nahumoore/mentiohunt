@@ -7,6 +7,7 @@ import {
   IconTargetArrow,
 } from "@tabler/icons-react"
 import type { Metadata } from "next"
+import Script from "next/script"
 import Link from "next/link"
 
 import { Footer } from "@/components/landing/footer"
@@ -15,30 +16,52 @@ import { features } from "@/consts/features"
 import { Button } from "@workspace/ui/components/button"
 
 export const metadata: Metadata = {
-  title: "Features - Mentiohunt",
+  title: "Features",
   description:
-    "Explore Mentiohunt features for backlink opportunity queues and community reply alerts built for founders and small marketing teams.",
+    "Mentiohunt gives founders two practical queues: backlink opportunities worth reviewing and community threads worth answering before momentum disappears.",
+  alternates: {
+    canonical: "https://mentiohunt.com/features",
+  },
   openGraph: {
-    title: "Features - Mentiohunt",
+    title: "Features — Mentiohunt",
     description:
-      "Explore Mentiohunt features for backlink opportunity queues and community reply alerts built for founders and small marketing teams.",
+      "Mentiohunt gives founders two practical queues: backlink opportunities worth reviewing and community threads worth answering before momentum disappears.",
     url: "https://mentiohunt.com/features",
     siteName: "Mentiohunt",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Features - Mentiohunt",
+    title: "Features — Mentiohunt",
     description:
-      "Explore Mentiohunt features for backlink opportunity queues and community reply alerts built for founders and small marketing teams.",
+      "Mentiohunt gives founders two practical queues: backlink opportunities worth reviewing and community threads worth answering before momentum disappears.",
   },
 }
 
 const featureIcons = [IconTargetArrow, IconBellRinging]
 
+const itemListSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Mentiohunt Features",
+  url: "https://mentiohunt.com/features",
+  itemListElement: features.map((feature, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    name: feature.shortTitle,
+    url: `https://mentiohunt.com/features/${feature.slug}`,
+    description: feature.description,
+  })),
+}
+
 export default function FeaturesPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <Script
+        id="item-list-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+      />
       <Navbar />
 
       <main className="flex-1">
@@ -63,7 +86,7 @@ export default function FeaturesPage() {
               </span>
               <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
               <h1 className="mt-5 font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-6xl lg:text-[76px] lg:leading-[0.9]">
-                Turn distribution research into a clear next step.
+                Backlink building and community monitoring for founders.
               </h1>
               <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
                 Mentiohunt gives founders two practical queues: backlink

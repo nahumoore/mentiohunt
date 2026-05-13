@@ -5,6 +5,7 @@ export type FeaturePage = {
   shortTitle: string
   description: string
   keyword: string
+  h2: string
   category: "Backlink building" | "Community monitoring"
   metric: string
   metricLabel: string
@@ -26,6 +27,7 @@ export type FeaturePage = {
     question: string
     answer: string
   }[]
+  updatedAt: string
 }
 
 export const features: FeaturePage[] = [
@@ -37,6 +39,7 @@ export const features: FeaturePage[] = [
     description:
       "Mentiohunt turns your articles, sitemap, keywords, and competitors into a daily queue of relevant backlink prospects with fit rationale and outreach prep.",
     keyword: "backlink opportunity queue",
+    h2: "Stop guessing which sites are worth emailing.",
     category: "Backlink building",
     metric: "Daily",
     metricLabel: "qualified prospects",
@@ -95,6 +98,7 @@ export const features: FeaturePage[] = [
           "Start with your sitemap, two or three strongest articles, a few competitors, and the keywords customers use to describe your category.",
       },
     ],
+    updatedAt: "2026-05-12",
   },
   {
     slug: "community-reply-alerts",
@@ -104,6 +108,7 @@ export const features: FeaturePage[] = [
     description:
       "Mentiohunt watches relevant communities for posts where your product fits, then sends a suggested reply so you can join while the thread is still active.",
     keyword: "community reply alerts",
+    h2: "Reply before the thread goes cold.",
     category: "Community monitoring",
     metric: "Realtime",
     metricLabel: "reply opportunities",
@@ -162,6 +167,7 @@ export const features: FeaturePage[] = [
           "Start with the few places where your customers already ask for help, compare tools, or describe the pain your product solves.",
       },
     ],
+    updatedAt: "2026-05-12",
   },
 ]
 

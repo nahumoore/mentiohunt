@@ -14,7 +14,9 @@ import remarkGfm from "remark-gfm"
 
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
+import { ArticleTableOfContents } from "@/components/resources/article-table-of-contents"
 import BlogStylings from "@/components/resources/blog-stylings"
+import { getArticleHeadings } from "@/lib/mdx-headings"
 import { getPostBySlug, getResourceSlugs, type BlogPostMeta } from "@/lib/mdx"
 
 type Props = { params: Promise<{ slug: string }> }
@@ -70,6 +72,7 @@ export default async function AlternativePage({ params }: Props) {
   if (!post) notFound()
 
   const { meta, content } = post
+  const headings = getArticleHeadings(content)
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -87,7 +90,7 @@ export default async function AlternativePage({ params }: Props) {
           <div className="pointer-events-none absolute top-0 -right-32 h-80 w-80 rounded-full bg-[var(--color-blaze-orange)]/8 blur-3xl" />
           <div className="pointer-events-none absolute bottom-0 -left-20 h-56 w-56 rounded-full bg-[var(--color-amber-glow)]/6 blur-3xl" />
 
-          <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
             <Link
               href="/alternatives"
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -147,26 +150,31 @@ export default async function AlternativePage({ params }: Props) {
         </section>
 
         <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-          <article className="text-foreground lg:max-w-[720px]">
-            <MDXContent source={content} />
+          <div className="grid gap-10 xl:grid-cols-[minmax(0,720px)_360px] xl:items-start xl:justify-between xl:gap-16">
+            <article className="text-foreground lg:max-w-[720px]">
+              <MDXContent source={content} />
 
-            <div className="mt-14 rounded-2xl border border-[var(--color-blaze-orange)]/20 bg-[linear-gradient(135deg,var(--color-background)_0%,color-mix(in_oklab,var(--color-background)_82%,var(--color-amber-glow)_18%)_100%)] p-7 shadow-[0_8px_40px_-12px_rgba(255,133,0,0.16)]">
-              <p className="font-heading text-xl font-semibold tracking-[-0.02em]">
-                Want one queue for backlink opportunities and community mentions?
-              </p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Mentiohunt helps founders turn articles, keywords, competitors,
-                and product context into distribution opportunities they can
-                review and act on.
-              </p>
-              <Link
-                href="/signup"
-                className="mt-5 inline-flex rounded-full bg-[var(--color-princeton-orange)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-blaze-orange-2)]"
-              >
-                Start free
-              </Link>
-            </div>
-          </article>
+              <div className="mt-14 rounded-2xl border border-[var(--color-blaze-orange)]/20 bg-[linear-gradient(135deg,var(--color-background)_0%,color-mix(in_oklab,var(--color-background)_82%,var(--color-amber-glow)_18%)_100%)] p-7 shadow-[0_8px_40px_-12px_rgba(255,133,0,0.16)]">
+                <p className="font-heading text-xl font-semibold tracking-[-0.02em]">
+                  Want one queue for backlink opportunities and community
+                  mentions?
+                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Mentiohunt helps founders turn articles, keywords,
+                  competitors, and product context into distribution
+                  opportunities they can review and act on.
+                </p>
+                <Link
+                  href="/signup"
+                  className="mt-5 inline-flex rounded-full bg-[var(--color-princeton-orange)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-blaze-orange-2)]"
+                >
+                  Start free
+                </Link>
+              </div>
+            </article>
+
+            <ArticleTableOfContents headings={headings} />
+          </div>
         </div>
       </main>
 

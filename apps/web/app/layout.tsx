@@ -5,6 +5,8 @@ import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import { Toaster } from "sonner"
 
+import { PostHogInitializer } from "../components/posthog-initializer"
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
   title: {
@@ -44,6 +46,7 @@ export default function RootLayout({
     >
       <body className="overflow-x-hidden">
         {/* <ThemeProvider> */}
+        <PostHogInitializer />
         {children}
         <Toaster richColors position="top-center" />
         {/* </ThemeProvider> */}

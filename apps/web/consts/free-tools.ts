@@ -2,6 +2,7 @@ export const FREE_TOOLS_DAILY_LIMIT = 10
 
 export const FREE_TOOL_NAMES = {
   directoryOpportunityFinder: "directory-opportunity-finder",
+  directoryBacklinkOpportunityFinder: "directory-backlink-opportunity-finder",
 } as const
 
 export type FreeToolName =

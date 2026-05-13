@@ -1,11 +1,13 @@
 import Link from "next/link"
 
+import { features } from "@/consts/features"
 import { Button } from "@workspace/ui/components/button"
 import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
 
 const productLinks = [
   { href: "/#how-it-works", label: "How it Works" },
   { href: "/features", label: "Features" },
+  ...features.map((f) => ({ href: `/features/${f.slug}`, label: f.shortTitle })),
   { href: "/#target-personas", label: "Who It's For" },
   { href: "/#pricing", label: "Pricing" },
 ]

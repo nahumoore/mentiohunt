@@ -105,13 +105,13 @@ export function Testimonials() {
           <TestimonialMarquee items={secondRow} reverse />
         </div>
 
-        <div className="mx-auto mt-16 max-w-4xl rounded-[2rem] border border-border bg-card/70 p-8 shadow-[0_24px_80px_-64px_rgba(255,84,0,0.7)] backdrop-blur-sm">
+        <div className="mx-auto mt-16 max-w-6xl rounded-[2rem] border border-border bg-card/70 px-8 py-9 shadow-[0_24px_80px_-64px_rgba(255,84,0,0.7)] backdrop-blur-sm sm:px-10 lg:px-14">
           <div className="text-center">
             <p className="text-[0.7rem] font-bold tracking-[0.22em] text-muted-foreground uppercase">
-              Trusted by Growing Teams
+              Trusted by Brands like
             </p>
           </div>
-          <div className="mt-8 flex flex-nowrap items-center justify-center gap-x-7 sm:gap-x-10 lg:gap-x-14">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-6 sm:gap-x-12 lg:gap-x-16 xl:gap-x-20">
             {trustedBy.map((item) => (
               <div
                 key={item.name}
@@ -120,7 +120,7 @@ export function Testimonials() {
               >
                 <item.icon className="h-8 w-auto text-foreground transition duration-300 group-hover:text-blaze-orange" />
                 {item.showName ? (
-                  <span className="text-lg font-semibold tracking-tight text-foreground transition duration-300 group-hover:text-blaze-orange">
+                  <span className="text-2xl font-semibold tracking-tight text-foreground transition duration-300 group-hover:text-blaze-orange">
                     {item.name}
                   </span>
                 ) : (
@@ -191,7 +191,7 @@ function TestimonialMarquee({
             </div>
 
             <p className="relative mt-5 text-sm leading-6 text-foreground sm:text-[0.95rem]">
-              &ldquo;{testimonial.quote}&rdquo;
+              {testimonial.quote}
             </p>
           </article>
         ))}

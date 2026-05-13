@@ -3,6 +3,7 @@
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import {
+  IconAlertCircle,
   IconArrowRight,
   IconBolt,
   IconCheck,
@@ -16,120 +17,31 @@ import {
   IconTargetArrow,
 } from "@tabler/icons-react"
 
-import type { Tables } from "@workspace/supabase/database-types"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 
-type Directory = Tables<"directories">
+type GapDirectory = {
+  id: string
+  name: string | null
+  domain: string
+  submit_url: string
+  category: string | null
+  is_free: boolean | null
+  is_active: boolean | null
+}
+
+type Summary = {
+  checked: number
+  listed: number
+  gaps: number
+  errors: number
+}
 
 const loadingStages = [
   "Reading your product URL",
   "Checking known startup directory indexes",
   "Comparing likely submission footprints",
   "Preparing directory backlink opportunities",
-]
-
-const mockDirectories: Directory[] = [
-  {
-    id: "dir_launching_next",
-    name: "Launching Next",
-    created_at: "2026-05-01T00:00:00.000Z",
-    domain: "launchingnext.com",
-    category: "Startup launch directory",
-    submit_url: "https://www.launchingnext.com/submit",
-    is_active: true,
-    is_free: true,
-  },
-  {
-    id: "dir_saashub",
-    name: "SaaSHub",
-    created_at: "2026-05-01T00:00:00.000Z",
-    domain: "saashub.com",
-    category: "Software comparison directory",
-    submit_url: "https://www.saashub.com/submit",
-    is_active: true,
-    is_free: true,
-  },
-  {
-    id: "dir_startup_stash",
-    name: "Startup Stash",
-    created_at: "2026-05-01T00:00:00.000Z",
-    domain: "startupstash.com",
-    category: "Curated founder resources",
-    submit_url: "https://startupstash.com/suggest-tool/",
-    is_active: true,
-    is_free: false,
-  },
-  {
-    id: "dir_betalist",
-    name: "BetaList",
-    created_at: "2026-05-01T00:00:00.000Z",
-    domain: "betalist.com",
-    category: "Early access startup directory",
-    submit_url: "https://betalist.com/submissions/new",
-    is_active: true,
-    is_free: false,
-  },
-  {
-    id: "dir_tool_finder",
-    name: "Tool Finder",
-    created_at: "2026-05-01T00:00:00.000Z",
-    domain: "toolfinder.co",
-    category: "Productivity tool directory",
-    submit_url: "https://toolfinder.co/submit-your-tool",
-    is_active: true,
-    is_free: true,
-  },
-  {
-    id: "dir_alternative_to",
-    name: "AlternativeTo",
-    created_at: "2026-05-01T00:00:00.000Z",
-    domain: "alternativeto.net",
-    category: "Alternative software directory",
-    submit_url: "https://alternativeto.net/software/new/",
-    is_active: true,
-    is_free: true,
-  },
-  {
-    id: "dir_futurepedia",
-    name: "Futurepedia",
-    created_at: "2026-05-01T00:00:00.000Z",
-    domain: "futurepedia.io",
-    category: "AI tool directory",
-    submit_url: "https://www.futurepedia.io/submit-tool",
-    is_active: true,
-    is_free: false,
-  },
-  {
-    id: "dir_insidr_ai",
-    name: "Insidr AI",
-    created_at: "2026-05-01T00:00:00.000Z",
-    domain: "insidr.ai",
-    category: "AI startup directory",
-    submit_url: "https://www.insidr.ai/submit-tool",
-    is_active: true,
-    is_free: true,
-  },
-  {
-    id: "dir_toolify",
-    name: "Toolify",
-    created_at: "2026-05-01T00:00:00.000Z",
-    domain: "toolify.ai",
-    category: "AI software directory",
-    submit_url: "https://www.toolify.ai/submit",
-    is_active: true,
-    is_free: false,
-  },
-  {
-    id: "dir_devpages",
-    name: "DevPages",
-    created_at: "2026-05-01T00:00:00.000Z",
-    domain: "devpages.io",
-    category: "Developer tool directory",
-    submit_url: "https://devpages.io/submit",
-    is_active: true,
-    is_free: true,
-  },
 ]
 
 const proofPoints = [
@@ -156,6 +68,9 @@ export function DirectoryBacklinkOpportunityFinder() {
   const [submittedUrl, setSubmittedUrl] = useState("")
   const [phase, setPhase] = useState<"idle" | "loading" | "results">("idle")
   const [stageIndex, setStageIndex] = useState(0)
+  const [directories, setDirectories] = useState<GapDirectory[]>([])
+  const [summary, setSummary] = useState<Summary | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const resultsRef = useRef<HTMLElement>(null)
 
   const productDomain = useMemo(
@@ -165,16 +80,10 @@ export function DirectoryBacklinkOpportunityFinder() {
 
   useEffect(() => {
     if (phase !== "loading") return
+    if (stageIndex >= loadingStages.length - 1) return
 
     const timer = window.setTimeout(
-      () => {
-        if (stageIndex < loadingStages.length - 1) {
-          setStageIndex((current) => current + 1)
-          return
-        }
-
-        setPhase("results")
-      },
+      () => setStageIndex((current) => current + 1),
       stageIndex === 0 ? 650 : 850
     )
 
@@ -198,7 +107,7 @@ export function DirectoryBacklinkOpportunityFinder() {
     return () => window.cancelAnimationFrame(frame)
   }, [phase])
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const trimmedUrl = productUrl.trim()
@@ -206,7 +115,36 @@ export function DirectoryBacklinkOpportunityFinder() {
 
     setSubmittedUrl(trimmedUrl)
     setStageIndex(0)
+    setError(null)
     setPhase("loading")
+
+    try {
+      const res = await fetch("/api/free-tool/directory-opportunity-finder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productUrl: trimmedUrl }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.")
+        setPhase("idle")
+        return
+      }
+
+      setDirectories(data.directories ?? [])
+      setSummary({
+        checked: data.checked ?? 0,
+        listed: data.listed ?? 0,
+        gaps: data.gaps ?? 0,
+        errors: data.errors ?? 0,
+      })
+      setPhase("results")
+    } catch {
+      setError("Network error. Check your connection and try again.")
+      setPhase("idle")
+    }
   }
 
   const hasResults = phase === "results"
@@ -321,7 +259,18 @@ export function DirectoryBacklinkOpportunityFinder() {
                     </div>
                   </form>
 
-                  <div className="mt-7 rounded-[1.4rem] border border-border bg-card p-4">
+                  {error ? (
+                    <div className="mt-5 flex items-start gap-3 rounded-[1rem] border border-destructive/25 bg-destructive/8 px-4 py-3">
+                      <IconAlertCircle
+                        size={18}
+                        className="mt-0.5 shrink-0 text-destructive"
+                        stroke={2.2}
+                      />
+                      <p className="text-sm leading-6 text-destructive">{error}</p>
+                    </div>
+                  ) : null}
+
+                  <div className="mt-5 rounded-[1.4rem] border border-border bg-card p-4">
                     {phase === "idle" ? (
                       <div className="flex gap-3">
                         <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
@@ -391,11 +340,11 @@ export function DirectoryBacklinkOpportunityFinder() {
                         </div>
                         <div>
                           <p className="font-heading text-base font-semibold tracking-[-0.03em]">
-                            Demo scan complete for {productDomain}.
+                            Scan complete for {productDomain}.
                           </p>
                           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            {mockDirectories.length} unapplied
-                            directory opportunities are ready below.
+                            {directories.length} unapplied
+                            {directories.length === 1 ? " directory" : " directories"} ready below.
                           </p>
                         </div>
                       </div>
@@ -459,12 +408,12 @@ export function DirectoryBacklinkOpportunityFinder() {
                 <>
                   <div className="grid gap-3 sm:grid-cols-3">
                     {[
-                      [mockDirectories.length, "directories found"],
-                      [mockDirectories.filter((directory) => directory.is_free).length, "free submissions"],
-                      [mockDirectories.filter((directory) => directory.is_active).length, "active directories"],
+                      [summary?.gaps ?? 0, "directories found"],
+                      [summary?.checked ?? 0, "directories checked"],
+                      [summary?.listed ?? 0, "already listed"],
                     ].map(([value, label]) => (
                       <div
-                        key={label}
+                        key={String(label)}
                         className="rounded-[1.45rem] border border-[var(--color-blaze-orange)]/20 bg-card p-5 shadow-sm"
                       >
                         <p className="font-heading text-3xl font-semibold tracking-[-0.05em] text-[var(--color-princeton-orange)]">
@@ -477,79 +426,90 @@ export function DirectoryBacklinkOpportunityFinder() {
                     ))}
                   </div>
 
-                  {mockDirectories.map((directory, index) => (
-                    <article
-                      key={directory.domain}
-                      className="group relative overflow-hidden rounded-[1.75rem] border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-blaze-orange)]/35 hover:shadow-[0_22px_70px_-54px_rgba(255,96,0,0.65)] sm:p-6"
-                    >
-                      <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
+                  {directories.length === 0 ? (
+                    <div className="rounded-[2rem] border border-border bg-card/70 p-8 text-center">
+                      <h3 className="font-heading text-2xl font-semibold tracking-[-0.045em]">
+                        Already listed everywhere we checked.
+                      </h3>
+                      <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
+                        No directory gaps found. Sign up to discover competitor backlinks and unlinked mentions.
+                      </p>
+                    </div>
+                  ) : (
+                    directories.map((directory, index) => (
+                      <article
+                        key={directory.domain}
+                        className="group relative overflow-hidden rounded-[1.75rem] border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-blaze-orange)]/35 hover:shadow-[0_22px_70px_-54px_rgba(255,96,0,0.65)] sm:p-6"
+                      >
+                        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
 
-                      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex min-w-0 gap-4">
-                          <div className="flex size-12 shrink-0 items-center justify-center rounded-[1.15rem] border border-border bg-background shadow-sm">
-                            <span
-                              aria-hidden="true"
-                              className="size-7 rounded-md bg-contain bg-center bg-no-repeat"
-                              style={{
-                                backgroundImage: `url(${getDirectoryIconUrl(directory.domain)})`,
-                              }}
-                            />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="font-heading text-2xl font-semibold tracking-[-0.045em]">
-                                {directory.name}
-                              </h3>
-                              <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                                {String(index + 1).padStart(2, "0")}
-                              </span>
-                              <span className="rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[var(--color-princeton-orange)]">
-                                Not applied
-                              </span>
+                        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex min-w-0 gap-4">
+                            <div className="flex size-12 shrink-0 items-center justify-center rounded-[1.15rem] border border-border bg-background shadow-sm">
+                              <span
+                                aria-hidden="true"
+                                className="size-7 rounded-md bg-contain bg-center bg-no-repeat"
+                                style={{
+                                  backgroundImage: `url(${getDirectoryIconUrl(directory.domain)})`,
+                                }}
+                              />
                             </div>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {directory.domain}
-                            </p>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="font-heading text-2xl font-semibold tracking-[-0.045em]">
+                                  {directory.name ?? directory.domain}
+                                </h3>
+                                <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  {String(index + 1).padStart(2, "0")}
+                                </span>
+                                <span className="rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[var(--color-princeton-orange)]">
+                                  Not applied
+                                </span>
+                              </div>
+                              <p className="mt-1 text-sm text-muted-foreground">
+                                {directory.domain}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2 sm:justify-end">
+                            <span className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-muted-foreground">
+                              {directory.category ?? "Directory"}
+                            </span>
+                            <span
+                              className={
+                                directory.is_free
+                                  ? "rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300"
+                                  : "rounded-full border border-destructive/25 bg-destructive/10 px-3 py-1 text-xs font-semibold text-destructive"
+                              }
+                            >
+                              {directory.is_free ? "Free submission" : "Paid listing"}
+                            </span>
+                            {directory.is_active ? (
+                              <span className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-muted-foreground">
+                                Active
+                              </span>
+                            ) : null}
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-2 sm:justify-end">
-                          <span className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-muted-foreground">
-                            {directory.category ?? "Directory"}
-                          </span>
-                          <span
-                            className={
-                              directory.is_free
-                                ? "rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300"
-                                : "rounded-full border border-destructive/25 bg-destructive/10 px-3 py-1 text-xs font-semibold text-destructive"
-                            }
+                        <div className="mt-5 flex flex-col gap-3 border-t border-border/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                          <p className="truncate text-sm text-muted-foreground">
+                            Submit URL: {directory.submit_url}
+                          </p>
+                          <Link
+                            href={directory.submit_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-2 self-start rounded-full text-sm font-semibold text-foreground outline-none transition-colors hover:text-[var(--color-princeton-orange)] focus-visible:ring-3 focus-visible:ring-ring/30 sm:self-auto"
                           >
-                            {directory.is_free ? "Free submission" : "Paid listing"}
-                          </span>
-                          {directory.is_active ? (
-                            <span className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-muted-foreground">
-                              Active
-                            </span>
-                          ) : null}
+                            Submit
+                            <IconExternalLink size={16} stroke={2.4} />
+                          </Link>
                         </div>
-                      </div>
-
-                      <div className="mt-5 flex flex-col gap-3 border-t border-border/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="truncate text-sm text-muted-foreground">
-                          Submit URL: {directory.submit_url}
-                        </p>
-                        <Link
-                          href={directory.submit_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 self-start rounded-full text-sm font-semibold text-foreground outline-none transition-colors hover:text-[var(--color-princeton-orange)] focus-visible:ring-3 focus-visible:ring-ring/30 sm:self-auto"
-                        >
-                          Submit
-                          <IconExternalLink size={16} stroke={2.4} />
-                        </Link>
-                      </div>
-                    </article>
-                  ))}
+                      </article>
+                    ))
+                  )}
 
                   <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/25 bg-card p-6 shadow-[0_28px_90px_-54px_rgba(255,96,0,0.75)] sm:p-8">
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,var(--color-amber-glow)_0,transparent_17rem)] opacity-[0.14]" />

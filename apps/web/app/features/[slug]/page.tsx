@@ -8,11 +8,14 @@ import {
   IconTargetArrow,
 } from "@tabler/icons-react"
 import type { Metadata } from "next"
+import Script from "next/script"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import { BigTestimonial } from "@/components/landing/big-testimonial"
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
+import { Pricing } from "@/components/landing/pricing"
 import { features, getFeatureBySlug } from "@/consts/features"
 import { Button } from "@workspace/ui/components/button"
 
@@ -26,13 +29,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const feature = getFeatureBySlug(slug)
 
-  if (!feature) return {}
+  if (!feature) return { robots: { index: false, follow: false } }
 
   return {
-    title: `${feature.shortTitle} - Mentiohunt`,
+    title: feature.shortTitle,
     description: feature.description,
+    alternates: {
+      canonical: `https://mentiohunt.com/features/${feature.slug}`,
+    },
     openGraph: {
-      title: `${feature.shortTitle} - Mentiohunt`,
+      title: feature.shortTitle,
       description: feature.description,
       url: `https://mentiohunt.com/features/${feature.slug}`,
       siteName: "Mentiohunt",
@@ -40,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${feature.shortTitle} - Mentiohunt`,
+      title: feature.shortTitle,
       description: feature.description,
     },
   }
@@ -56,8 +62,57 @@ export default async function FeaturePage({ params }: Props) {
   const FeatureIcon = isCommunityFeature ? IconBellRinging : IconTargetArrow
   const alternateFeature = features.find((item) => item.slug !== feature.slug)
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://mentiohunt.com",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Features",
+        item: "https://mentiohunt.com/features",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: feature.shortTitle,
+        item: `https://mentiohunt.com/features/${feature.slug}`,
+      },
+    ],
+  }
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: feature.faq.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <Script
+        id={`breadcrumb-schema-${feature.slug}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <Script
+        id={`faq-schema-${feature.slug}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+
       <Navbar />
 
       <main className="flex-1">
@@ -235,6 +290,24 @@ export default async function FeaturePage({ params }: Props) {
                 ))}
               </div>
             </div>
+
+            <div className="mx-auto mt-6 max-w-6xl rounded-[2rem] border border-border bg-card p-6 shadow-sm sm:p-7">
+              <p className="font-heading text-2xl font-semibold tracking-[-0.045em]">
+                What you get
+              </p>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {feature.outcomes.map((outcome) => (
+                  <div key={outcome} className="flex items-start gap-3">
+                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
+                      <IconChecks size={16} stroke={2.5} />
+                    </span>
+                    <span className="text-sm leading-6 text-muted-foreground">
+                      {outcome}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -250,7 +323,7 @@ export default async function FeaturePage({ params }: Props) {
               </span>
               <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
               <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
-                Built for judgment, not blind automation.
+                {feature.h2}
               </h2>
               <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
                 Mentiohunt gives you enough context to decide what deserves your
@@ -309,6 +382,9 @@ export default async function FeaturePage({ params }: Props) {
             </div>
           </div>
         </section>
+
+        <BigTestimonial />
+        <Pricing />
       </main>
 
       <Footer />

@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { cn } from "@/lib/utils"
+import { createHeadingId } from "@/lib/mdx-headings"
 import type { MDXComponents } from "mdx/types"
 import Link from "next/link"
 import type { ReactElement } from "react"
@@ -15,10 +16,7 @@ import { YoutubeVideo } from "./youtube-video"
 export default function BlogStylings(): MDXComponents {
   return {
     h1: (props) => {
-      const id = props.children
-        ?.toString()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
+      const id = createHeadingId(props.children?.toString() ?? "")
 
       return (
         <h1
@@ -32,10 +30,7 @@ export default function BlogStylings(): MDXComponents {
       )
     },
     h2: (props) => {
-      const id = props.children
-        ?.toString()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
+      const id = createHeadingId(props.children?.toString() ?? "")
 
       return (
         <h2
@@ -49,10 +44,7 @@ export default function BlogStylings(): MDXComponents {
       )
     },
     h3: (props) => {
-      const id = props.children
-        ?.toString()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
+      const id = createHeadingId(props.children?.toString() ?? "")
 
       return (
         <h3
@@ -66,10 +58,7 @@ export default function BlogStylings(): MDXComponents {
       )
     },
     h4: (props) => {
-      const id = props.children
-        ?.toString()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
+      const id = createHeadingId(props.children?.toString() ?? "")
 
       return (
         <h4

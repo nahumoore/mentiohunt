@@ -12,6 +12,7 @@
     "./admin": "./admin.ts",
     "./client": "./client.ts",
     "./database-types": "./database-types.ts",
+    "./email-settings": "./email-settings.ts",
     "./middleware": "./middleware.ts",
     "./server": "./server.ts"
   }

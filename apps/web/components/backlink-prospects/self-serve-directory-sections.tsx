@@ -11,6 +11,7 @@ import {
   IconShieldCheck,
   IconWorld,
 } from "@tabler/icons-react"
+import type { Tables } from "@workspace/supabase/database-types"
 import { cn } from "@workspace/ui/lib/utils"
 
 import type { ProspectDetail } from "@/stores/prospect-store"
@@ -30,7 +31,67 @@ import {
 } from "@workspace/ui/components/tooltip"
 
 import { SectionLabel } from "./section-label"
-import { getSerpUrl, type ProspectProduct } from "./utils"
+import {
+  getDomainRatingBandLabel,
+  getDomainRatingColorScheme,
+  getSerpUrl,
+  type ProspectProduct,
+} from "./utils"
+
+type Directory = Tables<"directories">
+
+type DirectoryMetricKey =
+  | "domain_rating"
+  | "backlinks"
+  | "referring_domains"
+  | "dofollow_backlinks"
+  | "dofollow_referring_domains"
+
+type DirectoryMetricSource = Pick<Directory, DirectoryMetricKey>
+
+type DirectoryMetricDefinition = {
+  key: DirectoryMetricKey
+  label: string
+  icon: typeof IconChartBar
+  detail: string
+}
+
+const DIRECTORY_METRIC_DEFINITIONS: DirectoryMetricDefinition[] = [
+  {
+    key: "domain_rating",
+    label: "Domain Rating",
+    icon: IconChartBar,
+    detail: "Ahrefs authority score for the root domain.",
+  },
+  {
+    key: "referring_domains",
+    label: "Referring Domains",
+    icon: IconWorld,
+    detail: "Unique domains currently linking to this site.",
+  },
+  {
+    key: "backlinks",
+    label: "Backlinks",
+    icon: IconSearch,
+    detail: "Total backlinks discovered for the domain.",
+  },
+  {
+    key: "dofollow_referring_domains",
+    label: "Dofollow Ref Domains",
+    icon: IconShieldCheck,
+    detail: "Domains that can pass link equity.",
+  },
+  {
+    key: "dofollow_backlinks",
+    label: "Dofollow Backlinks",
+    icon: IconLink,
+    detail: "Dofollow links found across the domain.",
+  },
+]
+
+const SECONDARY_DIRECTORY_METRICS = DIRECTORY_METRIC_DEFINITIONS.filter(
+  (metric) => metric.key !== "domain_rating"
+)
 
 export function SelfServeDirectorySections({
   prospect,
@@ -52,20 +113,14 @@ export function SelfServeDirectorySections({
     : "Pricing unknown"
   const pricingTone =
     directory?.is_free === true ? "free" : directory ? "paid" : "unknown"
-  const domainRating = directory?.domain_rating ?? null
-  const backlinks = directory?.backlinks ?? null
-  const referringDomains = directory?.referring_domains ?? null
-  const dofollowBacklinks = directory?.dofollow_backlinks ?? null
-  const dofollowReferringDomains = directory?.dofollow_referring_domains ?? null
+  const metricValues = getDirectoryMetricValues(directory)
+  const domainRating = metricValues.domain_rating
+  const backlinks = metricValues.backlinks
+  const referringDomains = metricValues.referring_domains
   const metricsUpdatedAt = directory?.seo_metrics_updated_at ?? null
   const submitUrlVerifiedAt = directory?.submit_url_verified_at ?? null
-  const hasSeoMetrics = [
-    domainRating,
-    backlinks,
-    referringDomains,
-    dofollowBacklinks,
-    dofollowReferringDomains,
-  ].some((value) => value !== null)
+  const availableMetricCount = getAvailableMetricCount(Object.values(metricValues))
+  const hasSeoMetrics = availableMetricCount > 0
   const metricsBadgeLabel = metricsUpdatedAt
     ? `Updated ${formatDate(metricsUpdatedAt)}`
     : "Metrics pending"
@@ -233,7 +288,7 @@ export function SelfServeDirectorySections({
 
       <TabsContent value="metrics">
         <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
-          <div className="pointer-events-none absolute -top-28 right-8 size-56 rounded-full bg-emerald-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -top-28 right-8 size-56 rounded-full bg-princeton-orange/12 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-32 -left-16 size-64 rounded-full bg-princeton-orange/10 blur-3xl" />
 
           <div className="relative flex flex-col gap-6">
@@ -254,82 +309,67 @@ export function SelfServeDirectorySections({
               </span>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-[1.05fr_1fr]">
-              <div className="rounded-3xl border border-border/70 bg-background/80 p-4 sm:p-5">
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                  <ScoreRing
-                    label="Domain Rating"
-                    value={domainRating}
-                    tone="orange"
-                  />
-                  <div className="grid flex-1 gap-3 sm:grid-cols-2">
-                    <MetricTile
-                      icon={IconWorld}
-                      label="Domain"
-                      value={directoryDomain}
-                    />
-                    <MetricTile
-                      icon={IconShieldCheck}
-                      label="Dofollow Ref Domains"
-                      value={formatOptionalCompactNumber(
-                        dofollowReferringDomains
-                      )}
-                      detail="Domains passing link equity"
-                    />
-                    <MetricTile
-                      icon={IconSearch}
-                      label="Backlinks"
-                      value={formatOptionalCompactNumber(backlinks)}
-                    />
-                    <MetricTile
-                      icon={IconChartBar}
+            <div
+              className={cn(
+                "relative overflow-hidden rounded-[28px] border p-5 shadow-sm sm:p-6",
+                getDomainRatingColorScheme(domainRating).panelClass
+              )}
+            >
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-linear-to-r from-white/18 via-transparent to-white/8" />
+              <div className="relative grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-center">
+                <ScoreRing label="Domain Rating" value={domainRating} />
+
+                <div className="space-y-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold tracking-[0.24em] text-current/70 uppercase">
+                        Authority snapshot
+                      </p>
+                      <h3 className="mt-3 max-w-2xl font-heading text-3xl font-semibold tracking-tight text-balance sm:text-[2.2rem]">
+                        {getDomainRatingHeadline(domainRating)}
+                      </h3>
+                      <p className="mt-3 max-w-2xl text-sm leading-6 text-current/75">
+                        {strengthSummary}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-current/12 bg-white/10 px-3 py-2 text-sm backdrop-blur-sm">
+                      <p className="text-[11px] font-semibold tracking-[0.18em] text-current/65 uppercase">
+                        Rating band
+                      </p>
+                      <p className="mt-1 font-semibold">
+                        {getDomainRatingBandLabel(domainRating)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <MetricPill label="Domain" value={directoryDomain} />
+                    <MetricPill
                       label="Metrics Refresh"
                       value={
-                        metricsUpdatedAt
-                          ? formatDate(metricsUpdatedAt)
-                          : "Pending"
+                        metricsUpdatedAt ? formatDate(metricsUpdatedAt) : "Pending"
                       }
+                    />
+                    <MetricPill
+                      label="Coverage"
+                      value={`${availableMetricCount} of ${DIRECTORY_METRIC_DEFINITIONS.length} metrics`}
                     />
                   </div>
                 </div>
-              </div>
-
-              <div className="rounded-3xl border border-border/70 bg-foreground p-5 text-background shadow-sm">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-semibold tracking-widest text-background/55 uppercase">
-                      Link equity
-                    </p>
-                    <h3 className="mt-3 font-heading text-2xl font-semibold tracking-tight">
-                      {strengthSummary}
-                    </h3>
-                  </div>
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-background/10 text-amber-flame">
-                    <IconLink className="size-5" />
-                  </div>
-                </div>
-
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <DarkMetric
-                    label="Referring Domains"
-                    value={formatOptionalCompactNumber(referringDomains)}
-                  />
-                  <DarkMetric
-                    label="Dofollow Backlinks"
-                    value={formatOptionalCompactNumber(dofollowBacklinks)}
-                  />
-                </div>
-
-                {!hasSeoMetrics && (
-                  <p className="mt-4 rounded-2xl border border-background/10 bg-background/10 p-3 text-xs leading-5 text-background/65">
-                    SEO metrics have not been populated for this directory yet.
-                    Use category fit and pricing before prioritizing submission.
-                  </p>
-                )}
               </div>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {SECONDARY_DIRECTORY_METRICS.map((metric) => (
+                <MetricTile
+                  key={metric.key}
+                  icon={metric.icon}
+                  label={metric.label}
+                  value={formatOptionalCompactNumber(metricValues[metric.key])}
+                  detail={metric.detail}
+                />
+              ))}
               <MetricTile
                 icon={IconClipboardCheck}
                 label="Submit URL Check"
@@ -343,16 +383,17 @@ export function SelfServeDirectorySections({
               <MetricTile
                 icon={IconChartDots}
                 label="Metrics Available"
-                value={`${getAvailableMetricCount([
-                  domainRating,
-                  backlinks,
-                  referringDomains,
-                  dofollowBacklinks,
-                  dofollowReferringDomains,
-                ])} of 5`}
-                detail="DR, backlinks, referring domains, and dofollow counts."
+                value={`${availableMetricCount} of ${DIRECTORY_METRIC_DEFINITIONS.length}`}
+                detail="Domain rating, backlink totals, and dofollow link counts."
               />
             </div>
+
+            {!hasSeoMetrics && (
+              <p className="rounded-2xl border border-border/70 bg-background/80 p-4 text-sm leading-6 text-muted-foreground">
+                SEO metrics have not been populated for this directory yet. Use
+                category fit and pricing before prioritizing submission.
+              </p>
+            )}
           </div>
         </section>
       </TabsContent>
@@ -363,39 +404,43 @@ export function SelfServeDirectorySections({
 function ScoreRing({
   label,
   value,
-  tone,
 }: {
   label: string
   value: number | null
-  tone: "orange"
 }) {
-  const colorClass = tone === "orange" ? "text-blaze-orange" : "text-primary"
   const score = value ?? 0
   const scoreDegrees = Math.max(0, Math.min(100, score)) * 3.6
+  const tone = getDomainRatingColorScheme(value)
 
   return (
     <div className="flex items-center gap-4 sm:flex-col sm:items-start">
       <div
-        className="grid size-32 place-items-center rounded-full p-2"
+        className="grid size-36 place-items-center rounded-full p-2 shadow-[0_24px_80px_-36px_rgba(0,0,0,0.45)]"
         style={{
-          background: `conic-gradient(var(--blaze-orange) ${scoreDegrees}deg, color-mix(in oklab, var(--border) 75%, transparent) 0deg)`,
+          background: `conic-gradient(${tone.accent} ${scoreDegrees}deg, color-mix(in oklab, ${tone.track} 82%, transparent) 0deg)`,
         }}
       >
-        <div className="grid size-full place-items-center rounded-full bg-card shadow-sm">
+        <div
+          className="grid size-full place-items-center rounded-full border shadow-sm"
+          style={{
+            background: tone.center,
+            borderColor: tone.border,
+          }}
+        >
           <div className="text-center">
-            <p className={cn("font-heading text-4xl font-bold", colorClass)}>
+            <p className="font-heading text-5xl font-bold" style={{ color: tone.accent }}>
               {value ?? "--"}
             </p>
-            <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground/80">
               {value === null ? "pending" : "/ 100"}
             </p>
           </div>
         </div>
       </div>
       <div>
-        <p className="text-sm font-semibold">{label}</p>
-        <p className="mt-1 max-w-36 text-xs leading-5 text-muted-foreground">
-          Ahrefs domain rating score for the root domain.
+        <p className="text-sm font-semibold text-current/90">{label}</p>
+        <p className="mt-1 max-w-40 text-xs leading-5 text-current/70">
+          Color shifts from weak to strong as the score moves from 0 to 100.
         </p>
       </div>
     </div>
@@ -446,6 +491,17 @@ function DarkMetric({ label, value }: { label: string; value: string }) {
   )
 }
 
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-current/12 bg-white/10 px-4 py-3 backdrop-blur-sm">
+      <p className="text-[11px] font-semibold tracking-[0.18em] text-current/60 uppercase">
+        {label}
+      </p>
+      <p className="mt-1 truncate text-sm font-semibold text-current/92">{value}</p>
+    </div>
+  )
+}
+
 function DirectoryFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-border/70 bg-background p-3.5">
@@ -470,9 +526,26 @@ function getAvailableMetricCount(values: Array<number | null>) {
   return values.filter((value) => value !== null).length
 }
 
+function getDirectoryMetricValues(directory: DirectoryMetricSource | null) {
+  return DIRECTORY_METRIC_DEFINITIONS.reduce(
+    (metrics, { key }) => {
+      metrics[key] = directory?.[key] ?? null
+      return metrics
+    },
+    {} as Record<DirectoryMetricKey, number | null>
+  )
+}
+
 function getSubmitUrlStatus(value: boolean | undefined) {
   if (value === undefined) return "Unknown"
   return value ? "Verified" : "Needs review"
+}
+
+function getDomainRatingHeadline(value: number | null) {
+  if (value === null) return "No domain rating has been captured yet."
+  if (value >= 70) return "This directory carries strong domain authority."
+  if (value >= 40) return "This directory has a workable authority profile."
+  return "This directory is lower authority, so fit matters more."
 }
 
 function getStrengthSummary({

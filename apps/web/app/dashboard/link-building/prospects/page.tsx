@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import {
   IconChevronDown,
   IconChevronRight,
-  IconExternalLink,
   IconInfoCircle,
   IconLoader2,
   IconSearch,
@@ -34,6 +33,10 @@ import {
 } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 
+import {
+  getDomainRatingColorScheme,
+  getTargetLabel,
+} from "@/components/backlink-prospects/utils"
 import { supabaseClient } from "@/lib/supabase/client"
 import { useProspectStore } from "@/stores/prospect-store"
 import {
@@ -71,6 +74,16 @@ type FilterOption<TValue extends string> = {
   icon: ElementType
   count?: number
 }
+
+type SortKey =
+  | "domain"
+  | "type"
+  | "domain_rating"
+  | "backlinks"
+  | "discovered_at"
+  | "status"
+
+type SortDirection = "asc" | "desc"
 
 function FilterDropdown<TValue extends string>({
   label,
@@ -151,22 +164,6 @@ function TypeBadge({ type }: { type: ProspectTier }) {
   )
 }
 
-function ActionBadge({ actionType }: { actionType: ProspectActionType }) {
-  const cfg = ACTION_TYPE_CONFIG[actionType]
-  const Icon = cfg.icon
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-        cfg.color
-      )}
-    >
-      <Icon className="size-3" />
-      {cfg.label}
-    </span>
-  )
-}
-
 function StatusBadge({ status }: { status: ProspectStatus }) {
   const cfg = STATUS_CONFIG[status]
   const Icon = cfg.icon
@@ -186,13 +183,41 @@ function StatusBadge({ status }: { status: ProspectStatus }) {
 function ColumnHeader({
   label,
   description,
+  sortable,
+  sortDirection,
+  onSort,
 }: {
   label: string
   description: string
+  sortable?: boolean
+  sortDirection?: SortDirection | null
+  onSort?: () => void
 }) {
+  const SortIcon =
+    sortDirection === "asc"
+      ? IconChevronRight
+      : sortDirection === "desc"
+        ? IconChevronDown
+        : null
+
   return (
     <div className="flex items-center gap-1.5">
-      <span>{label}</span>
+      {sortable ? (
+        <button
+          type="button"
+          onClick={onSort}
+          className="inline-flex items-center gap-1.5 rounded-md text-left transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+        >
+          <span>{label}</span>
+          {SortIcon ? (
+            <SortIcon className="size-3.5" />
+          ) : (
+            <IconChevronDown className="size-3.5 opacity-35" />
+          )}
+        </button>
+      ) : (
+        <span>{label}</span>
+      )}
       <Tooltip>
         <TooltipTrigger asChild>
           <button
@@ -212,13 +237,59 @@ function ColumnHeader({
   )
 }
 
-function getTargetLabel(targetUrl: string) {
-  try {
-    const url = new URL(targetUrl)
-    return `${url.hostname.replace(/^www\./, "")}${url.pathname === "/" ? "" : url.pathname}`
-  } catch {
-    return targetUrl
-  }
+function formatCompactMetric(value: number | null | undefined) {
+  if (value === null || value === undefined) return "--"
+
+  return Intl.NumberFormat("en", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value)
+}
+
+function DomainRatingCell({ value }: { value: number | null | undefined }) {
+  const scheme = getDomainRatingColorScheme(value ?? null)
+
+  return (
+    <span
+      className={cn(
+        "text-sm font-semibold tabular-nums",
+        value === null || value === undefined ? "text-muted-foreground" : ""
+      )}
+      style={
+        value === null || value === undefined ? undefined : { color: scheme.accent }
+      }
+    >
+        {value ?? "--"}
+    </span>
+  )
+}
+
+function LinkSignalsCell({
+  backlinks,
+}: {
+  backlinks: number | null | undefined
+}) {
+  return <span className="tabular-nums">{formatCompactMetric(backlinks)}</span>
+}
+
+function compareText(a: string, b: string, direction: SortDirection) {
+  return direction === "asc" ? a.localeCompare(b) : b.localeCompare(a)
+}
+
+function compareNumber(
+  a: number | null | undefined,
+  b: number | null | undefined,
+  direction: SortDirection
+) {
+  const left = a ?? -1
+  const right = b ?? -1
+  return direction === "asc" ? left - right : right - left
+}
+
+function compareDate(a: string, b: string, direction: SortDirection) {
+  const left = new Date(a).getTime()
+  const right = new Date(b).getTime()
+  return direction === "asc" ? left - right : right - left
 }
 
 export default function ProspectsPage() {
@@ -238,6 +309,8 @@ export default function ProspectsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
   const [isUpdating, setIsUpdating] = useState(false)
   const [bulkError, setBulkError] = useState<string | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>("discovered_at")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
 
   const statusCounts = useMemo(() => {
     const counts = Object.fromEntries(
@@ -303,9 +376,62 @@ export default function ProspectsPage() {
     })
   }, [actionFilter, prospects, searchQuery, statusFilter, typeFilter])
 
+  const sorted = useMemo(() => {
+    const next = [...filtered]
+
+    next.sort((left, right) => {
+      switch (sortKey) {
+        case "domain":
+          return compareText(left.domain, right.domain, sortDirection)
+        case "type":
+          return compareText(
+            TYPE_CONFIG[left.tier].label,
+            TYPE_CONFIG[right.tier].label,
+            sortDirection
+          )
+        case "domain_rating":
+          return compareNumber(
+            left.directory?.domain_rating,
+            right.directory?.domain_rating,
+            sortDirection
+          )
+        case "backlinks":
+          return compareNumber(
+            left.directory?.backlinks,
+            right.directory?.backlinks,
+            sortDirection
+          )
+        case "status":
+          return compareText(
+            STATUS_CONFIG[left.status].label,
+            STATUS_CONFIG[right.status].label,
+            sortDirection
+          )
+        case "discovered_at":
+          return compareDate(
+            left.discovered_at,
+            right.discovered_at,
+            sortDirection
+          )
+      }
+    })
+
+    return next
+  }, [filtered, sortDirection, sortKey])
+
+  function toggleSort(nextKey: SortKey) {
+    if (sortKey === nextKey) {
+      setSortDirection((current) => (current === "asc" ? "desc" : "asc"))
+      return
+    }
+
+    setSortKey(nextKey)
+    setSortDirection(nextKey === "domain" || nextKey === "type" || nextKey === "status" ? "asc" : "desc")
+  }
+
   const filteredIds = useMemo(
-    () => filtered.map((prospect) => prospect.id),
-    [filtered]
+    () => sorted.map((prospect) => prospect.id),
+    [sorted]
   )
   const selectedVisibleCount = useMemo(
     () => filteredIds.filter((id) => selectedIds.has(id)).length,
@@ -418,7 +544,7 @@ export default function ProspectsPage() {
           <div className="mb-3 flex items-center gap-3 text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
             <span>Backlink prospects</span>
             <span className="h-px w-8 bg-orange" />
-            <span className="tabular-nums">{filtered.length} shown</span>
+            <span className="tabular-nums">{sorted.length} shown</span>
           </div>
           <h1 className="font-heading text-3xl font-semibold tracking-[-0.035em] text-foreground sm:text-4xl">
             Opportunity queue
@@ -587,43 +713,61 @@ export default function ProspectsPage() {
                     <ColumnHeader
                       label="Domain"
                       description="The site where this backlink opportunity was found."
+                      sortable
+                      sortDirection={sortKey === "domain" ? sortDirection : null}
+                      onSort={() => toggleSort("domain")}
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     <ColumnHeader
                       label="Type"
                       description="The prospect source or opportunity class."
+                      sortable
+                      sortDirection={sortKey === "type" ? sortDirection : null}
+                      onSort={() => toggleSort("type")}
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     <ColumnHeader
-                      label="Action"
-                      description="The recommended next step for this prospect."
+                      label="Domain Rating"
+                      description="Authority score from 0 to 100 for the directory domain, color-coded from weak to strong."
+                      sortable
+                      sortDirection={sortKey === "domain_rating" ? sortDirection : null}
+                      onSort={() => toggleSort("domain_rating")}
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     <ColumnHeader
-                      label="Target"
-                      description="The page to review, submit through, or use for outreach context."
+                      label="Backlinks"
+                      description="Stored total backlink count for this directory domain."
+                      sortable
+                      sortDirection={sortKey === "backlinks" ? sortDirection : null}
+                      onSort={() => toggleSort("backlinks")}
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     <ColumnHeader
                       label="Discovered"
                       description="When Mentiohunt added this prospect to your queue."
+                      sortable
+                      sortDirection={sortKey === "discovered_at" ? sortDirection : null}
+                      onSort={() => toggleSort("discovered_at")}
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     <ColumnHeader
                       label="Status"
                       description="Where this prospect sits in your outreach workflow."
+                      sortable
+                      sortDirection={sortKey === "status" ? sortDirection : null}
+                      onSort={() => toggleSort("status")}
                     />
                   </th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 && (
+                {sorted.length === 0 && (
                   <tr>
                     <td
                       colSpan={8}
@@ -635,7 +779,7 @@ export default function ProspectsPage() {
                     </td>
                   </tr>
                 )}
-                {filtered.map((prospect) => (
+                {sorted.map((prospect) => (
                   <tr
                     key={prospect.id}
                     onClick={() =>
@@ -664,21 +808,10 @@ export default function ProspectsPage() {
                       <TypeBadge type={prospect.tier} />
                     </td>
                     <td className="px-4 py-3.5">
-                      <ActionBadge actionType={prospect.action_type} />
+                      <DomainRatingCell value={prospect.directory?.domain_rating} />
                     </td>
-                    <td className="max-w-[280px] px-4 py-3.5">
-                      <a
-                        href={prospect.target_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(event) => event.stopPropagation()}
-                        className="inline-flex min-w-0 items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
-                      >
-                        <IconExternalLink className="size-3.5 shrink-0" />
-                        <span className="truncate">
-                          {getTargetLabel(prospect.target_url)}
-                        </span>
-                      </a>
+                    <td className="px-4 py-3.5">
+                      <LinkSignalsCell backlinks={prospect.directory?.backlinks} />
                     </td>
                     <td className="px-4 py-3.5 text-muted-foreground whitespace-nowrap tabular-nums">
                       {formatDate(prospect.discovered_at)}

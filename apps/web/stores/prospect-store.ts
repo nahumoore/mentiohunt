@@ -26,6 +26,16 @@ export type ProspectDirectory = Pick<
   | "submit_url_verified_at"
 >
 
+export type ProspectListDirectory = Pick<
+  ProspectDirectory,
+  | "domain_rating"
+  | "backlinks"
+  | "referring_domains"
+  | "dofollow_backlinks"
+  | "dofollow_referring_domains"
+  | "seo_metrics_updated_at"
+>
+
 export type ProspectListItem = Pick<
   BacklinkProspect,
   | "id"
@@ -36,9 +46,11 @@ export type ProspectListItem = Pick<
   | "action_type"
   | "status"
   | "discovered_at"
->
+> & {
+  directory: ProspectListDirectory | null
+}
 
-export type ProspectDetail = ProspectListItem &
+export type ProspectDetail = Omit<ProspectListItem, "directory"> &
   Pick<
     BacklinkProspect,
     | "email_subject"
@@ -74,6 +86,16 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
     action_type: prospect.action_type,
     status: prospect.status,
     discovered_at: prospect.discovered_at,
+    directory: prospect.directory
+      ? {
+          domain_rating: prospect.directory.domain_rating,
+          backlinks: prospect.directory.backlinks,
+          referring_domains: prospect.directory.referring_domains,
+          dofollow_backlinks: prospect.directory.dofollow_backlinks,
+          dofollow_referring_domains: prospect.directory.dofollow_referring_domains,
+          seo_metrics_updated_at: prospect.directory.seo_metrics_updated_at,
+        }
+      : null,
   }
 }
 

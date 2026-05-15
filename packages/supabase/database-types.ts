@@ -83,15 +83,63 @@ export type Database = {
           },
         ]
       }
+      directory_submissions: {
+        Row: {
+          id: string
+          created_at: string
+          directory_name: string
+          directory_url: string
+          submission_url: string
+          category: string
+          contact_name: string
+          contact_email: string
+          pricing_model: Database["public"]["Enums"]["directory_pricing_model"]
+          primary_audience: string
+          description: string
+          why_submit: string
+          status: Database["public"]["Enums"]["directory_submission_status"]
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          directory_name: string
+          directory_url: string
+          submission_url: string
+          category: string
+          contact_name: string
+          contact_email: string
+          pricing_model: Database["public"]["Enums"]["directory_pricing_model"]
+          primary_audience: string
+          description: string
+          why_submit: string
+          status?: Database["public"]["Enums"]["directory_submission_status"]
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          directory_name?: string
+          directory_url?: string
+          submission_url?: string
+          category?: string
+          contact_name?: string
+          contact_email?: string
+          pricing_model?: Database["public"]["Enums"]["directory_pricing_model"]
+          primary_audience?: string
+          description?: string
+          why_submit?: string
+          status?: Database["public"]["Enums"]["directory_submission_status"]
+        }
+        Relationships: []
+      }
       directories: {
         Row: {
+          backlinks: number | null
           category: string | null
           check_method: Database["public"]["Enums"]["directory_check_method"]
           created_at: string
-          domain: string
-          backlinks: number | null
           dofollow_backlinks: number | null
           dofollow_referring_domains: number | null
+          domain: string
           domain_rating: number | null
           id: string
           is_active: boolean
@@ -105,13 +153,13 @@ export type Database = {
           submit_url_verified_at: string | null
         }
         Insert: {
+          backlinks?: number | null
           category?: string | null
           check_method?: Database["public"]["Enums"]["directory_check_method"]
           created_at?: string
-          domain: string
-          backlinks?: number | null
           dofollow_backlinks?: number | null
           dofollow_referring_domains?: number | null
+          domain: string
           domain_rating?: number | null
           id?: string
           is_active?: boolean
@@ -125,13 +173,13 @@ export type Database = {
           submit_url_verified_at?: string | null
         }
         Update: {
+          backlinks?: number | null
           category?: string | null
           check_method?: Database["public"]["Enums"]["directory_check_method"]
           created_at?: string
-          domain?: string
-          backlinks?: number | null
           dofollow_backlinks?: number | null
           dofollow_referring_domains?: number | null
+          domain?: string
           domain_rating?: number | null
           id?: string
           is_active?: boolean
@@ -272,6 +320,8 @@ export type Database = {
     Enums: {
       billing_tier: "free" | "pro" | "agency"
       directory_check_method: "serp_check" | "head_check"
+      directory_pricing_model: "free" | "paid" | "freemium" | "not_sure"
+      directory_submission_status: "pending" | "approved" | "rejected"
       prospect_action_type: "self_service" | "email_outreach"
       prospect_status:
         | "new"
@@ -410,6 +460,8 @@ export const Constants = {
     Enums: {
       billing_tier: ["free", "pro", "agency"],
       directory_check_method: ["serp_check", "head_check"],
+      directory_pricing_model: ["free", "paid", "freemium", "not_sure"],
+      directory_submission_status: ["pending", "approved", "rejected"],
       prospect_action_type: ["self_service", "email_outreach"],
       prospect_status: [
         "new",

@@ -66,7 +66,7 @@ export default async function DashboardLayout({
     const { data: prospectRows, error: prospectsError } = await supabase
       .from("backlink_prospects")
       .select(
-        "id, product_id, domain, target_url, tier, action_type, status, discovered_at"
+        "id, product_id, domain, target_url, tier, action_type, status, discovered_at, directory:directories(domain_rating, backlinks, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at)"
       )
       .eq("product_id", product.id)
       .order("discovered_at", { ascending: false })
@@ -75,7 +75,12 @@ export default async function DashboardLayout({
       console.error("Error fetching backlink prospects:", prospectsError)
     }
 
-    prospects = prospectRows ?? []
+    prospects = (prospectRows ?? []).map((prospect) => ({
+      ...prospect,
+      directory: Array.isArray(prospect.directory)
+        ? (prospect.directory[0] ?? null)
+        : prospect.directory,
+    }))
   }
 
   const sidebarUser = {

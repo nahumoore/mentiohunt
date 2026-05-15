@@ -71,11 +71,13 @@ For app-specific work:
 Every landing section must follow this structure consistently:
 
 **Section wrapper**
+
 ```tsx
 <section className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32">
 ```
 
 **Ambient background blobs** (decorative, pointer-events-none)
+
 ```tsx
 <div className="pointer-events-none absolute inset-0">
   <div className="absolute ... rounded-full bg-princeton-orange/7 blur-[100px]" />
@@ -83,6 +85,7 @@ Every landing section must follow this structure consistently:
 ```
 
 **Centered section header** — always `mx-auto max-w-2xl text-center`, never a sidebar/split layout:
+
 ```tsx
 <div className="mx-auto max-w-2xl text-center">
   <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
@@ -103,3 +106,7 @@ Every landing section must follow this structure consistently:
 ## Database Guidance
 
 - Never use `*` for select queries, always specify the columns you need.
+
+## `apps/server` Guidance
+
+- When adding logs for debugging, only use the helper `apps/server/src/helpers/logger.ts`

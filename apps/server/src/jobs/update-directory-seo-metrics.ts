@@ -1,8 +1,7 @@
-import pLimit from "p-limit"
 import { supabaseAdmin } from "@workspace/supabase/admin"
+import { AHREFS_AUTHORITY_CHECKER } from "../actors/apify.js"
 
-const ACTOR_ID = "kinaesthetic_millionaire~ahref-website-authority-checker"
-const BATCH_SIZE = 10
+const BATCH_SIZE = 25
 
 type ApifyResult = {
   url?: string
@@ -35,10 +34,6 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out
 }
 
-function toActorUrl(domain: string): string {
-  return `https://${normalizeDomain(domain)}`
-}
-
 function toNumber(value: number | string | null | undefined): number | null {
   if (typeof value === "number") return Number.isFinite(value) ? value : null
   if (typeof value !== "string") return null
@@ -49,13 +44,15 @@ function toNumber(value: number | string | null | undefined): number | null {
 
 async function fetchAhrefsMetrics(domains: string[]): Promise<ApifyResult[]> {
   const token = process.env.APIFY_TOKEN
-  const url = `https://api.apify.com/v2/acts/${ACTOR_ID}/run-sync-get-dataset-items?token=${token}&timeout=300`
+  const url = `https://api.apify.com/v2/acts/${AHREFS_AUTHORITY_CHECKER}/run-sync-get-dataset-items?token=${token}&timeout=300`
 
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      start_urls: domains.map((domain) => ({ url: toActorUrl(domain) })),
+      start_urls: domains.map((domain) => ({
+        url: `https://${normalizeDomain(domain)}`,
+      })),
     }),
     signal: AbortSignal.timeout(360_000),
   })
@@ -70,7 +67,7 @@ export async function updateDirectorySeoMetrics(): Promise<void> {
     return
   }
 
-  console.log("[seo-metrics] Starting monthly directory SEO metrics update")
+  console.log("[seo-metrics] Starting directory SEO metrics update")
 
   const { data: directories, error } = await supabaseAdmin
     .from("directories")
@@ -88,67 +85,59 @@ export async function updateDirectorySeoMetrics(): Promise<void> {
   }
 
   const batches = chunk(directories, BATCH_SIZE)
-  const limit = pLimit(2)
   let updated = 0
   let failed = 0
 
-  await Promise.all(
-    batches.map((batch) =>
-      limit(async () => {
-        const domains = batch.map((d) => d.domain)
-        let results: ApifyResult[]
-
-        try {
-          results = await fetchAhrefsMetrics(domains)
-        } catch (err) {
-          console.error(
-            `[seo-metrics] Apify failed for [${domains.join(", ")}]:`,
-            err
-          )
-          failed += batch.length
-          return
-        }
-
-        const byDomain = new Map(
-          results.map((r) => [
-            normalizeDomain(r.normalized_url ?? r.url ?? ""),
-            r,
-          ])
-        )
-
-        for (const dir of batch) {
-          const r = byDomain.get(normalizeDomain(dir.domain))
-          if (!r || r.error) {
-            console.warn(`[seo-metrics] No result for ${dir.domain}`)
-            failed++
-            continue
-          }
-
-          const { error: updateError } = await supabaseAdmin
-            .from("directories")
-            .update({
-              domain_rating: toNumber(r.domainRating),
-              backlinks: toNumber(r.backlinks),
-              referring_domains: toNumber(r.refdomains),
-              dofollow_backlinks: toNumber(r.dofollowBacklinks),
-              dofollow_referring_domains: toNumber(r.dofollowRefdomains),
-              seo_metrics_updated_at: new Date().toISOString(),
-            })
-            .eq("id", dir.id)
-
-          if (updateError) {
-            console.error(
-              `[seo-metrics] DB update failed for ${dir.domain}:`,
-              updateError.message
-            )
-            failed++
-          } else {
-            updated++
-          }
-        }
-      })
+  for (const [i, batch] of batches.entries()) {
+    const domains = batch.map((d) => d.domain)
+    console.log(
+      `[seo-metrics] Batch ${i + 1}/${batches.length} (${domains.length} domains)`
     )
-  )
+
+    let results: ApifyResult[]
+    try {
+      results = await fetchAhrefsMetrics(domains)
+    } catch (err) {
+      console.error(`[seo-metrics] Apify failed for batch ${i + 1}:`, err)
+      failed += batch.length
+      continue
+    }
+
+    const byDomain = new Map(
+      results.map((r) => [normalizeDomain(r.normalized_url ?? r.url ?? ""), r])
+    )
+
+    for (const dir of batch) {
+      const r = byDomain.get(normalizeDomain(dir.domain))
+      if (!r || r.error) {
+        console.warn(`[seo-metrics] No result for ${dir.domain}`)
+        failed++
+        continue
+      }
+
+      const { error: updateError } = await supabaseAdmin
+        .from("directories")
+        .update({
+          domain_rating: toNumber(r.domainRating),
+          backlinks: toNumber(r.backlinks),
+          referring_domains: toNumber(r.refdomains),
+          dofollow_backlinks: toNumber(r.dofollowBacklinks),
+          dofollow_referring_domains: toNumber(r.dofollowRefdomains),
+          seo_metrics_updated_at: new Date().toISOString(),
+        })
+        .eq("id", dir.id)
+
+      if (updateError) {
+        console.error(
+          `[seo-metrics] DB update failed for ${dir.domain}:`,
+          updateError.message
+        )
+        failed++
+      } else {
+        updated++
+      }
+    }
+  }
 
   console.log(`[seo-metrics] Done — updated=${updated} failed=${failed}`)
 }

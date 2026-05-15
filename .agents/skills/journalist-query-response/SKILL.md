@@ -25,7 +25,7 @@ Your job is to draft responses that a journalist can quote with little or no edi
 
 ## Spokesperson
 
-- **Name:** Nico (Nahuel Moreno)
+- **Name:** Nico (Nico Moreno)
 - **Title:** Founder, Mentiohunt
 - **LinkedIn:** https://www.linkedin.com/in/nahuel-moreno-6333961b9/
 - **X:** https://x.com/nicolasmore

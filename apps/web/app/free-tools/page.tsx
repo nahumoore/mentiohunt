@@ -4,6 +4,7 @@ import {
   IconArrowRight,
   IconBolt,
   IconChecklist,
+  IconFolderSearch,
   IconLink,
   IconTargetArrow,
 } from "@tabler/icons-react"
@@ -33,6 +34,16 @@ export const metadata: Metadata = {
 }
 
 const tools = [
+  {
+    name: "Startup Directory Browser",
+    eyebrow: "Directory index",
+    status: "Free",
+    description:
+      "Browse a startup directory table by category, pricing, authority, backlink, and submission signals before running a gap scan.",
+    icon: IconFolderSearch,
+    href: "/free-tools/startup-directories",
+    steps: ["Browse index", "Filter fit", "Scan gaps"],
+  },
   {
     name: "Directory Backlink Opportunity Finder",
     eyebrow: "Product to directories",
@@ -187,8 +198,8 @@ export default function FreeToolsPage() {
                       Designed for a fast yes, no, or maybe.
                     </p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                The first tool helps you find directory backlink opportunities
-                before you spend time building another spreadsheet.
+                      These tools help you browse directory options and find
+                      backlink opportunities before you build another spreadsheet.
                     </p>
                   </div>
                 </div>
@@ -209,11 +220,11 @@ export default function FreeToolsPage() {
               Free tools
             </p>
             <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl lg:text-6xl">
-              Start with the first free backlink tool.
+              Start with a free directory workflow.
             </h2>
             <p className="mt-5 text-sm leading-7 text-muted-foreground sm:text-base">
-              Paste your product URL, run a scan, and see directory submission
-              opportunities. No login required.
+              Browse a startup directory index, then paste your product URL to
+              see directory submission opportunities. No login required.
             </p>
           </div>
 

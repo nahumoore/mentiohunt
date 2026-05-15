@@ -1,6 +1,6 @@
-Create a comprehensive, source-backed market research report about Pitchbox.
+Create a comprehensive, source-backed market research report about BuzzStream.
 
-Focus 100% on Pitchbox. Do not make this a generic industry report. The goal is to understand Pitchbox deeply enough to create useful comparison, alternative, positioning, and educational content for Mentiohunt.
+Focus 100% on BuzzStream. Do not make this a generic industry report. The goal is to understand BuzzStream deeply enough to create useful comparison, alternative, positioning, and educational content for Mentiohunt.
 
 Mentiohunt context:
 
@@ -10,7 +10,7 @@ Mentiohunt context:
 
 Research requirements:
 
-- Use current, reliable sources wherever possible, including the official Pitchbox website, pricing page, docs, changelog, help center, reviews, comparison pages, social profiles, app marketplace listings, and reputable third-party review sites.
+- Use current, reliable sources wherever possible, including the official BuzzStream website, pricing page, docs, changelog, help center, reviews, comparison pages, social profiles, app marketplace listings, and reputable third-party review sites.
 - Cite sources inline for every factual claim, especially pricing, features, target customers, integrations, and limitations.
 - Clearly label anything that is inferred, outdated, unavailable, or not verified.
 - If pricing or feature information is hidden behind sales/contact forms, state that clearly and summarize what is publicly available.
@@ -18,15 +18,15 @@ Research requirements:
 
 Output the report in Markdown using this exact structure:
 
-# Pitchbox Market Research Report
+# BuzzStream Market Research Report
 
 ## Executive Summary
 
-Summarize what Pitchbox is, who it is for, the main value proposition, and the biggest reasons a customer might choose it.
+Summarize what BuzzStream is, who it is for, the main value proposition, and the biggest reasons a customer might choose it.
 
 ## Product Overview
 
-Explain what Pitchbox does in plain language.
+Explain what BuzzStream does in plain language.
 Include:
 
 - Core product category
@@ -38,7 +38,7 @@ Include:
 
 ## Target Customers
 
-Describe who Pitchbox appears to serve best.
+Describe who BuzzStream appears to serve best.
 Include:
 
 - Company size
@@ -49,7 +49,7 @@ Include:
 
 ## Core Features
 
-List and explain the main Pitchbox features.
+List and explain the main BuzzStream features.
 For each feature, include:
 
 - What it does
@@ -59,7 +59,7 @@ For each feature, include:
 
 ## Pricing
 
-Research Pitchbox pricing in detail.
+Research BuzzStream pricing in detail.
 Include:
 
 - Free plan or trial availability
@@ -76,18 +76,18 @@ If pricing is not public, include a clear "Pricing Not Public" note and summariz
 
 ## Pros
 
-List the strongest advantages of Pitchbox based on official claims, reviews, and third-party commentary.
+List the strongest advantages of BuzzStream based on official claims, reviews, and third-party commentary.
 For each pro, explain why it matters and cite the source.
 
 ## Cons
 
-List the most important limitations, complaints, risks, or tradeoffs of Pitchbox.
+List the most important limitations, complaints, risks, or tradeoffs of BuzzStream.
 For each con, explain the practical impact and cite the source.
 Do not invent criticism. If evidence is weak, label it as weak or anecdotal.
 
 ## Customer Reviews And Sentiment
 
-Summarize what users say about Pitchbox across review platforms, communities, social posts, and case studies.
+Summarize what users say about BuzzStream across review platforms, communities, social posts, and case studies.
 Include:
 
 - Common praise themes
@@ -98,11 +98,11 @@ Include:
 
 ## Use Cases
 
-Describe the strongest use cases for Pitchbox.
+Describe the strongest use cases for BuzzStream.
 For each use case, include:
 
 - User goal
-- How Pitchbox supports it
+- How BuzzStream supports it
 - Who benefits most
 - Any gaps or caveats
 
@@ -113,7 +113,7 @@ Include source citations.
 
 ## Onboarding And Ease Of Use
 
-Assess how easy Pitchbox appears to be to adopt.
+Assess how easy BuzzStream appears to be to adopt.
 Include:
 
 - Setup requirements
@@ -124,7 +124,7 @@ Include:
 
 ## Differentiation
 
-Explain how Pitchbox tries to stand out.
+Explain how BuzzStream tries to stand out.
 Include:
 
 - Unique claims
@@ -135,21 +135,21 @@ Include:
 
 ## Competitive Landscape
 
-Identify products that Pitchbox is commonly compared against.
+Identify products that BuzzStream is commonly compared against.
 For each competitor, include:
 
 - Product name
-- Why it competes with Pitchbox
-- Main difference from Pitchbox
+- Why it competes with BuzzStream
+- Main difference from BuzzStream
 - Source citation
 
 ## Comparison Notes For Mentiohunt
 
-Analyze where Mentiohunt may overlap with or differ from Pitchbox, based only on the Mentiohunt context provided above.
+Analyze where Mentiohunt may overlap with or differ from BuzzStream, based only on the Mentiohunt context provided above.
 Include:
 
 - Areas of overlap
-- Areas where Pitchbox appears stronger
+- Areas where BuzzStream appears stronger
 - Areas where Mentiohunt may have a clearer angle
 - Gaps Mentiohunt should avoid claiming unless verified
 - Content angles that could be useful for Mentiohunt
@@ -170,10 +170,10 @@ For each idea, explain the likely search intent and why the topic may be useful.
 
 ## Messaging Takeaways
 
-Extract positioning lessons from Pitchbox.
+Extract positioning lessons from BuzzStream.
 Include:
 
-- Strong phrases or concepts Pitchbox uses
+- Strong phrases or concepts BuzzStream uses
 - Customer pains they emphasize
 - Outcomes they promise
 - Trust signals they rely on
@@ -188,7 +188,7 @@ Explain what should be checked manually before publishing content.
 
 Provide a complete list of all sources used, grouped by type:
 
-- Official Pitchbox sources
+- Official BuzzStream sources
 - Review sites
 - Third-party articles
 - Social/community sources

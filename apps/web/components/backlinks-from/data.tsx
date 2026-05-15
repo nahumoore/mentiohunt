@@ -2,7 +2,6 @@ import {
   IconArrowRight,
   IconArticle,
   IconBrandInstagram,
-  IconBrandMedium,
   IconBrandPinterest,
   IconBrandWikipedia,
   IconClockHour4,
@@ -16,6 +15,7 @@ import { IconBrandChatGPT } from "@/components/custom-icons/brand-chatgpt"
 import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
 import { IconBrandHackerNews } from "@/components/custom-icons/brand-hacker-news"
 import { IconBrandLinkedinCustom } from "@/components/custom-icons/brand-linkedin"
+import { BrandMediumIcon } from "@/components/custom-icons/brand-medium"
 import { IconBrandProductHunt } from "@/components/custom-icons/brand-product-hunt"
 import { IconBrandQuora } from "@/components/custom-icons/brand-quora"
 import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
@@ -89,7 +89,7 @@ export const platformSurfaces: PlatformSurface[] = [
   },
   {
     name: "Medium",
-    Icon: IconBrandMedium,
+    Icon: BrandMediumIcon,
     className: "h-8 w-8 sm:h-10 sm:w-10",
   },
   {
@@ -136,6 +136,7 @@ export const platformSurfaces: PlatformSurface[] = [
 
 export function getPlatformCardIcon(slug: string) {
   if (slug === "reddit") return IconBrandRedditNew
+  if (slug === "medium") return BrandMediumIcon
   return IconArticle
 }
 

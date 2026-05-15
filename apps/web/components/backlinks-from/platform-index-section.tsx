@@ -1,3 +1,4 @@
+import { IconCalendar, IconClock } from "@tabler/icons-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -7,6 +8,25 @@ import { getPlatformCardIcon, IconArrowRight } from "./data"
 
 function getSummary(post: BlogPostMeta): string {
   return post.description || post.excerpt || ""
+}
+
+function getReadTimeLabel(readTime?: string): string {
+  if (!readTime) return "1 min read"
+  return readTime.endsWith("read") ? readTime : `${readTime} read`
+}
+
+function formatDate(date: string): string {
+  const parsedDate = new Date(date)
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(parsedDate)
 }
 
 export function BacklinksFromPlatformIndexSection({
@@ -44,38 +64,63 @@ export function BacklinksFromPlatformIndexSection({
                 <Link
                   key={guide.slug}
                   href={`/backlinks-from/${guide.slug}`}
-                  className="group relative overflow-hidden rounded-[1.85rem] border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--color-blaze-orange)]/25 hover:shadow-[0_24px_70px_-40px_rgba(255,96,0,0.4)]"
+                  className="group relative overflow-hidden rounded-[1.9rem] border border-border/80 bg-card/95 shadow-[0_20px_70px_-48px_rgba(17,17,17,0.35)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[var(--color-blaze-orange)]/28 hover:shadow-[0_28px_90px_-44px_rgba(255,96,0,0.38)]"
                 >
+                  <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    <div className="absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top_right,var(--color-amber-glow)_0%,transparent_70%)] opacity-20" />
+                    <div className="absolute right-0 bottom-0 h-24 w-24 rounded-full bg-[var(--color-princeton-orange)]/8 blur-3xl" />
+                  </div>
+
                   {guide.image && (
-                    <div className="relative -mx-6 -mt-6 mb-6 aspect-[16/9] overflow-hidden border-b border-border bg-muted">
+                    <div className="relative aspect-[16/9] overflow-hidden border-b border-border/70 bg-muted">
                       <Image
                         src={guide.image}
                         alt={guide.imageAlt ?? guide.title}
                         fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.035]"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
                     </div>
                   )}
 
-                  <div className="flex size-12 items-center justify-center rounded-2xl border border-[var(--color-blaze-orange)]/18 bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)] transition-colors group-hover:bg-[var(--color-blaze-orange)] group-hover:text-white">
-                    <Icon size={24} stroke={2.1} />
-                  </div>
+                  <div className="relative p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/18 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.68rem] font-bold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+                        <Icon className="h-4 w-4 fill-current" />
+                        {guide.category ?? "Platform Guide"}
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-muted/70 px-2.5 py-1 text-[0.7rem] font-medium text-muted-foreground">
+                        {getReadTimeLabel(guide.readTime)}
+                      </span>
+                    </div>
 
-                  <h3 className="mt-6 font-heading text-[1.65rem] font-semibold tracking-[-0.04em] text-foreground">
-                    {guide.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                    {getSummary(guide)}
-                  </p>
+                    <h3 className="mt-5 font-heading text-[1.55rem] leading-tight font-semibold tracking-[-0.04em] text-foreground transition-colors group-hover:text-[var(--color-princeton-orange)]">
+                      {guide.title}
+                    </h3>
+                    <p className="mt-3 line-clamp-3 text-sm leading-7 text-muted-foreground">
+                      {getSummary(guide)}
+                    </p>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-4">
-                    <span className="text-xs font-medium text-muted-foreground">
-                      Read guide
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-princeton-orange)] transition-all duration-200 group-hover:gap-1.5">
-                      Open article
-                      <IconArrowRight size={13} stroke={2.4} />
-                    </span>
+                    <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1.5">
+                        <IconClock size={12} stroke={2} />
+                        {getReadTimeLabel(guide.readTime)}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <IconCalendar size={12} stroke={2} />
+                        {formatDate(guide.date)}
+                      </span>
+                    </div>
+
+                    <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-4">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Platform playbook
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-princeton-orange)] transition-all duration-200 group-hover:gap-1.5">
+                        Open guide
+                        <IconArrowRight size={13} stroke={2.4} />
+                      </span>
+                    </div>
                   </div>
                 </Link>
               )

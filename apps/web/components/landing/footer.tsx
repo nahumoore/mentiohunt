@@ -14,6 +14,7 @@ const productLinks = [
 
 const resourceLinks = [
   { href: "/blog", label: "Blog" },
+  { href: "/backlinks-from", label: "Backlinks From" },
   { href: "/free-tools", label: "Free Tools" },
   { href: "/about", label: "About" },
   { href: "/alternatives", label: "Alternatives" },

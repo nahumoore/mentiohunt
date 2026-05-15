@@ -1,30 +1,32 @@
 import pLimit from "p-limit"
 import { supabaseAdmin } from "@workspace/supabase/admin"
 
-const ACTOR_ID = "seo-scraper~moz-domain-authority-checker"
+const ACTOR_ID = "kinaesthetic_millionaire~ahref-website-authority-checker"
 const BATCH_SIZE = 10
 
 type ApifyResult = {
-  domain?: string
-  domain_authority?: number
-  spam_score?: number
-  linking_root_domains?: number
-  ranking_keywords?: number
-  top_pages_by_links?: unknown
-  top_linking_domains?: unknown
-  discovered_and_lost_linking_domains?: unknown
-  keywords_by_estimated_clicks?: unknown
-  top_ranking_keywords?: unknown
-  branded_keywords?: unknown
-  keyword_ranking_distribution?: unknown
-  top_search_competitors?: unknown
-  top_questions?: unknown
-  success?: boolean
+  url?: string
+  normalized_url?: string
+  domainRating?: number | string | null
+  backlinks?: number | string | null
+  refdomains?: number | string | null
+  dofollowBacklinks?: number | string | null
+  dofollowRefdomains?: number | string | null
   error?: string
 }
 
 function normalizeDomain(raw: string): string {
-  return raw.replace(/^https?:\/\//, "").replace(/\/$/, "").toLowerCase()
+  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+
+  try {
+    return new URL(withProtocol).hostname.replace(/^www\./i, "").toLowerCase()
+  } catch {
+    return raw
+      .replace(/^https?:\/\//i, "")
+      .replace(/^www\./i, "")
+      .replace(/\/.*$/, "")
+      .toLowerCase()
+  }
 }
 
 function chunk<T>(arr: T[], size: number): T[][] {
@@ -33,14 +35,28 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out
 }
 
-async function fetchMozMetrics(domains: string[]): Promise<ApifyResult[]> {
+function toActorUrl(domain: string): string {
+  return `https://${normalizeDomain(domain)}`
+}
+
+function toNumber(value: number | string | null | undefined): number | null {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null
+  if (typeof value !== "string") return null
+
+  const parsed = Number.parseFloat(value.replace(/,/g, ""))
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+async function fetchAhrefsMetrics(domains: string[]): Promise<ApifyResult[]> {
   const token = process.env.APIFY_TOKEN
   const url = `https://api.apify.com/v2/acts/${ACTOR_ID}/run-sync-get-dataset-items?token=${token}&timeout=300`
 
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ domains }),
+    body: JSON.stringify({
+      start_urls: domains.map((domain) => ({ url: toActorUrl(domain) })),
+    }),
     signal: AbortSignal.timeout(360_000),
   })
 
@@ -83,20 +99,26 @@ export async function updateDirectorySeoMetrics(): Promise<void> {
         let results: ApifyResult[]
 
         try {
-          results = await fetchMozMetrics(domains)
+          results = await fetchAhrefsMetrics(domains)
         } catch (err) {
-          console.error(`[seo-metrics] Apify failed for [${domains.join(", ")}]:`, err)
+          console.error(
+            `[seo-metrics] Apify failed for [${domains.join(", ")}]:`,
+            err
+          )
           failed += batch.length
           return
         }
 
         const byDomain = new Map(
-          results.map((r) => [normalizeDomain(r.domain ?? ""), r])
+          results.map((r) => [
+            normalizeDomain(r.normalized_url ?? r.url ?? ""),
+            r,
+          ])
         )
 
         for (const dir of batch) {
           const r = byDomain.get(normalizeDomain(dir.domain))
-          if (!r || r.success === false) {
+          if (!r || r.error) {
             console.warn(`[seo-metrics] No result for ${dir.domain}`)
             failed++
             continue
@@ -105,27 +127,20 @@ export async function updateDirectorySeoMetrics(): Promise<void> {
           const { error: updateError } = await supabaseAdmin
             .from("directories")
             .update({
-              domain_authority: r.domain_authority ?? null,
-              spam_score: r.spam_score ?? null,
-              linking_root_domains: r.linking_root_domains ?? null,
-              ranking_keywords: r.ranking_keywords ?? null,
+              domain_rating: toNumber(r.domainRating),
+              backlinks: toNumber(r.backlinks),
+              referring_domains: toNumber(r.refdomains),
+              dofollow_backlinks: toNumber(r.dofollowBacklinks),
+              dofollow_referring_domains: toNumber(r.dofollowRefdomains),
               seo_metrics_updated_at: new Date().toISOString(),
-              seo_metrics_details: {
-                top_pages_by_links: r.top_pages_by_links,
-                top_linking_domains: r.top_linking_domains,
-                discovered_and_lost_linking_domains: r.discovered_and_lost_linking_domains,
-                keywords_by_estimated_clicks: r.keywords_by_estimated_clicks,
-                top_ranking_keywords: r.top_ranking_keywords,
-                branded_keywords: r.branded_keywords,
-                keyword_ranking_distribution: r.keyword_ranking_distribution,
-                top_search_competitors: r.top_search_competitors,
-                top_questions: r.top_questions,
-              },
             })
             .eq("id", dir.id)
 
           if (updateError) {
-            console.error(`[seo-metrics] DB update failed for ${dir.domain}:`, updateError.message)
+            console.error(
+              `[seo-metrics] DB update failed for ${dir.domain}:`,
+              updateError.message
+            )
             failed++
           } else {
             updated++

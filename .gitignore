@@ -35,3 +35,6 @@ npm-debug.log*
 # Misc
 .DS_Store
 *.pem
+
+# Local skill with embedded API key
+.agents/skills/keyword-research/

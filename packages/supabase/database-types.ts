@@ -89,17 +89,17 @@ export type Database = {
           check_method: Database["public"]["Enums"]["directory_check_method"]
           created_at: string
           domain: string
-          domain_authority: number | null
+          backlinks: number | null
+          dofollow_backlinks: number | null
+          dofollow_referring_domains: number | null
+          domain_rating: number | null
           id: string
           is_active: boolean
           is_free: boolean
-          linking_root_domains: number | null
           name: string
-          ranking_keywords: number | null
-          seo_metrics_details: Json | null
+          referring_domains: number | null
           seo_metrics_updated_at: string | null
           slug_pattern: string | null
-          spam_score: number | null
           submit_url: string
           submit_url_ok: boolean
           submit_url_verified_at: string | null
@@ -109,17 +109,17 @@ export type Database = {
           check_method?: Database["public"]["Enums"]["directory_check_method"]
           created_at?: string
           domain: string
-          domain_authority?: number | null
+          backlinks?: number | null
+          dofollow_backlinks?: number | null
+          dofollow_referring_domains?: number | null
+          domain_rating?: number | null
           id?: string
           is_active?: boolean
           is_free?: boolean
-          linking_root_domains?: number | null
           name: string
-          ranking_keywords?: number | null
-          seo_metrics_details?: Json | null
+          referring_domains?: number | null
           seo_metrics_updated_at?: string | null
           slug_pattern?: string | null
-          spam_score?: number | null
           submit_url: string
           submit_url_ok?: boolean
           submit_url_verified_at?: string | null
@@ -129,17 +129,17 @@ export type Database = {
           check_method?: Database["public"]["Enums"]["directory_check_method"]
           created_at?: string
           domain?: string
-          domain_authority?: number | null
+          backlinks?: number | null
+          dofollow_backlinks?: number | null
+          dofollow_referring_domains?: number | null
+          domain_rating?: number | null
           id?: string
           is_active?: boolean
           is_free?: boolean
-          linking_root_domains?: number | null
           name?: string
-          ranking_keywords?: number | null
-          seo_metrics_details?: Json | null
+          referring_domains?: number | null
           seo_metrics_updated_at?: string | null
           slug_pattern?: string | null
-          spam_score?: number | null
           submit_url?: string
           submit_url_ok?: boolean
           submit_url_verified_at?: string | null

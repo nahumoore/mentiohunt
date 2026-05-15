@@ -52,26 +52,27 @@ export function SelfServeDirectorySections({
     : "Pricing unknown"
   const pricingTone =
     directory?.is_free === true ? "free" : directory ? "paid" : "unknown"
-  const domainAuthority = directory?.domain_authority ?? null
-  const spamScore = directory?.spam_score ?? null
-  const linkingRootDomains = directory?.linking_root_domains ?? null
-  const rankingKeywords = directory?.ranking_keywords ?? null
-  const hasMetricDetails = Boolean(directory?.seo_metrics_details)
+  const domainRating = directory?.domain_rating ?? null
+  const backlinks = directory?.backlinks ?? null
+  const referringDomains = directory?.referring_domains ?? null
+  const dofollowBacklinks = directory?.dofollow_backlinks ?? null
+  const dofollowReferringDomains = directory?.dofollow_referring_domains ?? null
   const metricsUpdatedAt = directory?.seo_metrics_updated_at ?? null
   const submitUrlVerifiedAt = directory?.submit_url_verified_at ?? null
   const hasSeoMetrics = [
-    domainAuthority,
-    spamScore,
-    linkingRootDomains,
-    rankingKeywords,
+    domainRating,
+    backlinks,
+    referringDomains,
+    dofollowBacklinks,
+    dofollowReferringDomains,
   ].some((value) => value !== null)
   const metricsBadgeLabel = metricsUpdatedAt
     ? `Updated ${formatDate(metricsUpdatedAt)}`
     : "Metrics pending"
   const strengthSummary = getStrengthSummary({
-    domainAuthority,
-    linkingRootDomains,
-    rankingKeywords,
+    domainRating,
+    backlinks,
+    referringDomains,
   })
 
   return (
@@ -220,7 +221,9 @@ export function SelfServeDirectorySections({
                 </div>
                 <DirectoryFact
                   label="Metrics Updated"
-                  value={metricsUpdatedAt ? formatDate(metricsUpdatedAt) : "Pending"}
+                  value={
+                    metricsUpdatedAt ? formatDate(metricsUpdatedAt) : "Pending"
+                  }
                 />
               </div>
             </section>
@@ -255,8 +258,8 @@ export function SelfServeDirectorySections({
               <div className="rounded-3xl border border-border/70 bg-background/80 p-4 sm:p-5">
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
                   <ScoreRing
-                    label="Domain Authority"
-                    value={domainAuthority}
+                    label="Domain Rating"
+                    value={domainRating}
                     tone="orange"
                   />
                   <div className="grid flex-1 gap-3 sm:grid-cols-2">
@@ -267,20 +270,24 @@ export function SelfServeDirectorySections({
                     />
                     <MetricTile
                       icon={IconShieldCheck}
-                      label="Spam Score"
-                      value={formatOptionalPercent(spamScore)}
-                      detail="Lower is better"
+                      label="Dofollow Ref Domains"
+                      value={formatOptionalCompactNumber(
+                        dofollowReferringDomains
+                      )}
+                      detail="Domains passing link equity"
                     />
                     <MetricTile
                       icon={IconSearch}
-                      label="Ranking Keywords"
-                      value={formatOptionalCompactNumber(rankingKeywords)}
+                      label="Backlinks"
+                      value={formatOptionalCompactNumber(backlinks)}
                     />
                     <MetricTile
                       icon={IconChartBar}
                       label="Metrics Refresh"
                       value={
-                        metricsUpdatedAt ? formatDate(metricsUpdatedAt) : "Pending"
+                        metricsUpdatedAt
+                          ? formatDate(metricsUpdatedAt)
+                          : "Pending"
                       }
                     />
                   </div>
@@ -304,12 +311,12 @@ export function SelfServeDirectorySections({
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   <DarkMetric
-                    label="Linking Root Domains"
-                    value={formatOptionalCompactNumber(linkingRootDomains)}
+                    label="Referring Domains"
+                    value={formatOptionalCompactNumber(referringDomains)}
                   />
                   <DarkMetric
-                    label="Ranking Keywords"
-                    value={formatOptionalCompactNumber(rankingKeywords)}
+                    label="Dofollow Backlinks"
+                    value={formatOptionalCompactNumber(dofollowBacklinks)}
                   />
                 </div>
 
@@ -322,7 +329,7 @@ export function SelfServeDirectorySections({
               </div>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-4 lg:grid-cols-2">
               <MetricTile
                 icon={IconClipboardCheck}
                 label="Submit URL Check"
@@ -337,18 +344,13 @@ export function SelfServeDirectorySections({
                 icon={IconChartDots}
                 label="Metrics Available"
                 value={`${getAvailableMetricCount([
-                  domainAuthority,
-                  spamScore,
-                  linkingRootDomains,
-                  rankingKeywords,
-                ])} of 4`}
-                detail="Authority, spam, linking roots, and keywords."
-              />
-              <MetricTile
-                icon={IconWorld}
-                label="Detailed Metrics"
-                value={hasMetricDetails ? "Available" : "Pending"}
-                detail="Extended SEO details stored for this directory."
+                  domainRating,
+                  backlinks,
+                  referringDomains,
+                  dofollowBacklinks,
+                  dofollowReferringDomains,
+                ])} of 5`}
+                detail="DR, backlinks, referring domains, and dofollow counts."
               />
             </div>
           </div>
@@ -393,7 +395,7 @@ function ScoreRing({
       <div>
         <p className="text-sm font-semibold">{label}</p>
         <p className="mt-1 max-w-36 text-xs leading-5 text-muted-foreground">
-          Moz authority score for the root domain.
+          Ahrefs domain rating score for the root domain.
         </p>
       </div>
     </div>
@@ -464,10 +466,6 @@ function formatOptionalCompactNumber(value: number | null) {
   return value === null ? "Not available" : formatCompactNumber(value)
 }
 
-function formatOptionalPercent(value: number | null) {
-  return value === null ? "Not available" : `${value}%`
-}
-
 function getAvailableMetricCount(values: Array<number | null>) {
   return values.filter((value) => value !== null).length
 }
@@ -478,26 +476,26 @@ function getSubmitUrlStatus(value: boolean | undefined) {
 }
 
 function getStrengthSummary({
-  domainAuthority,
-  linkingRootDomains,
-  rankingKeywords,
+  domainRating,
+  backlinks,
+  referringDomains,
 }: {
-  domainAuthority: number | null
-  linkingRootDomains: number | null
-  rankingKeywords: number | null
+  domainRating: number | null
+  backlinks: number | null
+  referringDomains: number | null
 }) {
   if (
-    domainAuthority === null &&
-    linkingRootDomains === null &&
-    rankingKeywords === null
+    domainRating === null &&
+    backlinks === null &&
+    referringDomains === null
   ) {
     return "Analyze the directory before using metrics to prioritize it."
   }
 
   if (
-    (domainAuthority ?? 0) >= 50 ||
-    (linkingRootDomains ?? 0) >= 1000 ||
-    (rankingKeywords ?? 0) >= 10000
+    (domainRating ?? 0) >= 50 ||
+    (referringDomains ?? 0) >= 1000 ||
+    (backlinks ?? 0) >= 10000
   ) {
     return "Strong enough to prioritize if the listing gets indexed."
   }

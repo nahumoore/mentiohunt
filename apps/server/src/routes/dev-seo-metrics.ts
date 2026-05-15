@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express"
 
-const ACTOR_ID = "seo-scraper~moz-domain-authority-checker"
+const ACTOR_ID = "kinaesthetic_millionaire~ahref-website-authority-checker"
 
 export const devSeoMetricsRouter: IRouter = Router()
 
@@ -17,8 +17,11 @@ devSeoMetricsRouter.get("/dev/seo-metrics", async (req, res) => {
     return
   }
 
-  const normalized = domain.replace(/^https?:\/\//, "").replace(/\/$/, "")
-  // todo: research for another actor, this takes too much. Get an error on zignalify.com
+  const normalized = domain
+    .replace(/^https?:\/\//i, "")
+    .replace(/^www\./i, "")
+    .replace(/\/.*$/, "")
+    .toLowerCase()
   const url = `https://api.apify.com/v2/acts/${ACTOR_ID}/run-sync-get-dataset-items?token=${process.env.APIFY_TOKEN}&timeout=300`
 
   let results: unknown
@@ -26,7 +29,7 @@ devSeoMetricsRouter.get("/dev/seo-metrics", async (req, res) => {
     const apifyRes = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ domains: [normalized] }),
+      body: JSON.stringify({ start_urls: [{ url: `https://${normalized}` }] }),
       signal: AbortSignal.timeout(360_000),
     })
 

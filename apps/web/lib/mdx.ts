@@ -28,6 +28,7 @@ export type BlogPostMeta = {
 export type ContentType =
   | "blog"
   | "articles"
+  | "backlinks-from"
   | "free-tools"
   | "guides"
   | "alternatives"
@@ -41,6 +42,7 @@ function getDefaultCategory(contentType: ContentType): string {
   if (contentType === "guides") return "Guide"
   if (contentType === "free-tools") return "Free Tool"
   if (contentType === "articles") return "Article"
+  if (contentType === "backlinks-from") return "Platform Guide"
   return "Blog"
 }
 

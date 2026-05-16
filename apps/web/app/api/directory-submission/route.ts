@@ -3,8 +3,6 @@ import { Resend } from "resend"
 
 import { PRIMARY_EMAIL } from "@workspace/supabase/email-settings"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 const PRICING_LABELS: Record<string, string> = {
   free: "Free",
   paid: "Paid",
@@ -13,6 +11,7 @@ const PRICING_LABELS: Record<string, string> = {
 }
 
 export async function POST(req: NextRequest) {
+  const resend = new Resend(process.env.RESEND_API_KEY)
   const body = await req.json()
 
   const {

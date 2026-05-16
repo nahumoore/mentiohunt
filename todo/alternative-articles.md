@@ -2,7 +2,6 @@
 
 ### Backlink building / outreach tools
 
-- BuzzStream — Outreach CRM for managing prospects, relationships, email history, follow-ups, and link-building workflows.
 - Semrush Link Building Tool — Backlink prospecting and outreach workflow inside Semrush, mainly useful for SEO teams already using Semrush.
 - Ahrefs — Backlink research and competitor analysis tool used to find link prospects, but not mainly built for outreach automation.
 - Hunter — Email finder and verification tool used to identify contact details for outreach campaigns.

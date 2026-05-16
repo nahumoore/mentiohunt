@@ -22,7 +22,7 @@ import { getPostBySlug, getResourceSlugs, type BlogPostMeta } from "@/lib/mdx"
 type Props = { params: Promise<{ slug: string }> }
 
 function getSummary(post: BlogPostMeta): string {
-  return post.description || post.excerpt || ""
+  return post.metaDescription || post.description || post.excerpt || ""
 }
 
 function getReadTimeLabel(readTime?: string): string {
@@ -54,12 +54,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!post) return {}
 
+  const title = post.meta.metaTitle || post.meta.title
+  const description = getSummary(post.meta)
+
   return {
-    title: { absolute: post.meta.title },
-    description: getSummary(post.meta),
+    title: { absolute: title },
+    description,
+    alternates: {
+      canonical: `/alternatives/${slug}`,
+    },
     openGraph: {
-      title: post.meta.title,
-      description: getSummary(post.meta),
+      title,
+      description,
+      type: "article",
+      url: `https://mentiohunt.com/alternatives/${slug}`,
+      publishedTime: post.meta.date,
+      authors: post.meta.author ? [post.meta.author] : ["Nicolas More"],
+      images: post.meta.image ? [post.meta.image] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
       images: post.meta.image ? [post.meta.image] : undefined,
     },
   }

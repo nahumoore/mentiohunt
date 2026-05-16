@@ -92,6 +92,36 @@ Reply with approval and I will write the article, or tell me what to change in t
 - Use methods, results, or discussion-style sections only when they make the article more useful. Do not force academic manuscript structure onto founder-focused content.
 - End with a clear conclusion that summarizes the decision, next step, or practical takeaway.
 
+## Article Component Library
+
+- Mentiohunt articles are MDX and have reusable article components registered in `apps/web/components/resources/blog-stylings.tsx`.
+- Before saving or updating an article that could benefit from richer presentation, inspect `apps/web/components/resources/blog-stylings.tsx` to see the current component library and exact prop names.
+- Use registered components when they improve clarity, such as comparison verdicts, tool strengths, pricing notes, videos, and formatted email drafts.
+- Do not invent MDX component names in an article unless you also create and register the component in `BlogStylings()`.
+- Prefer `<EmailDraft>` for outreach examples, pitch templates, journalist responses, and backlink/community reply drafts instead of plain fenced code blocks.
+- Keep component usage purposeful. A normal paragraph, list, or table is better than a decorative component when the component does not help the reader act.
+
+Example email draft usage:
+
+```mdx
+<EmailDraft
+  subject="DATA: 76% of developers use or plan to use AI tools"
+  to="Maya Chen"
+  from="Elena Torres, Founder at SignalDesk"
+  body={`
+Hi Maya,
+
+Saw your recent piece on AI tool budgets inside software teams.
+
+One data point that may fit your follow-up: Stack Overflow's 2024 Developer Survey reported that 76% of respondents are using or planning to use AI tools in development.
+
+Source: https://survey.stackoverflow.co/2024/ai/
+
+Elena
+`}
+/>
+```
+
 ## Content Writing Practices
 
 - Research trends and reader questions should come from the provided research file. Do not invent unsupported trend claims.

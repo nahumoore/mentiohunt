@@ -11,6 +11,7 @@ import {
   WhenToChoose,
 } from "./comparison-components"
 import { CodeBlock } from "./code-block"
+import { EmailDraft } from "./email-draft"
 import { YoutubeVideo } from "./youtube-video"
 
 export default function BlogStylings(): MDXComponents {
@@ -209,5 +210,6 @@ export default function BlogStylings(): MDXComponents {
     ToolStrengths,
     WhenToChoose,
     PricingNote,
+    EmailDraft,
   }
 }

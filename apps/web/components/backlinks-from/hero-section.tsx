@@ -34,26 +34,40 @@ export function BacklinksFromHeroSection() {
           </p>
         </div>
 
-        <div className="mx-auto mt-14 max-w-5xl rounded-[2rem] border border-[var(--color-blaze-orange)]/18 bg-card/75 px-5 py-6 shadow-[0_28px_80px_-52px_rgba(255,133,0,0.42)] backdrop-blur-sm sm:px-8 sm:py-7">
+        <div className="mx-auto mt-14 max-w-5xl overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/18 bg-card/75 px-5 py-6 shadow-[0_28px_80px_-52px_rgba(255,133,0,0.42)] backdrop-blur-sm sm:px-8 sm:py-7">
           <p className="text-center font-heading text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase sm:text-sm">
             Platform surfaces founders can realistically target
           </p>
           <div className="mx-auto mt-3 h-px w-10 bg-[var(--color-princeton-orange)]/70" />
 
-          <div className="mt-8 grid grid-cols-3 items-end gap-x-7 gap-y-9 px-2 text-muted-foreground/65 sm:grid-cols-4 sm:gap-x-9 lg:grid-cols-6 lg:gap-x-10 xl:grid-cols-11 xl:gap-x-8">
-            {platformSurfaces.map(({ name, Icon, className }) => (
-              <span
-                key={name}
-                aria-label={name}
-                className="group inline-flex flex-col items-center justify-end gap-2 transition duration-200 hover:text-[var(--color-princeton-orange)]"
-                role="img"
-              >
-                <Icon className={`${className} opacity-60 grayscale transition duration-200 group-hover:opacity-100`} />
-                <span className="font-heading text-[0.62rem] leading-none font-medium tracking-[0.16em] uppercase opacity-70 transition duration-200 group-hover:opacity-100">
-                  {name}
-                </span>
-              </span>
-            ))}
+          <div className="relative mx-auto mt-8 overflow-hidden rounded-[1.65rem] border border-[var(--color-blaze-orange)]/12 bg-gradient-to-br from-background/85 via-card/90 to-[var(--color-amber-flame)]/8 py-4 sm:py-5">
+            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 bg-gradient-to-r from-card via-card/95 to-transparent backdrop-blur-[2px] sm:w-28" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 bg-gradient-to-l from-card via-card/95 to-transparent backdrop-blur-[2px] sm:w-28" />
+            <div className="pointer-events-none absolute left-0 top-1/2 z-10 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-amber-glow)]/18 blur-2xl" />
+            <div className="pointer-events-none absolute right-0 top-1/2 z-10 h-24 w-24 -translate-y-1/2 translate-x-1/2 rounded-full bg-[var(--color-blaze-orange)]/16 blur-2xl" />
+
+            <div className="flex w-max animate-[discovery-surfaces-marquee-right_36s_linear_infinite] items-center motion-reduce:animate-none">
+              {[0, 1].map((loopIndex) => (
+                <div
+                  key={loopIndex}
+                  aria-hidden={loopIndex === 1}
+                  className="flex shrink-0 items-center gap-3 pr-3 sm:gap-4 sm:pr-4 lg:gap-5 lg:pr-5"
+                >
+                  {platformSurfaces.map(({ name, Icon }) => (
+                    <span
+                      key={`${loopIndex}-${name}`}
+                      aria-label={loopIndex === 0 ? name : undefined}
+                      className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-[1.25rem] border border-[var(--color-blaze-orange)]/14 bg-background/85 text-[var(--color-princeton-orange)] shadow-[inset_0_1px_0_rgba(255,255,255,0.78),0_16px_36px_-30px_rgba(255,84,0,0.7)] ring-1 ring-foreground/5 sm:size-16"
+                      role={loopIndex === 0 ? "img" : undefined}
+                    >
+                      <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/65 via-transparent to-[var(--color-amber-flame)]/12" />
+                      <Icon className="relative z-10 size-8 opacity-90 drop-shadow-[0_8px_14px_rgba(255,84,0,0.12)] saturate-[1.08] sm:size-9" />
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

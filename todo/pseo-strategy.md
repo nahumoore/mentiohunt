@@ -18,7 +18,7 @@ Build order:
 - [x] `/backlinks-from/quora`
 - [x] `/backlinks-from/wikipedia`
 - [x] `/backlinks-from/forbes`
-- [ ] `/backlinks-from/news-websites`
+- [x] `/backlinks-from/news-websites`
 - [ ] `/backlinks-from/instagram`
 - [ ] `/backlinks-from/pinterest`
 - [ ] `/backlinks-from/chatgpt` ← AI search angle, early mover

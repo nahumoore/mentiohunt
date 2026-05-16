@@ -1,8 +1,4 @@
-"use client"
-
 import type { ComponentType } from "react"
-
-import { motion } from "framer-motion"
 
 import { IconBrandClaude } from "@/components/custom-icons/brand-claude"
 import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
@@ -58,27 +54,14 @@ const surfaces: Surface[] = [
   },
 ]
 
-const ease = [0.21, 0.47, 0.32, 0.98] as const
-
-const fadeUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-}
-
 export function DiscoverySurfaces() {
   return (
     <section
       aria-labelledby="discovery-surfaces-title"
-      className="relative z-10 py-8 sm:py-10 lg:py-4 xl:py-5"
+      className="relative z-10 py-8 sm:py-10 lg:py-5 xl:py-6"
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="mx-auto max-w-5xl px-2 text-center sm:px-4"
-          variants={fadeUp}
-          initial="initial"
-          animate="animate"
-          transition={{ duration: 0.6, delay: 0.28, ease }}
-        >
+        <div className="mx-auto max-w-6xl px-2 text-center sm:px-4">
           <h2
             id="discovery-surfaces-title"
             className="font-heading text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase sm:text-sm"
@@ -88,22 +71,37 @@ export function DiscoverySurfaces() {
 
           <div className="mx-auto mt-3 h-px w-10 bg-[var(--color-princeton-orange)]/70" />
 
-          <div className="mt-7 grid grid-cols-3 items-end gap-x-5 gap-y-7 sm:grid-cols-5 sm:gap-x-8 lg:mt-6 lg:grid-cols-9 lg:gap-x-6 xl:gap-x-8">
-            {surfaces.map(({ name, Icon }) => (
-              <span
-                key={name}
-                aria-label={name}
-                className="group inline-flex flex-col items-center justify-end gap-2 text-muted-foreground/65 transition duration-200 hover:text-[var(--color-princeton-orange)]"
-                role="img"
-              >
-                <Icon className="h-9 w-9 opacity-60 grayscale transition duration-200 group-hover:opacity-100 sm:h-10 sm:w-10 lg:h-8 lg:w-8 xl:h-9 xl:w-9" />
-                <span className="font-heading text-[0.62rem] leading-none font-medium tracking-[0.16em] uppercase opacity-70 transition duration-200 group-hover:opacity-100">
-                  {name}
-                </span>
-              </span>
-            ))}
+          <div className="relative mx-auto mt-7 overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/15 bg-gradient-to-br from-card/90 via-background to-[var(--color-amber-flame)]/8 py-5 shadow-[0_24px_80px_-60px_rgba(255,84,0,0.85)] sm:mt-8 sm:py-6 lg:mt-6">
+            <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/70 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 bg-gradient-to-r from-background via-background/95 to-transparent backdrop-blur-[2px] sm:w-32" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 bg-gradient-to-l from-background via-background/95 to-transparent backdrop-blur-[2px] sm:w-32" />
+            <div className="pointer-events-none absolute left-0 top-1/2 z-10 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-amber-glow)]/20 blur-2xl" />
+            <div className="pointer-events-none absolute right-0 top-1/2 z-10 h-28 w-28 -translate-y-1/2 translate-x-1/2 rounded-full bg-[var(--color-blaze-orange)]/18 blur-2xl" />
+
+            <div className="flex w-max animate-[discovery-surfaces-marquee-right_34s_linear_infinite] items-center motion-reduce:animate-none">
+              {[0, 1].map((loopIndex) => (
+                <div
+                  key={loopIndex}
+                  aria-hidden={loopIndex === 1}
+                  className="flex shrink-0 items-center gap-3 pr-3 sm:gap-4 sm:pr-4 lg:gap-5 lg:pr-5"
+                >
+                  {surfaces.map(({ name, Icon }) => (
+                    <span
+                      key={`${loopIndex}-${name}`}
+                      aria-label={loopIndex === 0 ? name : undefined}
+                      className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-[1.35rem] border border-[var(--color-blaze-orange)]/16 bg-background/85 text-[var(--color-princeton-orange)] shadow-[inset_0_1px_0_rgba(255,255,255,0.78),0_18px_42px_-34px_rgba(255,84,0,0.72)] ring-1 ring-foreground/5 backdrop-blur sm:size-16 xl:size-20"
+                      role={loopIndex === 0 ? "img" : undefined}
+                    >
+                      <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/70 via-transparent to-[var(--color-amber-flame)]/12" />
+                      <span className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/70 to-transparent" />
+                      <Icon className="relative z-10 size-8 opacity-90 drop-shadow-[0_8px_14px_rgba(255,84,0,0.12)] saturate-[1.08] sm:size-9 lg:size-8 xl:size-9" />
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

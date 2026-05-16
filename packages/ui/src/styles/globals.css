@@ -141,6 +141,15 @@
   --color-amber-flame: var(--amber-flame);
 }
 
+@keyframes discovery-surfaces-marquee-right {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

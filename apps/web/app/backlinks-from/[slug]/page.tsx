@@ -78,11 +78,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!post) return {}
 
-  const title = post.meta.metaTitle || `${post.meta.title} — Mentiohunt`
+  const title = post.meta.metaTitle || post.meta.title
   const description = getSummary(post.meta)
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: {
       canonical: `/backlinks-from/${post.meta.slug}`,

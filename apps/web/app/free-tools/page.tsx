@@ -62,17 +62,6 @@ const operatingNotes = [
   "The real product turns these checks into recurring queues.",
 ]
 
-const toolCardStyles = [
-  {
-    card: "border-[var(--color-blaze-orange)]/25 hover:border-[var(--color-blaze-orange)]/45",
-    icon: "bg-[var(--color-blaze-orange)] text-white",
-  },
-  {
-    card: "border-border hover:border-[var(--color-princeton-orange)]/40",
-    icon: "bg-[var(--color-amber-glow)]/20 text-[var(--color-princeton-orange)]",
-  },
-]
-
 export default function FreeToolsPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -130,25 +119,23 @@ export default function FreeToolsPage() {
               </div>
             </div>
 
-            <div className="relative min-h-[32rem] lg:min-h-[40rem]">
-              <div className="absolute right-0 top-0 hidden h-28 w-28 rounded-[2rem] border border-[var(--color-amber-glow)]/35 bg-[var(--color-amber-glow)]/10 md:block" />
-              <div className="absolute left-0 top-10 hidden h-20 w-20 rounded-full bg-[var(--color-blaze-orange)]/12 blur-sm md:block" />
+            <div className="relative min-h-[26rem] lg:min-h-[34rem]">
+              <div className="absolute inset-x-10 top-8 bottom-12 rounded-[2rem] border border-border/60 bg-card/55 backdrop-blur-sm" />
 
-              <div className="relative mx-auto max-w-[31rem] rotate-[-2deg] overflow-hidden rounded-[2.1rem] border border-foreground/10 bg-foreground p-4 text-background shadow-[0_42px_120px_-42px_rgba(255,96,0,0.85)] transition-transform duration-500 hover:rotate-0">
-                <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/90 to-transparent" />
-                <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[var(--color-blaze-orange)]/25 blur-3xl" />
+              <div className="relative mx-auto max-w-[31rem] overflow-hidden rounded-[2rem] border border-border/70 bg-card/92 p-4 shadow-[0_30px_90px_-54px_rgba(255,133,0,0.38)]">
+                <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
 
-                <div className="relative rounded-[1.55rem] border border-background/10 bg-background/[0.06] p-5 backdrop-blur">
+                <div className="relative rounded-[1.45rem] border border-border/70 bg-background/86 p-5">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-background/55">
+                      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground/60">
                         Today&apos;s free tool
                       </p>
                       <h2 className="mt-2 font-heading text-2xl font-semibold tracking-[-0.045em]">
                         Opportunity bench
                       </h2>
                     </div>
-                    <div className="flex size-12 items-center justify-center rounded-2xl bg-[var(--color-amber-flame)] text-foreground shadow-lg shadow-[var(--color-amber-flame)]/20">
+                    <div className="flex size-12 items-center justify-center rounded-2xl border border-[var(--color-blaze-orange)]/15 bg-[var(--color-blaze-orange)]/8 text-[var(--color-princeton-orange)]">
                       <IconTargetArrow size={24} stroke={2.4} />
                     </div>
                   </div>
@@ -160,14 +147,14 @@ export default function FreeToolsPage() {
                       return (
                         <div
                           key={tool.name}
-                          className="group rounded-[1.35rem] border border-background/10 bg-background/[0.075] p-4 transition-colors hover:bg-background/[0.11]"
+                          className="group rounded-[1.35rem] border border-border/70 bg-card/75 p-4 transition-colors hover:border-[var(--color-princeton-orange)]/20 hover:bg-background"
                         >
                           <div className="flex items-start gap-3">
                             <div
                               className={
                                 index === 0
-                                  ? "flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/90 text-white"
-                                  : "flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-amber-glow)]/90 text-foreground"
+                                  ? "flex size-10 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-blaze-orange)]/15 bg-[var(--color-blaze-orange)]/8 text-[var(--color-princeton-orange)]"
+                                  : "flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-background text-muted-foreground"
                               }
                             >
                               <Icon size={20} stroke={2.4} />
@@ -176,7 +163,7 @@ export default function FreeToolsPage() {
                               <p className="font-heading text-base font-semibold tracking-[-0.025em]">
                                 {tool.name}
                               </p>
-                              <p className="mt-1 text-xs leading-5 text-background/60">
+                              <p className="mt-1 text-xs leading-5 text-muted-foreground">
                                 {tool.eyebrow}
                               </p>
                             </div>
@@ -188,7 +175,7 @@ export default function FreeToolsPage() {
                 </div>
               </div>
 
-              <div className="absolute bottom-0 left-0 right-0 mx-auto max-w-[28rem] rotate-[2deg] rounded-[1.75rem] border border-[var(--color-blaze-orange)]/25 bg-card/90 p-5 shadow-[0_28px_90px_-42px_rgba(255,96,0,0.75)] backdrop-blur sm:left-auto sm:right-8">
+              <div className="absolute bottom-0 left-0 right-0 mx-auto max-w-[28rem] rounded-[1.6rem] border border-border/70 bg-background/92 p-5 shadow-[0_24px_70px_-46px_rgba(255,133,0,0.32)] backdrop-blur sm:left-auto sm:right-8">
                 <div className="flex items-center gap-3">
                   <div className="flex size-10 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
                     <IconChecklist size={21} stroke={2.4} />
@@ -228,34 +215,32 @@ export default function FreeToolsPage() {
             </p>
           </div>
 
-          <div className="mx-auto mt-12 grid max-w-md gap-5 md:max-w-2xl lg:max-w-3xl">
-            {tools.map((tool, index) => {
+          <div className="mx-auto mt-12 grid max-w-md gap-4 md:max-w-2xl lg:max-w-3xl">
+            {tools.map((tool) => {
               const Icon = tool.icon
-              const styles = toolCardStyles[index % toolCardStyles.length]!
 
               return (
-                <article
+                <Link
                   key={tool.name}
-                  className={`group relative flex min-h-[22rem] flex-col overflow-hidden rounded-[2rem] border bg-card p-6 transition-all duration-300 hover:-translate-y-1 ${styles.card}`}
+                  href={tool.href}
+                  className="group relative flex min-h-[18.5rem] flex-col overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/92 p-6 transition-colors duration-300 outline-none hover:border-[var(--color-princeton-orange)]/24 focus-visible:ring-3 focus-visible:ring-ring/30"
                 >
-                  <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
+                  <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/45 to-transparent" />
 
                   <div className="flex items-start justify-between gap-4">
-                    <div
-                      className={`flex size-11 items-center justify-center rounded-[1.2rem] ${styles.icon}`}
-                    >
+                    <div className="flex size-11 items-center justify-center rounded-[1.1rem] border border-[var(--color-blaze-orange)]/15 bg-[var(--color-blaze-orange)]/8 text-[var(--color-princeton-orange)]">
                       <Icon size={23} stroke={2.35} />
                     </div>
-                    <span className="rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[var(--color-princeton-orange)]">
+                    <span className="rounded-full border border-border bg-background px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                       {tool.status}
                     </span>
                   </div>
 
-                  <div className="mt-8">
+                  <div className="mt-7">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
                       {tool.eyebrow}
                     </p>
-                    <h3 className="mt-2 font-heading text-2xl font-semibold tracking-[-0.045em] text-balance">
+                    <h3 className="mt-2 font-heading text-[1.7rem] font-semibold tracking-[-0.045em] text-balance">
                       {tool.name}
                     </h3>
                     <p className="mt-4 text-sm leading-7 text-muted-foreground">
@@ -263,29 +248,26 @@ export default function FreeToolsPage() {
                     </p>
                   </div>
 
-                  <div className="mt-7 flex flex-wrap gap-2">
+                  <div className="mt-6 flex flex-wrap gap-2">
                     {tool.steps.map((step) => (
                       <span
                         key={step}
-                        className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-muted-foreground"
+                        className="rounded-full border border-border/80 bg-background px-3 py-1 text-xs text-muted-foreground"
                       >
                         {step}
                       </span>
                     ))}
                   </div>
 
-                  <Link
-                    href={tool.href}
-                    className="mt-auto inline-flex items-center gap-2 self-start rounded-full pt-6 text-sm font-semibold text-foreground outline-none transition-colors hover:text-[var(--color-princeton-orange)] focus-visible:ring-3 focus-visible:ring-ring/30"
-                  >
+                  <div className="mt-auto inline-flex items-center gap-2 self-start pt-6 text-sm font-semibold text-foreground transition-colors group-hover:text-[var(--color-princeton-orange)]">
                     Try it free
                     <IconArrowRight
                       size={16}
                       stroke={2.5}
                       className="transition-transform group-hover:translate-x-0.5"
                     />
-                  </Link>
-                </article>
+                  </div>
+                </Link>
               )
             })}
           </div>

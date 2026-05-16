@@ -99,8 +99,8 @@ export function DirectorySubmissionForm() {
           {submitted.directoryName} is staged for review.
         </h3>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-          We'll be in touch at {submitted.contactEmail} if your directory is a
-          strong fit.
+          We&apos;ll be in touch at {submitted.contactEmail} if your directory is
+          a strong fit.
         </p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2">

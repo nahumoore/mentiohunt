@@ -16,8 +16,8 @@ Build order:
 - [x] `/backlinks-from/reddit` — highest relevance, ties to both engines
 - [x] `/backlinks-from/medium`
 - [x] `/backlinks-from/quora`
-- [ ] `/backlinks-from/wikipedia`
-- [ ] `/backlinks-from/forbes`
+- [x] `/backlinks-from/wikipedia`
+- [x] `/backlinks-from/forbes`
 - [ ] `/backlinks-from/news-websites`
 - [ ] `/backlinks-from/instagram`
 - [ ] `/backlinks-from/pinterest`

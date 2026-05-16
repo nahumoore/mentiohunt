@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return {}
 
   return {
-    title: `${post.meta.title} — Mentiohunt Alternatives`,
+    title: { absolute: post.meta.title },
     description: getSummary(post.meta),
     openGraph: {
       title: post.meta.title,

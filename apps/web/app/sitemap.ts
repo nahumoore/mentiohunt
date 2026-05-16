@@ -23,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `https://mentiohunt.com/blog/${slug}`,
       priority: 0.75 as const,
     })),
-    { url: "https://mentiohunt.com/backlinks-from", lastModified: new Date("2026-05-15"), priority: 0.8 },
+    { url: "https://mentiohunt.com/backlinks-from", lastModified: new Date("2026-05-16"), priority: 0.8 },
     ...backlinksFromSlugs.map((slug) => ({
       url: `https://mentiohunt.com/backlinks-from/${slug}`,
       priority: 0.75 as const,
@@ -33,6 +33,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `https://mentiohunt.com/alternatives/${slug}`,
       priority: 0.7 as const,
     })),
+    { url: "https://mentiohunt.com/free-tools", lastModified: new Date("2026-05-15"), priority: 0.8 },
+    { url: "https://mentiohunt.com/free-tools/directory-backlink-opportunity-finder", lastModified: new Date("2026-05-15"), priority: 0.75 },
+    { url: "https://mentiohunt.com/free-tools/startup-directories", lastModified: new Date("2026-05-15"), priority: 0.75 },
+    { url: "https://mentiohunt.com/directory-submission", lastModified: new Date("2026-05-15"), priority: 0.7 },
     { url: "https://mentiohunt.com/privacy", priority: 0.3 as const },
     { url: "https://mentiohunt.com/tos", priority: 0.3 as const },
   ]

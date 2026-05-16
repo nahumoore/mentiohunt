@@ -3,7 +3,6 @@ import {
   IconArticle,
   IconBrandInstagram,
   IconBrandPinterest,
-  IconBrandWikipedia,
   IconClockHour4,
   IconPencilSearch,
   IconSearch,
@@ -12,6 +11,7 @@ import {
 import type { ComponentType } from "react"
 
 import { IconBrandChatGPT } from "@/components/custom-icons/brand-chatgpt"
+import { IconBrandForbes } from "@/components/custom-icons/brand-forbes"
 import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
 import { IconBrandHackerNews } from "@/components/custom-icons/brand-hacker-news"
 import { IconBrandLinkedinCustom } from "@/components/custom-icons/brand-linkedin"
@@ -19,6 +19,7 @@ import { BrandMediumIcon } from "@/components/custom-icons/brand-medium"
 import { IconBrandProductHunt } from "@/components/custom-icons/brand-product-hunt"
 import { IconBrandQuora } from "@/components/custom-icons/brand-quora"
 import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
+import { IconBrandWikipedia } from "@/components/custom-icons/brand-wikipedia"
 
 export const playbook = [
   {
@@ -136,7 +137,10 @@ export const platformSurfaces: PlatformSurface[] = [
 
 export function getPlatformCardIcon(slug: string) {
   if (slug === "reddit") return IconBrandRedditNew
+  if (slug === "quora") return IconBrandQuora
   if (slug === "medium") return BrandMediumIcon
+  if (slug === "wikipedia") return IconBrandWikipedia
+  if (slug === "forbes") return IconBrandForbes
   return IconArticle
 }
 

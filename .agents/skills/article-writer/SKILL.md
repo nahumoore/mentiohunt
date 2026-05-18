@@ -107,7 +107,7 @@ Example email draft usage:
 <EmailDraft
   subject="DATA: 76% of developers use or plan to use AI tools"
   to="Maya Chen"
-  from="Elena Torres, Founder at SignalDesk"
+  from="Nico Moreno, Founder at Mentiohunt"
   body={`
 Hi Maya,
 
@@ -117,7 +117,7 @@ One data point that may fit your follow-up: Stack Overflow's 2024 Developer Surv
 
 Source: https://survey.stackoverflow.co/2024/ai/
 
-Elena
+Nico
 `}
 />
 ```
@@ -132,6 +132,8 @@ Elena
 - Use bold text sparingly for key terms or takeaways, not for decoration.
 - Prefer concrete phrases like "qualified outreach opportunities", "daily queue", "fit rationale", "outreach angle", and "what to do next" over vague SEO wording.
 - Make the article scannable with descriptive headings, bullets, tables, and short sections when useful.
+- When adding links, use natural anchor text that describes the destination topic or resource in context.
+- Avoid vague link phrasing like "see more at this guide", "click here", "read this post", or "learn more" unless the exact wording is clearly necessary.
 - Use simple tables for comparisons or criteria. Avoid dense nested tables.
 - If suggesting visuals, include clear alt text recommendations.
 - Eliminate fluff, repetition, filler introductions, and salesy claims.

@@ -19,9 +19,9 @@ Build order:
 - [x] `/backlinks-from/wikipedia`
 - [x] `/backlinks-from/forbes`
 - [x] `/backlinks-from/news-websites`
-- [ ] `/backlinks-from/instagram`
-- [ ] `/backlinks-from/pinterest`
-- [ ] `/backlinks-from/chatgpt` ← AI search angle, early mover
+- [x] `/backlinks-from/instagram`
+- [x] `/backlinks-from/pinterest`
+- [x] `/backlinks-from/chatgpt` ← AI search angle, early mover
 
 ---
 

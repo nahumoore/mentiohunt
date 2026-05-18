@@ -66,22 +66,25 @@ Do not send a long founder bio. Do not attach a pitch deck. Do not explain your 
 
 Example:
 
-```md
-Subject: Source for your Forbes piece on [topic]
+<EmailDraft
+  subject="Source for your Forbes piece on AI search visibility"
+  to="Jordan"
+  from="Nico Moreno, Founder at Mentiohunt"
+  body={`
+Hi Jordan,
 
-Hi [Name],
-
-I saw you are looking for input on [topic]. One angle worth including is that [specific, non-obvious point].
+I saw you are looking for input on how startups are adapting content strategy for AI search. One angle worth including is that founders are treating third-party mentions as distribution infrastructure, not just PR.
 
 Quote you can use:
-"[20-30 word quote with a clear opinion, practical detail, or counterintuitive insight.]"
+"For early-stage teams, the practical shift is from publishing more owned content to becoming easier to cite across credible sources customers and AI systems already trust."
 
-I am [Name], [Title] at [Company]. We work with [specific audience/problem], so we see this pattern often.
+I am Nico Moreno, founder at Mentiohunt. We work on backlink opportunity discovery and community monitoring for founders, so we see this pattern often.
 
 Happy to add more detail if useful.
-[Your name]
-[Relevant URL]
-```
+Nico
+https://mentiohunt.com
+`}
+/>
 
 The quote should stand on its own. If the writer has to rewrite everything, you made their job harder.
 
@@ -169,16 +172,21 @@ There are also gray-hat versions of this tactic, like buying expired domains tha
 
 A cleaner approach is to offer a useful replacement resource:
 
-```md
-Hi [Name],
+<EmailDraft
+  subject="Broken source in your Forbes article on backlink opportunities"
+  to="Jordan"
+  from="Nico Moreno, Founder at Mentiohunt"
+  body={`
+Hi Jordan,
 
-I noticed your Forbes article on [topic] links to a resource that now returns a 404.
+I noticed your Forbes article on finding backlink opportunities links to a resource that now returns a 404.
 
-We recently published an updated [benchmark/report/guide] on the same topic here:
-[URL]
+We recently published an updated guide on the same topic here:
+https://mentiohunt.com/blog/how-to-find-backlink-opportunities
 
 No pressure, but it may be a useful replacement for readers.
-```
+`}
+/>
 
 Keep it short. Make the value obvious.
 

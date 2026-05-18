@@ -1,9 +1,9 @@
 import {
   IconArrowRight,
   IconArticle,
-  IconBrandInstagram,
   IconBrandPinterest,
   IconClockHour4,
+  IconNews,
   IconPencilSearch,
   IconSearch,
   IconTopologyStar3,
@@ -14,6 +14,7 @@ import { IconBrandChatGPT } from "@/components/custom-icons/brand-chatgpt"
 import { IconBrandForbes } from "@/components/custom-icons/brand-forbes"
 import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
 import { IconBrandHackerNews } from "@/components/custom-icons/brand-hacker-news"
+import { BrandInstagram } from "@/components/custom-icons/brand-instagram"
 import { IconBrandLinkedinCustom } from "@/components/custom-icons/brand-linkedin"
 import { BrandMediumIcon } from "@/components/custom-icons/brand-medium"
 import { IconBrandProductHunt } from "@/components/custom-icons/brand-product-hunt"
@@ -125,7 +126,7 @@ export const platformSurfaces: PlatformSurface[] = [
   },
   {
     name: "Instagram",
-    Icon: IconBrandInstagram,
+    Icon: BrandInstagram,
     className: "h-8 w-8 sm:h-10 sm:w-10",
   },
   {
@@ -141,6 +142,10 @@ export function getPlatformCardIcon(slug: string) {
   if (slug === "medium") return BrandMediumIcon
   if (slug === "wikipedia") return IconBrandWikipedia
   if (slug === "forbes") return IconBrandForbes
+  if (slug === "instagram") return BrandInstagram
+  if (slug === "pinterest") return IconBrandPinterest
+  if (slug === "news-websites") return IconNews
+  if (slug === "chatgpt") return IconBrandChatGPT
   return IconArticle
 }
 

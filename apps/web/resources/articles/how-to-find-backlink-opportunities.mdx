@@ -376,31 +376,39 @@ Use this checklist before sending:
 - Review any AI-generated draft before sending.
 - If you use a dedicated outreach platform, see how Mentiohunt compares to [Pitchbox](/alternatives/best-pitchbox-alternative-for-founders), [Respona](/alternatives/best-respona-alternative-for-founders), [BuzzStream](/alternatives/best-buzzstream-alternative-for-founders), [BacklinkGPT](/alternatives/best-backlinkgpt-alternative-for-founders), and [Postaga](/alternatives/best-postaga-alternative-for-founders) for founder-scale prospecting.
 
-A simple structure:
+A simple example:
 
-```text
-Subject: Resource suggestion for [page/topic]
+<EmailDraft
+  subject="Resource suggestion for your startup directory page"
+  to="Jamie"
+  from="Nico Moreno, Mentiohunt"
+  body={`
+Hi Jamie,
 
-Hi [Name],
+I was reading your page on startup launch resources and noticed the section on places founders can submit their product.
 
-I was reading your page on [specific topic] and noticed the section on [specific section].
+We recently published a startup directory list that covers free and paid submission sites, review notes, and which directories are still active. It may be a useful addition for readers who are trying to find early distribution channels.
 
-We recently published [resource], which covers [specific value] and may be a useful addition for readers who are trying to [reader goal].
-
-Here it is: [URL]
+Here it is: https://mentiohunt.com/free-tools/startup-directories
 
 Either way, thanks for putting the resource together.
-```
+`}
+/>
 
 For unlinked mentions, make it even shorter:
 
-```text
-Hi [Name],
+<EmailDraft
+  subject="Quick note on your Mentiohunt mention"
+  to="Avery"
+  from="Nico Moreno, Mentiohunt"
+  body={`
+Hi Avery,
 
-Thanks for mentioning [Brand] in your article on [topic]. Would you be open to linking the mention to [URL] so readers can find the referenced page more easily?
+Thanks for mentioning Mentiohunt in your article on founder-led distribution tools. Would you be open to linking the mention to https://mentiohunt.com so readers can find the referenced page more easily?
 
 Appreciate it.
-```
+`}
+/>
 
 Do not pretend to be a longtime fan if you are not. Do not write four paragraphs about how amazing their blog is. Be useful, specific, and easy to evaluate.
 

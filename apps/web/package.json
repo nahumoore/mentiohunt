@@ -15,6 +15,7 @@
     "@next/third-parties": "^16.2.6",
     "@tabler/icons-react": "^3.42.0",
     "@vercel/functions": "^3.6.0",
+    "@openrouter/agent": "^0.5.0",
     "@workspace/openrouter": "workspace:*",
     "@workspace/supabase": "workspace:*",
     "@workspace/ui": "workspace:*",

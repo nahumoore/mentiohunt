@@ -5,6 +5,7 @@ const nextConfig = {
     "@workspace/supabase",
     "@workspace/ui",
   ],
+  turbopack: {},
 }
 
 export default nextConfig

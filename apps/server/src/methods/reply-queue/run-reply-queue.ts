@@ -205,6 +205,7 @@ export async function runReplyQueue({
     ) {
       await sendMentionsAlert({
         to: profile.email,
+        userId: config.user_id,
         productName: product.product_name,
         mentionsCount: withReplies.length,
       })

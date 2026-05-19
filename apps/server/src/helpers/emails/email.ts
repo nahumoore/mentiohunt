@@ -1,6 +1,7 @@
 import { Resend } from "resend"
 import { createLogger } from "../logger.js"
 import { escapeHtml, mentiohuntTemplate } from "./email-template.js"
+import { generateUnsubscribeUrl } from "./unsubscribe.js"
 
 const log = createLogger("email")
 const APP_URL = "https://mentiohunt.com"
@@ -97,10 +98,12 @@ function statusNote(title: string, message: string) {
 
 export async function sendMentionsAlert({
   to,
+  userId,
   productName,
   mentionsCount,
 }: {
   to: string
+  userId: string
   productName: string
   mentionsCount: number
 }) {
@@ -110,6 +113,7 @@ export async function sendMentionsAlert({
   await sendMentiohuntEmail({
     to,
     subject,
+    unsubscribeUrl: generateUnsubscribeUrl(userId, "alerts"),
     previewText: `We found ${pluralize(mentionsCount, "mention")} that could be worth replying to.`,
     body: `
       <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4A413B; margin:0 0 18px; line-height:1.7;">Hi,</p>
@@ -127,12 +131,14 @@ export async function sendMentionsAlert({
 
 export async function sendOnboardingCompleteEmail({
   to,
+  userId,
   userName,
   productName,
   replyQueueResult,
   directoryResult,
 }: {
   to: string
+  userId: string
   userName: string | null
   productName: string
   replyQueueResult: PromiseSettledResult<ReplyQueueOnboardingResult>
@@ -201,6 +207,7 @@ export async function sendOnboardingCompleteEmail({
   await sendMentiohuntEmail({
     to,
     subject: `Your Mentiohunt onboarding results for ${productName}`,
+    unsubscribeUrl: generateUnsubscribeUrl(userId, "alerts"),
     previewText: `We found ${pluralize(replyQueueFound, "reply opportunity", "reply opportunities")} and added ${pluralize(prospectsCreated, "directory prospect")} for ${productName}.`,
     footerReason:
       "You received this email because you completed onboarding for Mentiohunt.",

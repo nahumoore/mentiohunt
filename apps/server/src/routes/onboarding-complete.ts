@@ -84,6 +84,7 @@ async function sendOnboardingSummaryEmail({
 
   await sendOnboardingCompleteEmail({
     to: profile.email,
+    userId,
     userName: profile.name,
     productName: product.product_name,
     replyQueueResult,

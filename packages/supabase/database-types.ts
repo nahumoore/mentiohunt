@@ -263,6 +263,7 @@ export type Database = {
           billing_period_start_at: string
           created_at: string
           email: string
+          email_settings: Json | null
           id: string
           name: string | null
           onboarding_completed: boolean
@@ -275,6 +276,7 @@ export type Database = {
           billing_period_start_at: string
           created_at?: string
           email: string
+          email_settings?: Json | null
           id: string
           name?: string | null
           onboarding_completed?: boolean
@@ -287,6 +289,7 @@ export type Database = {
           billing_period_start_at?: string
           created_at?: string
           email?: string
+          email_settings?: Json | null
           id?: string
           name?: string | null
           onboarding_completed?: boolean

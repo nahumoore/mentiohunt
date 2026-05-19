@@ -16,6 +16,10 @@ export type DirectoryOpportunitiesCheckResult = {
   prospectsCreated: number
 }
 
+export type DirectoryOpportunitiesCheckOptions = {
+  maxProspects?: number
+}
+
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = []
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
@@ -23,7 +27,8 @@ function chunk<T>(arr: T[], size: number): T[][] {
 }
 
 export async function checkProductDirectoryOpportunities(
-  productId: string
+  productId: string,
+  options: DirectoryOpportunitiesCheckOptions = {}
 ): Promise<DirectoryOpportunitiesCheckResult> {
   const { data: product, error: productError } = await supabaseAdmin
     .from("products")
@@ -41,7 +46,7 @@ export async function checkProductDirectoryOpportunities(
 
   const { data: settings } = await supabaseAdmin
     .from("product_backlink_discovery_settings")
-    .select("opportunity_types")
+    .select("opportunity_types, dr_min, dr_max")
     .eq("product_id", productId)
     .single()
 
@@ -50,19 +55,38 @@ export async function checkProductDirectoryOpportunities(
     return { productId, checked: 0, listed: 0, gaps: 0, errors: 0, prospectsCreated: 0 }
   }
 
-  const { data: directories, error: dirError } = await supabaseAdmin
+  let directoriesQuery = supabaseAdmin
     .from("directories")
-    .select("id, domain, submit_url, slug_pattern, check_method")
+    .select("id, domain, submit_url, slug_pattern, check_method, domain_rating")
     .eq("is_active", true)
+
+  if (settings) {
+    directoriesQuery = directoriesQuery.gte("domain_rating", settings.dr_min)
+
+    if (settings.dr_max !== null) {
+      directoriesQuery = directoriesQuery.lte("domain_rating", settings.dr_max)
+    }
+  }
+
+  const { data: directories, error: dirError } = await directoriesQuery
 
   if (dirError) throw new Error(`Failed to load directories: ${dirError.message}`)
   if (!directories || directories.length === 0) {
-    log.warn("no active directories found")
+    log.warn("no matching active directories found", {
+      productId,
+      drMin: settings?.dr_min ?? null,
+      drMax: settings?.dr_max ?? null,
+    })
     return { productId, checked: 0, listed: 0, gaps: 0, errors: 0, prospectsCreated: 0 }
   }
 
   const slug = toSlug(product.product_name)
-  log.info(`checking ${directories.length} directories`, { productId, slug })
+  log.info(`checking ${directories.length} directories`, {
+    productId,
+    slug,
+    drMin: settings?.dr_min ?? null,
+    drMax: settings?.dr_max ?? null,
+  })
 
   // Phase 1: head_check directories concurrently
   const headDirs = directories.filter((d) => d.check_method === "head_check")
@@ -126,8 +150,13 @@ export async function checkProductDirectoryOpportunities(
 
   let prospectsCreated = 0
 
-  if (gaps.length > 0) {
-    const rows = gaps.map(({ dir }) => ({
+  const prospectGaps =
+    typeof options.maxProspects === "number"
+      ? gaps.slice(0, Math.max(0, Math.floor(options.maxProspects)))
+      : gaps
+
+  if (prospectGaps.length > 0) {
+    const rows = prospectGaps.map(({ dir }) => ({
       product_id: productId,
       directory_id: dir.id,
       domain: dir.domain,

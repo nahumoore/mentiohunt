@@ -1,14 +1,14 @@
 "use client"
 
-import { usePathname } from "next/navigation"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import * as React from "react"
 
 import { useProspectStore } from "@/stores/prospect-store"
-import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 import { Separator } from "@workspace/ui/components/separator"
+import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
-const prospectHref = "/dashboard/link-building/prospects"
+const prospectHref = "/dashboard/link-building/opportunities"
 
 export function DashboardHeader() {
   const pathname = usePathname()
@@ -32,14 +32,22 @@ export function DashboardHeader() {
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
       <SidebarTrigger className="-ml-1" />
-      <Separator orientation="vertical" className="mr-2 data-vertical:h-4 data-vertical:self-auto" />
-      <nav aria-label="Dashboard breadcrumb" className="flex min-w-0 items-center gap-1 text-sm">
+      <Separator
+        orientation="vertical"
+        className="mr-2 data-vertical:h-4 data-vertical:self-auto"
+      />
+      <nav
+        aria-label="Dashboard breadcrumb"
+        className="flex min-w-0 items-center gap-1 text-sm"
+      >
         {breadcrumbs.map((breadcrumb, index) => {
           const isLast = index === breadcrumbs.length - 1
 
           return (
             <React.Fragment key={breadcrumb.href}>
-              {index > 0 ? <span className="text-muted-foreground">&gt;</span> : null}
+              {index > 0 ? (
+                <span className="text-muted-foreground">&gt;</span>
+              ) : null}
               <Link
                 href={breadcrumb.href}
                 aria-current={isLast ? "page" : undefined}
@@ -66,7 +74,8 @@ function getBreadcrumbs(
 ) {
   const segments = pathname.split("/").filter(Boolean)
   const dashboardIndex = segments.indexOf("dashboard")
-  const visibleSegments = dashboardIndex >= 0 ? segments.slice(dashboardIndex + 1) : segments
+  const visibleSegments =
+    dashboardIndex >= 0 ? segments.slice(dashboardIndex + 1) : segments
 
   if (visibleSegments.length === 0) {
     return [{ label: "Dashboard", href: "/dashboard" }]
@@ -77,7 +86,7 @@ function getBreadcrumbs(
     const isCurrentProspect =
       segment === currentProspectId &&
       visibleSegments[index - 2] === "link-building" &&
-      visibleSegments[index - 1] === "prospects"
+      visibleSegments[index - 1] === "opportunities"
 
     return {
       label: isCurrentProspect

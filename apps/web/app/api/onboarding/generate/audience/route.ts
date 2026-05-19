@@ -1,0 +1,102 @@
+import { generateText } from "@workspace/openrouter/generate-text"
+import { supabaseServer } from "@/lib/supabase/server"
+import { NextResponse } from "next/server"
+import { z } from "zod"
+
+export const runtime = "nodejs"
+
+const audienceSchema = z.object({
+  monitoringKeywords: z
+    .array(
+      z.string().trim().min(4).max(80).refine(
+        (kw) => { const words = kw.trim().split(/\s+/); return words.length >= 3 && words.length <= 4 },
+        { message: "Keyword must be 3–4 words" }
+      )
+    )
+    .min(4)
+    .max(10),
+  monitoringCommunities: z
+    .array(
+      z.object({
+        platform: z.literal("reddit"),
+        community: z.string().trim().min(1).max(80),
+      })
+    )
+    .min(3)
+    .max(8),
+})
+
+const systemInstructions = [
+  "You are helping populate onboarding data for a backlink prospecting product called Mentiohunt.",
+  "Analyze the homepage signals and return monitoring keywords and Reddit communities.",
+  "Return JSON only with this exact shape:",
+  '{"monitoringKeywords":["keyword"],"monitoringCommunities":[{"platform":"reddit","community":"SaaS"}]}',
+  "Rules:",
+  "- monitoringKeywords must contain 4 to 10 short-tail phrases, each exactly 3 to 4 words long, that people use when asking for tools, alternatives, recommendations, or help with this problem.",
+  "- Prefer broad phrasing over specific product names so the phrases match more posts (e.g. 'best backlink tool' not 'best backlink tool for SaaS startups').",
+  "- Do not include brand names or competitor names in keywords.",
+  "- monitoringCommunities must contain 3 to 8 real subreddit names without the r/ prefix.",
+  "- Pick communities where founders, marketers, operators, or the likely buyers discuss this problem.",
+].join("\n")
+
+function extractJsonObject(input: string): string {
+  const fencedMatch = input.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  if (fencedMatch?.[1]) return fencedMatch[1].trim()
+  const first = input.indexOf("{")
+  const last = input.lastIndexOf("}")
+  if (first === -1 || last === -1 || last <= first) throw new Error("Model did not return JSON")
+  return input.slice(first, last + 1)
+}
+
+export async function POST(request: Request) {
+  const supabase = await supabaseServer()
+  const { data: claimsData, error: authError } = await supabase.auth.getClaims()
+
+  if (authError || !claimsData) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const body = await request.json().catch(() => null)
+
+  if (!body?.site || typeof body.site !== "object") {
+    return NextResponse.json({ error: "Invalid request payload." }, { status: 400 })
+  }
+
+  try {
+    const input = ["Homepage signals:", JSON.stringify(body.site, null, 2)].join("\n")
+    const output = await generateText({ input, systemInstructions })
+    const result = audienceSchema.safeParse(JSON.parse(extractJsonObject(output)))
+
+    if (!result.success) {
+      return NextResponse.json({ error: "Failed to generate audience signals." }, { status: 502 })
+    }
+
+    const monitoringKeywords = Array.from(
+      new Set(result.data.monitoringKeywords.map((k) => k.trim()).filter(Boolean))
+    ).slice(0, 10)
+
+    const monitoringCommunities = Array.from(
+      new Map(
+        result.data.monitoringCommunities
+          .map((c) => ({
+            platform: c.platform,
+            community: c.community.trim().replace(/^\/?r\//i, "").replace(/^\/+/, "").trim(),
+          }))
+          .filter((c) => c.community)
+          .map((c) => [c.community.toLowerCase(), c] as const)
+      ).values()
+    ).slice(0, 8)
+
+    if (monitoringKeywords.length < 4 || monitoringCommunities.length < 3) {
+      return NextResponse.json(
+        { error: "Failed to generate enough community monitoring details." },
+        { status: 502 }
+      )
+    }
+
+    return NextResponse.json({ monitoringKeywords, monitoringCommunities })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to generate audience signals."
+    return NextResponse.json({ error: message }, { status: 502 })
+  }
+}

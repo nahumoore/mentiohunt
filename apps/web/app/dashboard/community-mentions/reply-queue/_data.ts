@@ -4,19 +4,15 @@ import {
   IconBookmark,
   IconBulb,
   IconCircleX,
-  IconHash,
   IconHelpCircle,
   IconMessageCircle,
   IconMessages,
-  IconNews,
   IconSend,
   IconSparkles,
   IconSwords,
-  IconUsers,
-  IconWorld,
 } from "@tabler/icons-react"
 
-export type MentionPlatform = "reddit" | "x" | "linkedin" | "hacker_news" | "forum"
+import type { MentionPlatform } from "@/consts/platform-config"
 
 export type MentionIntent =
   | "asking_for_tool"
@@ -61,33 +57,14 @@ export interface BadgeConfig {
   color: string
 }
 
-export const PLATFORM_CONFIG: Record<MentionPlatform, BadgeConfig> = {
-  reddit: {
-    label: "Reddit",
-    icon: IconMessages,
-    color: "text-orange-600 bg-orange-500/10",
-  },
-  x: {
-    label: "X",
-    icon: IconHash,
-    color: "text-slate-700 bg-slate-500/10",
-  },
-  linkedin: {
-    label: "LinkedIn",
-    icon: IconUsers,
-    color: "text-blue-600 bg-blue-500/10",
-  },
-  hacker_news: {
-    label: "Hacker News",
-    icon: IconNews,
-    color: "text-amber-600 bg-amber-500/10",
-  },
-  forum: {
-    label: "Forum",
-    icon: IconWorld,
-    color: "text-teal-600 bg-teal-500/10",
-  },
-}
+export const SORT_OPTIONS: { value: MentionSortKey; label: string }[] = [
+  { value: "relevance", label: "Relevance" },
+  { value: "date", label: "Date Posted" },
+  { value: "reactions", label: "Most Reactions" },
+  { value: "comments", label: "Most Comments" },
+]
+
+export type MentionSortKey = "relevance" | "date" | "reactions" | "comments"
 
 export const INTENT_CONFIG: Record<MentionIntent, BadgeConfig> = {
   asking_for_tool: {
@@ -184,14 +161,14 @@ I'm building Mentiohunt around that exact flow for founders and small agencies. 
   },
   {
     id: "cm-2",
-    platform: "x",
-    sourceName: "Search: \"Ahrefs alternative for link building\"",
-    postUrl: "https://x.com/founderops/status/1787594219000",
+    platform: "bluesky",
+    sourceName: "bsky.app",
+    postUrl: "https://bsky.app/profile/founderops.bsky.social/post/1",
     postTitle: "Ahrefs is overkill for what I need",
     postExcerpt:
       "I don't need another giant SEO suite. I need something that tells me which relevant sites to contact this week and why.",
-    authorName: "@founderops",
-    authorProfileUrl: "https://x.com/founderops",
+    authorName: "founderops.bsky.social",
+    authorProfileUrl: "https://bsky.app/profile/founderops.bsky.social",
     postedAt: "2026-05-06T17:40:00Z",
     discoveredAt: "2026-05-06T18:10:00Z",
     intent: "competitor_alternative",
@@ -208,7 +185,7 @@ I'm building Mentiohunt for the narrower job: scan for relevant backlink/mention
 Not a replacement for every Ahrefs workflow, but useful if your weekly goal is "who should I contact and why?"`,
     safetyNotes: [
       "Keep the tone conversational and avoid dunking on Ahrefs.",
-      "This is a public thread, so keep the reply concise.",
+      "Bluesky threads move fast — reply within the hour for best visibility.",
     ],
     engagement: {
       comments: 9,
@@ -216,18 +193,18 @@ Not a replacement for every Ahrefs workflow, but useful if your weekly goal is "
       views: 8200,
     },
     status: "saved",
-    nextAction: "Trim reply for X length",
+    nextAction: "Trim reply for thread length",
   },
   {
     id: "cm-3",
-    platform: "linkedin",
-    sourceName: "SaaS Growth Operators",
-    postUrl: "https://linkedin.com/feed/update/urn:li:activity:7330000000000000000",
+    platform: "reddit",
+    sourceName: "r/SaaS",
+    postUrl: "https://reddit.com/r/SaaS/comments/bootstrapped_backlinks",
     postTitle: "What backlink workflows are actually working for bootstrapped SaaS?",
     postExcerpt:
       "Cold outreach still works when the target is right, but the research step is brutal. Curious what people are using to find relevant pages and not just random domains.",
-    authorName: "Maya Chen",
-    authorProfileUrl: "https://linkedin.com/in/mayachen-growth",
+    authorName: "buildinpublic_99",
+    authorProfileUrl: "https://reddit.com/user/buildinpublic_99",
     postedAt: "2026-05-06T12:00:00Z",
     discoveredAt: "2026-05-06T12:35:00Z",
     intent: "discussion",
@@ -256,14 +233,14 @@ I'm working on Mentiohunt to turn that into a daily queue, but the important par
   },
   {
     id: "cm-4",
-    platform: "hacker_news",
-    sourceName: "Ask HN",
-    postUrl: "https://news.ycombinator.com/item?id=40123456",
-    postTitle: "Ask HN: How do you get the first credible mentions for a new B2B tool?",
+    platform: "bluesky",
+    sourceName: "bsky.app",
+    postUrl: "https://bsky.app/profile/indie.hacker/post/2",
+    postTitle: "How do you get the first credible mentions for a new B2B tool?",
     postExcerpt:
       "Paid acquisition is noisy in our niche. I'm trying to find credible places where our tool can be mentioned naturally without spamming communities.",
-    authorName: "startup_throwaway",
-    authorProfileUrl: null,
+    authorName: "indie.hacker",
+    authorProfileUrl: "https://bsky.app/profile/indie.hacker",
     postedAt: "2026-05-05T20:25:00Z",
     discoveredAt: "2026-05-05T21:00:00Z",
     intent: "how_to",
@@ -279,27 +256,27 @@ For a B2B tool, I would start with pages already discussing your category: compe
 
 I'm building a tool called Mentiohunt around this kind of discovery queue, but you can do the first pass manually with saved searches and a simple scoring sheet.`,
     safetyNotes: [
-      "HN is sensitive to promotion; lead with manual advice.",
       "Keep the product mention transparent and brief.",
+      "Lead with the manual advice first to build credibility.",
     ],
     engagement: {
-      comments: 44,
-      reactions: 133,
+      comments: 14,
+      reactions: 88,
       views: null,
     },
     status: "new",
-    nextAction: "Soften product mention",
+    nextAction: "Reply with manual workflow first",
   },
   {
     id: "cm-5",
-    platform: "forum",
-    sourceName: "Indie Hackers",
-    postUrl: "https://indiehackers.com/post/link-building-for-small-products",
+    platform: "reddit",
+    sourceName: "r/Entrepreneur",
+    postUrl: "https://reddit.com/r/Entrepreneur/comments/link_building_small_products",
     postTitle: "Link building feels impossible when you don't have a content team",
     postExcerpt:
       "I can write decent outreach once I find the right opportunity. The hard part is finding sites where my product would actually make sense.",
     authorName: "solo_maker",
-    authorProfileUrl: "https://indiehackers.com/solo_maker",
+    authorProfileUrl: "https://reddit.com/user/solo_maker",
     postedAt: "2026-05-04T15:20:00Z",
     discoveredAt: "2026-05-04T16:05:00Z",
     intent: "pain_point",
@@ -328,14 +305,14 @@ I'm building Mentiohunt to automate that discovery/scoring step for founders, bu
   },
   {
     id: "cm-6",
-    platform: "reddit",
-    sourceName: "r/SaaS",
-    postUrl: "https://reddit.com/r/SaaS/comments/mentions_are_hard",
+    platform: "bluesky",
+    sourceName: "bsky.app",
+    postUrl: "https://bsky.app/profile/tiredfounder.bsky.social/post/3",
     postTitle: "Tried backlink outreach for 2 weeks and got nothing",
     postExcerpt:
       "I sent 80 emails from scraped lists and didn't get a single reply. Is link building just dead for small SaaS now?",
-    authorName: "tiredfounder",
-    authorProfileUrl: "https://reddit.com/user/tiredfounder",
+    authorName: "tiredfounder.bsky.social",
+    authorProfileUrl: "https://bsky.app/profile/tiredfounder.bsky.social",
     postedAt: "2026-05-03T10:45:00Z",
     discoveredAt: "2026-05-03T11:20:00Z",
     intent: "complaint",

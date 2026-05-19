@@ -21,7 +21,6 @@ import { cn } from "@workspace/ui/lib/utils"
 import {
   INTENT_CONFIG,
   MOCK_COMMUNITY_MENTIONS,
-  PLATFORM_CONFIG,
   STATUS_CONFIG,
   formatCompactNumber,
   formatDate,
@@ -29,9 +28,12 @@ import {
   scoreColor,
   type CommunityMention,
   type MentionIntent,
-  type MentionPlatform,
   type MentionStatus,
 } from "../_data"
+import {
+  PLATFORM_CONFIG,
+  type MentionPlatform,
+} from "@/consts/platform-config"
 
 function PlatformBadge({ platform }: { platform: MentionPlatform }) {
   const cfg = PLATFORM_CONFIG[platform]

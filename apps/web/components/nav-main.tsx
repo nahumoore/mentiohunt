@@ -1,17 +1,19 @@
 "use client"
 
 import {
+  IconAdjustments,
+  IconEye,
   IconMessage2Share,
-  IconRadar,
-  IconSearch,
+  IconNetwork,
+  IconTarget,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { ReactNode } from "react"
 
+import { cn } from "@workspace/ui/lib/utils"
 import {
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuBadge,
   SidebarMenuButton,
@@ -24,47 +26,68 @@ import {
 const linkBuildingHref = "/dashboard/link-building"
 const communityMentionsHref = "/dashboard/community-mentions"
 
-type NavItem = {
+type SubItem = {
   title: string
   url: string
   icon: ReactNode
   disabled?: boolean
   badge?: string
-  items?: NavItem[]
 }
 
-type NavSection = {
-  label: string
-  items: NavItem[]
+type PageItem = {
+  title: string
+  url: string
+  icon: ReactNode
+  disabled?: boolean
+  badge?: string
+  items?: SubItem[]
 }
 
-const NAV_SECTIONS: NavSection[] = [
+type FeatureModule = {
+  title: string
+  baseHref: string
+  pages: PageItem[]
+}
+
+const FEATURES: FeatureModule[] = [
   {
-    label: "Link Building",
-    items: [
+    title: "Link Building",
+    baseHref: linkBuildingHref,
+    pages: [
       {
-        title: "Prospects",
-        url: `${linkBuildingHref}/prospects`,
-        icon: <IconSearch />,
+        title: "Backlink Network",
+        url: `${linkBuildingHref}/backlink-network`,
+        icon: <IconNetwork />,
+      },
+      {
+        title: "Opportunities",
+        url: `${linkBuildingHref}/opportunities`,
+        icon: <IconTarget />,
         items: [
           {
-            title: "Discovery Setup",
-            url: `${linkBuildingHref}/discovery-setup`,
-            icon: <IconRadar />,
+            title: "Sources",
+            url: `${linkBuildingHref}/sources`,
+            icon: <IconAdjustments />,
           },
         ],
       },
     ],
   },
   {
-    label: "Community Mentions",
-    items: [
+    title: "Community",
+    baseHref: communityMentionsHref,
+    pages: [
       {
         title: "Reply Queue",
         url: `${communityMentionsHref}/reply-queue`,
         icon: <IconMessage2Share />,
-        disabled: true,
-        badge: "Soon",
+        items: [
+          {
+            title: "Watchlist",
+            url: `${communityMentionsHref}/watchlist`,
+            icon: <IconEye />,
+          },
+        ],
       },
     ],
   },
@@ -75,100 +98,118 @@ export function NavMain() {
 
   return (
     <>
-      {NAV_SECTIONS.map((section) => (
-        <SidebarGroup key={section.label}>
-          <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
-          <SidebarMenu>
-            {section.items.map((item) => {
-              const isActive = isRouteActive(pathname, item.url)
+      {FEATURES.map((feature, i) => {
+        const isFeatureActive = pathname.startsWith(feature.baseHref)
 
-              return (
-                <SidebarMenuItem key={item.url}>
-                  {item.disabled ? (
-                    <SidebarMenuButton
-                      disabled
-                      tooltip={`${item.title} (coming soon)`}
-                      className="pr-14"
-                    >
-                      {item.icon}
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  ) : (
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={item.title}
-                      className={
-                        isActive
-                          ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
-                          : undefined
-                      }
-                    >
-                      <Link
-                        href={item.url}
-                        aria-current={isActive ? "page" : undefined}
+        return (
+          <SidebarGroup key={feature.baseHref} className="py-0 first:pt-2 not-first:mt-4">
+            {/* Feature module header */}
+            <div className="mb-2 flex items-center gap-2 px-2 group-data-[collapsible=icon]:hidden">
+              <p className="shrink-0 text-[10px] font-bold tracking-[0.18em] text-sidebar-foreground/40 uppercase">
+                {feature.title}
+              </p>
+              <div
+                className={cn(
+                  "h-px flex-1 transition-colors duration-300",
+                  isFeatureActive
+                    ? "bg-gradient-to-r from-blaze-orange/40 to-transparent"
+                    : "bg-sidebar-border"
+                )}
+              />
+            </div>
+
+            <SidebarMenu>
+              {feature.pages.map((page) => {
+                const isActive = isRouteActive(pathname, page.url)
+
+                return (
+                  <SidebarMenuItem key={page.url}>
+                    {page.disabled ? (
+                      <SidebarMenuButton
+                        disabled
+                        tooltip={`${page.title} (coming soon)`}
+                        className="pr-14"
                       >
-                        {item.icon}
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  )}
-                  {item.badge ? (
-                    <SidebarMenuBadge className="right-2 bg-orange/10 px-1.5 text-[10px] font-semibold tracking-wide text-primary uppercase ring-1 ring-orange/20">
-                      {item.badge}
-                    </SidebarMenuBadge>
-                  ) : null}
-                  {item.items ? (
-                    <SidebarMenuSub>
-                      {item.items.map((subItem) => {
-                        const isSubItemActive = isRouteActive(
-                          pathname,
-                          subItem.url
-                        )
+                        {page.icon}
+                        <span>{page.title}</span>
+                      </SidebarMenuButton>
+                    ) : (
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={page.title}
+                        className={
+                          isActive
+                            ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                            : undefined
+                        }
+                      >
+                        <Link
+                          href={page.url}
+                          aria-current={isActive ? "page" : undefined}
+                        >
+                          {page.icon}
+                          <span>{page.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    )}
+                    {page.badge ? (
+                      <SidebarMenuBadge className="right-2 bg-orange/10 px-1.5 text-[10px] font-semibold tracking-wide text-primary uppercase ring-1 ring-orange/20">
+                        {page.badge}
+                      </SidebarMenuBadge>
+                    ) : null}
+                    {page.items ? (
+                      <SidebarMenuSub>
+                        {page.items.map((subItem) => {
+                          const isSubItemActive = isRouteActive(
+                            pathname,
+                            subItem.url
+                          )
 
-                        return (
-                          <SidebarMenuSubItem key={subItem.url}>
-                            {subItem.disabled ? (
-                              <SidebarMenuSubButton
-                                aria-disabled="true"
-                                tabIndex={-1}
-                                className="pointer-events-none pr-12 opacity-50"
-                              >
-                                {subItem.icon}
-                                <span>{subItem.title}</span>
-                              </SidebarMenuSubButton>
-                            ) : (
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={isSubItemActive}
-                              >
-                                <Link
-                                  href={subItem.url}
-                                  aria-current={
-                                    isSubItemActive ? "page" : undefined
-                                  }
+                          return (
+                            <SidebarMenuSubItem key={subItem.url}>
+                              {subItem.disabled ? (
+                                <SidebarMenuSubButton
+                                  aria-disabled="true"
+                                  tabIndex={-1}
+                                  className="pointer-events-none pr-12 opacity-50"
                                 >
                                   {subItem.icon}
                                   <span>{subItem.title}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            )}
-                            {subItem.badge ? (
-                              <span className="pointer-events-none absolute top-1 right-1 rounded-full bg-orange/10 px-1.5 py-0.5 text-[10px] leading-4 font-semibold tracking-wide text-primary uppercase ring-1 ring-orange/20">
-                                {subItem.badge}
-                              </span>
-                            ) : null}
-                          </SidebarMenuSubItem>
-                        )
-                      })}
-                    </SidebarMenuSub>
-                  ) : null}
-                </SidebarMenuItem>
-              )
-            })}
-          </SidebarMenu>
-        </SidebarGroup>
-      ))}
+                                </SidebarMenuSubButton>
+                              ) : (
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={isSubItemActive}
+                                >
+                                  <Link
+                                    href={subItem.url}
+                                    aria-current={
+                                      isSubItemActive ? "page" : undefined
+                                    }
+                                  >
+                                    {subItem.icon}
+                                    <span>{subItem.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              )}
+                              {subItem.badge ? (
+                                <span className="pointer-events-none absolute top-1 right-1 rounded-full bg-orange/10 px-1.5 py-0.5 text-[10px] leading-4 font-semibold tracking-wide text-primary uppercase ring-1 ring-orange/20">
+                                  {subItem.badge}
+                                </span>
+                              ) : null}
+                            </SidebarMenuSubItem>
+                          )
+                        })}
+                      </SidebarMenuSub>
+                    ) : null}
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroup>
+        )
+      })}
     </>
   )
 }

@@ -2,34 +2,20 @@ import { z } from "zod"
 
 export const ONBOARDING_STEPS = [
   {
-    title: "Mentiohunt",
-    description:
-      "A simple daily queue for backlink opportunities your team can actually act on.",
+    title: "Your website",
+    description: "Enter your URL and we'll configure both queues automatically.",
   },
   {
-    title: "Your site",
-    description:
-      "Enter your website and we'll analyze your homepage to get started.",
+    title: "Your product",
+    description: "Review your product profile and the competitors we found. Edit anything that looks off.",
   },
   {
-    title: "Product description",
-    description:
-      "We've auto-detected a description from your homepage. Edit it until it's accurate.",
+    title: "Where to listen",
+    description: "Review the keywords and communities we'll monitor for relevant posts.",
   },
   {
-    title: "Competitors",
-    description:
-      "Add a few competitors so discovery can find overlap, gaps, and alternative-page angles.",
-  },
-  {
-    title: "Opportunity types",
-    description:
-      "Choose the outreach motions you want to prioritize in your daily queue.",
-  },
-  {
-    title: "Review",
-    description:
-      "Confirm your inputs before we prepare the first opportunity queue.",
+    title: "Launch",
+    description: "Backlink discovery and community monitoring will both activate immediately.",
   },
 ] as const
 
@@ -37,16 +23,6 @@ export const OPPORTUNITY_TYPE_IDS = [
   "directories",
   "competitor_backlinks",
   "unlinked_mentions",
-] as const
-
-export const DISCOVERY_SOURCE_IDS = [
-  "twitter",
-  "linkedin",
-  "reddit",
-  "hacker_news",
-  "google",
-  "friend",
-  "other",
 ] as const
 
 export const OPPORTUNITY_TYPES = [
@@ -68,25 +44,32 @@ export const OPPORTUNITY_TYPES = [
   },
 ] as const
 
-export const DISCOVERY_SOURCES = [
-  { id: "twitter", label: "Twitter / X" },
-  { id: "linkedin", label: "LinkedIn" },
-  { id: "reddit", label: "Reddit" },
-  { id: "hacker_news", label: "Hacker News" },
-  { id: "google", label: "Google" },
-  { id: "friend", label: "Friend / referral" },
-  { id: "other", label: "Other" },
-] as const
+export const DEFAULT_OPPORTUNITY_TYPES = [
+  "directories",
+  "competitor_backlinks",
+  "unlinked_mentions",
+] satisfies OpportunityTypeId[]
+
+export const DEFAULT_MONITORING_PLATFORMS = ["reddit", "bluesky"] as const
 
 export type OpportunityTypeId = (typeof OPPORTUNITY_TYPE_IDS)[number]
-export type DiscoverySourceId = (typeof DISCOVERY_SOURCE_IDS)[number]
+export type MonitoringPlatform = (typeof DEFAULT_MONITORING_PLATFORMS)[number]
+
+export type MonitoringCommunity = {
+  platform: "reddit"
+  community: string
+}
 
 export type OnboardingData = {
   websiteUrl: string
+  productName: string
   productDescription: string
   competitors: string[]
   opportunityTypes: OpportunityTypeId[]
-  discoverySource: DiscoverySourceId | ""
+  monitoringPlatforms: MonitoringPlatform[]
+  monitoringKeywords: string[]
+  monitoringCommunities: MonitoringCommunity[]
+  emailAlertsEnabled: boolean
 }
 
 export type OnboardingField = keyof OnboardingData
@@ -94,10 +77,14 @@ export type OnboardingFieldErrors = Partial<Record<OnboardingField, string>>
 
 export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   websiteUrl: "",
+  productName: "",
   productDescription: "",
   competitors: [],
-  opportunityTypes: [],
-  discoverySource: "",
+  opportunityTypes: DEFAULT_OPPORTUNITY_TYPES,
+  monitoringPlatforms: [...DEFAULT_MONITORING_PLATFORMS],
+  monitoringKeywords: [],
+  monitoringCommunities: [],
+  emailAlertsEnabled: true,
 }
 
 const URL_PROTOCOL_PATTERN = /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//
@@ -133,16 +120,17 @@ export const websiteUrlStepSchema = z.object({
 })
 
 export const productDescriptionStepSchema = z.object({
+  productName: z
+    .string()
+    .trim()
+    .min(1, "Add your product name.")
+    .max(80, "Keep the product name under 80 characters."),
   productDescription: z
     .string()
     .trim()
     .min(24, "Add a short description with at least 24 characters.")
     .max(280, "Keep the description under 280 characters."),
 })
-
-export const websiteStepSchema = websiteUrlStepSchema.merge(
-  productDescriptionStepSchema
-)
 
 export const competitorsStepSchema = z.object({
   competitors: z
@@ -154,25 +142,39 @@ export const competitorsStepSchema = z.object({
     }),
 })
 
+const monitoringCommunitySchema = z.object({
+  platform: z.literal("reddit"),
+  community: z
+    .string()
+    .trim()
+    .min(1, "Add at least one community.")
+    .max(80, "Keep community names under 80 characters.")
+    .transform((value) => value.replace(/^\/?r\//i, "").replace(/^\/+/, "").trim()),
+})
+
+export const monitoringStepSchema = z.object({
+  monitoringPlatforms: z
+    .array(z.enum(["reddit", "bluesky"]))
+    .min(1, "Keep at least one monitoring platform active."),
+  monitoringKeywords: z
+    .array(z.string().trim().min(2).max(120))
+    .min(1, "Add at least one monitoring keyword.")
+    .max(10, "You can add up to 10 monitoring keywords."),
+  monitoringCommunities: z
+    .array(monitoringCommunitySchema)
+    .min(1, "Add at least one Reddit community.")
+    .max(15, "You can add up to 15 communities."),
+  emailAlertsEnabled: z.boolean(),
+})
+
 export const opportunityTypesStepSchema = z.object({
   opportunityTypes: z
     .array(z.enum(OPPORTUNITY_TYPE_IDS))
     .min(1, "Select at least one opportunity type."),
 })
 
-export const discoveryStepSchema = z.object({
-  discoverySource: z.enum(DISCOVERY_SOURCE_IDS, {
-    required_error: "Choose how you heard about mentions.",
-    invalid_type_error: "Choose how you heard about mentions.",
-  }),
-})
-
-export const onboardingSchema = websiteStepSchema
+export const onboardingSchema = websiteUrlStepSchema
+  .merge(productDescriptionStepSchema)
   .merge(competitorsStepSchema)
   .merge(opportunityTypesStepSchema)
-  .extend({
-    discoverySource: z.preprocess(
-      (value) => (value === "" ? undefined : value),
-      discoveryStepSchema.shape.discoverySource.optional()
-    ),
-  })
+  .merge(monitoringStepSchema)

@@ -2,6 +2,12 @@
 
 import { useEffect, type ReactNode } from "react"
 
+import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
+import { useBacklinkNetworkStore } from "@/stores/backlink-network-store"
+import type { CommunityMention } from "@/stores/community-mention-store"
+import { useCommunityMentionStore } from "@/stores/community-mention-store"
+import type { DiscoverySettings } from "@/stores/discovery-settings-store"
+import { useDiscoverySettingsStore } from "@/stores/discovery-settings-store"
 import type { DashboardProduct } from "@/stores/product-store"
 import { useProductStore } from "@/stores/product-store"
 import type { ProspectListItem } from "@/stores/prospect-store"
@@ -13,6 +19,10 @@ type DashboardStoreHydratorProps = {
   profile: DashboardProfile | null
   product: DashboardProduct | null
   prospects: ProspectListItem[]
+  communityMentions: CommunityMention[]
+  hasRunningCommunityRun: boolean
+  discoverySettings: DiscoverySettings | null
+  backlinkNetworkMembership: BacklinkNetworkMembership | null
   children: ReactNode
 }
 
@@ -20,13 +30,21 @@ export function DashboardStoreHydrator({
   profile,
   product,
   prospects,
+  communityMentions,
+  hasRunningCommunityRun,
+  discoverySettings,
+  backlinkNetworkMembership,
   children,
 }: DashboardStoreHydratorProps) {
   useEffect(() => {
     useProfileStore.getState().setProfile(profile)
     useProductStore.getState().setProduct(product)
     useProspectStore.getState().setProspects(prospects)
-  }, [profile, product, prospects])
+    useCommunityMentionStore.getState().setMentions(communityMentions)
+    useCommunityMentionStore.getState().setHasRunningRun(hasRunningCommunityRun)
+    useDiscoverySettingsStore.getState().setSettings(discoverySettings)
+    useBacklinkNetworkStore.getState().setMembership(backlinkNetworkMembership)
+  }, [profile, product, prospects, communityMentions, hasRunningCommunityRun, discoverySettings, backlinkNetworkMembership])
 
   return children
 }

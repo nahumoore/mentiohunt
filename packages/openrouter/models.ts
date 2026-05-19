@@ -7,6 +7,13 @@ export const OPENROUTER_MODELS = {
   GOOGLE_GEMINI_2_5_FLASH_LITE:
     "google/gemini-2.5-flash-lite",
 
+  // Anthropic Claude Haiku 4.5.
+  // OpenRouter page: https://openrouter.ai/anthropic/claude-haiku-4.5
+  // Description: fastest and most efficient Claude model, near-frontier intelligence at low cost and latency.
+  // Pricing: $1.00 / 1M input tokens, $5.00 / 1M output tokens.
+  // Context window: 200,000 tokens.
+  ANTHROPIC_CLAUDE_HAIKU_4_5: "anthropic/claude-haiku-4.5",
+
   // OpenAI gpt-oss-120b.
   // OpenRouter page: https://openrouter.ai/openai/gpt-oss-120b
   // Description: open-weight MoE model for high-reasoning and general-purpose production use cases.

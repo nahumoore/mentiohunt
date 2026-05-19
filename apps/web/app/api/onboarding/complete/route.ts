@@ -1,7 +1,9 @@
 import { onboardingSchema, type OpportunityTypeId } from "@/consts/onboarding"
 import { supabaseServer } from "@/lib/supabase/server"
+import { waitUntil } from "@vercel/functions"
 import type {
   Database,
+  Json,
   TablesInsert,
   TablesUpdate,
 } from "@workspace/supabase/database-types"
@@ -9,28 +11,10 @@ import { NextResponse } from "next/server"
 
 export const runtime = "nodejs"
 
+const SERVER_URL = process.env.SERVER_URL ?? "http://localhost:3001"
+
 function buildValidationError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status })
-}
-
-function deriveProductName(websiteUrl: string) {
-  try {
-    const host = new URL(websiteUrl).hostname.replace(/^www\./, "")
-    const [name] = host.split(".")
-
-    return formatProductName(name || host)
-  } catch {
-    return formatProductName(websiteUrl)
-  }
-}
-
-function formatProductName(value: string) {
-  return value
-    .replace(/[-_]+/g, " ")
-    .split(" ")
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
 }
 
 const opportunityTypeToProspectTier = {
@@ -41,6 +25,28 @@ const opportunityTypeToProspectTier = {
   OpportunityTypeId,
   Database["public"]["Enums"]["prospect_tier"]
 >
+
+async function runOnboardingJobsOnServer(payload: {
+  userId: string
+  productId: string
+  replyQueueConfigId: string
+}) {
+  const serverResponse = await fetch(`${SERVER_URL}/onboarding/complete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-internal-api-key": process.env.INTERNAL_API_KEY ?? "",
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!serverResponse.ok) {
+    const data = await serverResponse
+      .json()
+      .catch(() => ({ error: "Failed to complete onboarding." }))
+    console.error("Failed to run onboarding jobs on server:", data)
+  }
+}
 
 export async function POST(request: Request) {
   const supabase = await supabaseServer()
@@ -65,7 +71,7 @@ export async function POST(request: Request) {
   const productPayload: TablesInsert<"products"> = {
     user_id: user.id,
     website_url: parsedRequest.data.websiteUrl,
-    product_name: deriveProductName(parsedRequest.data.websiteUrl),
+    product_name: parsedRequest.data.productName,
     product_description: parsedRequest.data.productDescription,
     competitors: parsedRequest.data.competitors,
   }
@@ -90,7 +96,10 @@ export async function POST(request: Request) {
     return buildValidationError("Failed to complete onboarding.", 409)
   }
 
+  let productId: string
+
   if (existingProducts[0]) {
+    productId = existingProducts[0].id
     const productUpdate: TablesUpdate<"products"> = {
       website_url: productPayload.website_url,
       product_name: productPayload.product_name,
@@ -101,24 +110,10 @@ export async function POST(request: Request) {
     const { error: updateProductError } = await supabase
       .from("products")
       .update(productUpdate)
-      .eq("id", existingProducts[0].id)
+      .eq("id", productId)
 
     if (updateProductError) {
       console.error("Error updating onboarding product:", updateProductError)
-      return buildValidationError("Failed to complete onboarding.", 500)
-    }
-
-    const settingsPayload: TablesInsert<"product_backlink_discovery_settings"> = {
-      product_id: existingProducts[0].id,
-      opportunity_types: opportunityTypes,
-    }
-
-    const { error: upsertSettingsError } = await supabase
-      .from("product_backlink_discovery_settings")
-      .upsert(settingsPayload)
-
-    if (upsertSettingsError) {
-      console.error("Error updating onboarding settings:", upsertSettingsError)
       return buildValidationError("Failed to complete onboarding.", 500)
     }
   } else {
@@ -133,19 +128,71 @@ export async function POST(request: Request) {
       return buildValidationError("Failed to complete onboarding.", 500)
     }
 
-    const settingsPayload: TablesInsert<"product_backlink_discovery_settings"> = {
-      product_id: createdProduct.id,
-      opportunity_types: opportunityTypes,
-    }
+    productId = createdProduct.id
+  }
 
-    const { error: upsertSettingsError } = await supabase
-      .from("product_backlink_discovery_settings")
-      .upsert(settingsPayload)
+  const settingsPayload: TablesInsert<"product_backlink_discovery_settings"> = {
+    product_id: productId,
+    opportunity_types: opportunityTypes,
+  }
 
-    if (upsertSettingsError) {
-      console.error("Error creating onboarding settings:", upsertSettingsError)
-      return buildValidationError("Failed to complete onboarding.", 500)
-    }
+  const { error: upsertSettingsError } = await supabase
+    .from("product_backlink_discovery_settings")
+    .upsert(settingsPayload)
+
+  if (upsertSettingsError) {
+    console.error("Error saving onboarding settings:", upsertSettingsError)
+    return buildValidationError("Failed to complete onboarding.", 500)
+  }
+
+  const replyQueuePayload: TablesInsert<"reply_queue_configs"> = {
+    user_id: user.id,
+    product_id: productId,
+    platforms: parsedRequest.data.monitoringPlatforms,
+    communities: parsedRequest.data.monitoringCommunities as unknown as Json,
+    keywords: parsedRequest.data.monitoringKeywords,
+    email_alerts_enabled: parsedRequest.data.emailAlertsEnabled,
+    custom_voice_instructions: null,
+    status: "active",
+  }
+
+  const { data: existingReplyQueueConfig, error: existingConfigError } =
+    await supabase
+      .from("reply_queue_configs")
+      .select("id")
+      .eq("product_id", productId)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+  if (existingConfigError) {
+    console.error(
+      "Error fetching onboarding reply queue settings:",
+      existingConfigError
+    )
+    return buildValidationError("Failed to complete onboarding.", 500)
+  }
+
+  const saveReplyQueueConfig = existingReplyQueueConfig
+    ? supabase
+        .from("reply_queue_configs")
+        .update(replyQueuePayload)
+        .eq("id", existingReplyQueueConfig.id)
+        .select("id")
+        .single()
+    : supabase
+        .from("reply_queue_configs")
+        .insert(replyQueuePayload)
+        .select("id")
+        .single()
+
+  const { data: replyQueueConfig, error: saveConfigError } =
+    await saveReplyQueueConfig
+
+  if (saveConfigError || !replyQueueConfig) {
+    console.error("Error saving onboarding reply queue settings:", saveConfigError)
+    return buildValidationError("Failed to complete onboarding.", 500)
   }
 
   const { error: updateProfileError } = await supabase
@@ -157,6 +204,16 @@ export async function POST(request: Request) {
     console.error("Error marking onboarding complete:", updateProfileError)
     return buildValidationError("Failed to complete onboarding.", 500)
   }
+
+  waitUntil(
+    runOnboardingJobsOnServer({
+      userId: user.id,
+      productId,
+      replyQueueConfigId: replyQueueConfig.id,
+    }).catch((error) => {
+      console.error("Failed to reach the onboarding server:", error)
+    })
+  )
 
   return NextResponse.json({ success: true })
 }

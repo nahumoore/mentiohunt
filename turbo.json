@@ -1,7 +1,20 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalEnv": ["NODE_ENV", "NODE_END", "PORT", "APIFY_TOKEN"],
+  "globalEnv": [
+    "NODE_ENV",
+    "NODE_END",
+    "PORT",
+    "APIFY_TOKEN",
+    "SERVER_URL",
+    "INTERNAL_API_KEY",
+    "RESEND_API_KEY",
+    "APP_URL",
+    "BLUESKY_CLIENT_KEY",
+    "BLUESKY_SECRET_KEY",
+    "REDDIT_CLIENT_KEY",
+    "REDDIT_SECRET_KEY"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

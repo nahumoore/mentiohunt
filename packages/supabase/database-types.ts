@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      backlink_network_memberships: {
+        Row: {
+          contact_email: string | null
+          created_at: string
+          id: string
+          is_enabled: boolean
+          product_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          product_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          product_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backlink_network_memberships_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backlink_network_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       backlink_prospects: {
         Row: {
           action_type: Database["public"]["Enums"]["prospect_action_type"]
@@ -83,54 +128,6 @@ export type Database = {
           },
         ]
       }
-      directory_submissions: {
-        Row: {
-          id: string
-          created_at: string
-          directory_name: string
-          directory_url: string
-          submission_url: string
-          category: string
-          contact_name: string
-          contact_email: string
-          pricing_model: Database["public"]["Enums"]["directory_pricing_model"]
-          primary_audience: string
-          description: string
-          why_submit: string
-          status: Database["public"]["Enums"]["directory_submission_status"]
-        }
-        Insert: {
-          id?: string
-          created_at?: string
-          directory_name: string
-          directory_url: string
-          submission_url: string
-          category: string
-          contact_name: string
-          contact_email: string
-          pricing_model: Database["public"]["Enums"]["directory_pricing_model"]
-          primary_audience: string
-          description: string
-          why_submit: string
-          status?: Database["public"]["Enums"]["directory_submission_status"]
-        }
-        Update: {
-          id?: string
-          created_at?: string
-          directory_name?: string
-          directory_url?: string
-          submission_url?: string
-          category?: string
-          contact_name?: string
-          contact_email?: string
-          pricing_model?: Database["public"]["Enums"]["directory_pricing_model"]
-          primary_audience?: string
-          description?: string
-          why_submit?: string
-          status?: Database["public"]["Enums"]["directory_submission_status"]
-        }
-        Relationships: []
-      }
       directories: {
         Row: {
           backlinks: number | null
@@ -196,36 +193,24 @@ export type Database = {
       }
       product_backlink_discovery_settings: {
         Row: {
-          dofollow_only: boolean
-          domain_age_min: number
           dr_max: number | null
           dr_min: number
-          languages: string[]
           opportunity_types: Database["public"]["Enums"]["prospect_tier"][]
           product_id: string
-          traffic_min: number
           updated_at: string
         }
         Insert: {
-          dofollow_only?: boolean
-          domain_age_min?: number
           dr_max?: number | null
           dr_min?: number
-          languages?: string[]
           opportunity_types?: Database["public"]["Enums"]["prospect_tier"][]
           product_id: string
-          traffic_min?: number
           updated_at?: string
         }
         Update: {
-          dofollow_only?: boolean
-          domain_age_min?: number
           dr_max?: number | null
           dr_min?: number
-          languages?: string[]
           opportunity_types?: Database["public"]["Enums"]["prospect_tier"][]
           product_id?: string
-          traffic_min?: number
           updated_at?: string
         }
         Relationships: [
@@ -310,6 +295,193 @@ export type Database = {
         }
         Relationships: []
       }
+      reply_queue_configs: {
+        Row: {
+          communities: Json | null
+          created_at: string
+          custom_voice_instructions: string | null
+          email_alerts_enabled: boolean
+          id: string
+          keywords: string[]
+          last_run_at: string | null
+          last_run_status: string | null
+          platforms: string[]
+          product_id: string
+          status: string
+          total_mentions_found: number
+          user_id: string
+        }
+        Insert: {
+          communities?: Json | null
+          created_at?: string
+          custom_voice_instructions?: string | null
+          email_alerts_enabled?: boolean
+          id?: string
+          keywords?: string[]
+          last_run_at?: string | null
+          last_run_status?: string | null
+          platforms?: string[]
+          product_id: string
+          status?: string
+          total_mentions_found?: number
+          user_id: string
+        }
+        Update: {
+          communities?: Json | null
+          created_at?: string
+          custom_voice_instructions?: string | null
+          email_alerts_enabled?: boolean
+          id?: string
+          keywords?: string[]
+          last_run_at?: string | null
+          last_run_status?: string | null
+          platforms?: string[]
+          product_id?: string
+          status?: string
+          total_mentions_found?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reply_queue_configs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reply_queue_items: {
+        Row: {
+          author: string | null
+          body: string
+          comment_count: number
+          community: string | null
+          config_id: string
+          created_at: string
+          engagement: number
+          fit_category: string
+          fit_score: number
+          id: string
+          platform: string
+          post_created_at: string | null
+          post_id: string
+          run_id: string
+          suggested_reply: string | null
+          summary: string | null
+          title: string | null
+          url: string
+          user_id: string
+          user_status: string
+        }
+        Insert: {
+          author?: string | null
+          body: string
+          comment_count?: number
+          community?: string | null
+          config_id: string
+          created_at?: string
+          engagement?: number
+          fit_category: string
+          fit_score: number
+          id?: string
+          platform: string
+          post_created_at?: string | null
+          post_id: string
+          run_id: string
+          suggested_reply?: string | null
+          summary?: string | null
+          title?: string | null
+          url: string
+          user_id: string
+          user_status?: string
+        }
+        Update: {
+          author?: string | null
+          body?: string
+          comment_count?: number
+          community?: string | null
+          config_id?: string
+          created_at?: string
+          engagement?: number
+          fit_category?: string
+          fit_score?: number
+          id?: string
+          platform?: string
+          post_created_at?: string | null
+          post_id?: string
+          run_id?: string
+          suggested_reply?: string | null
+          summary?: string | null
+          title?: string | null
+          url?: string
+          user_id?: string
+          user_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reply_queue_items_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "reply_queue_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reply_queue_items_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "reply_queue_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reply_queue_runs: {
+        Row: {
+          config_id: string
+          created_at: string
+          date_from: string | null
+          date_to: string | null
+          error: string | null
+          id: string
+          mentions_found: number
+          posts_scanned: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          config_id: string
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          error?: string | null
+          id?: string
+          mentions_found?: number
+          posts_scanned?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          config_id?: string
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          error?: string | null
+          id?: string
+          mentions_found?: number
+          posts_scanned?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reply_queue_runs_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "reply_queue_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -320,8 +492,6 @@ export type Database = {
     Enums: {
       billing_tier: "free" | "pro" | "agency"
       directory_check_method: "serp_check" | "head_check"
-      directory_pricing_model: "free" | "paid" | "freemium" | "not_sure"
-      directory_submission_status: "pending" | "approved" | "rejected"
       prospect_action_type: "self_service" | "email_outreach"
       prospect_status:
         | "new"
@@ -460,8 +630,6 @@ export const Constants = {
     Enums: {
       billing_tier: ["free", "pro", "agency"],
       directory_check_method: ["serp_check", "head_check"],
-      directory_pricing_model: ["free", "paid", "freemium", "not_sure"],
-      directory_submission_status: ["pending", "approved", "rejected"],
       prospect_action_type: ["self_service", "email_outreach"],
       prospect_status: [
         "new",

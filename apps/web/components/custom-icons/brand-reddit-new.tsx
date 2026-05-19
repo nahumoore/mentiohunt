@@ -8,6 +8,7 @@ export const IconBrandRedditNew = ({
   return (
     <svg
       className={className}
+      style={style}
       viewBox="0 0 512 512"
       fillRule="evenodd"
       clipRule="evenodd"

@@ -1,8 +1,8 @@
 import cron from "node-cron"
 import { updateDirectorySeoMetrics } from "./update-directory-seo-metrics.js"
+import { runReplyQueueScheduler } from "./reply-queue-scheduler.js"
 
 export function registerJobs(): void {
-  // Every 1st of the month at 02:00 UTC
   cron.schedule("0 2 1 * *", async () => {
     try {
       await updateDirectorySeoMetrics()
@@ -13,4 +13,13 @@ export function registerJobs(): void {
   console.log(
     "[cron] Scheduled: directory SEO metrics update (1st of each month)"
   )
+
+  cron.schedule("0 0 * * *", async () => {
+    try {
+      await runReplyQueueScheduler()
+    } catch (err) {
+      console.error("[cron] Error running reply queue scheduler:", err)
+    }
+  })
+  console.log("[cron] Scheduled: reply queue scheduler (daily at midnight UTC)")
 }

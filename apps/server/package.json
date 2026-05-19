@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "build": "tsc",
+    "build": "echo 'tsx runtime — no compile step'",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit"
   },

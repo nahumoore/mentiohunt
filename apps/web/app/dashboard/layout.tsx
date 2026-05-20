@@ -1,25 +1,27 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardStoreHydrator } from "@/components/dashboard-store-hydrator"
-import { supabaseServer } from "@/lib/supabase/server"
 import type {
   MentionIntent,
   MentionStatus,
 } from "@/app/dashboard/community-mentions/reply-queue/_data"
+import { AppSidebar } from "@/components/dashboard/app-sidebar"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import { DashboardStoreHydrator } from "@/components/dashboard/dashboard-store-hydrator"
 import type { MentionPlatform } from "@/consts/platform-config"
-import type { CommunityMention } from "@/stores/community-mention-store"
-import type { DiscoverySettings } from "@/stores/discovery-settings-store"
+import { supabaseServer } from "@/lib/supabase/server"
 import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
+import type { CommunityMention } from "@/stores/community-mention-store"
+import type { DirectorySubmissionListItem } from "@/stores/directory-submission-store"
+import type { DiscoverySettings } from "@/stores/discovery-settings-store"
 import type { ProspectListItem } from "@/stores/prospect-store"
 import type { Tables } from "@workspace/supabase/database-types"
+import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { redirect } from "next/navigation"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@workspace/ui/components/sidebar"
 
 const DEFAULT_DISCOVERY_SETTINGS: DiscoverySettings = {
-  opportunityTypes: ["directories", "competitor_backlinks", "unlinked_mentions"],
+  opportunityTypes: [
+    "directories",
+    "competitor_backlinks",
+    "unlinked_mentions",
+  ],
   drMin: 0,
   drMax: null,
 }
@@ -56,7 +58,6 @@ function mapDiscoverySettings(
 
   return {
     opportunityTypes: settings.opportunity_types.map((type) => {
-      if (type === "directory") return "directories"
       if (type === "competitor_backlink") return "competitor_backlinks"
       return "unlinked_mentions"
     }),
@@ -86,11 +87,7 @@ function mapMentionIntent(fitCategory: string): MentionIntent {
 }
 
 function mapMentionStatus(status: string): MentionStatus {
-  if (
-    status === "saved" ||
-    status === "replied" ||
-    status === "dismissed"
-  ) {
+  if (status === "saved" || status === "replied" || status === "dismissed") {
     return status
   }
 
@@ -108,7 +105,8 @@ function mapCommunityMention(row: ReplyQueueItemRow): CommunityMention {
   const status = mapMentionStatus(row.user_status)
   const platform = mapMentionPlatform(row.platform)
   const postedAt = row.post_created_at ?? row.created_at
-  const sourceName = row.community ?? (platform === "bluesky" ? "Bluesky" : "Reddit")
+  const sourceName =
+    row.community ?? (platform === "bluesky" ? "Bluesky" : "Reddit")
 
   return {
     id: row.id,
@@ -191,6 +189,7 @@ export default async function DashboardLayout({
   }
 
   let prospects: ProspectListItem[] = []
+  let directorySubmissions: DirectorySubmissionListItem[] = []
   let communityMentions: CommunityMention[] = []
   let discoverySettings: DiscoverySettings | null = product
     ? DEFAULT_DISCOVERY_SETTINGS
@@ -201,6 +200,7 @@ export default async function DashboardLayout({
   if (product) {
     const [
       prospectsResult,
+      directorySubmissionsResult,
       discoverySettingsResult,
       replyQueueConfigsResult,
       backlinkNetworkResult,
@@ -208,7 +208,14 @@ export default async function DashboardLayout({
       supabase
         .from("backlink_prospects")
         .select(
-          "id, product_id, domain, target_url, tier, action_type, status, discovered_at, directory:directories(domain_rating, backlinks, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at)"
+          "id, product_id, domain, target_url, tier, action_type, status, discovered_at"
+        )
+        .eq("product_id", product.id)
+        .order("discovered_at", { ascending: false }),
+      supabase
+        .from("directory_submissions")
+        .select(
+          "id, product_id, domain, submit_url, listing_url, status, discovered_at, submitted_at, last_checked_at, last_indexed_at, directory:directories(is_free, domain_rating, backlinks, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at)"
         )
         .eq("product_id", product.id)
         .order("discovered_at", { ascending: false }),
@@ -236,12 +243,23 @@ export default async function DashboardLayout({
       console.error("Error fetching backlink prospects:", prospectsError)
     }
 
-    prospects = (prospectRows ?? []).map((prospect) => ({
-      ...prospect,
-      directory: Array.isArray(prospect.directory)
-        ? (prospect.directory[0] ?? null)
-        : prospect.directory,
-    }))
+    prospects = prospectRows ?? []
+
+    if (directorySubmissionsResult.error) {
+      console.error(
+        "Error fetching directory submissions:",
+        directorySubmissionsResult.error
+      )
+    } else {
+      directorySubmissions = (directorySubmissionsResult.data ?? []).map(
+        (row) => ({
+          ...row,
+          directory: Array.isArray(row.directory)
+            ? (row.directory[0] ?? null)
+            : row.directory,
+        })
+      )
+    }
 
     if (discoverySettingsResult.error) {
       console.error(
@@ -307,7 +325,10 @@ export default async function DashboardLayout({
   }
 
   const sidebarUser = {
-    name: (user.user_metadata?.full_name as string | undefined) ?? user.email ?? "User",
+    name:
+      (user.user_metadata?.full_name as string | undefined) ??
+      user.email ??
+      "User",
     email: user.email ?? "",
     avatar: (user.user_metadata?.avatar_url as string | undefined) ?? "",
   }
@@ -317,6 +338,7 @@ export default async function DashboardLayout({
       profile={profile}
       product={product}
       prospects={prospects}
+      directorySubmissions={directorySubmissions}
       communityMentions={communityMentions}
       hasRunningCommunityRun={hasRunningCommunityRun}
       discoverySettings={discoverySettings}

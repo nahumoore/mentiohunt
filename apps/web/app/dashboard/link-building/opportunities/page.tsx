@@ -36,7 +36,6 @@ import { useEffect, useMemo, useState } from "react"
 import { captureEvent } from "@/lib/analytics"
 
 import {
-  getDomainRatingColorScheme,
   getTargetLabel,
 } from "@/components/backlink-opportunities/utils"
 import { supabaseClient } from "@/lib/supabase/client"
@@ -82,8 +81,6 @@ type FilterOption<TValue extends string> = {
 type SortKey =
   | "domain"
   | "type"
-  | "domain_rating"
-  | "backlinks"
   | "discovered_at"
   | "status"
 
@@ -241,56 +238,10 @@ function ColumnHeader({
   )
 }
 
-function formatCompactMetric(value: number | null | undefined) {
-  if (value === null || value === undefined) return "--"
-
-  return Intl.NumberFormat("en", {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value)
-}
-
-function DomainRatingCell({ value }: { value: number | null | undefined }) {
-  const scheme = getDomainRatingColorScheme(value ?? null)
-
-  return (
-    <span
-      className={cn(
-        "text-sm font-semibold tabular-nums",
-        value === null || value === undefined ? "text-muted-foreground" : ""
-      )}
-      style={
-        value === null || value === undefined
-          ? undefined
-          : { color: scheme.accent }
-      }
-    >
-      {value ?? "--"}
-    </span>
-  )
-}
-
-function LinkSignalsCell({
-  backlinks,
-}: {
-  backlinks: number | null | undefined
-}) {
-  return <span className="tabular-nums">{formatCompactMetric(backlinks)}</span>
-}
-
 function compareText(a: string, b: string, direction: SortDirection) {
   return direction === "asc" ? a.localeCompare(b) : b.localeCompare(a)
 }
 
-function compareNumber(
-  a: number | null | undefined,
-  b: number | null | undefined,
-  direction: SortDirection
-) {
-  const left = a ?? -1
-  const right = b ?? -1
-  return direction === "asc" ? left - right : right - left
-}
 
 function compareDate(a: string, b: string, direction: SortDirection) {
   const left = new Date(a).getTime()
@@ -400,18 +351,6 @@ export default function ProspectsPage() {
           return compareText(
             TYPE_CONFIG[left.tier].label,
             TYPE_CONFIG[right.tier].label,
-            sortDirection
-          )
-        case "domain_rating":
-          return compareNumber(
-            left.directory?.domain_rating,
-            right.directory?.domain_rating,
-            sortDirection
-          )
-        case "backlinks":
-          return compareNumber(
-            left.directory?.backlinks,
-            right.directory?.backlinks,
             sortDirection
           )
         case "status":
@@ -770,28 +709,6 @@ export default function ProspectsPage() {
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     <ColumnHeader
-                      label="Domain Rating"
-                      description="Authority score from 0 to 100 for the directory domain, color-coded from weak to strong."
-                      sortable
-                      sortDirection={
-                        sortKey === "domain_rating" ? sortDirection : null
-                      }
-                      onSort={() => toggleSort("domain_rating")}
-                    />
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                    <ColumnHeader
-                      label="Backlinks"
-                      description="Stored total backlink count for this directory domain."
-                      sortable
-                      sortDirection={
-                        sortKey === "backlinks" ? sortDirection : null
-                      }
-                      onSort={() => toggleSort("backlinks")}
-                    />
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                    <ColumnHeader
                       label="Discovered"
                       description="When Mentiohunt added this prospect to your queue."
                       sortable
@@ -819,7 +736,7 @@ export default function ProspectsPage() {
                 {sorted.length === 0 && (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={6}
                       className="px-6 py-12 text-center text-sm text-muted-foreground"
                     >
                       {prospects.length === 0
@@ -858,16 +775,6 @@ export default function ProspectsPage() {
                     </td>
                     <td className="px-4 py-3.5">
                       <TypeBadge type={prospect.tier} />
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <DomainRatingCell
-                        value={prospect.directory?.domain_rating}
-                      />
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <LinkSignalsCell
-                        backlinks={prospect.directory?.backlinks}
-                      />
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap text-muted-foreground tabular-nums">
                       {formatDate(prospect.discovered_at)}

@@ -6,10 +6,9 @@ import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
 
 const navigation = [
   { href: "/#how-it-works", label: "How it Works" },
-  { href: "/", label: "Features" },
   { href: "/#target-personas", label: "For Who" },
   { href: "/#pricing", label: "Pricing" },
-  { href: "/", label: "About" },
+  { href: "/#about", label: "About" },
 ]
 
 export function Navbar({ overlay = false }: { overlay?: boolean }) {

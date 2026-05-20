@@ -2,7 +2,6 @@ import {
   IconCircleX,
   IconClipboardCheck,
   IconListDetails,
-  IconLayoutGrid,
   IconLink,
   IconMailForward,
   IconMessage,
@@ -51,11 +50,11 @@ export const ALL_FILTER_CONFIG = {
 }
 
 export const TYPE_CONFIG: Record<ProspectTier, TierConfig> = {
+  // directory removed from prospect_tier enum — stub kept until types are regenerated
   directory: {
     label: "Directory",
-    description:
-      "A listing or submission opportunity where your product may fit the site category.",
-    icon: IconLayoutGrid,
+    description: "",
+    icon: IconClipboardCheck,
     color: "text-teal-600 bg-teal-500/10",
   },
   competitor_backlink: {

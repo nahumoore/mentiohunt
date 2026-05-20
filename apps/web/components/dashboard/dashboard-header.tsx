@@ -4,15 +4,18 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import * as React from "react"
 
+import { useDirectorySubmissionStore } from "@/stores/directory-submission-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
 const prospectHref = "/dashboard/link-building/opportunities"
+const directorySubmissionHref = "/dashboard/link-building/directories"
 
 export function DashboardHeader() {
   const pathname = usePathname()
   const currentProspectId = getCurrentProspectId(pathname)
+  const currentDirectorySubmissionId = getCurrentDirectorySubmissionId(pathname)
   const currentProspectLabel = useProspectStore((state) => {
     if (!currentProspectId) return undefined
 
@@ -23,10 +26,23 @@ export function DashboardHeader() {
       "Current prospect"
     )
   })
+  const currentDirectorySubmissionLabel = useDirectorySubmissionStore((state) => {
+    if (!currentDirectorySubmissionId) return undefined
+
+    return (
+      state.submissionDetailsById[currentDirectorySubmissionId]?.domain ??
+      state.submissions.find(
+        (submission) => submission.id === currentDirectorySubmissionId
+      )?.domain ??
+      "Current directory"
+    )
+  })
   const breadcrumbs = getBreadcrumbs(
     pathname,
     currentProspectId,
-    currentProspectLabel
+    currentProspectLabel,
+    currentDirectorySubmissionId,
+    currentDirectorySubmissionLabel
   )
 
   return (
@@ -70,7 +86,9 @@ export function DashboardHeader() {
 function getBreadcrumbs(
   pathname: string,
   currentProspectId?: string | null,
-  currentProspectLabel?: string
+  currentProspectLabel?: string,
+  currentDirectorySubmissionId?: string | null,
+  currentDirectorySubmissionLabel?: string
 ) {
   const segments = pathname.split("/").filter(Boolean)
   const dashboardIndex = segments.indexOf("dashboard")
@@ -87,10 +105,16 @@ function getBreadcrumbs(
       segment === currentProspectId &&
       visibleSegments[index - 2] === "link-building" &&
       visibleSegments[index - 1] === "opportunities"
+    const isCurrentDirectorySubmission =
+      segment === currentDirectorySubmissionId &&
+      visibleSegments[index - 2] === "link-building" &&
+      visibleSegments[index - 1] === "directories"
 
     return {
       label: isCurrentProspect
         ? (currentProspectLabel ?? "Current prospect")
+        : isCurrentDirectorySubmission
+          ? (currentDirectorySubmissionLabel ?? "Current directory")
         : titleizeSegment(segment),
       href: `/${hrefSegments.join("/")}`,
     }
@@ -105,6 +129,18 @@ function getCurrentProspectId(pathname: string) {
   const [prospectId] = pathname.slice(prospectPath.length).split("/")
 
   return prospectId || null
+}
+
+function getCurrentDirectorySubmissionId(pathname: string) {
+  const directorySubmissionPath = `${directorySubmissionHref}/`
+
+  if (!pathname.startsWith(directorySubmissionPath)) return null
+
+  const [directorySubmissionId] = pathname
+    .slice(directorySubmissionPath.length)
+    .split("/")
+
+  return directorySubmissionId || null
 }
 
 function titleizeSegment(segment: string) {

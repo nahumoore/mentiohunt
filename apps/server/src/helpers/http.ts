@@ -87,6 +87,7 @@ function jarSet(host: string, setCookieHeaders: string[]): void {
 
 export type FetchResult = {
   status: number;
+  url: string;
   body: string;
   contentType: string;
   headers: Record<string, string>;
@@ -193,7 +194,7 @@ export async function fetchWithRetry(
 
       const reader = response.body?.getReader();
       if (!reader) {
-        return { status: response.status, body: "", contentType, headers: responseHeaders };
+        return { status: response.status, url: response.url, body: "", contentType, headers: responseHeaders };
       }
 
       const cap = rangeBytes !== undefined ? Math.min(rangeBytes, BODY_SIZE_LIMIT) : BODY_SIZE_LIMIT;
@@ -223,7 +224,7 @@ export async function fetchWithRetry(
       }
 
       const body = new TextDecoder().decode(merged);
-      return { status: response.status, body, contentType, headers: responseHeaders };
+      return { status: response.status, url: response.url, body, contentType, headers: responseHeaders };
     },
     {
       retries: maxAttempts - 1,

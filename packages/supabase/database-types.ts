@@ -191,6 +191,69 @@ export type Database = {
         }
         Relationships: []
       }
+      directory_submissions: {
+        Row: {
+          created_at: string
+          directory_id: string
+          discovered_at: string
+          domain: string
+          id: string
+          last_checked_at: string | null
+          last_indexed_at: string | null
+          listing_url: string | null
+          notes: string | null
+          product_id: string
+          status: Database["public"]["Enums"]["directory_submission_status"]
+          submit_url: string
+          submitted_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          directory_id: string
+          discovered_at?: string
+          domain: string
+          id?: string
+          last_checked_at?: string | null
+          last_indexed_at?: string | null
+          listing_url?: string | null
+          notes?: string | null
+          product_id: string
+          status?: Database["public"]["Enums"]["directory_submission_status"]
+          submit_url: string
+          submitted_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          directory_id?: string
+          discovered_at?: string
+          domain?: string
+          id?: string
+          last_checked_at?: string | null
+          last_indexed_at?: string | null
+          listing_url?: string | null
+          notes?: string | null
+          product_id?: string
+          status?: Database["public"]["Enums"]["directory_submission_status"]
+          submit_url?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_submissions_directory_id_fkey"
+            columns: ["directory_id"]
+            isOneToOne: false
+            referencedRelation: "directories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "directory_submissions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_backlink_discovery_settings: {
         Row: {
           dr_max: number | null
@@ -267,6 +330,7 @@ export type Database = {
           id: string
           name: string | null
           onboarding_completed: boolean
+          stripe_customer_id: string | null
           tier: Database["public"]["Enums"]["billing_tier"]
           updated_at: string
         }
@@ -280,6 +344,7 @@ export type Database = {
           id: string
           name?: string | null
           onboarding_completed?: boolean
+          stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string
         }
@@ -293,6 +358,7 @@ export type Database = {
           id?: string
           name?: string | null
           onboarding_completed?: boolean
+          stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string
         }
@@ -495,6 +561,12 @@ export type Database = {
     Enums: {
       billing_tier: "free" | "pro" | "agency"
       directory_check_method: "serp_check" | "head_check"
+      directory_submission_status:
+        | "not_submitted"
+        | "submitted"
+        | "indexed"
+        | "not_indexed"
+        | "dismissed"
       prospect_action_type: "self_service" | "email_outreach"
       prospect_status:
         | "new"
@@ -633,6 +705,13 @@ export const Constants = {
     Enums: {
       billing_tier: ["free", "pro", "agency"],
       directory_check_method: ["serp_check", "head_check"],
+      directory_submission_status: [
+        "not_submitted",
+        "submitted",
+        "indexed",
+        "not_indexed",
+        "dismissed",
+      ],
       prospect_action_type: ["self_service", "email_outreach"],
       prospect_status: [
         "new",

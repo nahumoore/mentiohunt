@@ -6,7 +6,10 @@ import { Button } from "@workspace/ui/components/button"
 
 export function FounderIntro() {
   return (
-    <section className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32">
+    <section
+      id="about"
+      className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32"
+    >
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute -top-20 left-1/4 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-princeton-orange/7 blur-[110px]" />
         <div className="absolute right-0 bottom-0 h-[28rem] w-[28rem] translate-x-1/4 rounded-full bg-amber-flame/6 blur-[100px]" />

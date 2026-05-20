@@ -32,6 +32,27 @@ const stats = [
   { value: "Zero", label: "cold prospecting" },
 ]
 
+function FooterSocialProof() {
+  return (
+    <div className="pt-1">
+      <a
+        href="https://fazier.com/launches/mentiohunt.com"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+        aria-label="Mentiohunt launch badge on Fazier"
+        className="inline-flex rounded-lg transition-opacity hover:opacity-85"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=neutral"
+          width={120}
+          alt="Fazier badge"
+        />
+      </a>
+    </div>
+  )
+}
+
 export function Footer() {
   return (
     <footer className="relative overflow-hidden border-t border-border bg-background">
@@ -122,6 +143,7 @@ export function Footer() {
               opportunities, plain-English fit rationale, and outreach prep —
               ready each morning.
             </p>
+            <FooterSocialProof />
             <div className="space-y-1 text-xs leading-5 text-muted-foreground/65">
               <p>Made with ❤️ from 🇺🇸</p>
               <p>

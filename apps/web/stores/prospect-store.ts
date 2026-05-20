@@ -5,36 +5,6 @@ import { create } from "zustand"
 import type { Tables } from "@workspace/supabase/database-types"
 
 type BacklinkProspect = Tables<"backlink_prospects">
-type Directory = Tables<"directories">
-
-export type ProspectDirectory = Pick<
-  Directory,
-  | "id"
-  | "name"
-  | "domain"
-  | "submit_url"
-  | "category"
-  | "is_free"
-  | "is_active"
-  | "domain_rating"
-  | "backlinks"
-  | "referring_domains"
-  | "dofollow_backlinks"
-  | "dofollow_referring_domains"
-  | "seo_metrics_updated_at"
-  | "submit_url_ok"
-  | "submit_url_verified_at"
->
-
-export type ProspectListDirectory = Pick<
-  ProspectDirectory,
-  | "domain_rating"
-  | "backlinks"
-  | "referring_domains"
-  | "dofollow_backlinks"
-  | "dofollow_referring_domains"
-  | "seo_metrics_updated_at"
->
 
 export type ProspectListItem = Pick<
   BacklinkProspect,
@@ -46,11 +16,9 @@ export type ProspectListItem = Pick<
   | "action_type"
   | "status"
   | "discovered_at"
-> & {
-  directory: ProspectListDirectory | null
-}
+>
 
-export type ProspectDetail = Omit<ProspectListItem, "directory"> &
+export type ProspectDetail = Omit<ProspectListItem, never> &
   Pick<
     BacklinkProspect,
     | "email_subject"
@@ -59,10 +27,7 @@ export type ProspectDetail = Omit<ProspectListItem, "directory"> &
     | "contact_email"
     | "notes"
     | "created_at"
-    | "directory_id"
-  > & {
-    directory: ProspectDirectory | null
-  }
+  >
 
 type ProspectStore = {
   prospects: ProspectListItem[]
@@ -86,16 +51,6 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
     action_type: prospect.action_type,
     status: prospect.status,
     discovered_at: prospect.discovered_at,
-    directory: prospect.directory
-      ? {
-          domain_rating: prospect.directory.domain_rating,
-          backlinks: prospect.directory.backlinks,
-          referring_domains: prospect.directory.referring_domains,
-          dofollow_backlinks: prospect.directory.dofollow_backlinks,
-          dofollow_referring_domains: prospect.directory.dofollow_referring_domains,
-          seo_metrics_updated_at: prospect.directory.seo_metrics_updated_at,
-        }
-      : null,
   }
 }
 

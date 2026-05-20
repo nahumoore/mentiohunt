@@ -1,17 +1,15 @@
 "use client"
 
 import {
-  IconAdjustments,
   IconEye,
+  IconLayoutGrid,
   IconMessage2Share,
   IconNetwork,
-  IconTarget,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { ReactNode } from "react"
 
-import { cn } from "@workspace/ui/lib/utils"
 import {
   SidebarGroup,
   SidebarMenu,
@@ -22,6 +20,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@workspace/ui/components/sidebar"
+import { cn } from "@workspace/ui/lib/utils"
 
 const linkBuildingHref = "/dashboard/link-building"
 const communityMentionsHref = "/dashboard/community-mentions"
@@ -60,17 +59,22 @@ const FEATURES: FeatureModule[] = [
         icon: <IconNetwork />,
       },
       {
-        title: "Opportunities",
-        url: `${linkBuildingHref}/opportunities`,
-        icon: <IconTarget />,
-        items: [
-          {
-            title: "Sources",
-            url: `${linkBuildingHref}/sources`,
-            icon: <IconAdjustments />,
-          },
-        ],
+        title: "Directories",
+        url: `${linkBuildingHref}/directories`,
+        icon: <IconLayoutGrid />,
       },
+      // {
+      //   title: "Opportunities",
+      //   url: `${linkBuildingHref}/opportunities`,
+      //   icon: <IconTarget />,
+      //   items: [
+      //     {
+      //       title: "Sources",
+      //       url: `${linkBuildingHref}/sources`,
+      //       icon: <IconAdjustments />,
+      //     },
+      //   ],
+      // },
     ],
   },
   {
@@ -102,7 +106,10 @@ export function NavMain() {
         const isFeatureActive = pathname.startsWith(feature.baseHref)
 
         return (
-          <SidebarGroup key={feature.baseHref} className="py-0 first:pt-2 not-first:mt-4">
+          <SidebarGroup
+            key={feature.baseHref}
+            className="py-0 not-first:mt-4 first:pt-2"
+          >
             {/* Feature module header */}
             <div className="mb-2 flex items-center gap-2 px-2 group-data-[collapsible=icon]:hidden">
               <p className="shrink-0 text-[10px] font-bold tracking-[0.18em] text-sidebar-foreground/40 uppercase">
@@ -140,7 +147,7 @@ export function NavMain() {
                         tooltip={page.title}
                         className={
                           isActive
-                            ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                            ? "bg-primary text-primary-foreground hover:opacity-80"
                             : undefined
                         }
                       >

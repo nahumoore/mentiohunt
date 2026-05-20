@@ -8,7 +8,6 @@ import { runReplyQueueForConfig } from "./run-reply-queue.js"
 
 const log = createLogger("route-onboarding-complete")
 
-const MAX_ONBOARDING_DIRECTORY_PROSPECTS = 10
 const SEND_INDIVIDUAL_ONBOARDING_EMAILS = false
 
 type ReplyQueueOnboardingResult = Awaited<
@@ -117,9 +116,7 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
         userId,
         sendEmailAlerts: SEND_INDIVIDUAL_ONBOARDING_EMAILS,
       }),
-      findDirectoryOpportunitiesForProduct(productId, {
-        maxProspects: MAX_ONBOARDING_DIRECTORY_PROSPECTS,
-      }),
+      findDirectoryOpportunitiesForProduct(productId),
     ])
 
     if (replyQueueResult.status === "rejected") {

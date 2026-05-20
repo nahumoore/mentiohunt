@@ -2,7 +2,6 @@
 
 import { ActionBadge } from "@/components/backlink-opportunities/action-badge"
 import { EmailOutreachSections } from "@/components/backlink-opportunities/email-outreach-sections"
-import { SelfServeDirectorySections } from "@/components/backlink-opportunities/self-serve-directory-sections"
 import { StatusPipeline } from "@/components/backlink-opportunities/status-pipeline"
 import { TypeBadge } from "@/components/backlink-opportunities/type-badge"
 import { type ProspectProduct } from "@/components/backlink-opportunities/utils"
@@ -37,7 +36,6 @@ export function ProspectClientPage({
     currentProspect.contact_name?.trim() ||
     currentProspect.contact_email?.trim()
   )
-  const isSelfServe = currentProspect.action_type === "self_service"
 
   useEffect(() => {
     upsertProspectDetail(prospect)
@@ -62,18 +60,9 @@ export function ProspectClientPage({
 
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 flex-col gap-3">
-          <div>
-            <h1 className="flex items-center gap-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              {isSelfServe && (
-                <img
-                  src={`https://www.google.com/s2/favicons?domain=${currentProspect.domain}&sz=32`}
-                  alt=""
-                  className="size-8 rounded"
-                />
-              )}
-              {currentProspect.domain}
-            </h1>
-          </div>
+          <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+            {currentProspect.domain}
+          </h1>
 
           <div className="flex flex-wrap items-center gap-2">
             <TypeBadge type={currentProspect.tier} />
@@ -84,28 +73,19 @@ export function ProspectClientPage({
             </span>
           </div>
 
-          {!isSelfServe && (
-            <div className="mt-1">
-              <StatusPipeline status={currentProspect.status} />
-            </div>
-          )}
+          <div className="mt-1">
+            <StatusPipeline status={currentProspect.status} />
+          </div>
         </div>
       </div>
 
       <div className="h-px bg-border" />
 
-      {isSelfServe ? (
-        <SelfServeDirectorySections
-          prospect={currentProspect}
-          product={product}
-        />
-      ) : (
-        <EmailOutreachSections
-          prospect={currentProspect}
-          hasEmailDraft={hasEmailDraft}
-          hasContact={hasContact}
-        />
-      )}
+      <EmailOutreachSections
+        prospect={currentProspect}
+        hasEmailDraft={hasEmailDraft}
+        hasContact={hasContact}
+      />
     </div>
   )
 }

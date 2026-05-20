@@ -13,10 +13,10 @@ type ReplyQueueOnboardingResult = {
 
 type DirectoryOnboardingResult = {
   checked: number
-  listed: number
+  indexed: number
   gaps: number
   errors: number
-  prospectsCreated: number
+  newRows: number
 }
 
 function getResend() {
@@ -153,7 +153,7 @@ export async function sendOnboardingCompleteEmail({
       : 0
   const prospectsCreated =
     directoryResult.status === "fulfilled"
-      ? directoryResult.value.prospectsCreated
+      ? directoryResult.value.newRows
       : 0
 
   const replyQueueSummary =
@@ -181,14 +181,14 @@ export async function sendOnboardingCompleteEmail({
       ? `
         <tr>
           ${statCard(
-            "Directory opportunities",
-            String(directoryResult.value.prospectsCreated),
-            `new ${directoryResult.value.prospectsCreated === 1 ? "prospect" : "prospects"} added to your link-building queue`
+            "New directories",
+            String(directoryResult.value.newRows),
+            `new ${directoryResult.value.newRows === 1 ? "directory" : "directories"} added to your tracking list`
           )}
           ${statCard(
-            "Directory gaps",
-            String(directoryResult.value.gaps),
-            `${pluralize(directoryResult.value.checked, "directory", "directories")} checked, ${directoryResult.value.listed} already listed`
+            "Already indexed",
+            String(directoryResult.value.indexed),
+            `${pluralize(directoryResult.value.checked, "directory", "directories")} checked, ${directoryResult.value.indexed} already indexed by Google`
           )}
         </tr>
         ${

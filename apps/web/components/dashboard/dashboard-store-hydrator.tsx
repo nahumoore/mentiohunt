@@ -14,11 +14,14 @@ import type { ProspectListItem } from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import type { DashboardProfile } from "@/stores/profile-store"
 import { useProfileStore } from "@/stores/profile-store"
+import type { DirectorySubmissionListItem } from "@/stores/directory-submission-store"
+import { useDirectorySubmissionStore } from "@/stores/directory-submission-store"
 
 type DashboardStoreHydratorProps = {
   profile: DashboardProfile | null
   product: DashboardProduct | null
   prospects: ProspectListItem[]
+  directorySubmissions: DirectorySubmissionListItem[]
   communityMentions: CommunityMention[]
   hasRunningCommunityRun: boolean
   discoverySettings: DiscoverySettings | null
@@ -30,6 +33,7 @@ export function DashboardStoreHydrator({
   profile,
   product,
   prospects,
+  directorySubmissions,
   communityMentions,
   hasRunningCommunityRun,
   discoverySettings,
@@ -40,11 +44,12 @@ export function DashboardStoreHydrator({
     useProfileStore.getState().setProfile(profile)
     useProductStore.getState().setProduct(product)
     useProspectStore.getState().setProspects(prospects)
+    useDirectorySubmissionStore.getState().setSubmissions(directorySubmissions)
     useCommunityMentionStore.getState().setMentions(communityMentions)
     useCommunityMentionStore.getState().setHasRunningRun(hasRunningCommunityRun)
     useDiscoverySettingsStore.getState().setSettings(discoverySettings)
     useBacklinkNetworkStore.getState().setMembership(backlinkNetworkMembership)
-  }, [profile, product, prospects, communityMentions, hasRunningCommunityRun, discoverySettings, backlinkNetworkMembership])
+  }, [profile, product, prospects, directorySubmissions, communityMentions, hasRunningCommunityRun, discoverySettings, backlinkNetworkMembership])
 
   return children
 }

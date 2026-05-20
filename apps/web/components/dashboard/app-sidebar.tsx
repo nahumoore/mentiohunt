@@ -1,19 +1,18 @@
 "use client"
 
-import * as React from "react"
-import Link from "next/link"
 import { IconAlertTriangle } from "@tabler/icons-react"
+import Link from "next/link"
+import * as React from "react"
 
 import { IconBrandMentiohunt } from "@/components/custom-icons/brand-mentiohunt"
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@/components/dashboard/nav-main"
+import { NavUser } from "@/components/dashboard/nav-user"
 import {
   type DashboardProduct,
   getProductDisplayName,
   useProductStore,
 } from "@/stores/product-store"
 import { useProfileStore } from "@/stores/profile-store"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +20,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000
 
@@ -56,11 +56,15 @@ export function AppSidebar({
       : `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} left`
 
   return (
-    <Sidebar collapsible="icon" className="shadow-[4px_0_24px_0_rgba(0,0,0,0.06)]" {...props}>
+    <Sidebar
+      collapsible="icon"
+      className="shadow-[4px_0_24px_0_rgba(0,0,0,0.06)]"
+      {...props}
+    >
       <SidebarHeader className="p-2 pb-3">
         <Link
           href="/"
-          className="group/header relative block overflow-hidden rounded-2xl border border-sidebar-border/80 bg-gradient-to-br from-sidebar via-sidebar to-amber-glow/10 p-2 shadow-[0_18px_42px_rgba(255,84,0,0.08)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-blaze-orange/35 hover:shadow-[0_22px_46px_rgba(255,84,0,0.14)] focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-xl group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-none group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:shadow-none group-data-[collapsible=icon]:hover:translate-y-0"
+          className="group/header relative block overflow-hidden rounded-2xl border border-sidebar-border/80 bg-gradient-to-br from-sidebar via-sidebar to-amber-glow/10 p-2 shadow-[0_18px_42px_rgba(255,84,0,0.08)] transition-all duration-300 ease-out group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-xl group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-none group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:shadow-none hover:-translate-y-0.5 hover:border-blaze-orange/35 hover:shadow-[0_22px_46px_rgba(255,84,0,0.14)] group-data-[collapsible=icon]:hover:translate-y-0 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none"
           aria-label="Go to Mentiohunt home"
         >
           <div className="pointer-events-none absolute -top-12 -right-10 size-28 rounded-full bg-blaze-orange/10 blur-2xl transition-all duration-500 ease-out group-hover/header:scale-125 group-hover/header:bg-blaze-orange/18 group-data-[collapsible=icon]:hidden" />
@@ -70,7 +74,7 @@ export function AppSidebar({
               <IconBrandMentiohunt className="size-6 rotate-12 group-data-[collapsible=icon]:size-5" />
             </div>
             <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-              <p className="font-heading truncate text-sm leading-5 font-semibold tracking-tight transition-transform duration-300 ease-out group-hover/header:translate-x-0.5">
+              <p className="truncate font-heading text-sm leading-5 font-semibold tracking-tight transition-transform duration-300 ease-out group-hover/header:translate-x-0.5">
                 <span className="text-sidebar-foreground">Mentio</span>
                 <span className="bg-gradient-to-r from-blaze-orange-2 via-harvest-orange to-amber-flame bg-clip-text text-transparent">
                   hunt

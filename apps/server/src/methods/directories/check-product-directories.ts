@@ -10,14 +10,14 @@ const log = createLogger("directory-opportunities-check")
 export type DirectoryOpportunitiesCheckResult = {
   productId: string
   checked: number
-  listed: number
+  indexed: number
   gaps: number
   errors: number
-  prospectsCreated: number
+  newRows: number
 }
 
 export type DirectoryOpportunitiesCheckOptions = {
-  maxProspects?: number
+  maxDirectories?: number
 }
 
 function chunk<T>(arr: T[], size: number): T[][] {
@@ -46,14 +46,9 @@ export async function checkProductDirectoryOpportunities(
 
   const { data: settings } = await supabaseAdmin
     .from("product_backlink_discovery_settings")
-    .select("opportunity_types, dr_min, dr_max")
+    .select("dr_min, dr_max")
     .eq("product_id", productId)
     .single()
-
-  if (settings && !settings.opportunity_types.includes("directory")) {
-    log.info("directory type not enabled for product, skipping", { productId })
-    return { productId, checked: 0, listed: 0, gaps: 0, errors: 0, prospectsCreated: 0 }
-  }
 
   let directoriesQuery = supabaseAdmin
     .from("directories")
@@ -68,6 +63,10 @@ export async function checkProductDirectoryOpportunities(
     }
   }
 
+  if (typeof options.maxDirectories === "number") {
+    directoriesQuery = directoriesQuery.limit(options.maxDirectories)
+  }
+
   const { data: directories, error: dirError } = await directoriesQuery
 
   if (dirError) throw new Error(`Failed to load directories: ${dirError.message}`)
@@ -77,7 +76,7 @@ export async function checkProductDirectoryOpportunities(
       drMin: settings?.dr_min ?? null,
       drMax: settings?.dr_max ?? null,
     })
-    return { productId, checked: 0, listed: 0, gaps: 0, errors: 0, prospectsCreated: 0 }
+    return { productId, checked: 0, indexed: 0, gaps: 0, errors: 0, newRows: 0 }
   }
 
   const slug = toSlug(product.product_name)
@@ -144,45 +143,85 @@ export async function checkProductDirectoryOpportunities(
 
   const results = [...headSuccess, ...serpResults]
 
-  const listed = results.filter((r) => r.result.status === "listed").length
-  const gaps = results.filter((r) => r.result.status === "gap")
-  const errors = results.filter((r) => r.result.status === "error").length
+  const indexedResults = results.filter((r) => r.result.status === "listed")
+  const gapResults = results.filter((r) => r.result.status === "gap")
+  const errorCount = results.filter((r) => r.result.status === "error").length
 
-  let prospectsCreated = 0
+  // Phase 3: write to directory_submissions
 
-  const prospectGaps =
-    typeof options.maxProspects === "number"
-      ? gaps.slice(0, Math.max(0, Math.floor(options.maxProspects)))
-      : gaps
+  const now = new Date().toISOString()
+  const checkedDirectoryIds = directories.map((d) => d.id)
 
-  if (prospectGaps.length > 0) {
-    const rows = prospectGaps.map(({ dir }) => ({
-      product_id: productId,
-      directory_id: dir.id,
-      domain: dir.domain,
-      target_url: dir.submit_url,
-      tier: "directory" as const,
-      action_type: "self_service" as const,
-      status: "new" as const,
-      notes: null as string | null,
-    }))
+  // Step A: insert new rows for all checked directories (ignoreDuplicates keeps existing rows intact)
+  const baseRows = directories.map((dir) => ({
+    product_id: productId,
+    directory_id: dir.id,
+    domain: dir.domain,
+    submit_url: dir.submit_url,
+    status: "not_submitted" as const,
+    last_checked_at: now,
+  }))
 
-    const { error: upsertError, count } = await supabaseAdmin
-      .from("backlink_prospects")
-      .upsert(rows, { ignoreDuplicates: true, count: "exact" })
+  const { count: insertCount, error: insertError } = await supabaseAdmin
+    .from("directory_submissions")
+    .upsert(baseRows, { ignoreDuplicates: true, count: "exact" })
 
-    if (upsertError) throw new Error(`Failed to upsert prospects: ${upsertError.message}`)
-    prospectsCreated = count ?? 0
+  if (insertError) throw new Error(`Failed to upsert directory_submissions: ${insertError.message}`)
+
+  // Step B: update last_checked_at on all existing rows we just checked
+  const { error: touchError } = await supabaseAdmin
+    .from("directory_submissions")
+    .update({ last_checked_at: now })
+    .eq("product_id", productId)
+    .in("directory_id", checkedDirectoryIds)
+
+  if (touchError) log.warn("failed to update last_checked_at", { productId, error: touchError.message })
+
+  // Step C: update indexed rows (set status=indexed, listing_url, last_indexed_at)
+  if (indexedResults.length > 0) {
+    const updateLimit = pLimit(5)
+    await Promise.all(
+      indexedResults.map(({ dir, result }) =>
+        updateLimit(() =>
+          supabaseAdmin
+            .from("directory_submissions")
+            .update({
+              status: "indexed",
+              listing_url: result.url,
+              last_indexed_at: now,
+              last_checked_at: now,
+            })
+            .eq("product_id", productId)
+            .eq("directory_id", dir.id)
+            .neq("status", "dismissed")
+        )
+      )
+    )
   }
 
-  log.success(`done`, { listed, gaps: gaps.length, errors, prospectsCreated })
+  // Step D: age submitted → not_indexed after 30 days (only if we ran a check recently)
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  await supabaseAdmin
+    .from("directory_submissions")
+    .update({ status: "not_indexed" })
+    .eq("product_id", productId)
+    .eq("status", "submitted")
+    .lt("submitted_at", thirtyDaysAgo)
+    .not("last_checked_at", "is", null)
+
+  log.success("done", {
+    indexed: indexedResults.length,
+    gaps: gapResults.length,
+    errors: errorCount,
+    newRows: insertCount ?? 0,
+  })
 
   return {
     productId,
     checked: directories.length,
-    listed,
-    gaps: gaps.length,
-    errors,
-    prospectsCreated,
+    indexed: indexedResults.length,
+    gaps: gapResults.length,
+    errors: errorCount,
+    newRows: insertCount ?? 0,
   }
 }

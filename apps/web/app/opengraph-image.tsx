@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og"
 
 export const runtime = "edge"
-export const alt = "Mentiohunt – Backlink Opportunity Queue for Founders"
+export const alt = "Mentiohunt – The Distribution Queue for Founders"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
@@ -111,32 +111,32 @@ export default async function Image() {
                 }}
               />
               <span style={{ fontSize: "13px", fontWeight: 600, color: "#ff8500", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                Backlink opportunity queue
+                Distribution queue for founders
               </span>
             </div>
 
             {/* Headline */}
             <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxWidth: "860px" }}>
               <span style={{ fontSize: "62px", fontWeight: 700, color: "#1a0a05", letterSpacing: "-0.04em", lineHeight: 1.05 }}>
-                Discover which sites to
+                The distribution queue
               </span>
               <span style={{ fontSize: "62px", fontWeight: 700, color: "#ff6400", letterSpacing: "-0.04em", lineHeight: 1.05 }}>
-                pitch for backlinks.
+                for founders.
               </span>
             </div>
 
             {/* Subline */}
             <span style={{ fontSize: "22px", color: "#7a4a30", lineHeight: 1.5, maxWidth: "680px" }}>
-              Daily queue of qualified opportunities — fit rationale, outreach angles, and contact info.
+              High-fit sites to pitch for backlinks, communities to engage — with a ready-to-use outreach draft for every opportunity.
             </span>
           </div>
 
           {/* Stats row */}
           <div style={{ display: "flex", alignItems: "center", gap: "40px" }}>
             {[
-              ["Daily", "opportunity queue"],
-              ["AI", "fit scoring"],
-              ["Zero", "cold prospecting"],
+              ["Backlinks", "site pitching"],
+              ["Communities", "monitoring"],
+              ["Ready-to-send", "outreach drafts"],
             ].map(([val, label]) => (
               <div key={label} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 <span style={{ fontSize: "22px", fontWeight: 700, color: "#1a0a05" }}>{val}</span>

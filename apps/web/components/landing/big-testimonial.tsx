@@ -1,7 +1,6 @@
+import UserTestimonial from "@/public/landing/user-testimonial.webp"
 import { IconQuote } from "@tabler/icons-react"
 import Image from "next/image"
-
-import Founder from "@/public/founder.webp"
 
 export function BigTestimonial() {
   return (
@@ -21,8 +20,8 @@ export function BigTestimonial() {
           <div className="relative grid gap-6 p-5 sm:p-6 md:grid-cols-[11rem_minmax(0,1fr)] md:items-center lg:p-8">
             <div className="relative h-40 overflow-hidden rounded-[1.35rem] bg-muted sm:h-44 md:h-48">
               <Image
-                src={Founder}
-                alt="Nicolas More"
+                src={UserTestimonial}
+                alt="Logan Stuart"
                 fill
                 sizes="(min-width: 768px) 176px, 100vw"
                 className="object-cover grayscale-[0.15] saturate-[0.9]"
@@ -53,10 +52,10 @@ export function BigTestimonial() {
               <div className="mt-6 flex flex-col gap-1 border-t border-border/80 pt-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-heading text-base font-semibold tracking-tight text-foreground">
-                    Nicolas More
+                    Logan Stuart
                   </p>
                   <p className="mt-1 text-sm font-medium text-muted-foreground">
-                    Founder of Reddinbox
+                    Founder of Elevationvibe
                   </p>
                 </div>
               </div>

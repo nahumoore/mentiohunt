@@ -11,6 +11,7 @@ import { CheckListingButton } from "@/components/directories/check-listing-butto
 import { DirectoryInfoCard } from "@/components/directories/directory-info-card"
 import { ReportDialog } from "@/components/directories/report-dialog"
 import { StatusCallout } from "@/components/directories/status-callout"
+import { SubmissionCostBadge } from "@/components/directories/submission-cost-badge"
 import { SubmitAssistSheet } from "@/components/directories/submit-assist-sheet"
 import { TimelineCard } from "@/components/directories/timeline-card"
 import { supabaseClient } from "@/lib/supabase/client"
@@ -107,7 +108,7 @@ export function DirectoryDetailClientPage({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
             <img
               src={`https://www.google.com/s2/favicons?domain=${submission.domain}&sz=32`}
               alt=""
@@ -116,6 +117,7 @@ export function DirectoryDetailClientPage({
             <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
               {directoryName}
             </h1>
+            <SubmissionCostBadge isFree={submission.directory?.is_free} size="md" />
             <a
               href={`https://${submission.domain}`}
               target="_blank"

@@ -2,7 +2,7 @@ import AZMedia from "@/components/custom-icons/trusted/azmedia"
 import Creately from "@/components/custom-icons/trusted/creately"
 import G2G from "@/components/custom-icons/trusted/g2g"
 import Metrobi from "@/components/custom-icons/trusted/metrobi"
-import Founder from "@/public/founder.webp"
+import UserTestimonial from "@/public/landing/user-testimonial.webp"
 import { IconStarFilled } from "@tabler/icons-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -70,18 +70,18 @@ export function AuthSocialProof() {
 
         <figcaption className="flex items-center gap-3">
           <Image
-            src={Founder}
-            alt="Nicolas More"
+            src={UserTestimonial}
+            alt="Logan Stuart"
             width={40}
             height={40}
             className="rounded-full object-cover ring-2 ring-primary-foreground/20"
           />
           <div>
             <p className="text-sm font-medium text-primary-foreground">
-              Nicolas More
+              Logan Stuart
             </p>
             <p className="text-xs text-primary-foreground/72">
-              Founder of Reddinbox
+              Founder of Elevationvibe
             </p>
           </div>
         </figcaption>

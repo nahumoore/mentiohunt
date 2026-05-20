@@ -3,6 +3,7 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import type { SubmissionDirectory } from "@/stores/directory-submission-store"
 import { DrBadge, backlinksColor, formatBacklinks } from "./dr-badge"
+import { SubmissionCostBadge } from "./submission-cost-badge"
 
 interface DirectoryInfoCardProps {
   directory: SubmissionDirectory | null
@@ -24,18 +25,7 @@ export function DirectoryInfoCard({ directory }: DirectoryInfoCardProps) {
             <DrBadge dr={dr} />
           </MetricCell>
           <MetricCell label="Submission">
-            {directory?.is_free != null ? (
-              <span
-                className={cn(
-                  "text-sm font-medium",
-                  directory.is_free ? "text-emerald-600" : "text-foreground"
-                )}
-              >
-                {directory.is_free ? "Free" : "Paid"}
-              </span>
-            ) : (
-              <span className="text-sm text-muted-foreground">—</span>
-            )}
+            <SubmissionCostBadge isFree={directory?.is_free} />
           </MetricCell>
           <MetricCell label="Backlinks">
             {backlinks != null ? (

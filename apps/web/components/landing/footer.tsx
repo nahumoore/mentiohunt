@@ -34,7 +34,7 @@ const stats = [
 
 function FooterSocialProof() {
   return (
-    <div className="pt-1">
+    <div className="flex flex-wrap items-center gap-3 pt-1">
       <a
         href="https://fazier.com/launches/mentiohunt.com"
         target="_blank"
@@ -47,6 +47,20 @@ function FooterSocialProof() {
           src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=neutral"
           width={120}
           alt="Fazier badge"
+        />
+      </a>
+      <a
+        href="https://www.aidirectori.es/ai-tools/mentiohunt"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+        aria-label="Mentiohunt badge on AI Directories"
+        className="inline-flex rounded-lg transition-opacity hover:opacity-85"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://cdn.aidirectori.es/ai-tools/badges/light-mode.png"
+          alt="AI Directories Badge"
+          className="h-auto w-[120px]"
         />
       </a>
     </div>

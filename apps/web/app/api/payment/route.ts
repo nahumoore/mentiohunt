@@ -6,8 +6,15 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import { PLANS } from "@/consts/billing"
 import type { BillingTier } from "@/consts/billing"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not set")
+  return new Stripe(process.env.STRIPE_SECRET_KEY)
+}
+
+function getWebhookSecret() {
+  if (!process.env.STRIPE_WEBHOOK_SECRET) throw new Error("STRIPE_WEBHOOK_SECRET not set")
+  return process.env.STRIPE_WEBHOOK_SECRET
+}
 
 function getTierFromPriceId(priceId: string): BillingTier | null {
   return PLANS.find((p) => p.stripePriceId === priceId)?.tier ?? null
@@ -18,6 +25,9 @@ function toDateString(unixTimestamp: number): string {
 }
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripe()
+  const webhookSecret = getWebhookSecret()
+
   const body = await req.text()
   const headersList = await headers()
   const signature = headersList.get("stripe-signature")

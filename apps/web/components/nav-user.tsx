@@ -1,7 +1,12 @@
 "use client"
 
-import { useTransition } from "react"
-import Link from "next/link"
+import {
+  IconCreditCard,
+  IconLoader2,
+  IconLogout,
+  IconSelector,
+  IconSparkles,
+} from "@tabler/icons-react"
 import {
   Avatar,
   AvatarFallback,
@@ -22,17 +27,12 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar"
-import {
-  IconBell,
-  IconCreditCard,
-  IconLoader2,
-  IconLogout,
-  IconRosetteDiscountCheck,
-  IconSelector,
-  IconSparkles,
-} from "@tabler/icons-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useTransition } from "react"
 
 import { stripeCustomerPortalRedirect } from "@/actions/stripe-customer-portal-redirect"
+import { supabaseClient } from "@/lib/supabase/client"
 import { useProfileStore } from "@/stores/profile-store"
 
 export function NavUser({
@@ -47,8 +47,15 @@ export function NavUser({
   const { isMobile } = useSidebar()
   const profile = useProfileStore((state) => state.profile)
   const [isPortalPending, startPortalTransition] = useTransition()
+  const router = useRouter()
 
   const isFreeTrial = !profile || profile.tier === "free"
+
+  async function handleLogout() {
+    const supabase = supabaseClient()
+    await supabase.auth.signOut()
+    router.push("/")
+  }
 
   function handleBillingPortal() {
     startPortalTransition(async () => {
@@ -107,10 +114,6 @@ export function NavUser({
             )}
             {isFreeTrial && <DropdownMenuSeparator />}
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconRosetteDiscountCheck />
-                Account
-              </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={isPortalPending}
                 onClick={isFreeTrial ? undefined : handleBillingPortal}
@@ -132,13 +135,9 @@ export function NavUser({
                   </>
                 )}
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconBell />
-                Notifications
-              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>

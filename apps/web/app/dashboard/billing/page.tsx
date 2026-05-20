@@ -46,7 +46,7 @@ export default function BillingPage() {
       : null
   const currentPlanIndex = PLANS.findIndex((p) => p.tier === profile?.tier)
 
-  function handleSelectPlan(planKey: "starter" | "pro") {
+  function handleSelectPlan(planKey: "pro" | "agency") {
     setPendingAction(planKey)
     startTransition(async () => {
       await stripeBuyPlanRedirect({ plan: planKey })
@@ -224,7 +224,7 @@ export default function BillingPage() {
                       type="button"
                       disabled={isPending}
                       onClick={() =>
-                        handleSelectPlan(plan.key as "starter" | "pro")
+                        handleSelectPlan(plan.key as "pro" | "agency")
                       }
                       className={`group flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 ${
                         isFeatured

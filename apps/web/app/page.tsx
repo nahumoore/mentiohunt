@@ -4,6 +4,7 @@ import {
   DiscoverySurfaces,
   Faq,
   Footer,
+  FounderIntro,
   Hero,
   HowItWorks,
   Navbar,
@@ -48,6 +49,7 @@ export default function Page() {
         <TargetPersonas />
         <Pricing />
         <Testimonials />
+        <FounderIntro />
         <Faq />
         <Footer />
       </main>

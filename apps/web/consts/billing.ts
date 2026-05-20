@@ -5,8 +5,8 @@ export const FREE_TRIAL_DAYS = 7
 export type BillingTier = Database["public"]["Enums"]["billing_tier"]
 
 export const PLAN_TIERS = {
-  starter: "pro",
-  pro: "agency",
+  pro: "pro",
+  agency: "agency",
 } as const satisfies Record<string, BillingTier>
 
 export interface Plan {
@@ -22,10 +22,10 @@ export interface Plan {
 
 export const PLANS: Plan[] = [
   {
-    key: "starter",
-    tier: PLAN_TIERS.starter,
+    key: "pro",
+    tier: PLAN_TIERS.pro,
     stripePriceId: "price_1TYvkTHoiNfmn8GhTMo6cm2j",
-    name: "Starter",
+    name: "Pro",
     price: "49",
     description: "For individual founders building their backlink queue.",
     features: [
@@ -40,10 +40,10 @@ export const PLANS: Plan[] = [
     popular: true,
   },
   {
-    key: "pro",
-    tier: PLAN_TIERS.pro,
+    key: "agency",
+    tier: PLAN_TIERS.agency,
     stripePriceId: "price_1TYvkzHoiNfmn8GhMduOno62",
-    name: "Pro",
+    name: "Agency",
     price: "99",
     description: "For teams and agencies managing multiple sites.",
     features: [

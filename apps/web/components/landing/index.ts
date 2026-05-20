@@ -1,4 +1,5 @@
 export { Benefits } from "./benefits"
+export { FounderIntro } from "./founder-intro"
 export { Faq } from "./faq"
 export { BigTestimonial } from "./big-testimonial"
 export { DiscoverySurfaces } from "./discovery-surfaces"

@@ -83,6 +83,7 @@ export function Testimonials() {
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute -top-32 right-0 h-[30rem] w-[30rem] translate-x-1/4 rounded-full bg-princeton-orange/7 blur-[100px]" />
         <div className="absolute bottom-12 left-0 h-[26rem] w-[26rem] -translate-x-1/4 rounded-full bg-amber-flame/7 blur-[100px]" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background to-transparent" />
       </div>
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">

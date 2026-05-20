@@ -6,10 +6,10 @@ import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
 
 const navigation = [
   { href: "/#how-it-works", label: "How it Works" },
-  { href: "/features", label: "Features" },
+  { href: "/", label: "Features" },
   { href: "/#target-personas", label: "For Who" },
   { href: "/#pricing", label: "Pricing" },
-  { href: "/about", label: "About" },
+  { href: "/", label: "About" },
 ]
 
 export function Navbar({ overlay = false }: { overlay?: boolean }) {
@@ -22,27 +22,29 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
     >
       <div className="container mx-auto">
         <div className="flex items-center justify-between gap-4 rounded-full border border-border/70 bg-card/75 px-4 py-2.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] ring-1 ring-white/10 backdrop-blur-xl ring-inset sm:px-5 dark:shadow-[0_2px_20px_-4px_rgba(0,0,0,0.35)]">
-          <Link href="/" className="flex items-center gap-2">
-            <IconBrandMentiohunt className="h-6 w-6 rotate-12 text-primary" />
-            <span className="font-heading text-base font-semibold tracking-tight">
-              <span className="text-foreground">Mentio</span>
-              <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
-                hunt
+          <div className="flex min-w-0 items-center gap-7">
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+              <IconBrandMentiohunt className="h-6 w-6 rotate-12 text-primary drop-shadow-[0_4px_12px_rgba(255,96,0,0.24)]" />
+              <span className="font-heading text-base font-semibold tracking-tight">
+                <span className="text-foreground">Mentio</span>
+                <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
+                  hunt
+                </span>
               </span>
-            </span>
-          </Link>
+            </Link>
 
-          <nav className="hidden items-center gap-1 text-sm text-muted-foreground md:flex">
-            {navigation.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-full px-3.5 py-1.5 transition-colors hover:bg-accent hover:text-foreground"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+            <nav className="hidden items-center gap-1 text-sm text-muted-foreground md:flex">
+              {navigation.map((item) => (
+                <Link
+                  key={`${item.label}-${item.href}`}
+                  href={item.href}
+                  className="rounded-full px-3.5 py-1.5 transition-colors hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
 
           <div className="flex items-center gap-2">
             <Button

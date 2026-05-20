@@ -12,7 +12,7 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 export async function stripeBuyPlanRedirect({
   plan,
 }: {
-  plan: "starter" | "pro"
+  plan: "pro" | "agency"
 }) {
   const supabase = await supabaseServer()
   const {

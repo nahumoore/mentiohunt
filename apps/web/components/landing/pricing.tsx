@@ -16,6 +16,7 @@ export function Pricing() {
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute inset-x-0 top-0 mx-auto h-[34rem] w-[52rem] rounded-full bg-princeton-orange/10 blur-[120px]" />
         <div className="absolute right-0 bottom-20 h-[26rem] w-[26rem] translate-x-1/3 rounded-full bg-amber-flame/8 blur-[100px]" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background to-transparent" />
       </div>
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">

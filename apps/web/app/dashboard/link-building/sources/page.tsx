@@ -16,6 +16,7 @@ import { SettingsSaveFooter } from "@/components/backlink-opportunities/discover
 import { UnsavedChangesDialog } from "@/components/backlink-opportunities/discovery-setup/unsaved-changes-dialog"
 import type { OpportunityType } from "@/lib/opportunity-types"
 import { TYPE_CONFIG } from "@/lib/opportunity-types"
+import { captureEvent } from "@/lib/analytics"
 import type { DiscoverySettings } from "@/stores/discovery-settings-store"
 import { useDiscoverySettingsStore } from "@/stores/discovery-settings-store"
 import { useProductStore } from "@/stores/product-store"
@@ -171,6 +172,11 @@ export default function DiscoverySetupPage() {
 
       setSettings(payload.settings)
       setLastSaved(payload.settings)
+      captureEvent("discovery_settings_saved", {
+        dr_min: payload.settings.drMin,
+        dr_max: payload.settings.drMax ?? -1,
+        opportunity_types_count: payload.settings.opportunityTypes.length,
+      })
       setDiscoverySettingsMessage("Discovery settings saved.")
     } catch (error) {
       setDiscoverySettingsMessage(

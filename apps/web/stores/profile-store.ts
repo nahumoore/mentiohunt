@@ -6,7 +6,13 @@ import type { Tables } from "@workspace/supabase/database-types"
 
 export type DashboardProfile = Pick<
   Tables<"profiles">,
-  "id" | "email" | "name" | "onboarding_completed" | "tier" | "active_trial"
+  | "id"
+  | "email"
+  | "name"
+  | "onboarding_completed"
+  | "tier"
+  | "active_trial"
+  | "billing_period_end_at"
 >
 
 type ProfileStore = {

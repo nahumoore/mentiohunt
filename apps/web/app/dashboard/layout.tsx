@@ -155,7 +155,9 @@ export default async function DashboardLayout({
   const [profileResult, productResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, email, name, onboarding_completed, tier, active_trial")
+      .select(
+        "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at"
+      )
       .eq("id", user.id)
       .maybeSingle(),
     supabase

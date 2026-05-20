@@ -6,6 +6,7 @@ import { Inter, Outfit } from "next/font/google"
 import { Toaster } from "sonner"
 
 import { PostHogInitializer } from "../components/posthog-initializer"
+import { PostHogIdentify } from "../components/posthog-identify"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
@@ -57,6 +58,7 @@ export default function RootLayout({
 
             {/* POSTHOG */}
             <PostHogInitializer />
+            <PostHogIdentify />
           </>
         )}
         {/* </ThemeProvider> */}

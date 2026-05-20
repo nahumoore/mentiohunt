@@ -5,44 +5,7 @@ import {
 } from "@tabler/icons-react"
 import Link from "next/link"
 
-import { FREE_TRIAL_DAYS } from "@/consts/billing"
-
-const plans = [
-  {
-    key: "starter",
-    name: "Starter",
-    price: "49",
-    description: "For individual founders building their backlink queue.",
-    features: [
-      "1 website",
-      "Up to 10 competitors",
-      "Daily discovery runs",
-      "Ranked opportunity queue",
-      "Fit scores & rationale",
-      "Suggested outreach angles",
-      `${FREE_TRIAL_DAYS}-day free trial`,
-    ],
-    popular: true,
-  },
-  {
-    key: "pro",
-    name: "Pro",
-    price: "99",
-    description: "For teams and agencies managing multiple sites.",
-    features: [
-      "Up to 5 websites",
-      "Unlimited competitors per site",
-      "Daily discovery runs",
-      "Ranked opportunity queue",
-      "Fit scores & rationale",
-      "Suggested outreach angles",
-      "Export to CSV",
-      "Priority support",
-      `${FREE_TRIAL_DAYS}-day free trial`,
-    ],
-    popular: false,
-  },
-]
+import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
 
 export function Pricing() {
   return (
@@ -74,7 +37,7 @@ export function Pricing() {
         </div>
 
         <div className="mx-auto mt-14 grid max-w-6xl gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-7">
-          {plans.map((plan) => {
+          {PLANS.map((plan) => {
             const isFeatured = plan.popular
 
             return (

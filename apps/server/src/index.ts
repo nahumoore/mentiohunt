@@ -1,6 +1,5 @@
 import express from "express"
 import "./env.js"
-import { registerJobs } from "./jobs/index.js"
 import { registerRoutes } from "./routes/index.js"
 
 const app = express()
@@ -20,6 +19,6 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 
   if (!isDev) {
-    registerJobs()
+    // registerJobs()
   }
 })

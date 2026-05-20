@@ -1,5 +1,6 @@
 "use client"
 
+import { captureEvent } from "@/lib/analytics"
 import { supabaseClient } from "@/lib/supabase/client"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import {
@@ -90,6 +91,11 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     updateData,
     setIsCompleted,
   } = useOnboardingStore()
+
+  useEffect(() => {
+    captureEvent("onboarding_started")
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [fieldErrors, setFieldErrors] = useState<OnboardingFieldErrors>({})
   const [submitMessage, setSubmitMessage] = useState("")
@@ -183,6 +189,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
         if (!res.ok)
           throw new Error((json as { error?: string }).error ?? "Failed.")
         setTaskStatus(taskId, "done")
+        captureEvent("onboarding_ai_generated", { field: taskId })
         return json as T
       } catch (err) {
         setTaskStatus(
@@ -361,10 +368,11 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
         })
         return
       }
-      await runGeneration(
-        json.websiteUrl as string,
-        json.site as FetchedSiteDetails
-      )
+      const fetchedSite = json.site as FetchedSiteDetails
+      captureEvent("onboarding_site_fetched", {
+        had_sitemap: Boolean((fetchedSite as { sitemap?: unknown }).sitemap),
+      })
+      await runGeneration(json.websiteUrl as string, fetchedSite)
     } catch {
       setGeneratingPhase("idle")
       setChecklist(INITIAL_CHECKLIST)
@@ -410,6 +418,11 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
 
   const nextStep = () => {
     if (!validateStep(currentStep)) return
+    const stepNames = ["url", "product", "audience", "launch"] as const
+    captureEvent("onboarding_step_completed", {
+      step: stepNames[currentStep] ?? String(currentStep),
+      step_index: currentStep,
+    })
     setCurrentStep(Math.min(currentStep + 1, ONBOARDING_STEPS.length - 1))
     setSubmitMessage("")
   }
@@ -456,6 +469,9 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
         return
       }
 
+      captureEvent("onboarding_completed", {
+        competitors_count: result.data.competitors?.length ?? 0,
+      })
       setIsCompleted(true)
       router.replace("/dashboard")
       router.refresh()
@@ -467,6 +483,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
 
   const handleSignOut = async () => {
     setIsSigningOut(true)
+    captureEvent("user_signed_out")
     const supabase = supabaseClient()
     await supabase.auth.signOut()
     router.replace("/signin")

@@ -12,6 +12,8 @@ import { IconArrowLeft } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import Link from "next/link"
 import { useEffect } from "react"
+
+import { captureEvent } from "@/lib/analytics"
 import { formatDate } from "../_data"
 
 export function ProspectClientPage({
@@ -39,7 +41,13 @@ export function ProspectClientPage({
 
   useEffect(() => {
     upsertProspectDetail(prospect)
-  }, [prospect, upsertProspectDetail])
+    captureEvent("opportunity_viewed", {
+      prospect_id: prospect.id,
+      tier: prospect.tier,
+      action_type: prospect.action_type,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prospect.id])
 
   return (
     <div className="flex flex-col gap-8">

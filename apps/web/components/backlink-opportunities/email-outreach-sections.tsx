@@ -46,6 +46,7 @@ export function EmailOutreachSections({
             <EmailDraft
               subject={prospect.email_subject}
               body={prospect.email_body}
+              prospectId={prospect.id}
             />
           </section>
         ) : (

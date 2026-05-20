@@ -1,5 +1,7 @@
 "use client"
 
+import { useTransition } from "react"
+import Link from "next/link"
 import {
   Avatar,
   AvatarFallback,
@@ -20,7 +22,18 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar"
-import { IconSelector, IconSparkles, IconRosetteDiscountCheck, IconCreditCard, IconBell, IconLogout } from "@tabler/icons-react"
+import {
+  IconBell,
+  IconCreditCard,
+  IconLoader2,
+  IconLogout,
+  IconRosetteDiscountCheck,
+  IconSelector,
+  IconSparkles,
+} from "@tabler/icons-react"
+
+import { stripeCustomerPortalRedirect } from "@/actions/stripe-customer-portal-redirect"
+import { useProfileStore } from "@/stores/profile-store"
 
 export function NavUser({
   user,
@@ -32,6 +45,16 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const profile = useProfileStore((state) => state.profile)
+  const [isPortalPending, startPortalTransition] = useTransition()
+
+  const isFreeTrial = !profile || profile.tier === "free"
+
+  function handleBillingPortal() {
+    startPortalTransition(async () => {
+      await stripeCustomerPortalRedirect()
+    })
+  }
 
   return (
     <SidebarMenu>
@@ -72,35 +95,51 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {isFreeTrial && (
+              <DropdownMenuGroup>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/billing">
+                    <IconSparkles />
+                    Upgrade plan
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            )}
+            {isFreeTrial && <DropdownMenuSeparator />}
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <IconSparkles
-                />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconRosetteDiscountCheck
-                />
+                <IconRosetteDiscountCheck />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard
-                />
-                Billing
+              <DropdownMenuItem
+                disabled={isPortalPending}
+                onClick={isFreeTrial ? undefined : handleBillingPortal}
+                asChild={isFreeTrial}
+              >
+                {isFreeTrial ? (
+                  <Link href="/dashboard/billing">
+                    <IconCreditCard />
+                    Billing
+                  </Link>
+                ) : (
+                  <>
+                    {isPortalPending ? (
+                      <IconLoader2 className="animate-spin" />
+                    ) : (
+                      <IconCreditCard />
+                    )}
+                    Billing
+                  </>
+                )}
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <IconBell
-                />
+                <IconBell />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <IconLogout
-              />
+              <IconLogout />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

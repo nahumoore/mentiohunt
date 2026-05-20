@@ -3,11 +3,12 @@
 import { useState } from "react"
 import { IconCheck, IconCopy } from "@tabler/icons-react"
 
-export function CopyButton({ text }: { text: string }) {
+export function CopyButton({ text, onCopy }: { text: string; onCopy?: () => void }) {
   const [copied, setCopied] = useState(false)
 
   function copy() {
     navigator.clipboard.writeText(text)
+    onCopy?.()
     setCopied(true)
     setTimeout(() => setCopied(false), 1800)
   }

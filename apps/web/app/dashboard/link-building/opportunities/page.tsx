@@ -31,7 +31,9 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 import type { ElementType } from "react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+
+import { captureEvent } from "@/lib/analytics"
 
 import {
   getDomainRatingColorScheme,
@@ -316,6 +318,14 @@ export default function ProspectsPage() {
   const [sortKey, setSortKey] = useState<SortKey>("discovered_at")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
 
+  useEffect(() => {
+    captureEvent("opportunities_list_viewed", {
+      count: prospects.length,
+      filter: statusFilter,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const statusCounts = useMemo(() => {
     const counts = Object.fromEntries(
       STATUS_FILTERS.filter((filter) => filter.value !== "all").map(
@@ -519,6 +529,14 @@ export default function ProspectsPage() {
         return
       }
 
+      updatedIds.forEach((id) => {
+        const prev = prospects.find((p) => p.id === id)
+        captureEvent("prospect_status_changed", {
+          prospect_id: id,
+          from_status: prev?.status ?? "unknown",
+          to_status: status,
+        })
+      })
       updateProspectStatuses(updatedIds, status)
       setSelectedIds((current) => {
         const next = new Set(current)

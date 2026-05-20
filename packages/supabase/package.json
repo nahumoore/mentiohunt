@@ -6,8 +6,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.4",
-    "next": "16.1.6",
-    "ws": "^8.20.1"
+    "next": "16.1.6"
   },
   "exports": {
     "./admin": "./admin.ts",
@@ -17,7 +16,5 @@
     "./middleware": "./middleware.ts",
     "./server": "./server.ts"
   },
-  "devDependencies": {
-    "@types/ws": "^8.18.1"
-  }
+  "devDependencies": {}
 }

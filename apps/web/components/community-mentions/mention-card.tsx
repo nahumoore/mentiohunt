@@ -1,5 +1,6 @@
 "use client"
 
+import { captureEvent } from "@/lib/analytics"
 import {
   Dialog,
   DialogContent,
@@ -116,6 +117,7 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
   function copyReply(text: string, e: React.MouseEvent) {
     e.stopPropagation()
     navigator.clipboard.writeText(text)
+    captureEvent("reply_copied", { mention_id: mention.id })
     if (mention.postUrl) window.open(mention.postUrl, "_blank", "noopener,noreferrer")
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -191,7 +193,14 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
             <p className="text-sm leading-relaxed text-muted-foreground">{preview}</p>
             {hasMore && (
               <button
-                onClick={() => setModalOpen(true)}
+                onClick={() => {
+                  captureEvent("mention_opened", {
+                    mention_id: mention.id,
+                    platform: mention.platform,
+                    fit_score: mention.relevanceScore,
+                  })
+                  setModalOpen(true)
+                }}
                 className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground underline-offset-2 transition-colors hover:text-primary hover:underline"
               >
                 <IconEye className="size-3.5" />
@@ -249,7 +258,10 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
             ) : (
               <button
                 type="button"
-                onClick={() => onMarkDismissed(mention.id)}
+                onClick={() => {
+                  captureEvent("mention_dismissed", { mention_id: mention.id, source: "card" })
+                  onMarkDismissed(mention.id)
+                }}
                 disabled={isReplied}
                 className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-muted-foreground transition-all hover:bg-rose-100 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200 disabled:pointer-events-none disabled:opacity-40"
               >
@@ -280,7 +292,10 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
             )}
             <button
               type="button"
-              onClick={() => onMarkReplied(mention.id)}
+              onClick={() => {
+                captureEvent("mention_marked_replied", { mention_id: mention.id, source: "card" })
+                onMarkReplied(mention.id)
+              }}
               disabled={isActioned}
               className={cn(
                 "rounded-lg px-5 py-2 text-xs font-bold shadow-sm transition-all",
@@ -399,7 +414,7 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
                 {!isDismissed && (
                   <button
                     type="button"
-                    onClick={() => { onMarkDismissed(mention.id); setModalOpen(false) }}
+                    onClick={() => { captureEvent("mention_dismissed", { mention_id: mention.id, source: "modal" }); onMarkDismissed(mention.id); setModalOpen(false) }}
                     disabled={isReplied}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200/70 bg-rose-50/70 px-3.5 py-2 text-xs font-semibold text-rose-700 transition-all hover:border-rose-300 hover:bg-rose-100/80 disabled:pointer-events-none disabled:opacity-40"
                   >
@@ -409,7 +424,7 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
                 )}
                 <button
                   type="button"
-                  onClick={() => { onMarkReplied(mention.id); setModalOpen(false) }}
+                  onClick={() => { captureEvent("mention_marked_replied", { mention_id: mention.id, source: "modal" }); onMarkReplied(mention.id); setModalOpen(false) }}
                   disabled={isActioned}
                   className={cn(
                     "rounded-lg px-5 py-2 text-xs font-bold shadow-sm transition-all",
@@ -444,7 +459,7 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
           </div>
           <div className="flex flex-col gap-2 px-6 pb-6">
             <button
-              onClick={() => { onMarkReplied(mention.id); setRepliedModalOpen(false) }}
+              onClick={() => { captureEvent("mention_marked_replied", { mention_id: mention.id, source: "reply_confirmation" }); onMarkReplied(mention.id); setRepliedModalOpen(false) }}
               className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
             >
               Yes, mark as replied

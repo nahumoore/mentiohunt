@@ -1,6 +1,15 @@
+import { captureEvent } from "@/lib/analytics"
 import { CopyButton } from "./copy-button"
 
-export function EmailDraft({ subject, body }: { subject: string; body: string }) {
+export function EmailDraft({
+  subject,
+  body,
+  prospectId,
+}: {
+  subject: string
+  body: string
+  prospectId?: string
+}) {
   return (
     <div className="overflow-hidden rounded-3xl ring-1 ring-foreground/8">
       <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/40 px-5 py-3">
@@ -10,7 +19,15 @@ export function EmailDraft({ subject, body }: { subject: string; body: string })
           </span>
           <span className="truncate text-sm font-medium">{subject}</span>
         </div>
-        <CopyButton text={subject} />
+        <CopyButton
+          text={subject}
+          onCopy={() =>
+            captureEvent("outreach_email_copied", {
+              prospect_id: prospectId ?? "",
+              field: "subject",
+            })
+          }
+        />
       </div>
 
       <div className="relative bg-card px-5 py-4">
@@ -18,7 +35,15 @@ export function EmailDraft({ subject, body }: { subject: string; body: string })
           {body}
         </pre>
         <div className="absolute top-3 right-3">
-          <CopyButton text={body} />
+          <CopyButton
+            text={body}
+            onCopy={() =>
+              captureEvent("outreach_email_copied", {
+                prospect_id: prospectId ?? "",
+                field: "body",
+              })
+            }
+          />
         </div>
       </div>
     </div>

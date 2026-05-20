@@ -1,6 +1,6 @@
-Create a comprehensive, source-backed market research report about BuzzStream.
+Create a comprehensive, source-backed market research report about Semrush Link Building Tool.
 
-Focus 100% on BuzzStream. Do not make this a generic industry report. The goal is to understand BuzzStream deeply enough to create useful comparison, alternative, positioning, and educational content for Mentiohunt.
+Focus 100% on Semrush Link Building Tool. Do not make this a generic industry report. The goal is to understand Semrush Link Building Tool deeply enough to create useful comparison, alternative, positioning, and educational content for Mentiohunt.
 
 Mentiohunt context:
 
@@ -10,7 +10,7 @@ Mentiohunt context:
 
 Research requirements:
 
-- Use current, reliable sources wherever possible, including the official BuzzStream website, pricing page, docs, changelog, help center, reviews, comparison pages, social profiles, app marketplace listings, and reputable third-party review sites.
+- Use current, reliable sources wherever possible, including the official Semrush Link Building Tool website, pricing page, docs, changelog, help center, reviews, comparison pages, social profiles, app marketplace listings, and reputable third-party review sites.
 - Cite sources inline for every factual claim, especially pricing, features, target customers, integrations, and limitations.
 - Clearly label anything that is inferred, outdated, unavailable, or not verified.
 - If pricing or feature information is hidden behind sales/contact forms, state that clearly and summarize what is publicly available.
@@ -18,15 +18,15 @@ Research requirements:
 
 Output the report in Markdown using this exact structure:
 
-# BuzzStream Market Research Report
+# Semrush Link Building Tool Market Research Report
 
 ## Executive Summary
 
-Summarize what BuzzStream is, who it is for, the main value proposition, and the biggest reasons a customer might choose it.
+Summarize what Semrush Link Building Tool is, who it is for, the main value proposition, and the biggest reasons a customer might choose it.
 
 ## Product Overview
 
-Explain what BuzzStream does in plain language.
+Explain what Semrush Link Building Tool does in plain language.
 Include:
 
 - Core product category
@@ -38,7 +38,7 @@ Include:
 
 ## Target Customers
 
-Describe who BuzzStream appears to serve best.
+Describe who Semrush Link Building Tool appears to serve best.
 Include:
 
 - Company size
@@ -49,7 +49,7 @@ Include:
 
 ## Core Features
 
-List and explain the main BuzzStream features.
+List and explain the main Semrush Link Building Tool features.
 For each feature, include:
 
 - What it does
@@ -59,7 +59,7 @@ For each feature, include:
 
 ## Pricing
 
-Research BuzzStream pricing in detail.
+Research Semrush Link Building Tool pricing in detail.
 Include:
 
 - Free plan or trial availability
@@ -76,18 +76,18 @@ If pricing is not public, include a clear "Pricing Not Public" note and summariz
 
 ## Pros
 
-List the strongest advantages of BuzzStream based on official claims, reviews, and third-party commentary.
+List the strongest advantages of Semrush Link Building Tool based on official claims, reviews, and third-party commentary.
 For each pro, explain why it matters and cite the source.
 
 ## Cons
 
-List the most important limitations, complaints, risks, or tradeoffs of BuzzStream.
+List the most important limitations, complaints, risks, or tradeoffs of Semrush Link Building Tool.
 For each con, explain the practical impact and cite the source.
 Do not invent criticism. If evidence is weak, label it as weak or anecdotal.
 
 ## Customer Reviews And Sentiment
 
-Summarize what users say about BuzzStream across review platforms, communities, social posts, and case studies.
+Summarize what users say about Semrush Link Building Tool across review platforms, communities, social posts, and case studies.
 Include:
 
 - Common praise themes
@@ -98,11 +98,11 @@ Include:
 
 ## Use Cases
 
-Describe the strongest use cases for BuzzStream.
+Describe the strongest use cases for Semrush Link Building Tool.
 For each use case, include:
 
 - User goal
-- How BuzzStream supports it
+- How Semrush Link Building Tool supports it
 - Who benefits most
 - Any gaps or caveats
 
@@ -113,7 +113,7 @@ Include source citations.
 
 ## Onboarding And Ease Of Use
 
-Assess how easy BuzzStream appears to be to adopt.
+Assess how easy Semrush Link Building Tool appears to be to adopt.
 Include:
 
 - Setup requirements
@@ -124,7 +124,7 @@ Include:
 
 ## Differentiation
 
-Explain how BuzzStream tries to stand out.
+Explain how Semrush Link Building Tool tries to stand out.
 Include:
 
 - Unique claims
@@ -135,21 +135,21 @@ Include:
 
 ## Competitive Landscape
 
-Identify products that BuzzStream is commonly compared against.
+Identify products that Semrush Link Building Tool is commonly compared against.
 For each competitor, include:
 
 - Product name
-- Why it competes with BuzzStream
-- Main difference from BuzzStream
+- Why it competes with Semrush Link Building Tool
+- Main difference from Semrush Link Building Tool
 - Source citation
 
 ## Comparison Notes For Mentiohunt
 
-Analyze where Mentiohunt may overlap with or differ from BuzzStream, based only on the Mentiohunt context provided above.
+Analyze where Mentiohunt may overlap with or differ from Semrush Link Building Tool, based only on the Mentiohunt context provided above.
 Include:
 
 - Areas of overlap
-- Areas where BuzzStream appears stronger
+- Areas where Semrush Link Building Tool appears stronger
 - Areas where Mentiohunt may have a clearer angle
 - Gaps Mentiohunt should avoid claiming unless verified
 - Content angles that could be useful for Mentiohunt
@@ -170,10 +170,10 @@ For each idea, explain the likely search intent and why the topic may be useful.
 
 ## Messaging Takeaways
 
-Extract positioning lessons from BuzzStream.
+Extract positioning lessons from Semrush Link Building Tool.
 Include:
 
-- Strong phrases or concepts BuzzStream uses
+- Strong phrases or concepts Semrush Link Building Tool uses
 - Customer pains they emphasize
 - Outcomes they promise
 - Trust signals they rely on
@@ -188,7 +188,7 @@ Explain what should be checked manually before publishing content.
 
 Provide a complete list of all sources used, grouped by type:
 
-- Official BuzzStream sources
+- Official Semrush Link Building Tool sources
 - Review sites
 - Third-party articles
 - Social/community sources

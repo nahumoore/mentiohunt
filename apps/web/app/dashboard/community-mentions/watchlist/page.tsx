@@ -1,5 +1,6 @@
 "use client"
 
+import { captureEvent } from "@/lib/analytics"
 import {
   IconBell,
   IconCheck,
@@ -675,6 +676,11 @@ export default function CommunityDiscoverySetupPage() {
 
       setConfig(payload.config)
       setLastSaved(payload.config)
+      captureEvent("community_watchlist_saved", {
+        platforms_count: payload.config.platforms.length,
+        keywords_count: payload.config.keywords.length,
+        communities_count: payload.config.communities.length,
+      })
       setMessage("Settings saved.")
     } catch (error) {
       setMessage(

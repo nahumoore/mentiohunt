@@ -6,55 +6,15 @@ import {
   IconSparkles,
 } from "@tabler/icons-react"
 import Link from "next/link"
-import type { BillingTier } from "@/consts/billing"
-import { FREE_TRIAL_DAYS, PLAN_TIERS } from "@/consts/billing"
-
-const plans = [
-  {
-    key: "starter" as const,
-    name: "Starter",
-    price: "49",
-    description: "For individual founders building their backlink queue.",
-    features: [
-      "1 website",
-      "Up to 10 competitors",
-      "Daily discovery runs",
-      "Ranked opportunity queue",
-      "Fit scores & rationale",
-      "Suggested outreach angles",
-      `${FREE_TRIAL_DAYS}-day free trial`,
-    ],
-    popular: true,
-  },
-  {
-    key: "pro" as const,
-    name: "Pro",
-    price: "99",
-    description: "For teams and agencies managing multiple sites.",
-    features: [
-      "Up to 5 websites",
-      "Unlimited competitors per site",
-      "Daily discovery runs",
-      "Ranked opportunity queue",
-      "Fit scores & rationale",
-      "Suggested outreach angles",
-      "Export to CSV",
-      "Priority support",
-      `${FREE_TRIAL_DAYS}-day free trial`,
-    ],
-    popular: false,
-  },
-]
-
-type PlanKey = (typeof plans)[number]["key"]
+import type { BillingTier, Plan } from "@/consts/billing"
+import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
 
 function getPlanStatus(
-  planKey: PlanKey,
+  plan: Plan,
   userTier: BillingTier | null,
 ): "current" | "upgrade" | "unauthenticated" {
   if (!userTier || userTier === "free") return "unauthenticated"
-  if (PLAN_TIERS[planKey] === userTier) return "current"
-  // agency tier on starter card = downgrade, show nothing special → treat as upgrade prompt
+  if (plan.tier === userTier) return "current"
   return "upgrade"
 }
 
@@ -89,8 +49,8 @@ export function PricingClientPage({
         </div>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-7">
-          {plans.map((plan) => {
-            const status = getPlanStatus(plan.key, userTier)
+          {PLANS.map((plan) => {
+            const status = getPlanStatus(plan, userTier)
             const isCurrent = status === "current"
             const isFeatured = plan.popular
 

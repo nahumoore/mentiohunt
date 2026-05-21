@@ -36,3 +36,27 @@ export const AHREFS_SEO_TOOLS = "pro100chok~ahrefs-seo-tools"
  * Placeholder for domain → { contact_email, contact_name } enrichment.
  */
 export const CONTACT_ENRICHMENT = "" // fill before impl
+
+/**
+ * AHREFS_SEO_TOOLS traffic searchType.
+ * Needs verification via a live test run — "traffic_checker" is a best-guess.
+ * If the actor returns no traffic field, analyzeBacklinkSite degrades gracefully.
+ */
+export const AHREFS_TRAFFIC_SEARCH_TYPE = "traffic_checker"
+
+export async function runApifyActor<T>(
+  actorId: string,
+  input: unknown,
+  timeoutSec = 300
+): Promise<T> {
+  const token = process.env.APIFY_TOKEN
+  const url = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${token}&timeout=${timeoutSec}`
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal: AbortSignal.timeout((timeoutSec + 60) * 1000),
+  })
+  if (!res.ok) throw new Error(`Apify ${res.status}: ${res.statusText}`)
+  return res.json() as Promise<T>
+}

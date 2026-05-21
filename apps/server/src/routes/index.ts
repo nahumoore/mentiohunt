@@ -1,4 +1,5 @@
 import type { Application } from "express"
+import { analyzeBacklinkSiteRouter } from "./analyze-backlink-site.js"
 import { devUpdateAllSeoMetricsRouter } from "./dev-update-all-seo-metrics.js"
 import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunities-by-url.js"
 import { directoryOpportunitiesRouter } from "./find-directory-opportunities.js"
@@ -8,6 +9,7 @@ import { verifyDirectoryUrlsRouter } from "./verify-directory-urls.js"
 
 export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(directoryOpportunitiesByUrlRouter)
+  app.use(analyzeBacklinkSiteRouter)
   app.use(onboardingCompleteRouter)
 
   if (isDev) {

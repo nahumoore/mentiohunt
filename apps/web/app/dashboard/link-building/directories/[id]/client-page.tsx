@@ -14,6 +14,7 @@ import { StatusCallout } from "@/components/directories/status-callout"
 import { SubmissionCostBadge } from "@/components/directories/submission-cost-badge"
 import { SubmitAssistSheet } from "@/components/directories/submit-assist-sheet"
 import { TimelineCard } from "@/components/directories/timeline-card"
+import { captureEvent } from "@/lib/analytics"
 import { supabaseClient } from "@/lib/supabase/client"
 import {
   useDirectorySubmissionStore,
@@ -43,6 +44,13 @@ export function DirectoryDetailClientPage({
 
   useEffect(() => {
     upsertSubmissionDetail(initialSubmission)
+    captureEvent("directory_detail_viewed", {
+      submission_id: initialSubmission.id,
+      domain: initialSubmission.domain,
+      status: initialSubmission.status,
+      is_free: initialSubmission.directory?.is_free ?? null,
+      domain_rating: initialSubmission.directory?.domain_rating ?? null,
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialSubmission.id])
 
@@ -54,6 +62,7 @@ export function DirectoryDetailClientPage({
     setIsUpdating(true)
     setUpdateError(null)
 
+    const fromStatus = submission.status
     const supabase = supabaseClient()
 
     try {
@@ -66,6 +75,13 @@ export function DirectoryDetailClientPage({
         setUpdateError(error.message)
         return
       }
+
+      captureEvent("directory_status_updated", {
+        submission_id: submission.id,
+        domain: submission.domain,
+        from_status: fromStatus,
+        new_status: status,
+      })
 
       updateSubmissionStatuses(
         [submission.id],
@@ -82,6 +98,10 @@ export function DirectoryDetailClientPage({
 
   async function handleAssistSubmit() {
     await updateStatus("submitted", { submitted_at: new Date().toISOString() })
+    captureEvent("directory_marked_submitted", {
+      submission_id: submission.id,
+      domain: submission.domain,
+    })
     setAssistOpen(false)
   }
 
@@ -124,6 +144,12 @@ export function DirectoryDetailClientPage({
               rel="noopener noreferrer"
               className="mt-0.5 shrink-0 text-muted-foreground/60 transition-colors hover:text-muted-foreground"
               title={`Open ${submission.domain}`}
+              onClick={() =>
+                captureEvent("directory_external_link_clicked", {
+                  submission_id: submission.id,
+                  domain: submission.domain,
+                })
+              }
             >
               <IconExternalLink className="size-4" />
             </a>
@@ -176,12 +202,26 @@ export function DirectoryDetailClientPage({
             directoryDomain={submission.domain}
             productName={product.productName}
             websiteUrl={product.websiteUrl}
+            onClick={() =>
+              captureEvent("directory_check_listing_clicked", {
+                submission_id: submission.id,
+                domain: submission.domain,
+              })
+            }
           />
 
           {!isSubmitted && !isIndexed && !isDismissed && (
             <SubmitAssistSheet
               open={assistOpen}
-              onOpenChange={setAssistOpen}
+              onOpenChange={(v) => {
+                setAssistOpen(v)
+                if (v) {
+                  captureEvent("directory_submit_assist_opened", {
+                    submission_id: submission.id,
+                    domain: submission.domain,
+                  })
+                }
+              }}
               directoryName={directoryName}
               submitUrl={submission.submit_url ?? submission.directory?.submit_url}
               productName={product.productName}
@@ -202,7 +242,13 @@ export function DirectoryDetailClientPage({
               size="sm"
               variant="outline"
               disabled={isUpdating}
-              onClick={() => void updateStatus("not_submitted")}
+              onClick={() => {
+                captureEvent("directory_undo_submission", {
+                  submission_id: submission.id,
+                  domain: submission.domain,
+                })
+                void updateStatus("not_submitted")
+              }}
             >
               {isUpdating && <IconLoader2 className="size-4 animate-spin" />}
               Undo submission
@@ -215,7 +261,13 @@ export function DirectoryDetailClientPage({
               variant="ghost"
               className="text-muted-foreground"
               disabled={isUpdating}
-              onClick={() => void updateStatus("dismissed")}
+              onClick={() => {
+                captureEvent("directory_dismissed", {
+                  submission_id: submission.id,
+                  domain: submission.domain,
+                })
+                void updateStatus("dismissed")
+              }}
             >
               Dismiss
             </Button>
@@ -226,7 +278,13 @@ export function DirectoryDetailClientPage({
               size="sm"
               variant="outline"
               disabled={isUpdating}
-              onClick={() => void updateStatus("not_submitted")}
+              onClick={() => {
+                captureEvent("directory_restored", {
+                  submission_id: submission.id,
+                  domain: submission.domain,
+                })
+                void updateStatus("not_submitted")
+              }}
             >
               Restore
             </Button>

@@ -3,6 +3,7 @@ export const FREE_TOOLS_DAILY_LIMIT = 10
 export const FREE_TOOL_NAMES = {
   directoryOpportunityFinder: "directory-opportunity-finder",
   directoryBacklinkOpportunityFinder: "directory-backlink-opportunity-finder",
+  backlinkPriceCalculator: "backlink-price-calculator",
 } as const
 
 export type FreeToolName =

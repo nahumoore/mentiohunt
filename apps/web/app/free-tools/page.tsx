@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import {
   IconArrowRight,
   IconBolt,
+  IconCalculator,
   IconChecklist,
   IconFolderSearch,
   IconLink,
@@ -53,6 +54,16 @@ const tools = [
     icon: IconLink,
     href: "/free-tools/directory-backlink-opportunity-finder",
     steps: ["Product URL", "Directory gaps", "Apply next"],
+  },
+  {
+    name: "Backlink Price Calculator",
+    eyebrow: "Site authority to price",
+    status: "Free",
+    description:
+      "Enter any website URL to pull live Ahrefs authority metrics and estimate a fair market price for a backlink, adjusted for link type, placement, and content format.",
+    icon: IconCalculator,
+    href: "/free-tools/backlink-price-calculator",
+    steps: ["Paste site URL", "Pull metrics", "Get price range"],
   },
 ]
 

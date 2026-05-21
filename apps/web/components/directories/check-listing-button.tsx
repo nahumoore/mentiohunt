@@ -24,10 +24,12 @@ export function CheckListingButton({
   directoryDomain,
   productName,
   websiteUrl,
+  onClick,
 }: {
   directoryDomain: string
   productName: string | null
   websiteUrl: string | null
+  onClick?: () => void
 }) {
   return (
     <Button asChild variant="outline" size="sm">
@@ -35,6 +37,7 @@ export function CheckListingButton({
         href={buildGoogleQuery(directoryDomain, productName, websiteUrl)}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={onClick}
       >
         <IconSearch className="size-3.5" />
         Check listing

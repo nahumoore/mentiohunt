@@ -11,6 +11,8 @@ import {
 } from "@workspace/ui/components/dialog"
 import { useState } from "react"
 
+import { captureEvent } from "@/lib/analytics"
+
 export function ReportDialog({ directoryDomain }: { directoryDomain: string }) {
   const [open, setOpen] = useState(false)
   const [text, setText] = useState("")
@@ -45,7 +47,9 @@ export function ReportDialog({ directoryDomain }: { directoryDomain: string }) {
 
   function handleOpenChange(v: boolean) {
     setOpen(v)
-    if (!v) {
+    if (v) {
+      captureEvent("directory_report_opened", { domain: directoryDomain })
+    } else {
       setTimeout(() => {
         setText("")
         setSubmitted(false)

@@ -41,7 +41,7 @@ function FooterSocialProof() {
       <a
         href="https://fazier.com/launches/mentiohunt.com"
         target="_blank"
-        rel="noopener noreferrer"
+        rel="noopener noreferrer nofollow"
         aria-label="Mentiohunt launch badge on Fazier"
         className="inline-flex rounded-lg transition-opacity hover:opacity-85"
       >

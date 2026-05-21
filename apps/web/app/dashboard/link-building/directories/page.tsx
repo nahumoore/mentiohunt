@@ -36,6 +36,7 @@ import type { ElementType } from "react"
 import { useEffect, useMemo, useState } from "react"
 
 import { getDomainRatingColorScheme } from "@/components/backlink-opportunities/utils"
+import { captureEvent } from "@/lib/analytics"
 import { supabaseClient } from "@/lib/supabase/client"
 import { useDirectorySubmissionStore } from "@/stores/directory-submission-store"
 import {
@@ -289,8 +290,25 @@ export default function DirectoriesPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
 
   useEffect(() => {
-    // reset selection when filter changes
+    if (submissions.length > 0) {
+      captureEvent("directories_page_viewed", {
+        total_count: submissions.length,
+        not_submitted_count: submissions.filter((s) => s.status === "not_submitted").length,
+        submitted_count: submissions.filter((s) => s.status === "submitted").length,
+        indexed_count: submissions.filter((s) => s.status === "indexed").length,
+        not_indexed_count: submissions.filter((s) => s.status === "not_indexed").length,
+        dismissed_count: submissions.filter((s) => s.status === "dismissed").length,
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submissions.length > 0])
+
+  useEffect(() => {
     setSelectedIds(new Set())
+    captureEvent("directories_filter_changed", {
+      filter_value: statusFilter,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter])
 
   const statusCounts = useMemo(() => {
@@ -311,6 +329,17 @@ export default function DirectoriesPage() {
       return s.domain.toLowerCase().includes(query)
     })
   }, [submissions, searchQuery, statusFilter])
+
+  useEffect(() => {
+    if (!searchQuery.trim()) return
+    const timer = setTimeout(() => {
+      captureEvent("directories_search_used", {
+        query_length: searchQuery.trim().length,
+        result_count: filtered.length,
+      })
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [searchQuery, filtered.length])
 
   const sorted = useMemo(() => {
     const next = [...filtered]
@@ -340,12 +369,21 @@ export default function DirectoriesPage() {
   }, [filtered, sortDirection, sortKey])
 
   function toggleSort(nextKey: SortKey) {
+    const nextDirection =
+      sortKey === nextKey
+        ? sortDirection === "asc"
+          ? "desc"
+          : "asc"
+        : nextKey === "domain" || nextKey === "status"
+          ? "asc"
+          : "desc"
+    captureEvent("directories_sorted", { sort_key: nextKey, sort_direction: nextDirection })
     if (sortKey === nextKey) {
       setSortDirection((d) => (d === "asc" ? "desc" : "asc"))
       return
     }
     setSortKey(nextKey)
-    setSortDirection(nextKey === "domain" || nextKey === "status" ? "asc" : "desc")
+    setSortDirection(nextDirection)
   }
 
   const filteredIds = useMemo(() => sorted.map((s) => s.id), [sorted])
@@ -375,6 +413,12 @@ export default function DirectoriesPage() {
 
   function toggleVisibleSelection() {
     setBulkError(null)
+    if (!allVisibleSelected) {
+      captureEvent("directories_bulk_selected", {
+        count: filteredIds.length,
+        status_filter: statusFilter,
+      })
+    }
     setSelectedIds((cur) => {
       const next = new Set(cur)
       if (allVisibleSelected) {
@@ -415,9 +459,21 @@ export default function DirectoriesPage() {
       const updatedIds = (data ?? []).map((s) => s.id)
 
       if (updatedIds.length === 0) {
+        captureEvent("directories_bulk_status_updated", {
+          new_status: status,
+          count: 0,
+          success: false,
+        })
         setBulkError("No rows updated. Please refresh and try again.")
         return
       }
+
+      captureEvent("directories_bulk_status_updated", {
+        new_status: status,
+        count: updatedIds.length,
+        success: true,
+        partial: updatedIds.length !== ids.length,
+      })
 
       updateSubmissionStatuses(updatedIds, status, extra.submitted_at ? { submitted_at: extra.submitted_at } : undefined)
       setSelectedIds((cur) => {
@@ -659,11 +715,17 @@ export default function DirectoriesPage() {
                     return (
                       <tr
                         key={submission.id}
-                        onClick={() =>
+                        onClick={() => {
+                          captureEvent("directories_row_clicked", {
+                            submission_id: submission.id,
+                            status: submission.status,
+                            domain_rating: submission.directory?.domain_rating ?? null,
+                            is_free: submission.directory?.is_free ?? null,
+                          })
                           router.push(
                             `/dashboard/link-building/directories/${submission.id}`
                           )
-                        }
+                        }}
                         className={cn(
                           "cursor-pointer border-b border-border/40 transition-colors last:border-0 hover:bg-muted/40",
                           selectedIds.has(submission.id) && "bg-orange/8 hover:bg-orange/12"

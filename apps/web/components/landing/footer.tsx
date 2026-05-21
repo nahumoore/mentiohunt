@@ -7,7 +7,10 @@ import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
 const productLinks = [
   { href: "/#how-it-works", label: "How it Works" },
   { href: "/features", label: "Features" },
-  ...features.map((f) => ({ href: `/features/${f.slug}`, label: f.shortTitle })),
+  ...features.map((f) => ({
+    href: `/features/${f.slug}`,
+    label: f.shortTitle,
+  })),
   { href: "/#target-personas", label: "Who It's For" },
   { href: "/#pricing", label: "Pricing" },
 ]
@@ -38,7 +41,7 @@ function FooterSocialProof() {
       <a
         href="https://fazier.com/launches/mentiohunt.com"
         target="_blank"
-        rel="nofollow noopener noreferrer"
+        rel="noopener noreferrer"
         aria-label="Mentiohunt launch badge on Fazier"
         className="inline-flex rounded-lg transition-opacity hover:opacity-85"
       >
@@ -47,20 +50,6 @@ function FooterSocialProof() {
           src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=neutral"
           width={120}
           alt="Fazier badge"
-        />
-      </a>
-      <a
-        href="https://www.aidirectori.es/ai-tools/mentiohunt"
-        target="_blank"
-        rel="nofollow noopener noreferrer"
-        aria-label="Mentiohunt badge on AI Directories"
-        className="inline-flex rounded-lg transition-opacity hover:opacity-85"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://cdn.aidirectori.es/ai-tools/badges/light-mode.png"
-          alt="AI Directories Badge"
-          className="h-auto w-[120px]"
         />
       </a>
     </div>
@@ -80,13 +69,13 @@ export function Footer() {
         }}
       />
 
-      <div className="container relative mx-auto px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+      <div className="relative container mx-auto px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
         <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/20 bg-[linear-gradient(135deg,var(--color-background)_0%,color-mix(in_oklab,var(--color-background)_74%,var(--color-amber-glow)_26%)_100%)] shadow-[0_32px_100px_-40px_rgba(255,133,0,0.36)]">
           <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/70 to-transparent" />
-          <div className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full bg-[var(--color-princeton-orange)]/12 blur-3xl" />
+          <div className="pointer-events-none absolute -top-24 -right-12 h-72 w-72 rounded-full bg-[var(--color-princeton-orange)]/12 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 left-16 h-56 w-56 rounded-full bg-[var(--color-blaze-orange)]/10 blur-3xl" />
 
-          <div className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 select-none font-heading text-[10rem] font-bold leading-none tracking-[-0.06em] text-[var(--color-amber-glow)]/[0.07] lg:right-14 lg:text-[14rem]">
+          <div className="pointer-events-none absolute top-1/2 right-6 -translate-y-1/2 font-heading text-[10rem] leading-none font-bold tracking-[-0.06em] text-[var(--color-amber-glow)]/[0.07] select-none lg:right-14 lg:text-[14rem]">
             Q
           </div>
 
@@ -172,7 +161,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+            <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground/60 uppercase">
               Product
             </p>
             <ul className="space-y-2">
@@ -190,7 +179,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+            <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground/60 uppercase">
               Resources
             </p>
             <ul className="space-y-2">
@@ -208,7 +197,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+            <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground/60 uppercase">
               Legal
             </p>
             <ul className="space-y-2">

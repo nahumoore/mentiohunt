@@ -16,6 +16,8 @@ export type ProspectListItem = Pick<
   | "action_type"
   | "status"
   | "discovered_at"
+  | "contact_email"
+  | "contact_name"
 >
 
 export type ProspectDetail = Omit<ProspectListItem, never> &
@@ -51,6 +53,8 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
     action_type: prospect.action_type,
     status: prospect.status,
     discovered_at: prospect.discovered_at,
+    contact_email: prospect.contact_email,
+    contact_name: prospect.contact_name,
   }
 }
 

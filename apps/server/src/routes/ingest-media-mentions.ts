@@ -2,24 +2,26 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import { Router, type IRouter } from "express"
 import { timingSafeEqual } from "node:crypto"
 import { createLogger } from "../helpers/logger.js"
+import { processMediaMentions } from "../methods/media-mentions/process-media-mentions.js"
 
 const log = createLogger("route-ingest-media-mentions")
 
 export const ingestMediaMentionsRouter: IRouter = Router()
 
-const VALID_SOURCES = ["email_inbox", "twitter", "bluesky"] as const
+const VALID_SOURCES = ["journofinder", "bluesky", "qwoted", "featured", "email", "unknown"] as const
 type MediaMentionSource = (typeof VALID_SOURCES)[number]
 
 interface MediaMentionPayload {
   source: MediaMentionSource
-  source_ref: string
   url?: string | null
   author_name?: string | null
   author_handle?: string | null
   contact_email?: string | null
   publication_domain?: string | null
   topic_summary?: string | null
-  metadata?: Record<string, unknown> | null
+  deadline?: string | null
+  raw_text?: string | null
+  raw_body?: string | null
 }
 
 function verifyApiKey(provided: string | undefined, expected: string): boolean {
@@ -41,11 +43,7 @@ function isValidSource(value: unknown): value is MediaMentionSource {
 function validateMention(item: unknown): item is MediaMentionPayload {
   if (!item || typeof item !== "object") return false
   const m = item as Record<string, unknown>
-  return (
-    isValidSource(m.source) &&
-    typeof m.source_ref === "string" &&
-    m.source_ref.trim().length > 0
-  )
+  return isValidSource(m.source)
 }
 
 ingestMediaMentionsRouter.post("/hermes/media-mentions", async (req, res) => {
@@ -83,21 +81,26 @@ ingestMediaMentionsRouter.post("/hermes/media-mentions", async (req, res) => {
     return
   }
 
+  const processedAt = new Date().toISOString()
+
   const rows = valid.map((m) => ({
     source: m.source,
-    source_ref: m.source_ref.trim(),
     url: m.url ?? null,
     author_name: m.author_name ?? null,
     author_handle: m.author_handle ?? null,
     contact_email: m.contact_email ?? null,
     publication_domain: m.publication_domain ?? null,
     topic_summary: m.topic_summary ?? null,
-    metadata: m.metadata ?? null,
+    deadline: m.deadline ?? null,
+    raw_text: m.raw_text ?? null,
+    raw_body: m.raw_body ?? null,
+    processed_at: processedAt,
   }))
 
-  const { error } = await supabaseAdmin
+  const { data: inserted, error } = await supabaseAdmin
     .from("media_mentions")
-    .upsert(rows, { onConflict: "source,source_ref", ignoreDuplicates: true })
+    .upsert(rows, { onConflict: "url", ignoreDuplicates: true })
+    .select("id, source")
 
   if (error) {
     log.error("failed to insert media mentions", { error: error.message })
@@ -113,4 +116,14 @@ ingestMediaMentionsRouter.post("/hermes/media-mentions", async (req, res) => {
   })
 
   res.json({ inserted: valid.length, skipped: invalid.length, invalid })
+
+  const emailIds = (inserted ?? [])
+    .filter((r) => r.source === "email")
+    .map((r) => r.id)
+
+  if (emailIds.length > 0) {
+    processMediaMentions(emailIds).catch((err) => {
+      log.error("process media mentions failed", { error: String(err) })
+    })
+  }
 })

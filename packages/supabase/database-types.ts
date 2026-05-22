@@ -72,6 +72,7 @@ export type Database = {
           id: string
           notes: string | null
           product_id: string
+          source_media_mention_id: string | null
           status: Database["public"]["Enums"]["prospect_status"]
           target_url: string
           tier: Database["public"]["Enums"]["prospect_tier"]
@@ -88,6 +89,7 @@ export type Database = {
           id?: string
           notes?: string | null
           product_id: string
+          source_media_mention_id?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url: string
           tier: Database["public"]["Enums"]["prospect_tier"]
@@ -104,6 +106,7 @@ export type Database = {
           id?: string
           notes?: string | null
           product_id?: string
+          source_media_mention_id?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string
           tier?: Database["public"]["Enums"]["prospect_tier"]
@@ -114,6 +117,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backlink_prospects_source_media_mention_id_fkey"
+            columns: ["source_media_mention_id"]
+            isOneToOne: false
+            referencedRelation: "media_mentions"
             referencedColumns: ["id"]
           },
         ]
@@ -251,11 +261,9 @@ export type Database = {
           contact_email: string | null
           created_at: string
           id: string
-          metadata: Json | null
           processed_at: string | null
           publication_domain: string | null
           source: Database["public"]["Enums"]["media_mention_source"]
-          source_ref: string
           topic_summary: string | null
           url: string | null
         }
@@ -265,11 +273,9 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           id?: string
-          metadata?: Json | null
           processed_at?: string | null
           publication_domain?: string | null
           source: Database["public"]["Enums"]["media_mention_source"]
-          source_ref: string
           topic_summary?: string | null
           url?: string | null
         }
@@ -279,11 +285,9 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           id?: string
-          metadata?: Json | null
           processed_at?: string | null
           publication_domain?: string | null
           source?: Database["public"]["Enums"]["media_mention_source"]
-          source_ref?: string
           topic_summary?: string | null
           url?: string | null
         }

@@ -207,7 +207,7 @@ export default async function DashboardLayout({
       supabase
         .from("backlink_prospects")
         .select(
-          "id, product_id, domain, target_url, tier, action_type, status, discovered_at"
+          "id, product_id, domain, target_url, tier, action_type, status, discovered_at, contact_email, contact_name"
         )
         .eq("product_id", product.id)
         .order("discovered_at", { ascending: false }),

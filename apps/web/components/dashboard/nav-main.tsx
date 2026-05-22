@@ -1,10 +1,12 @@
 "use client"
 
 import {
+  IconAdjustments,
   IconEye,
   IconLayoutGrid,
   IconMessage2Share,
   IconNetwork,
+  IconTarget,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -63,18 +65,18 @@ const FEATURES: FeatureModule[] = [
         url: `${linkBuildingHref}/directories`,
         icon: <IconLayoutGrid />,
       },
-      // {
-      //   title: "Opportunities",
-      //   url: `${linkBuildingHref}/opportunities`,
-      //   icon: <IconTarget />,
-      //   items: [
-      //     {
-      //       title: "Sources",
-      //       url: `${linkBuildingHref}/sources`,
-      //       icon: <IconAdjustments />,
-      //     },
-      //   ],
-      // },
+      {
+        title: "Opportunities",
+        url: `${linkBuildingHref}/opportunities`,
+        icon: <IconTarget />,
+        items: [
+          {
+            title: "Sources",
+            url: `${linkBuildingHref}/sources`,
+            icon: <IconAdjustments />,
+          },
+        ],
+      },
     ],
   },
   {

@@ -94,6 +94,9 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
 
   useEffect(() => {
     captureEvent("onboarding_started")
+    if (userName && !data.userName) {
+      updateData({ userName })
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -512,6 +515,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
         checklist={checklist}
         isSigningOut={isSigningOut}
         onUrlChange={(value) => updateField("websiteUrl", value)}
+        onNameChange={(value) => updateField("userName", value)}
         onSubmit={() => void startGeneration()}
         onSignOut={() => void handleSignOut()}
         onRetry={retryTask}

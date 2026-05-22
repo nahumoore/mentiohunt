@@ -1,12 +1,10 @@
 import {
-  IconLayoutGrid,
   IconLink,
   IconSwords,
 } from "@tabler/icons-react"
 import type { ElementType } from "react"
 
 export type OpportunityType =
-  | "directories"
   | "competitor_backlinks"
   | "unlinked_mentions"
 
@@ -18,13 +16,6 @@ export interface TypeConfig {
 }
 
 export const TYPE_CONFIG: Record<OpportunityType, TypeConfig> = {
-  directories: {
-    label: "Directory Listings",
-    description:
-      "Places where your product can be listed because it fits the category. These are usually easier to get, but each link is worth less.",
-    icon: IconLayoutGrid,
-    color: "text-teal-600 bg-teal-500/10",
-  },
   competitor_backlinks: {
     label: "Competitor Backlinks",
     description:

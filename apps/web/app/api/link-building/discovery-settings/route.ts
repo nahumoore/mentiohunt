@@ -22,7 +22,6 @@ const discoverySettingsSchema = z.object({
 })
 
 const opportunityTypeToProspectTier = {
-  directories: "directory",
   competitor_backlinks: "competitor_backlink",
   unlinked_mentions: "unlinked_mention",
 } satisfies Record<

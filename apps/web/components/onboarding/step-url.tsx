@@ -27,6 +27,7 @@ export function StepUrl({
   checklist,
   isSigningOut,
   onUrlChange,
+  onNameChange,
   onSubmit,
   onSignOut,
   onRetry,
@@ -40,6 +41,7 @@ export function StepUrl({
   checklist: ChecklistTask[]
   isSigningOut: boolean
   onUrlChange: (value: string) => void
+  onNameChange: (value: string) => void
   onSubmit: () => void
   onSignOut: () => void
   onRetry: (id: string) => void
@@ -48,7 +50,9 @@ export function StepUrl({
   const isGenerating =
     generatingPhase === "fetching-site" || generatingPhase === "generating"
   const hasError = generatingPhase === "error"
-  const firstName = userName?.split(" ")[0] ?? null
+  const showNameInput = !userName
+  const resolvedFirstName =
+    (userName ?? data.userName)?.split(" ")[0] ?? null
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center px-4">
@@ -83,7 +87,7 @@ export function StepUrl({
         </div>
 
         <h1 className="font-heading text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-          {firstName ? `Hi, ${firstName}` : ONBOARDING_STEPS[0]!.title}
+          {resolvedFirstName ? `Hi, ${resolvedFirstName}` : ONBOARDING_STEPS[0]!.title}
         </h1>
         <p className="mt-3 text-base leading-7 text-muted-foreground">
           {ONBOARDING_STEPS[0]!.description}
@@ -92,6 +96,22 @@ export function StepUrl({
         <div className="mt-8 space-y-4">
           {!isGenerating && !hasError && (
             <>
+              {showNameInput && (
+                <div className="space-y-2">
+                  <label className="text-[0.7rem] font-bold tracking-[0.24em] text-muted-foreground uppercase">
+                    What should we call you?
+                  </label>
+                  <Input
+                    placeholder="Your name"
+                    value={data.userName}
+                    onChange={(event) => onNameChange(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") onSubmit()
+                    }}
+                    className="h-14 text-base"
+                  />
+                </div>
+              )}
               <div className="space-y-2">
                 <label className="text-[0.7rem] font-bold tracking-[0.24em] text-muted-foreground uppercase">
                   Website URL

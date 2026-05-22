@@ -65,7 +65,6 @@ export type Database = {
           contact_email: string | null
           contact_name: string | null
           created_at: string
-          directory_id: string | null
           discovered_at: string
           domain: string
           email_body: string
@@ -82,7 +81,6 @@ export type Database = {
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string
-          directory_id?: string | null
           discovered_at?: string
           domain: string
           email_body?: string
@@ -99,7 +97,6 @@ export type Database = {
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string
-          directory_id?: string | null
           discovered_at?: string
           domain?: string
           email_body?: string
@@ -112,13 +109,6 @@ export type Database = {
           tier?: Database["public"]["Enums"]["prospect_tier"]
         }
         Relationships: [
-          {
-            foreignKeyName: "backlink_prospects_directory_id_fkey"
-            columns: ["directory_id"]
-            isOneToOne: false
-            referencedRelation: "directories"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "backlink_prospects_product_id_fkey"
             columns: ["product_id"]
@@ -253,6 +243,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      media_mentions: {
+        Row: {
+          author_handle: string | null
+          author_name: string | null
+          contact_email: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          processed_at: string | null
+          publication_domain: string | null
+          source: Database["public"]["Enums"]["media_mention_source"]
+          source_ref: string
+          topic_summary: string | null
+          url: string | null
+        }
+        Insert: {
+          author_handle?: string | null
+          author_name?: string | null
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          publication_domain?: string | null
+          source: Database["public"]["Enums"]["media_mention_source"]
+          source_ref: string
+          topic_summary?: string | null
+          url?: string | null
+        }
+        Update: {
+          author_handle?: string | null
+          author_name?: string | null
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          publication_domain?: string | null
+          source?: Database["public"]["Enums"]["media_mention_source"]
+          source_ref?: string
+          topic_summary?: string | null
+          url?: string | null
+        }
+        Relationships: []
       }
       product_backlink_discovery_settings: {
         Row: {
@@ -567,6 +602,7 @@ export type Database = {
         | "indexed"
         | "not_indexed"
         | "dismissed"
+      media_mention_source: "email_inbox" | "twitter" | "bluesky"
       prospect_action_type: "self_service" | "email_outreach"
       prospect_status:
         | "new"
@@ -575,7 +611,10 @@ export type Database = {
         | "replied"
         | "won"
         | "dismissed"
-      prospect_tier: "directory" | "competitor_backlink" | "unlinked_mention"
+      prospect_tier:
+        | "competitor_backlink"
+        | "unlinked_mention"
+        | "media_mention"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -712,6 +751,7 @@ export const Constants = {
         "not_indexed",
         "dismissed",
       ],
+      media_mention_source: ["email_inbox", "twitter", "bluesky"],
       prospect_action_type: ["self_service", "email_outreach"],
       prospect_status: [
         "new",
@@ -721,7 +761,11 @@ export const Constants = {
         "won",
         "dismissed",
       ],
-      prospect_tier: ["directory", "competitor_backlink", "unlinked_mention"],
+      prospect_tier: [
+        "competitor_backlink",
+        "unlinked_mention",
+        "media_mention",
+      ],
     },
   },
 } as const

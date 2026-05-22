@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import ws from "ws";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
@@ -10,13 +9,19 @@ if (!supabaseUrl || !supabaseSecretKey) {
   );
 }
 
+// Node.js <22 has no native WebSocket; load `ws` dynamically so Next.js
+// doesn't bundle it and browser type-checking stays clean.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const wsTransport: any =
+  typeof WebSocket === "undefined"
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require("ws")
+    : undefined;
+
 export const supabaseAdmin = createClient(supabaseUrl, supabaseSecretKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
   },
-  realtime: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    transport: ws as any,
-  },
+  ...(wsTransport ? { realtime: { transport: wsTransport } } : {}),
 });

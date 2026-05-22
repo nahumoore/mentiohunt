@@ -18,7 +18,6 @@ import { redirect } from "next/navigation"
 
 const DEFAULT_DISCOVERY_SETTINGS: DiscoverySettings = {
   opportunityTypes: [
-    "directories",
     "competitor_backlinks",
     "unlinked_mentions",
   ],

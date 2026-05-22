@@ -18,7 +18,6 @@ function buildValidationError(message: string, status = 400) {
 }
 
 const opportunityTypeToProspectTier = {
-  directories: "directory",
   competitor_backlinks: "competitor_backlink",
   unlinked_mentions: "unlinked_mention",
 } satisfies Record<
@@ -195,9 +194,14 @@ export async function POST(request: Request) {
     return buildValidationError("Failed to complete onboarding.", 500)
   }
 
+  const profileUpdate: TablesUpdate<"profiles"> = {
+    onboarding_completed: true,
+    ...(parsedRequest.data.userName ? { name: parsedRequest.data.userName } : {}),
+  }
+
   const { error: updateProfileError } = await supabase
     .from("profiles")
-    .update({ onboarding_completed: true })
+    .update(profileUpdate)
     .eq("id", user.id)
 
   if (updateProfileError) {

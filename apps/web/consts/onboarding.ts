@@ -20,17 +20,11 @@ export const ONBOARDING_STEPS = [
 ] as const
 
 export const OPPORTUNITY_TYPE_IDS = [
-  "directories",
   "competitor_backlinks",
   "unlinked_mentions",
 ] as const
 
 export const OPPORTUNITY_TYPES = [
-  {
-    id: "directories",
-    label: "Directory listings",
-    description: "Submit your product to curated niche directories.",
-  },
   {
     id: "competitor_backlinks",
     label: "Competitor backlinks",
@@ -45,7 +39,6 @@ export const OPPORTUNITY_TYPES = [
 ] as const
 
 export const DEFAULT_OPPORTUNITY_TYPES = [
-  "directories",
   "competitor_backlinks",
   "unlinked_mentions",
 ] satisfies OpportunityTypeId[]
@@ -70,6 +63,7 @@ export type OnboardingData = {
   monitoringKeywords: string[]
   monitoringCommunities: MonitoringCommunity[]
   emailAlertsEnabled: boolean
+  userName: string
 }
 
 export type OnboardingField = keyof OnboardingData
@@ -85,6 +79,7 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   monitoringKeywords: [],
   monitoringCommunities: [],
   emailAlertsEnabled: true,
+  userName: "",
 }
 
 const URL_PROTOCOL_PATTERN = /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//
@@ -173,8 +168,13 @@ export const opportunityTypesStepSchema = z.object({
     .min(1, "Select at least one opportunity type."),
 })
 
+export const userNameStepSchema = z.object({
+  userName: z.string().trim().max(80).optional().default(""),
+})
+
 export const onboardingSchema = websiteUrlStepSchema
   .merge(productDescriptionStepSchema)
   .merge(competitorsStepSchema)
   .merge(opportunityTypesStepSchema)
   .merge(monitoringStepSchema)
+  .merge(userNameStepSchema)

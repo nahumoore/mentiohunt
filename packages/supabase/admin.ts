@@ -16,6 +16,7 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseSecretKey, {
     persistSession: false,
   },
   realtime: {
-    transport: ws,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    transport: ws as any,
   },
 });

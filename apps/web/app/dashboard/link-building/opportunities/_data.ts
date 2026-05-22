@@ -5,6 +5,7 @@ import {
   IconLink,
   IconMailForward,
   IconMessage,
+  IconNews,
   IconSend,
   IconSparkles,
   IconSwords,
@@ -50,13 +51,6 @@ export const ALL_FILTER_CONFIG = {
 }
 
 export const TYPE_CONFIG: Record<ProspectTier, TierConfig> = {
-  // directory removed from prospect_tier enum — stub kept until types are regenerated
-  directory: {
-    label: "Directory",
-    description: "",
-    icon: IconClipboardCheck,
-    color: "text-teal-600 bg-teal-500/10",
-  },
   competitor_backlink: {
     label: "Competitor backlink",
     description:
@@ -70,6 +64,13 @@ export const TYPE_CONFIG: Record<ProspectTier, TierConfig> = {
       "A page that mentions your product or brand context but has not linked yet.",
     icon: IconLink,
     color: "text-violet-600 bg-violet-500/10",
+  },
+  media_mention: {
+    label: "Media mention",
+    description:
+      "A press or media reference to your product that surfaced via inbox or social monitoring.",
+    icon: IconNews,
+    color: "text-sky-600 bg-sky-500/10",
   },
 }
 

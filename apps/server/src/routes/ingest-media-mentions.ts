@@ -101,7 +101,9 @@ ingestMediaMentionsRouter.post("/hermes/media-mentions", async (req, res) => {
 
   if (error) {
     log.error("failed to insert media mentions", { error: error.message })
-    res.status(500).json({ error: "failed to store mentions" })
+    res
+      .status(500)
+      .json({ error: "failed to store mentions", message: error.message })
     return
   }
 

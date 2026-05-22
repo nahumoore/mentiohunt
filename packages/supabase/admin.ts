@@ -9,19 +9,9 @@ if (!supabaseUrl || !supabaseSecretKey) {
   );
 }
 
-// Node.js <22 has no native WebSocket; load `ws` dynamically so Next.js
-// doesn't bundle it and browser type-checking stays clean.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const wsTransport: any =
-  typeof WebSocket === "undefined"
-    ? // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("ws")
-    : undefined;
-
 export const supabaseAdmin = createClient(supabaseUrl, supabaseSecretKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
   },
-  ...(wsTransport ? { realtime: { transport: wsTransport } } : {}),
 });

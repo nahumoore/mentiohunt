@@ -704,21 +704,6 @@ export default function CommunityDiscoverySetupPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="border-b border-border/70 pb-5">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <h1 className="font-heading text-3xl font-semibold tracking-[-0.035em] text-foreground sm:text-4xl">
-              Watchlist
-            </h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-              Configure which platforms and keywords feed your community reply
-              queue. Start broad, then tighten keywords to improve match
-              quality.
-            </p>
-          </div>
-        </div>
-      </div>
-
       <Tabs defaultValue="platforms" className="gap-4">
         <TabsList>
           <TabsTrigger value="platforms">

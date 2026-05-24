@@ -2,26 +2,31 @@ import { z } from "zod"
 
 export const ONBOARDING_STEPS = [
   {
-    title: "Your website",
-    description: "Enter your URL and we'll configure both queues automatically.",
+    title: "Welcome to Mentiohunt",
+    description:
+      "Enter your URL and we'll help you discover opportunities for your product.",
   },
   {
     title: "Your product",
-    description: "Review your product profile and the competitors we found. Edit anything that looks off.",
+    description:
+      "Review your product profile and the competitors we found. Edit anything that looks off.",
   },
   {
     title: "Where to listen",
-    description: "Review the keywords and communities we'll monitor for relevant posts.",
+    description:
+      "Review the keywords and communities we'll monitor for relevant posts.",
   },
   {
     title: "Launch",
-    description: "Backlink discovery and community monitoring will both activate immediately.",
+    description:
+      "Backlink discovery and community monitoring will both activate immediately.",
   },
 ] as const
 
 export const OPPORTUNITY_TYPE_IDS = [
   "competitor_backlinks",
   "unlinked_mentions",
+  "media_mentions",
 ] as const
 
 export const OPPORTUNITY_TYPES = [
@@ -34,13 +39,15 @@ export const OPPORTUNITY_TYPES = [
   {
     id: "unlinked_mentions",
     label: "Unlinked mentions",
-    description: "Find pages that mention your product but forgot to link to you.",
+    description:
+      "Find pages that mention your product but forgot to link to you.",
   },
 ] as const
 
 export const DEFAULT_OPPORTUNITY_TYPES = [
   "competitor_backlinks",
   "unlinked_mentions",
+  "media_mentions",
 ] satisfies OpportunityTypeId[]
 
 export const DEFAULT_MONITORING_PLATFORMS = ["reddit", "bluesky"] as const
@@ -144,7 +151,12 @@ const monitoringCommunitySchema = z.object({
     .trim()
     .min(1, "Add at least one community.")
     .max(80, "Keep community names under 80 characters.")
-    .transform((value) => value.replace(/^\/?r\//i, "").replace(/^\/+/, "").trim()),
+    .transform((value) =>
+      value
+        .replace(/^\/?r\//i, "")
+        .replace(/^\/+/, "")
+        .trim()
+    ),
 })
 
 export const monitoringStepSchema = z.object({

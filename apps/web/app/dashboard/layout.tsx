@@ -58,6 +58,7 @@ function mapDiscoverySettings(
   return {
     opportunityTypes: settings.opportunity_types.map((type) => {
       if (type === "competitor_backlink") return "competitor_backlinks"
+      if (type === "media_mention") return "media_mentions"
       return "unlinked_mentions"
     }),
     drMin: settings.dr_min,
@@ -207,7 +208,7 @@ export default async function DashboardLayout({
       supabase
         .from("backlink_prospects")
         .select(
-          "id, product_id, domain, target_url, tier, action_type, status, discovered_at, contact_email, contact_name"
+          "id, product_id, domain, target_url, tier, action_type, status, discovered_at, contact_email, contact_name, notes"
         )
         .eq("product_id", product.id)
         .order("discovered_at", { ascending: false }),

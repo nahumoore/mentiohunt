@@ -23,7 +23,7 @@ const audienceSchema = z.object({
       })
     )
     .min(3)
-    .max(8),
+    .max(10),
 })
 
 const systemInstructions = [
@@ -35,7 +35,7 @@ const systemInstructions = [
   "- monitoringKeywords must contain 4 to 10 short-tail phrases, each exactly 3 to 4 words long, that people use when asking for tools, alternatives, recommendations, or help with this problem.",
   "- Prefer broad phrasing over specific product names so the phrases match more posts (e.g. 'best backlink tool' not 'best backlink tool for SaaS startups').",
   "- Do not include brand names or competitor names in keywords.",
-  "- monitoringCommunities must contain 3 to 8 real subreddit names without the r/ prefix.",
+  "- monitoringCommunities must contain 8 to 10 real subreddit names without the r/ prefix.",
   "- Pick communities where founders, marketers, operators, or the likely buyers discuss this problem.",
 ].join("\n")
 
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
           .filter((c) => c.community)
           .map((c) => [c.community.toLowerCase(), c] as const)
       ).values()
-    ).slice(0, 8)
+    ).slice(0, 10)
 
     if (monitoringKeywords.length < 4 || monitoringCommunities.length < 3) {
       return NextResponse.json(

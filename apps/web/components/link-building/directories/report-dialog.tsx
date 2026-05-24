@@ -1,6 +1,11 @@
 "use client"
 
-import { IconCircleCheck, IconFlag, IconLoader2, IconSend } from "@tabler/icons-react"
+import {
+  IconCircleCheck,
+  IconFlag,
+  IconLoader2,
+  IconSend,
+} from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -26,7 +31,7 @@ export function ReportDialog({ directoryDomain }: { directoryDomain: string }) {
     setError(null)
 
     try {
-      const res = await fetch("/api/directories/flag", {
+      const res = await fetch("/api/link-building/directories/flag", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ directoryDomain, message: text }),
@@ -75,8 +80,8 @@ export function ReportDialog({ directoryDomain }: { directoryDomain: string }) {
         <DialogTitle>Report incorrect info</DialogTitle>
         <DialogDescription>
           Flag anything wrong about{" "}
-          <strong className="text-foreground">{directoryDomain}</strong> — wrong pricing, no longer
-          active, broken submit URL, etc.
+          <strong className="text-foreground">{directoryDomain}</strong> — wrong
+          pricing, no longer active, broken submit URL, etc.
         </DialogDescription>
 
         {submitted ? (
@@ -92,7 +97,7 @@ export function ReportDialog({ directoryDomain }: { directoryDomain: string }) {
         ) : (
           <div className="flex flex-col gap-4 pt-1">
             <textarea
-              className="min-h-[96px] w-full resize-none rounded-lg border bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="min-h-[96px] w-full resize-none rounded-lg border bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
               placeholder="What's wrong? e.g. 'No longer free', 'Submit URL is dead', 'Directory is inactive'"
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -102,7 +107,11 @@ export function ReportDialog({ directoryDomain }: { directoryDomain: string }) {
               <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button size="sm" disabled={!text.trim() || loading} onClick={() => void handleSubmit()}>
+              <Button
+                size="sm"
+                disabled={!text.trim() || loading}
+                onClick={() => void handleSubmit()}
+              >
                 {loading ? (
                   <IconLoader2 className="size-3.5 animate-spin" />
                 ) : (

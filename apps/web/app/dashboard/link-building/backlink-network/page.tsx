@@ -4,7 +4,6 @@ import {
   IconCheck,
   IconLoader2,
   IconMail,
-  IconNetwork,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -75,19 +74,6 @@ export default function BacklinkNetworkPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="border-b border-border/70 pb-5">
-        <div className="max-w-2xl">
-          <h1 className="flex items-center font-heading text-3xl font-semibold tracking-[-0.035em] text-foreground sm:text-4xl">
-            <IconNetwork className="mr-2 size-8" />
-            Backlink Network
-          </h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-            A private opt-in list for founders open to direct backlink
-            collaboration. Coming soon — reserve your spot now.
-          </p>
-        </div>
-      </div>
-
       {isJoined ? (
         <JoinedState email={membership.contactEmail} />
       ) : (

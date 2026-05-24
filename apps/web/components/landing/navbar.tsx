@@ -26,7 +26,7 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
               <IconBrandMentiohunt className="h-6 w-6 rotate-12 text-primary drop-shadow-[0_4px_12px_rgba(255,96,0,0.24)]" />
               <span className="font-heading text-base font-semibold tracking-tight">
                 <span className="text-foreground">Mentio</span>
-                <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
+                <span className="text-blaze-orange">
                   hunt
                 </span>
               </span>

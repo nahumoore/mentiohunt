@@ -113,8 +113,12 @@ Return ALL mentions with their scores and a one-sentence reason.`
       },
     })
 
-    const parsed = JSON.parse(text) as {
-      results: { id: string; fit_score: number; reason: string }[]
+    let parsed: { results: { id: string; fit_score: number; reason: string }[] }
+    try {
+      parsed = JSON.parse(text) as typeof parsed
+    } catch (parseErr) {
+      log.warn("score batch json parse failed", { error: String(parseErr), rawText: text })
+      return { results: [], cost }
     }
 
     const scored: MentionFitResult[] = parsed.results.map((r) => ({

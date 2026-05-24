@@ -56,16 +56,6 @@ const FEATURES: FeatureModule[] = [
     baseHref: linkBuildingHref,
     pages: [
       {
-        title: "Backlink Network",
-        url: `${linkBuildingHref}/backlink-network`,
-        icon: <IconNetwork />,
-      },
-      {
-        title: "Directories",
-        url: `${linkBuildingHref}/directories`,
-        icon: <IconLayoutGrid />,
-      },
-      {
         title: "Opportunities",
         url: `${linkBuildingHref}/opportunities`,
         icon: <IconTarget />,
@@ -76,6 +66,16 @@ const FEATURES: FeatureModule[] = [
             icon: <IconAdjustments />,
           },
         ],
+      },
+      {
+        title: "Backlink Network",
+        url: `${linkBuildingHref}/backlink-network`,
+        icon: <IconNetwork />,
+      },
+      {
+        title: "Directories",
+        url: `${linkBuildingHref}/directories`,
+        icon: <IconLayoutGrid />,
       },
     ],
   },

@@ -1,5 +1,6 @@
 import {
   IconLink,
+  IconNews,
   IconSwords,
 } from "@tabler/icons-react"
 import type { ElementType } from "react"
@@ -7,6 +8,7 @@ import type { ElementType } from "react"
 export type OpportunityType =
   | "competitor_backlinks"
   | "unlinked_mentions"
+  | "media_mentions"
 
 export interface TypeConfig {
   label: string
@@ -29,5 +31,12 @@ export const TYPE_CONFIG: Record<OpportunityType, TypeConfig> = {
       "Pages that already mention your product but do not link to it yet. This is often the best tradeoff because the site already knows you.",
     icon: IconLink,
     color: "text-violet-600 bg-violet-500/10",
+  },
+  media_mentions: {
+    label: "Media Mentions",
+    description:
+      "Journalist and PR requests from platforms like JournoFinder, Qwoted, and Featured. Respond to get cited in published articles.",
+    icon: IconNews,
+    color: "text-blue-600 bg-blue-500/10",
   },
 }

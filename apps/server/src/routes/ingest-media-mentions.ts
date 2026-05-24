@@ -91,7 +91,7 @@ ingestMediaMentionsRouter.post("/hermes/media-mentions", async (req, res) => {
     contact_email: m.contact_email ?? null,
     publication_domain: m.publication_domain ?? null,
     topic_summary: m.topic_summary ?? null,
-    deadline: m.deadline ?? null,
+    deadline: m.deadline ?? new Date().toISOString().split("T")[0],
     raw_text: m.raw_text ?? null,
     raw_body: m.raw_body ?? null,
     processed_at: processedAt,

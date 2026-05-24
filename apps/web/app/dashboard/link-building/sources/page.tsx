@@ -9,11 +9,11 @@ import {
 } from "@workspace/ui/components/tabs"
 import { useEffect, useMemo, useState } from "react"
 
-import { BacklinkTypesSection } from "@/components/backlink-opportunities/discovery-setup/backlink-types-section"
-import { CompetitorsSection } from "@/components/backlink-opportunities/discovery-setup/competitors-section"
-import { SeoMetricsSection } from "@/components/backlink-opportunities/discovery-setup/seo-metrics-section"
-import { SettingsSaveFooter } from "@/components/backlink-opportunities/discovery-setup/settings-save-footer"
-import { UnsavedChangesDialog } from "@/components/backlink-opportunities/discovery-setup/unsaved-changes-dialog"
+import { BacklinkTypesSection } from "@/components/link-building/sources/backlink-types-section"
+import { CompetitorsSection } from "@/components/link-building/sources/competitors-section"
+import { SeoMetricsSection } from "@/components/link-building/sources/seo-metrics-section"
+import { SettingsSaveFooter } from "@/components/link-building/sources/settings-save-footer"
+import { UnsavedChangesDialog } from "@/components/link-building/sources/unsaved-changes-dialog"
 import type { OpportunityType } from "@/lib/opportunity-types"
 import { TYPE_CONFIG } from "@/lib/opportunity-types"
 import { captureEvent } from "@/lib/analytics"
@@ -202,20 +202,6 @@ export default function DiscoverySetupPage() {
   return (
     <>
       <div className="flex flex-col gap-6">
-        <div className="border-b border-border/70 pb-5">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <h1 className="font-heading text-3xl font-semibold tracking-[-0.035em] text-foreground sm:text-4xl">
-                Sources
-              </h1>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-                Choose which sources should feed your backlink queue. Start
-                broad, then pause anything that feels noisy.
-              </p>
-            </div>
-          </div>
-        </div>
-
         <Tabs defaultValue="backlink-types" className="gap-4">
           <TabsList>
             <TabsTrigger value="backlink-types">

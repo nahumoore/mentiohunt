@@ -1,19 +1,18 @@
 "use client"
 
-import { IconArrowLeft, IconExternalLink, IconLoader2 } from "@tabler/icons-react"
+import { IconExternalLink, IconLoader2 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-import { CheckListingButton } from "@/components/directories/check-listing-button"
-import { DirectoryInfoCard } from "@/components/directories/directory-info-card"
-import { ReportDialog } from "@/components/directories/report-dialog"
-import { StatusCallout } from "@/components/directories/status-callout"
-import { SubmissionCostBadge } from "@/components/directories/submission-cost-badge"
-import { SubmitAssistSheet } from "@/components/directories/submit-assist-sheet"
-import { TimelineCard } from "@/components/directories/timeline-card"
+import { CheckListingButton } from "@/components/link-building/directories/check-listing-button"
+import { DirectoryInfoCard } from "@/components/link-building/directories/directory-info-card"
+import { ReportDialog } from "@/components/link-building/directories/report-dialog"
+import { StatusCallout } from "@/components/link-building/directories/status-callout"
+import { SubmissionCostBadge } from "@/components/link-building/directories/submission-cost-badge"
+import { SubmitAssistSheet } from "@/components/link-building/directories/submit-assist-sheet"
+import { TimelineCard } from "@/components/link-building/directories/timeline-card"
 import { captureEvent } from "@/lib/analytics"
 import { supabaseClient } from "@/lib/supabase/client"
 import {
@@ -23,7 +22,11 @@ import {
 } from "@/stores/directory-submission-store"
 import { STATUS_CONFIG, daysSince } from "../_data"
 
-type Product = { productName: string | null; websiteUrl: string | null; productDescription: string | null }
+type Product = {
+  productName: string | null
+  websiteUrl: string | null
+  productDescription: string | null
+}
 
 export function DirectoryDetailClientPage({
   submission: initialSubmission,
@@ -33,9 +36,15 @@ export function DirectoryDetailClientPage({
   product: Product
 }) {
   const router = useRouter()
-  const upsertSubmissionDetail = useDirectorySubmissionStore((s) => s.upsertSubmissionDetail)
-  const updateSubmissionStatuses = useDirectorySubmissionStore((s) => s.updateSubmissionStatuses)
-  const stored = useDirectorySubmissionStore((s) => s.submissionDetailsById[initialSubmission.id])
+  const upsertSubmissionDetail = useDirectorySubmissionStore(
+    (s) => s.upsertSubmissionDetail
+  )
+  const updateSubmissionStatuses = useDirectorySubmissionStore(
+    (s) => s.updateSubmissionStatuses
+  )
+  const stored = useDirectorySubmissionStore(
+    (s) => s.submissionDetailsById[initialSubmission.id]
+  )
   const submission = stored ?? initialSubmission
 
   const [isUpdating, setIsUpdating] = useState(false)
@@ -116,15 +125,6 @@ export function DirectoryDetailClientPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <Button asChild variant="ghost" size="sm" className="-ml-2">
-          <Link href="/dashboard/link-building/directories">
-            <IconArrowLeft className="size-3.5" />
-            Back to directories
-          </Link>
-        </Button>
-      </div>
-
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 flex-col gap-1.5">
@@ -137,7 +137,10 @@ export function DirectoryDetailClientPage({
             <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
               {directoryName}
             </h1>
-            <SubmissionCostBadge isFree={submission.directory?.is_free} size="md" />
+            <SubmissionCostBadge
+              isFree={submission.directory?.is_free}
+              size="md"
+            />
             <a
               href={`https://${submission.domain}`}
               target="_blank"
@@ -154,7 +157,9 @@ export function DirectoryDetailClientPage({
               <IconExternalLink className="size-4" />
             </a>
           </div>
-          <p className="pl-10 text-sm text-muted-foreground">{submission.domain}</p>
+          <p className="pl-10 text-sm text-muted-foreground">
+            {submission.domain}
+          </p>
         </div>
 
         {/* Status display */}
@@ -223,7 +228,9 @@ export function DirectoryDetailClientPage({
                 }
               }}
               directoryName={directoryName}
-              submitUrl={submission.submit_url ?? submission.directory?.submit_url}
+              submitUrl={
+                submission.submit_url ?? submission.directory?.submit_url
+              }
               productName={product.productName}
               websiteUrl={product.websiteUrl}
               productDescription={product.productDescription}

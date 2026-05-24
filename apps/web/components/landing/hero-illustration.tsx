@@ -36,21 +36,22 @@ const cards: Card[] = [
     actionLabel: "Reply drafted",
     cta: "Post reply",
     detail: (
-      <div className="flex flex-1 flex-col gap-3">
-        <div className="rounded-xl border border-border bg-background/60 p-4">
-          <p className="mb-2 text-[0.6rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
+      <div className="flex flex-1 flex-col gap-5">
+        <div>
+          <p className="mb-1.5 text-[0.58rem] font-semibold tracking-[0.14em] text-muted-foreground/50 uppercase">
             Thread
           </p>
-          <p className="text-sm leading-5 text-foreground italic">
+          <p className="text-sm leading-5 text-muted-foreground italic">
             "Alerts are noisy. I need to know which threads are actually worth
             answering."
           </p>
         </div>
-        <div className="flex-1 rounded-xl border border-[var(--color-blaze-orange)]/18 bg-[var(--color-blaze-orange)]/7 p-4">
-          <p className="mb-2 text-[0.6rem] font-bold tracking-[0.18em] text-[var(--color-blaze-orange)] uppercase">
+        <div className="h-px bg-border" />
+        <div>
+          <p className="mb-1.5 text-[0.58rem] font-semibold tracking-[0.14em] text-[var(--color-blaze-orange)] uppercase">
             Suggested reply
           </p>
-          <p className="text-xs leading-5 text-muted-foreground">
+          <p className="text-sm leading-5 text-foreground">
             Worth looking at Mentiohunt — it scores fit and drafts a reply you
             can review before posting.
           </p>
@@ -68,29 +69,24 @@ const cards: Card[] = [
     actionLabel: "Email drafted",
     cta: "Send email",
     detail: (
-      <div className="flex flex-1 flex-col gap-3">
-        <div className="grid flex-1 grid-cols-2 gap-2">
-          {(
-            [
-              ["Audience", "Early-stage SaaS"],
-              ["Page type", "Founder tools list"],
-              ["Domain authority", "41"],
-              ["Contact", "maria@growthstack.tools"],
-            ] as [string, string][]
-          ).map(([label, value]) => (
-            <div
-              key={label}
-              className="rounded-xl border border-border bg-background/60 px-3 py-3"
-            >
-              <p className="text-[0.58rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
-                {label}
-              </p>
-              <p className="mt-1 truncate text-xs font-semibold text-foreground">
-                {value}
-              </p>
-            </div>
-          ))}
-        </div>
+      <div className="grid flex-1 grid-cols-2 gap-x-8 gap-y-5">
+        {(
+          [
+            ["Audience", "Early-stage SaaS"],
+            ["Page type", "Founder tools list"],
+            ["Domain authority", "41"],
+            ["Contact", "maria@growthstack.tools"],
+          ] as [string, string][]
+        ).map(([label, value]) => (
+          <div key={label}>
+            <p className="text-[0.58rem] font-semibold tracking-[0.14em] text-muted-foreground/50 uppercase">
+              {label}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-foreground">
+              {value}
+            </p>
+          </div>
+        ))}
       </div>
     ),
   },
@@ -104,29 +100,24 @@ const cards: Card[] = [
     actionLabel: "Submission ready",
     cta: "Submit listing",
     detail: (
-      <div className="flex flex-1 flex-col gap-3">
-        <div className="grid flex-1 grid-cols-2 gap-2">
-          {(
-            [
-              ["Category", "Marketing tools"],
-              ["Audience", "Founders"],
-              ["Monthly visits", "~42 k"],
-              ["Status", "Not submitted"],
-            ] as [string, string][]
-          ).map(([label, value]) => (
-            <div
-              key={label}
-              className="rounded-xl border border-border bg-background/60 px-3 py-3"
-            >
-              <p className="text-[0.58rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
-                {label}
-              </p>
-              <p className="mt-1 truncate text-xs font-semibold text-foreground">
-                {value}
-              </p>
-            </div>
-          ))}
-        </div>
+      <div className="grid flex-1 grid-cols-2 gap-x-8 gap-y-5">
+        {(
+          [
+            ["Category", "Marketing tools"],
+            ["Audience", "Founders"],
+            ["Monthly visits", "~42 k"],
+            ["Status", "Not submitted"],
+          ] as [string, string][]
+        ).map(([label, value]) => (
+          <div key={label}>
+            <p className="text-[0.58rem] font-semibold tracking-[0.14em] text-muted-foreground/50 uppercase">
+              {label}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-foreground">
+              {value}
+            </p>
+          </div>
+        ))}
       </div>
     ),
   },
@@ -199,45 +190,55 @@ function OpportunityCard({
     card
 
   return (
-    <div className="flex min-h-[400px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-md">
+    <div className="flex min-h-[400px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      {/* Progress bar at top */}
+      <div className="h-0.5 w-full bg-border">
+        <div
+          className="h-full bg-[var(--color-blaze-orange)] transition-none"
+          style={{ width: `${progress * 100}%` }}
+        />
+      </div>
+
       {/* Header */}
-      <div className="border-b border-border bg-background/60 px-6 py-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-blaze-orange)]/12 text-[var(--color-blaze-orange)]">
-              <Icon className="h-5 w-5" />
+      <div className="px-6 pt-5 pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-blaze-orange)]/10 text-[var(--color-blaze-orange)]">
+              <Icon className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-[0.62rem] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+              <p className="text-[0.6rem] font-bold tracking-[0.18em] text-muted-foreground uppercase">
                 {eyebrow}
               </p>
-              <p className="mt-0.5 text-[0.7rem] text-muted-foreground">
+              <p className="text-[0.65rem] text-muted-foreground/55">
                 {source}
               </p>
             </div>
           </div>
 
-          <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-full border-2 border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8">
-            <span className="text-xl font-black leading-none tabular-nums text-[var(--color-blaze-orange)]">
+          <div className="text-right">
+            <span className="text-2xl font-black tabular-nums text-[var(--color-blaze-orange)]">
               {score}
             </span>
-            <span className="mt-0.5 text-[0.5rem] font-bold tracking-widest text-muted-foreground uppercase">
-              fit
-            </span>
+            <p className="text-[0.5rem] font-bold tracking-widest text-muted-foreground/40 uppercase">
+              fit score
+            </p>
           </div>
         </div>
 
-        <h3 className="mt-4 font-heading text-lg font-semibold leading-snug tracking-tight text-foreground">
+        <h3 className="mt-4 font-heading text-base font-semibold leading-snug tracking-tight text-foreground">
           {title}
         </h3>
       </div>
+
+      <div className="mx-6 h-px bg-border" />
 
       {/* Body */}
       <div className="flex flex-1 flex-col px-6 py-5">
         {detail}
 
         <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-          <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <IconCheck className="h-3.5 w-3.5 text-[var(--color-blaze-orange)]" />
             {actionLabel}
           </span>
@@ -246,14 +247,6 @@ function OpportunityCard({
             <IconSend className="h-3 w-3" />
           </button>
         </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-0.5 w-full bg-border">
-        <div
-          className="h-full bg-[var(--color-blaze-orange)]/60 transition-none"
-          style={{ width: `${progress * 100}%` }}
-        />
       </div>
     </div>
   )

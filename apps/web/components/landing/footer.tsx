@@ -52,6 +52,21 @@ function FooterSocialProof() {
           alt="Fazier badge"
         />
       </a>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <a
+        href="https://www.producthunt.com/products/mentiohunt?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-mentiohunt"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Mentiohunt on Product Hunt"
+        className="inline-flex rounded-lg transition-opacity hover:opacity-85"
+      >
+        <img
+          alt="Mentiohunt - Find backlink and mention opportunities for your startup | Product Hunt"
+          width={250}
+          height={54}
+          src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1153691&theme=neutral&t=1779549223016"
+        />
+      </a>
     </div>
   )
 }
@@ -146,7 +161,6 @@ export function Footer() {
               opportunities, plain-English fit rationale, and outreach prep —
               ready each morning.
             </p>
-            <FooterSocialProof />
             <div className="space-y-1 text-xs leading-5 text-muted-foreground/65">
               <p>Made with ❤️ from 🇺🇸</p>
               <p>
@@ -158,6 +172,7 @@ export function Footer() {
             <p className="text-xs text-muted-foreground/50">
               © 2026 Mentiohunt · Built for recurring backlink work
             </p>
+            <FooterSocialProof />
           </div>
 
           <div className="space-y-3">

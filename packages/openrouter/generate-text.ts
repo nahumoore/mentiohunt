@@ -99,7 +99,9 @@ async function generateStructuredText({
   } else if (content !== undefined && content !== null) {
     text = JSON.stringify(content)
   } else {
-    throw new Error("OpenRouter response did not include text content")
+    throw new Error(
+      `OpenRouter response did not include text content: ${JSON.stringify(data)}`
+    )
   }
 
   return { text, cost }

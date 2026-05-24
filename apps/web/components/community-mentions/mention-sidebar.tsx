@@ -1,9 +1,9 @@
-import type { CommunityMention, MentionIntent } from "@/app/dashboard/community-mentions/reply-queue/_data"
+import type {
+  CommunityMention,
+  MentionIntent,
+} from "@/app/dashboard/community-mentions/reply-queue/_data"
 import { INTENT_CONFIG } from "@/app/dashboard/community-mentions/reply-queue/_data"
-import {
-  PLATFORM_CONFIG,
-  type MentionPlatform,
-} from "@/consts/platform-config"
+import { PLATFORM_CONFIG, type MentionPlatform } from "@/consts/platform-config"
 
 interface MentionSidebarProps {
   mentions: CommunityMention[]
@@ -11,30 +11,58 @@ interface MentionSidebarProps {
 
 export function MentionSidebar({ mentions }: MentionSidebarProps) {
   const total = mentions.length
+  const pendingCount = mentions.filter((m) => m.status === "new").length
 
   const platformCounts = mentions.reduce<Record<MentionPlatform, number>>(
-    (acc, m) => { acc[m.platform] = (acc[m.platform] ?? 0) + 1; return acc },
+    (acc, m) => {
+      acc[m.platform] = (acc[m.platform] ?? 0) + 1
+      return acc
+    },
     {} as Record<MentionPlatform, number>
   )
 
   const intentCounts = mentions.reduce<Record<MentionIntent, number>>(
-    (acc, m) => { acc[m.intent] = (acc[m.intent] ?? 0) + 1; return acc },
+    (acc, m) => {
+      acc[m.intent] = (acc[m.intent] ?? 0) + 1
+      return acc
+    },
     {} as Record<MentionIntent, number>
   )
 
   const platforms = (Object.keys(PLATFORM_CONFIG) as MentionPlatform[])
-    .map((key) => ({ key, cfg: PLATFORM_CONFIG[key], count: platformCounts[key] ?? 0 }))
+    .map((key) => ({
+      key,
+      cfg: PLATFORM_CONFIG[key],
+      count: platformCounts[key] ?? 0,
+    }))
     .sort((a, b) => b.count - a.count)
 
   const intents = (Object.keys(INTENT_CONFIG) as MentionIntent[])
-    .map((key) => ({ key, label: INTENT_CONFIG[key].label, count: intentCounts[key] ?? 0 }))
+    .map((key) => ({
+      key,
+      label: INTENT_CONFIG[key].label,
+      count: intentCounts[key] ?? 0,
+    }))
     .filter((i) => i.count > 0)
     .sort((a, b) => b.count - a.count)
 
   return (
     <aside className="sticky top-6 h-fit space-y-6 lg:col-span-4">
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h5 className="mb-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        <h5 className="mb-4 text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+          Pending
+        </h5>
+        <div className="flex items-end gap-3">
+          <span className="text-4xl leading-none font-black text-foreground">
+            {pendingCount}
+          </span>
+          <p className="mb-0.5 text-sm font-medium text-muted-foreground">
+            mention{pendingCount !== 1 ? "s" : ""} to review
+          </p>
+        </div>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h5 className="mb-5 text-[10px] font-black tracking-widest text-muted-foreground uppercase">
           Active Platforms
         </h5>
         <div className="space-y-4">
@@ -53,7 +81,10 @@ export function MentionSidebar({ mentions }: MentionSidebarProps) {
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full"
-                    style={{ width: `${pct}%`, backgroundColor: cfg.accentColor }}
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: cfg.accentColor,
+                    }}
                   />
                 </div>
               </div>
@@ -63,7 +94,7 @@ export function MentionSidebar({ mentions }: MentionSidebarProps) {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h5 className="mb-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        <h5 className="mb-5 text-[10px] font-black tracking-widest text-muted-foreground uppercase">
           Intent Breakdown
         </h5>
         {intents.length === 0 ? (

@@ -35,7 +35,7 @@ export function StepAudience({
         placeholder="SaaS"
         prefix="r/"
         error={errors.monitoringCommunities}
-        maxItems={15}
+        maxItems={10}
         normalizeItem={(value) =>
           value
             .replace(/^\/?r\//i, "")

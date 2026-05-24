@@ -9,14 +9,12 @@ const log = createLogger("method-process-media-mentions")
 export async function processMediaMentions(mentionIds: string[]): Promise<void> {
   if (mentionIds.length === 0) return
 
-  // Load only email mentions — TODO: handle twitter/bluesky once Apify actor resolves contact emails
   const { data: mentions, error: mentionsError } = await supabaseAdmin
     .from("media_mentions")
     .select(
       "id, source, url, author_name, contact_email, publication_domain, topic_summary"
     )
     .in("id", mentionIds)
-    .eq("source", "email")
 
   if (mentionsError) {
     log.error("failed to load mentions", { error: mentionsError.message })
@@ -24,23 +22,31 @@ export async function processMediaMentions(mentionIds: string[]): Promise<void> 
   }
 
   if (!mentions || mentions.length === 0) {
-    log.info("no email mentions to process")
+    log.info("no mentions to process")
     return
   }
 
-  // Mentions without a url can't fill required target_url on backlink_prospects
-  const processable = mentions.filter((m) => !!m.url)
-  const noUrl = mentions.filter((m) => !m.url)
+  const { data: activeProfiles, error: profilesError } = await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .eq("active_trial", true)
 
-  if (noUrl.length > 0) {
-    log.info("mentions skipped (no url)", { count: noUrl.length })
+  if (profilesError) {
+    log.error("failed to load active profiles", { error: profilesError.message })
+    return
   }
 
-  if (processable.length === 0) return
+  const activeUserIds = new Set((activeProfiles ?? []).map((p) => p.id))
+
+  if (activeUserIds.size === 0) {
+    log.info("no users with active subscriptions")
+    return
+  }
 
   const { data: products, error: productsError } = await supabaseAdmin
     .from("products")
     .select("id, user_id, product_name, product_description, website_url, competitors")
+    .in("user_id", [...activeUserIds])
 
   if (productsError) {
     log.error("failed to load products", { error: productsError.message })
@@ -58,7 +64,7 @@ export async function processMediaMentions(mentionIds: string[]): Promise<void> 
 
   interface FitPair {
     product: (typeof products)[number]
-    mention: (typeof processable)[number]
+    mention: (typeof mentions)[number]
     reason: string
   }
 
@@ -67,23 +73,23 @@ export async function processMediaMentions(mentionIds: string[]): Promise<void> 
   await Promise.all(
     products.map((product) =>
       productLimit(async () => {
-        const { results } = await scoreMentionFit(product, processable)
+        const { results } = await scoreMentionFit(product, mentions)
         const passing = results.filter((r) => r.fitScore >= MIN_FIT_SCORE)
         for (const scored of passing) {
-          const mention = processable.find((m) => m.id === scored.mentionId)
+          const mention = mentions.find((m) => m.id === scored.mentionId)
           if (mention) fittingPairs.push({ product, mention, reason: scored.reason })
         }
         log.info("product scored", {
           productId: product.id,
           passing: passing.length,
-          total: processable.length,
+          total: mentions.length,
         })
       })
     )
   )
 
   if (fittingPairs.length === 0) {
-    log.info("no fitting pairs after scoring", { mentions: processable.length, products: products.length })
+    log.info("no fitting pairs after scoring", { mentions: mentions.length, products: products.length })
     return
   }
 
@@ -101,11 +107,12 @@ export async function processMediaMentions(mentionIds: string[]): Promise<void> 
   const rows = emailResults
     .filter((r): r is NonNullable<typeof r> => r !== null)
     .map(({ product, mention, reason, email }) => {
-      const domain = mention.publication_domain ?? extractHostname(mention.url!)
+      const domain = mention.publication_domain ?? (mention.url ? extractHostname(mention.url) : null)
+      if (!domain) return null
       return {
         product_id: product.id,
         domain,
-        target_url: mention.url!,
+        target_url: null,
         tier: "media_mention" as const,
         action_type: "email_outreach" as const,
         contact_email: mention.contact_email ?? null,
@@ -116,6 +123,7 @@ export async function processMediaMentions(mentionIds: string[]): Promise<void> 
         source_media_mention_id: mention.id,
       }
     })
+    .filter((r): r is NonNullable<typeof r> => r !== null)
 
   if (rows.length > 0) {
     const { error: insertError } = await supabaseAdmin
@@ -134,7 +142,6 @@ export async function processMediaMentions(mentionIds: string[]): Promise<void> 
 
   log.info("processing complete", {
     mentionsTotal: mentions.length,
-    processable: processable.length,
     fittingPairs: fittingPairs.length,
     prospectsInserted: rows.length,
   })

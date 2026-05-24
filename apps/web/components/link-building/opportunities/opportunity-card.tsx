@@ -1,14 +1,11 @@
-import {
-  IconCalendar,
-  IconChevronRight,
-  IconMail,
-} from "@tabler/icons-react"
+"use client"
+
+import { IconArrowRight, IconCalendar } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import {
   ACTION_TYPE_CONFIG,
-  STATUS_CONFIG,
   TYPE_CONFIG,
   formatDate,
   type ProspectTier,
@@ -21,85 +18,91 @@ const TIER_BORDER: Record<ProspectTier, string> = {
   media_mention: "border-l-sky-500",
 }
 
-function urlPath(raw: string): string {
-  try {
-    const path = new URL(raw).pathname
-    return path === "/" ? "" : path
-  } catch {
-    return ""
-  }
-}
-
 export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
+  const router = useRouter()
   const tierCfg = TYPE_CONFIG[prospect.tier]
-  const statusCfg = STATUS_CONFIG[prospect.status]
   const actionCfg = ACTION_TYPE_CONFIG[prospect.action_type]
   const TierIcon = tierCfg.icon
-  const StatusIcon = statusCfg.icon
   const ActionIcon = actionCfg.icon
-  const path = urlPath(prospect.target_url)
 
   return (
-    <Link
-      href={`/dashboard/link-building/opportunities/${prospect.id}`}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() =>
+        router.push(`/dashboard/link-building/opportunities/${prospect.id}`)
+      }
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ")
+          router.push(`/dashboard/link-building/opportunities/${prospect.id}`)
+      }}
       className={cn(
-        "group flex flex-col gap-3 rounded-lg border border-border/60 border-l-4 bg-card px-5 py-4",
-        "transition-all hover:border-border hover:shadow-sm",
+        "group cursor-pointer rounded-lg border border-l-4 border-border/60 bg-card",
+        "transition-all hover:shadow-sm",
         TIER_BORDER[prospect.tier]
       )}
     >
-      <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-            tierCfg.color
-          )}
-        >
-          <TierIcon className="size-3" />
-          {tierCfg.label}
-        </span>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-            actionCfg.color
-          )}
-        >
-          <ActionIcon className="size-3" />
-          {actionCfg.label}
-        </span>
-        <div className="ml-auto flex items-center gap-2">
+      <div className="flex flex-col gap-3 px-5 py-4">
+        {/* badges row */}
+        <div className="flex items-center gap-2">
           <span
             className={cn(
               "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-              statusCfg.color
+              tierCfg.color
             )}
           >
-            <StatusIcon className="size-3" />
-            {statusCfg.label}
+            <TierIcon className="size-3" />
+            {tierCfg.label}
           </span>
-          <IconChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+              actionCfg.color
+            )}
+          >
+            <ActionIcon className="size-3" />
+            {actionCfg.label}
+          </span>
+          <div className="ml-auto">
+            <span className="inline-flex items-center rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-red-600">
+              New
+            </span>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <p className="font-semibold text-foreground">{prospect.domain}</p>
-        {path && (
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">{path}</p>
+        {/* domain */}
+        <p className="text-base font-semibold text-foreground">
+          {prospect.domain}
+        </p>
+
+        {prospect.notes && (
+          <p className="line-clamp-2 text-xs text-muted-foreground">
+            {prospect.notes}
+          </p>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        {prospect.contact_email && (
+      <div className="border-t border-border/50" />
+
+      <div className="flex items-center justify-between gap-4 px-5 py-3">
+        {/* contact + date */}
+        <div className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
+          {(prospect.contact_name ?? prospect.contact_email) && (
+            <span className="truncate">
+              {prospect.contact_name
+                ? `${prospect.contact_name}${prospect.contact_email ? ` · ${prospect.contact_email}` : ""}`
+                : prospect.contact_email}
+            </span>
+          )}
           <span className="flex items-center gap-1">
-            <IconMail className="size-3 shrink-0" />
-            <span className="truncate">{prospect.contact_email}</span>
+            <IconCalendar className="size-3 shrink-0" />
+            {formatDate(prospect.discovered_at)}
           </span>
-        )}
-        <span className="flex items-center gap-1">
-          <IconCalendar className="size-3 shrink-0" />
-          {formatDate(prospect.discovered_at)}
-        </span>
+        </div>
+
+        {/* open cta */}
+        <IconArrowRight className="size-6 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" />
       </div>
-    </Link>
+    </div>
   )
 }

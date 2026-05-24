@@ -260,9 +260,12 @@ export type Database = {
           author_name: string | null
           contact_email: string | null
           created_at: string
+          deadline: string | null
           id: string
           processed_at: string | null
           publication_domain: string | null
+          raw_body: string | null
+          raw_text: string | null
           source: Database["public"]["Enums"]["media_mention_source"]
           topic_summary: string | null
           url: string | null
@@ -272,9 +275,12 @@ export type Database = {
           author_name?: string | null
           contact_email?: string | null
           created_at?: string
+          deadline?: string | null
           id?: string
           processed_at?: string | null
           publication_domain?: string | null
+          raw_body?: string | null
+          raw_text?: string | null
           source: Database["public"]["Enums"]["media_mention_source"]
           topic_summary?: string | null
           url?: string | null
@@ -284,9 +290,12 @@ export type Database = {
           author_name?: string | null
           contact_email?: string | null
           created_at?: string
+          deadline?: string | null
           id?: string
           processed_at?: string | null
           publication_domain?: string | null
+          raw_body?: string | null
+          raw_text?: string | null
           source?: Database["public"]["Enums"]["media_mention_source"]
           topic_summary?: string | null
           url?: string | null
@@ -606,15 +615,17 @@ export type Database = {
         | "indexed"
         | "not_indexed"
         | "dismissed"
-      media_mention_source: "email_inbox" | "twitter" | "bluesky"
+      media_mention_source:
+        | "email_inbox"
+        | "twitter"
+        | "bluesky"
+        | "journofinder"
+        | "qwoted"
+        | "featured"
+        | "email"
+        | "unknown"
       prospect_action_type: "self_service" | "email_outreach"
-      prospect_status:
-        | "new"
-        | "submitted"
-        | "contacted"
-        | "replied"
-        | "won"
-        | "dismissed"
+      prospect_status: "new" | "contacted" | "dismissed"
       prospect_tier:
         | "competitor_backlink"
         | "unlinked_mention"
@@ -755,16 +766,18 @@ export const Constants = {
         "not_indexed",
         "dismissed",
       ],
-      media_mention_source: ["email_inbox", "twitter", "bluesky"],
-      prospect_action_type: ["self_service", "email_outreach"],
-      prospect_status: [
-        "new",
-        "submitted",
-        "contacted",
-        "replied",
-        "won",
-        "dismissed",
+      media_mention_source: [
+        "email_inbox",
+        "twitter",
+        "bluesky",
+        "journofinder",
+        "qwoted",
+        "featured",
+        "email",
+        "unknown",
       ],
+      prospect_action_type: ["self_service", "email_outreach"],
+      prospect_status: ["new", "contacted", "dismissed"],
       prospect_tier: [
         "competitor_backlink",
         "unlinked_mention",

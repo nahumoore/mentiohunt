@@ -24,6 +24,7 @@ const discoverySettingsSchema = z.object({
 const opportunityTypeToProspectTier = {
   competitor_backlinks: "competitor_backlink",
   unlinked_mentions: "unlinked_mention",
+  media_mentions: "media_mention",
 } satisfies Record<
   OpportunityTypeId,
   Database["public"]["Enums"]["prospect_tier"]

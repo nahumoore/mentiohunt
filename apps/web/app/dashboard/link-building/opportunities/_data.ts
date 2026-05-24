@@ -1,17 +1,21 @@
 import {
+  IconBrandBluesky,
+  IconBrandX,
   IconCircleX,
   IconClipboardCheck,
+  IconHelpCircle,
   IconListDetails,
   IconLink,
+  IconMail,
   IconMailForward,
-  IconMessage,
   IconNews,
+  IconQuote,
   IconSend,
   IconSparkles,
+  IconStar,
   IconSwords,
-  IconTrophy,
 } from "@tabler/icons-react"
-import type { Database } from "@workspace/supabase/database-types"
+import type { Database, Tables } from "@workspace/supabase/database-types"
 import type { ElementType } from "react"
 
 export type ProspectStatus = Database["public"]["Enums"]["prospect_status"]
@@ -80,25 +84,10 @@ export const STATUS_CONFIG: Record<ProspectStatus, StatusConfig> = {
     icon: IconSparkles,
     color: "text-blue-600 bg-blue-500/10",
   },
-  submitted: {
-    label: "Submitted",
-    icon: IconClipboardCheck,
-    color: "text-indigo-600 bg-indigo-500/10",
-  },
   contacted: {
     label: "Contacted",
     icon: IconSend,
     color: "text-orange-600 bg-orange-500/10",
-  },
-  replied: {
-    label: "Replied",
-    icon: IconMessage,
-    color: "text-amber-600 bg-amber-500/10",
-  },
-  won: {
-    label: "Won",
-    icon: IconTrophy,
-    color: "text-emerald-600 bg-emerald-500/10",
   },
   dismissed: {
     label: "Dismissed",
@@ -126,21 +115,10 @@ export const STATUS_FILTERS: ProspectFilterConfig[] = [
   { value: "all", label: ALL_FILTER_CONFIG.label, icon: ALL_FILTER_CONFIG.icon },
   { value: "new", label: STATUS_CONFIG.new.label, icon: STATUS_CONFIG.new.icon },
   {
-    value: "submitted",
-    label: STATUS_CONFIG.submitted.label,
-    icon: STATUS_CONFIG.submitted.icon,
-  },
-  {
     value: "contacted",
     label: STATUS_CONFIG.contacted.label,
     icon: STATUS_CONFIG.contacted.icon,
   },
-  {
-    value: "replied",
-    label: STATUS_CONFIG.replied.label,
-    icon: STATUS_CONFIG.replied.icon,
-  },
-  { value: "won", label: STATUS_CONFIG.won.label, icon: STATUS_CONFIG.won.icon },
   {
     value: "dismissed",
     label: STATUS_CONFIG.dismissed.label,
@@ -154,4 +132,103 @@ export function formatDate(iso: string): string {
     day: "numeric",
     year: "numeric",
   })
+}
+
+// ─── Media mentions ───────────────────────────────────────────
+
+export type MediaMentionSource =
+  Database["public"]["Enums"]["media_mention_source"]
+
+export type MediaMention = Pick<
+  Tables<"media_mentions">,
+  | "id"
+  | "source"
+  | "topic_summary"
+  | "deadline"
+  | "publication_domain"
+  | "author_name"
+  | "author_handle"
+  | "url"
+  | "raw_text"
+  | "raw_body"
+  | "created_at"
+>
+
+export interface SourceConfig {
+  label: string
+  icon: ElementType
+  color: string
+}
+
+export const SOURCE_CONFIG: Record<MediaMentionSource, SourceConfig> = {
+  email_inbox: {
+    label: "Email inbox",
+    icon: IconMail,
+    color: "text-slate-600 bg-slate-500/10",
+  },
+  email: {
+    label: "Email",
+    icon: IconMail,
+    color: "text-slate-600 bg-slate-500/10",
+  },
+  twitter: {
+    label: "Twitter / X",
+    icon: IconBrandX,
+    color: "text-neutral-700 bg-neutral-500/10",
+  },
+  bluesky: {
+    label: "Bluesky",
+    icon: IconBrandBluesky,
+    color: "text-blue-600 bg-blue-500/10",
+  },
+  journofinder: {
+    label: "JournoFinder",
+    icon: IconNews,
+    color: "text-sky-600 bg-sky-500/10",
+  },
+  qwoted: {
+    label: "Qwoted",
+    icon: IconQuote,
+    color: "text-purple-600 bg-purple-500/10",
+  },
+  featured: {
+    label: "Featured",
+    icon: IconStar,
+    color: "text-amber-600 bg-amber-500/10",
+  },
+  unknown: {
+    label: "Unknown",
+    icon: IconHelpCircle,
+    color: "text-muted-foreground bg-muted",
+  },
+}
+
+export type DeadlineUrgency = "passed" | "urgent" | "soon" | "normal"
+
+export interface DeadlineInfo {
+  label: string
+  urgency: DeadlineUrgency
+}
+
+export function getDeadlineInfo(deadline: string | null): DeadlineInfo | null {
+  if (!deadline) return null
+  const ms = new Date(deadline).getTime() - Date.now()
+  const hours = ms / (1000 * 60 * 60)
+
+  if (hours < 0) return { label: "Deadline passed", urgency: "passed" }
+  if (hours < 24)
+    return {
+      label: `Due in ${Math.ceil(hours)}h`,
+      urgency: "urgent",
+    }
+  if (hours < 72)
+    return {
+      label: `Due in ${Math.ceil(hours / 24)}d`,
+      urgency: "soon",
+    }
+
+  return {
+    label: `Due ${new Date(deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+    urgency: "normal",
+  }
 }

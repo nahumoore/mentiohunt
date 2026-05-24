@@ -106,6 +106,7 @@ Every landing section must follow this structure consistently:
 ## Database Guidance
 
 - Never use `*` for select queries, always specify the columns you need.
+- Never query for data on `'use client'` components, data must come from `/store` or from the server pages.
 
 ## `apps/server` Guidance
 

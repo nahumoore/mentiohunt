@@ -3,9 +3,8 @@
 import {
   IconChevronDown,
   IconChevronRight,
-  IconCoins,
+  IconCircleCheck,
   IconInfoCircle,
-  IconLayoutGrid,
   IconLoader2,
   IconSearch,
   IconX,
@@ -18,8 +17,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
@@ -35,17 +32,20 @@ import { useRouter } from "next/navigation"
 import type { ElementType } from "react"
 import { useEffect, useMemo, useState } from "react"
 
-import { getDomainRatingColorScheme } from "@/components/backlink-opportunities/utils"
+import { ColumnHeader, type SortDirection } from "@/components/link-building/directories/column-header"
+import { DirectoriesPageSkeleton } from "@/components/link-building/directories/directories-page-skeleton"
+import { DomainRatingCell } from "@/components/link-building/directories/domain-rating-cell"
+import { FilterDropdown } from "@/components/link-building/directories/filter-dropdown"
+import { PaidBadge } from "@/components/link-building/directories/paid-badge"
+import { StatusBadge } from "@/components/link-building/directories/status-badge"
 import { captureEvent } from "@/lib/analytics"
-import { supabaseClient } from "@/lib/supabase/client"
 import { useDirectorySubmissionStore } from "@/stores/directory-submission-store"
+import { getProductDisplayName, useProductStore } from "@/stores/product-store"
 import {
-  ALL_FILTER_CONFIG,
   STATUS_ACTIONS,
   STATUS_CONFIG,
   STATUS_FILTERS,
   formatDate,
-  daysSince,
   type DirectorySubmissionStatus,
 } from "./_data"
 
@@ -54,11 +54,7 @@ type SortKey =
   | "domain_rating"
   | "backlinks"
   | "discovered_at"
-  | "submitted_at"
-  | "last_indexed_at"
   | "status"
-
-type SortDirection = "asc" | "desc"
 
 const DEFAULT_STATUS_FILTER: DirectorySubmissionStatus = "not_submitted"
 
@@ -66,187 +62,6 @@ const STATUS_OPTIONS = STATUS_FILTERS.filter(
   (f): f is { value: DirectorySubmissionStatus; label: string; icon: ElementType } =>
     f.value !== "all"
 )
-
-type FilterOption<TValue extends string> = {
-  value: TValue
-  label: string
-  icon: ElementType
-  count?: number
-}
-
-function FilterDropdown<TValue extends string>({
-  label,
-  value,
-  options,
-  onValueChange,
-}: {
-  label: string
-  value: TValue
-  options: FilterOption<TValue>[]
-  onValueChange: (value: TValue) => void
-}) {
-  const activeOption = options.find((o) => o.value === value)
-  const ActiveIcon = activeOption?.icon
-  const isFiltered = value !== "all"
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className={cn(
-            "min-w-42 justify-between gap-2 border-border/70 bg-card/80 shadow-xs",
-            isFiltered && "border-orange/40 bg-orange/10 text-foreground hover:bg-orange/15"
-          )}
-        >
-          <span className="text-muted-foreground">{label}</span>
-          <span className="inline-flex items-center gap-1.5">
-            {ActiveIcon && <ActiveIcon className="size-3.5" />}
-            {activeOption?.label ?? ALL_FILTER_CONFIG.label}
-          </span>
-          <IconChevronDown className="size-3.5 text-muted-foreground" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-72">
-        <DropdownMenuLabel>{label}</DropdownMenuLabel>
-        <DropdownMenuRadioGroup
-          value={value}
-          onValueChange={(next) => onValueChange(next as TValue)}
-        >
-          {options.map((option) => {
-            const OptionIcon = option.icon
-            return (
-              <DropdownMenuRadioItem key={option.value} value={option.value}>
-                <OptionIcon className="size-4 text-muted-foreground" />
-                <span>{option.label}</span>
-                {typeof option.count === "number" && (
-                  <span className="ml-auto text-muted-foreground tabular-nums">
-                    {option.count}
-                  </span>
-                )}
-              </DropdownMenuRadioItem>
-            )
-          })}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
-
-function StatusBadge({ status }: { status: DirectorySubmissionStatus }) {
-  const cfg = STATUS_CONFIG[status]
-  const Icon = cfg.icon
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-        cfg.color
-      )}
-    >
-      <Icon className="size-3" />
-      {cfg.label}
-    </span>
-  )
-}
-
-function ColumnHeader({
-  label,
-  description,
-  sortable,
-  sortDirection,
-  onSort,
-}: {
-  label: string
-  description: string
-  sortable?: boolean
-  sortDirection?: SortDirection | null
-  onSort?: () => void
-}) {
-  const SortIcon =
-    sortDirection === "asc"
-      ? IconChevronRight
-      : sortDirection === "desc"
-        ? IconChevronDown
-        : null
-
-  return (
-    <div className="flex items-center gap-1.5">
-      {sortable ? (
-        <button
-          type="button"
-          onClick={onSort}
-          className="inline-flex items-center gap-1.5 rounded-md text-left transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
-        >
-          <span>{label}</span>
-          {SortIcon ? (
-            <SortIcon className="size-3.5" />
-          ) : (
-            <IconChevronDown className="size-3.5 opacity-35" />
-          )}
-        </button>
-      ) : (
-        <span>{label}</span>
-      )}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            aria-label={`About ${label}`}
-            className="rounded-full text-muted-foreground/70 transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <IconInfoCircle className="size-3.5" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="top" align="start">
-          {description}
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  )
-}
-
-function DomainRatingCell({ value }: { value: number | null | undefined }) {
-  const scheme = getDomainRatingColorScheme(value ?? null)
-  return (
-    <span
-      className={cn(
-        "text-sm font-semibold tabular-nums",
-        value == null ? "text-muted-foreground" : ""
-      )}
-      style={value == null ? undefined : { color: scheme.accent }}
-    >
-      {value ?? "—"}
-    </span>
-  )
-}
-
-function PaidBadge({ isFree }: { isFree: boolean | null | undefined }) {
-  if (isFree == null) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-        <IconCoins className="size-3" />
-        Unknown
-      </span>
-    )
-  }
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-        isFree
-          ? "bg-emerald-500/10 text-emerald-600"
-          : "bg-red-500/10 text-red-600"
-      )}
-    >
-      <IconCoins className="size-3" />
-      {isFree ? "Free" : "Paid"}
-    </span>
-  )
-}
 
 function compareText(a: string, b: string, dir: SortDirection) {
   return dir === "asc" ? a.localeCompare(b) : b.localeCompare(a)
@@ -274,10 +89,13 @@ function compareDate(
 
 export default function DirectoriesPage() {
   const router = useRouter()
+  const hydrated = useDirectorySubmissionStore((s) => s.hydrated)
   const submissions = useDirectorySubmissionStore((s) => s.submissions)
   const updateSubmissionStatuses = useDirectorySubmissionStore(
     (s) => s.updateSubmissionStatuses
   )
+  const product = useProductStore((s) => s.product)
+  const productName = getProductDisplayName(product)
 
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<DirectorySubmissionStatus | "all">(
@@ -308,8 +126,17 @@ export default function DirectoriesPage() {
     captureEvent("directories_filter_changed", {
       filter_value: statusFilter,
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter])
+
+  const lastCheckedAt = useMemo(() => {
+    let max: string | null = null
+    for (const s of submissions) {
+      if (s.last_checked_at && (!max || s.last_checked_at > max)) {
+        max = s.last_checked_at
+      }
+    }
+    return max
+  }, [submissions])
 
   const statusCounts = useMemo(() => {
     const counts = Object.fromEntries(
@@ -351,10 +178,6 @@ export default function DirectoriesPage() {
           return compareNumber(a.directory?.domain_rating, b.directory?.domain_rating, sortDirection)
         case "backlinks":
           return compareNumber(a.directory?.backlinks, b.directory?.backlinks, sortDirection)
-        case "submitted_at":
-          return compareDate(a.submitted_at, b.submitted_at, sortDirection)
-        case "last_indexed_at":
-          return compareDate(a.last_indexed_at, b.last_indexed_at, sortDirection)
         case "status":
           return compareText(
             STATUS_CONFIG[a.status].label,
@@ -434,29 +257,26 @@ export default function DirectoriesPage() {
     if (selectedIds.size === 0 || isUpdating) return
 
     const ids = Array.from(selectedIds)
-    const supabase = supabaseClient()
-    const extra: { submitted_at?: string } = {}
-
-    if (status === "submitted") {
-      extra.submitted_at = new Date().toISOString()
-    }
 
     setIsUpdating(true)
     setBulkError(null)
 
     try {
-      const { data, error } = await supabase
-        .from("directory_submissions")
-        .update({ status, ...extra })
-        .in("id", ids)
-        .select("id")
+      const res = await fetch("/api/link-building/directories", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, status }),
+      })
 
-      if (error) {
-        setBulkError(error.message)
+      const json = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setBulkError(json.error ?? "Could not update.")
         return
       }
 
-      const updatedIds = (data ?? []).map((s) => s.id)
+      const updated: { id: string; submitted_at: string | null }[] = json.updated ?? []
+      const updatedIds = updated.map((s) => s.id)
 
       if (updatedIds.length === 0) {
         captureEvent("directories_bulk_status_updated", {
@@ -475,7 +295,8 @@ export default function DirectoriesPage() {
         partial: updatedIds.length !== ids.length,
       })
 
-      updateSubmissionStatuses(updatedIds, status, extra.submitted_at ? { submitted_at: extra.submitted_at } : undefined)
+      const firstSubmittedAt = updated.find((s) => s.submitted_at)?.submitted_at ?? undefined
+      updateSubmissionStatuses(updatedIds, status, firstSubmittedAt ? { submitted_at: firstSubmittedAt } : undefined)
       setSelectedIds((cur) => {
         const next = new Set(cur)
         updatedIds.forEach((id) => next.delete(id))
@@ -496,20 +317,9 @@ export default function DirectoriesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="border-b border-border/70 pb-5">
-        <div className="max-w-2xl">
-          <h1 className="flex items-center font-heading text-3xl font-semibold tracking-[-0.035em] text-foreground sm:text-4xl">
-            <IconLayoutGrid className="mr-2 size-8" />
-            Directories
-          </h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-            Track which directories your product is listed in and whether those
-            listings are indexed by Google.
-          </p>
-        </div>
-      </div>
-
-      {submissions.length === 0 ? (
+      {!hydrated ? (
+        <DirectoriesPageSkeleton />
+      ) : submissions.length === 0 ? (
         <Card className="px-6 py-16 text-center">
           <div className="mx-auto flex max-w-md flex-col items-center gap-3">
             <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
@@ -526,7 +336,24 @@ export default function DirectoriesPage() {
         </Card>
       ) : (
         <Card className="gap-0 overflow-hidden py-0">
-          <div className="border-b border-border/60 bg-gradient-to-r from-orange/8 via-card to-card px-4 py-3 sm:px-6">
+          <TooltipProvider>
+          <div className="border-b border-border/60 bg-linear-to-r from-orange/8 via-card to-card px-4 py-3 sm:px-6">
+            {lastCheckedAt && (
+              <div className="mb-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-border/60 bg-muted/60 px-2.5 py-1 text-xs text-muted-foreground">
+                      <IconCircleCheck className="size-3 text-emerald-500" />
+                      Checked {formatDate(lastCheckedAt)}
+                      <IconInfoCircle className="size-3" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="start" className="max-w-64">
+                    We re-check every week whether {productName} is listed and indexed on Google for each directory.
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )}
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
               <div className="relative min-w-0 flex-1 xl:max-w-sm">
                 <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -619,7 +446,6 @@ export default function DirectoriesPage() {
           )}
 
           <div className="overflow-x-auto">
-            <TooltipProvider>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/60">
@@ -676,24 +502,6 @@ export default function DirectoriesPage() {
                         onSort={() => toggleSort("status")}
                       />
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                      <ColumnHeader
-                        label="Submitted"
-                        description="When you marked this directory as submitted."
-                        sortable
-                        sortDirection={sortKey === "submitted_at" ? sortDirection : null}
-                        onSort={() => toggleSort("submitted_at")}
-                      />
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                      <ColumnHeader
-                        label="Indexed"
-                        description="When Google last confirmed indexing your listing."
-                        sortable
-                        sortDirection={sortKey === "last_indexed_at" ? sortDirection : null}
-                        onSort={() => toggleSort("last_indexed_at")}
-                      />
-                    </th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -701,7 +509,7 @@ export default function DirectoriesPage() {
                   {sorted.length === 0 && (
                     <tr>
                       <td
-                        colSpan={9}
+                        colSpan={7}
                         className="px-6 py-12 text-center text-sm text-muted-foreground"
                       >
                         {submissions.length === 0
@@ -711,7 +519,6 @@ export default function DirectoriesPage() {
                     </tr>
                   )}
                   {sorted.map((submission) => {
-                    const days = daysSince(submission.submitted_at)
                     return (
                       <tr
                         key={submission.id}
@@ -760,14 +567,6 @@ export default function DirectoriesPage() {
                         <td className="px-4 py-3.5">
                           <StatusBadge status={submission.status} />
                         </td>
-                        <td className="px-4 py-3.5 whitespace-nowrap text-muted-foreground tabular-nums">
-                          {submission.submitted_at
-                            ? `${formatDate(submission.submitted_at)}${days !== null ? ` (${days}d)` : ""}`
-                            : "—"}
-                        </td>
-                        <td className="px-4 py-3.5 whitespace-nowrap text-muted-foreground tabular-nums">
-                          {formatDate(submission.last_indexed_at)}
-                        </td>
                         <td className="px-4 py-3.5">
                           <IconChevronRight className="size-4 text-muted-foreground" />
                         </td>
@@ -776,8 +575,8 @@ export default function DirectoriesPage() {
                   })}
                 </tbody>
               </table>
-            </TooltipProvider>
           </div>
+          </TooltipProvider>
         </Card>
       )}
     </div>

@@ -18,17 +18,16 @@ export type ProspectListItem = Pick<
   | "discovered_at"
   | "contact_email"
   | "contact_name"
+  | "notes"
 >
 
-export type ProspectDetail = Omit<ProspectListItem, never> &
+export type ProspectDetail = ProspectListItem &
   Pick<
     BacklinkProspect,
     | "email_subject"
     | "email_body"
-    | "contact_name"
-    | "contact_email"
-    | "notes"
     | "created_at"
+    | "source_media_mention_id"
   >
 
 type ProspectStore = {
@@ -55,6 +54,7 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
     discovered_at: prospect.discovered_at,
     contact_email: prospect.contact_email,
     contact_name: prospect.contact_name,
+    notes: prospect.notes,
   }
 }
 

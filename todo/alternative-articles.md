@@ -2,12 +2,12 @@
 
 ### Backlink building / outreach tools
 
-- Semrush Link Building Tool — Backlink prospecting and outreach workflow inside Semrush, mainly useful for SEO teams already using Semrush.
 - Ahrefs — Backlink research and competitor analysis tool used to find link prospects, but not mainly built for outreach automation.
 - Hunter — Email finder and verification tool used to identify contact details for outreach campaigns.
 - Metaflow AI — No-code AI prospecting/enrichment tool for building outbound workflows and personalized messaging agents.
 - Backlinker.AI — Managed or automated backlink outreach service positioned around hands-off link acquisition.
 - FatJoe — Productized link-building and SEO service that handles placements, blogger outreach, and content creation manually.
+- Outrank.so
 
 ### Community monitoring / Reddit intent tools
 

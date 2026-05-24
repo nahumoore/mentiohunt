@@ -19,6 +19,10 @@ type DirectoryOnboardingResult = {
   newRows: number
 }
 
+type MediaMentionsOnboardingResult = {
+  prospectsCreated: number
+}
+
 function getResend() {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) throw new Error("Missing RESEND_API_KEY")
@@ -136,6 +140,7 @@ export async function sendOnboardingCompleteEmail({
   productName,
   replyQueueResult,
   directoryResult,
+  mediaMentionsResult,
 }: {
   to: string
   userId: string
@@ -143,6 +148,7 @@ export async function sendOnboardingCompleteEmail({
   productName: string
   replyQueueResult: PromiseSettledResult<ReplyQueueOnboardingResult>
   directoryResult: PromiseSettledResult<DirectoryOnboardingResult>
+  mediaMentionsResult: PromiseSettledResult<MediaMentionsOnboardingResult>
 }) {
   const firstName = userName?.trim().split(/\s+/)[0]
   const greeting = firstName ? `Hi ${firstName},` : "Hi,"
@@ -154,6 +160,10 @@ export async function sendOnboardingCompleteEmail({
   const prospectsCreated =
     directoryResult.status === "fulfilled"
       ? directoryResult.value.newRows
+      : 0
+  const mediaMentionsCreated =
+    mediaMentionsResult.status === "fulfilled"
+      ? mediaMentionsResult.value.prospectsCreated
       : 0
 
   const replyQueueSummary =
@@ -204,11 +214,26 @@ export async function sendOnboardingCompleteEmail({
           "Your product setup was saved, but the first directory discovery run failed. We will keep the setup available so it can be run again."
         )
 
+  const mediaMentionsSummary =
+    mediaMentionsResult.status === "fulfilled"
+      ? `
+        <tr>
+          ${statCard(
+            "Media mention leads",
+            String(mediaMentionsResult.value.prospectsCreated),
+            `${mediaMentionsResult.value.prospectsCreated === 1 ? "outreach draft" : "outreach drafts"} created from recent media mentions`
+          )}
+        </tr>`
+      : statusNote(
+          "Media mentions processing did not finish",
+          "Your setup was saved. We will match relevant media mentions against your product on the next run."
+        )
+
   await sendMentiohuntEmail({
     to,
     subject: `Your Mentiohunt onboarding results for ${productName}`,
     unsubscribeUrl: generateUnsubscribeUrl(userId, "alerts"),
-    previewText: `We found ${pluralize(replyQueueFound, "reply opportunity", "reply opportunities")} and added ${pluralize(prospectsCreated, "directory prospect")} for ${productName}.`,
+    previewText: `We found ${pluralize(replyQueueFound, "reply opportunity", "reply opportunities")}, added ${pluralize(prospectsCreated, "directory prospect")}, and matched ${pluralize(mediaMentionsCreated, "media mention lead")} for ${productName}.`,
     footerReason:
       "You received this email because you completed onboarding for Mentiohunt.",
     body: `
@@ -218,6 +243,7 @@ export async function sendOnboardingCompleteEmail({
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 -6px 10px;">
         ${replyQueueSummary}
         ${directorySummary}
+        ${mediaMentionsSummary}
       </table>
       <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:15px; color:#6D625B; margin:18px 0 24px; line-height:1.7;">Next, review the queue and decide which opportunities are worth acting on first. Mentiohunt will show the fit rationale and prep work before you reach out or reply.</p>
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">

@@ -64,6 +64,7 @@ export type DirectorySubmissionDetail = Omit<DirectorySubmissionListItem, "direc
   }
 
 type DirectorySubmissionStore = {
+  hydrated: boolean
   submissions: DirectorySubmissionListItem[]
   submissionDetailsById: Record<string, DirectorySubmissionDetail>
   setSubmissions: (submissions: DirectorySubmissionListItem[]) => void
@@ -103,9 +104,10 @@ function toListItem(submission: DirectorySubmissionDetail): DirectorySubmissionL
 }
 
 export const useDirectorySubmissionStore = create<DirectorySubmissionStore>()((set) => ({
+  hydrated: false,
   submissions: [],
   submissionDetailsById: {},
-  setSubmissions: (submissions) => set({ submissions }),
+  setSubmissions: (submissions) => set({ hydrated: true, submissions }),
   updateSubmissionStatuses: (ids, status, extra = {}) =>
     set((state) => {
       const idSet = new Set(ids)
@@ -140,5 +142,5 @@ export const useDirectorySubmissionStore = create<DirectorySubmissionStore>()((s
         },
       }
     }),
-  clearSubmissions: () => set({ submissions: [], submissionDetailsById: {} }),
+  clearSubmissions: () => set({ hydrated: false, submissions: [], submissionDetailsById: {} }),
 }))

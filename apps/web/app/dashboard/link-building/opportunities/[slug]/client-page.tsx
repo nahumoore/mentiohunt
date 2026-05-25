@@ -52,7 +52,7 @@ export function ProspectClientPage({
   return (
     <div className="flex flex-col gap-8">
       <OpportunityDetailHeader
-        domain={current.domain}
+        domain={current.domain ?? ""}
         tier={current.tier}
         actionType={current.action_type}
         status={current.status}
@@ -65,14 +65,19 @@ export function ProspectClientPage({
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         {/* main column */}
         <div className="flex flex-col gap-6">
-          <MediaMentionPanel mediaMention={mediaMention} />
-
-          <OutreachDraft
-            subject={current.email_subject}
-            body={current.email_body}
-            prospectId={current.id}
-            contactEmail={current.contact_email}
+          <MediaMentionPanel
+            mediaMention={mediaMention}
+            isSocialMedia={current.action_type === "social_media"}
           />
+
+          {current.action_type !== "social_media" && (
+            <OutreachDraft
+              subject={current.email_subject ?? ""}
+              body={current.email_body ?? ""}
+              prospectId={current.id}
+              contactEmail={current.contact_email}
+            />
+          )}
         </div>
 
         {/* sidebar */}
@@ -84,10 +89,12 @@ export function ProspectClientPage({
             </div>
           )}
 
-          <OpportunityContactCard
-            contactName={current.contact_name}
-            contactEmail={current.contact_email}
-          />
+          {current.action_type !== "social_media" && (
+            <OpportunityContactCard
+              contactName={current.contact_name}
+              contactEmail={current.contact_email}
+            />
+          )}
 
           <OpportunityMetaCard
             tier={current.tier}
@@ -101,8 +108,9 @@ export function ProspectClientPage({
 
       <OpportunityActions
         prospectId={current.id}
-        targetUrl={current.target_url}
+        targetUrl={current.target_url ?? ""}
         originalUrl={mediaMention?.url}
+        actionType={current.action_type}
       />
     </div>
   )

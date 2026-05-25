@@ -2,10 +2,9 @@ import {
   IconBrandBluesky,
   IconBrandX,
   IconCircleX,
-  IconClipboardCheck,
   IconHelpCircle,
-  IconListDetails,
   IconLink,
+  IconListDetails,
   IconMail,
   IconMailForward,
   IconNews,
@@ -13,6 +12,7 @@ import {
   IconSend,
   IconSparkles,
   IconStar,
+  IconMessageShare,
   IconSwords,
 } from "@tabler/icons-react"
 import type { Database, Tables } from "@workspace/supabase/database-types"
@@ -97,23 +97,33 @@ export const STATUS_CONFIG: Record<ProspectStatus, StatusConfig> = {
 }
 
 export const ACTION_TYPE_CONFIG: Record<ProspectActionType, ActionTypeConfig> = {
-  self_service: {
-    label: "Self-serve",
-    description: "Open the target URL and submit or claim the listing yourself.",
-    icon: IconClipboardCheck,
-    color: "text-teal-600 bg-teal-500/10",
-  },
   email_outreach: {
     label: "Email outreach",
-    description: "Use the prepared outreach draft when contact details are available.",
+    description:
+      "Use the prepared outreach draft when contact details are available.",
     icon: IconMailForward,
     color: "text-orange-600 bg-orange-500/10",
+  },
+  social_media: {
+    label: "Social reply",
+    description:
+      "Reply to the post on the social platform where it was discovered.",
+    icon: IconMessageShare,
+    color: "text-neutral-700 bg-neutral-500/10",
   },
 }
 
 export const STATUS_FILTERS: ProspectFilterConfig[] = [
-  { value: "all", label: ALL_FILTER_CONFIG.label, icon: ALL_FILTER_CONFIG.icon },
-  { value: "new", label: STATUS_CONFIG.new.label, icon: STATUS_CONFIG.new.icon },
+  {
+    value: "all",
+    label: ALL_FILTER_CONFIG.label,
+    icon: ALL_FILTER_CONFIG.icon,
+  },
+  {
+    value: "new",
+    label: STATUS_CONFIG.new.label,
+    icon: STATUS_CONFIG.new.icon,
+  },
   {
     value: "contacted",
     label: STATUS_CONFIG.contacted.label,

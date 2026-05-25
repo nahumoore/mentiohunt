@@ -44,10 +44,15 @@ export function SubmitAssistSheet({
   onMarkSubmitted,
   trigger,
 }: SubmitAssistSheetProps) {
-  const submitHostname = submitUrl
+  const normalizedSubmitUrl = submitUrl
+    ? submitUrl.startsWith("http")
+      ? submitUrl
+      : `https://${submitUrl}`
+    : null
+  const submitHostname = normalizedSubmitUrl
     ? (() => {
         try {
-          return new URL(submitUrl.startsWith("http") ? submitUrl : `https://${submitUrl}`).hostname
+          return new URL(normalizedSubmitUrl).hostname
         } catch {
           return submitUrl
         }
@@ -68,12 +73,29 @@ export function SubmitAssistSheet({
         <div className="flex flex-col gap-6 overflow-y-auto px-6 py-6">
           <div className="flex flex-col gap-2.5">
             <StepLabel number={1} label="Open submission form" />
-            {submitUrl ? (
-              <a href={submitUrl} target="_blank" rel="noopener noreferrer" className="block">
-                <Button variant="outline" className="w-full justify-between">
-                  <span className="truncate text-sm">{submitHostname}</span>
+            {normalizedSubmitUrl ? (
+              <a
+                href={normalizedSubmitUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <Button variant="outline" className="w-full justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-2">
+                    {submitHostname && (
+                      <img
+                        src={`https://www.google.com/s2/favicons?domain=${submitHostname}&sz=32`}
+                        alt=""
+                        className="size-4 shrink-0 rounded-sm"
+                      />
+                    )}
+                    <span className="truncate text-sm">{directoryName}</span>
+                  </span>
                   <IconExternalLink className="size-4 shrink-0 text-muted-foreground" />
                 </Button>
+                <p className="mt-1.5 truncate text-xs text-muted-foreground">
+                  {normalizedSubmitUrl}
+                </p>
               </a>
             ) : (
               <p className="text-sm text-muted-foreground">No submission URL available.</p>

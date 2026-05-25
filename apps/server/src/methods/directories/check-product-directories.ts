@@ -157,7 +157,6 @@ export async function checkProductDirectoryOpportunities(
     product_id: productId,
     directory_id: dir.id,
     domain: dir.domain,
-    submit_url: dir.submit_url,
     status: "not_submitted" as const,
     last_checked_at: now,
   }))

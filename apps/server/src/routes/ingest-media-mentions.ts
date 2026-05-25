@@ -94,7 +94,7 @@ ingestMediaMentionsRouter.post("/hermes/media-mentions", async (req, res) => {
     deadline: m.deadline ?? new Date().toISOString().split("T")[0],
     raw_text: m.raw_text ?? null,
     raw_body: m.raw_body ?? null,
-    processed_at: processedAt,
+    submitted_at: processedAt,
   }))
 
   const { data: inserted, error } = await supabaseAdmin

@@ -216,7 +216,7 @@ export default async function DashboardLayout({
       supabase
         .from("directory_submissions")
         .select(
-          "id, product_id, domain, submit_url, listing_url, status, discovered_at, submitted_at, last_checked_at, last_indexed_at, directory:directories(is_free, domain_rating, backlinks, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at)"
+          "id, product_id, domain, listing_url, status, discovered_at, submitted_at, last_checked_at, last_indexed_at, directory:directories(is_free, domain_rating, backlinks, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at)"
         )
         .eq("product_id", product.id)
         .order("discovered_at", { ascending: false }),
@@ -252,14 +252,18 @@ export default async function DashboardLayout({
         directorySubmissionsResult.error
       )
     } else {
-      directorySubmissions = (directorySubmissionsResult.data ?? []).map(
-        (row) => ({
+      directorySubmissions = (directorySubmissionsResult.data ?? [])
+        .map((row) => ({
           ...row,
           directory: Array.isArray(row.directory)
             ? (row.directory[0] ?? null)
             : row.directory,
+        }))
+        .sort((a, b) => {
+          const drA = a.directory?.domain_rating ?? -1
+          const drB = b.directory?.domain_rating ?? -1
+          return drB - drA
         })
-      )
     }
 
     if (discoverySettingsResult.error) {

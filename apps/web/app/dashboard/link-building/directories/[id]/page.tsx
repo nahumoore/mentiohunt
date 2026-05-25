@@ -22,7 +22,7 @@ export default async function DirectoryDetailPage({
   const { data: submission, error } = await supabase
     .from("directory_submissions")
     .select(
-      "id, product_id, domain, submit_url, listing_url, status, discovered_at, submitted_at, last_checked_at, last_indexed_at, directory_id, notes, created_at, directory:directories(id, name, domain, submit_url, category, is_free, is_active, domain_rating, backlinks, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at, submit_url_ok, submit_url_verified_at)"
+      "id, product_id, domain, listing_url, status, discovered_at, submitted_at, last_checked_at, last_indexed_at, directory_id, notes, created_at, directory:directories(id, name, domain, submit_url, category, is_free, is_active, domain_rating, backlinks, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at, submit_url_ok, submit_url_verified_at)"
     )
     .eq("id", id)
     .maybeSingle()

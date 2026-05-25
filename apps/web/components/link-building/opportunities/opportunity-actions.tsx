@@ -6,16 +6,19 @@ import { useRouter } from "next/navigation"
 import { IconCircleCheck, IconCircleX, IconLoader2 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 
+import type { ProspectActionType } from "@/app/dashboard/link-building/opportunities/_data"
 import { useProspectStore } from "@/stores/prospect-store"
 
 interface OpportunityActionsProps {
   prospectId: string
   targetUrl: string
   originalUrl: string | null | undefined
+  actionType: ProspectActionType
 }
 
 export function OpportunityActions({
   prospectId,
+  actionType,
 }: OpportunityActionsProps) {
   const router = useRouter()
   const [loading, setLoading] = useState<"contacted" | "dismissed" | null>(
@@ -53,7 +56,9 @@ export function OpportunityActions({
             Actions
           </p>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            What do you want to do with this opportunity?
+            {actionType === "social_media"
+              ? "Did you reply to this post?"
+              : "What do you want to do with this opportunity?"}
           </p>
         </div>
 
@@ -84,7 +89,7 @@ export function OpportunityActions({
             ) : (
               <IconCircleCheck className="size-4" />
             )}
-            Mark as contacted
+            {actionType === "social_media" ? "Mark as replied" : "Mark as contacted"}
           </Button>
         </div>
       </div>

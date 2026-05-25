@@ -47,7 +47,6 @@ export type DirectorySubmissionListItem = Pick<
   | "id"
   | "product_id"
   | "domain"
-  | "submit_url"
   | "listing_url"
   | "status"
   | "discovered_at"
@@ -82,14 +81,13 @@ function toListItem(submission: DirectorySubmissionDetail): DirectorySubmissionL
     id: submission.id,
     product_id: submission.product_id,
     domain: submission.domain,
-    submit_url: submission.submit_url,
     listing_url: submission.listing_url,
     status: submission.status,
     discovered_at: submission.discovered_at,
     submitted_at: submission.submitted_at,
     last_checked_at: submission.last_checked_at,
     last_indexed_at: submission.last_indexed_at,
-        directory: submission.directory
+    directory: submission.directory
       ? {
           is_free: submission.directory.is_free,
           domain_rating: submission.directory.domain_rating,

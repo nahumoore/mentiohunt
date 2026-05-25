@@ -200,7 +200,26 @@ export function DirectoryDetailClientPage({
 
       {/* Actions */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-6">
-        <ReportDialog directoryDomain={submission.domain} />
+        <div className="flex flex-wrap items-center gap-2">
+          <ReportDialog directoryDomain={submission.domain} />
+
+          {!isDismissed && !isIndexed && (
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={isUpdating}
+              onClick={() => {
+                captureEvent("directory_dismissed", {
+                  submission_id: submission.id,
+                  domain: submission.domain,
+                })
+                void updateStatus("dismissed")
+              }}
+            >
+              Dismiss
+            </Button>
+          )}
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <CheckListingButton
@@ -228,9 +247,7 @@ export function DirectoryDetailClientPage({
                 }
               }}
               directoryName={directoryName}
-              submitUrl={
-                submission.submit_url ?? submission.directory?.submit_url
-              }
+              submitUrl={submission.directory?.submit_url ?? null}
               productName={product.productName}
               websiteUrl={product.websiteUrl}
               productDescription={product.productDescription}
@@ -259,24 +276,6 @@ export function DirectoryDetailClientPage({
             >
               {isUpdating && <IconLoader2 className="size-4 animate-spin" />}
               Undo submission
-            </Button>
-          )}
-
-          {!isDismissed && !isIndexed && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-muted-foreground"
-              disabled={isUpdating}
-              onClick={() => {
-                captureEvent("directory_dismissed", {
-                  submission_id: submission.id,
-                  domain: submission.domain,
-                })
-                void updateStatus("dismissed")
-              }}
-            >
-              Dismiss
             </Button>
           )}
 

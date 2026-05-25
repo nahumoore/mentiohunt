@@ -1,6 +1,7 @@
 import cron from "node-cron"
-import { updateDirectorySeoMetrics } from "./update-directory-seo-metrics.js"
+import { runDiscoverMediaMentions } from "./discover-media-mentions.js"
 import { runReplyQueueScheduler } from "./reply-queue-scheduler.js"
+import { updateDirectorySeoMetrics } from "./update-directory-seo-metrics.js"
 import { runWeeklyDirectoryCheck } from "./weekly-directory-submission-check.js"
 
 export function registerJobs(): void {
@@ -32,4 +33,13 @@ export function registerJobs(): void {
     }
   })
   console.log("[cron] Scheduled: weekly directory submission check (Mon 03:00 UTC)")
+
+  cron.schedule("0 6,18 * * *", async () => {
+    try {
+      await runDiscoverMediaMentions()
+    } catch (err) {
+      console.error("[cron] Error running media mentions discovery:", err)
+    }
+  })
+  console.log("[cron] Scheduled: media mentions discovery (06:00 + 18:00 UTC)")
 }

@@ -32,6 +32,25 @@ export const AHREFS_AUTHORITY_CHECKER =
 export const AHREFS_SEO_TOOLS = "pro100chok~ahrefs-seo-tools"
 
 /**
+ * Tweet Scraper by apidojo
+ * https://apify.com/apidojo/tweet-scraper
+ *
+ * Input: { searchTerms: string[], maxItems: number, sort: "Latest" | "Top",
+ *          tweetLanguage?: string }
+ * NOTE: do NOT pass start/end date params — same-day ranges return noResults.
+ *       Use sort:"Latest" + maxItems to control recency instead.
+ * Output per item (verified 2026-05-25):
+ *   id, text, fullText, url, twitterUrl, createdAt (Twitter date format),
+ *   author: { userName, name, id, profilePicture },
+ *   likeCount, replyCount, retweetCount, viewCount, bookmarkCount,
+ *   isReply, isRetweet, isQuote, lang, entities, media
+ *
+ * Pricing: $0.0004 / tweet (PAY_PER_EVENT, as of 2026-02-16).
+ * At 200 tweets/run × 2 runs/day = ~$0.16/day.
+ */
+export const APIDOJO_TWEET_SCRAPER = "apidojo~tweet-scraper"
+
+/**
  * Contact enrichment actor — TBD
  * Placeholder for domain → { contact_email, contact_name } enrichment.
  */

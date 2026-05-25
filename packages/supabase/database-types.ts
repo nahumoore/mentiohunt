@@ -66,15 +66,15 @@ export type Database = {
           contact_name: string | null
           created_at: string
           discovered_at: string
-          domain: string
-          email_body: string
-          email_subject: string
+          domain: string | null
+          email_body: string | null
+          email_subject: string | null
           id: string
           notes: string | null
           product_id: string
           source_media_mention_id: string | null
           status: Database["public"]["Enums"]["prospect_status"]
-          target_url: string
+          target_url: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
         }
         Insert: {
@@ -83,15 +83,15 @@ export type Database = {
           contact_name?: string | null
           created_at?: string
           discovered_at?: string
-          domain: string
-          email_body?: string
-          email_subject?: string
+          domain?: string | null
+          email_body?: string | null
+          email_subject?: string | null
           id?: string
           notes?: string | null
           product_id: string
           source_media_mention_id?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
-          target_url: string
+          target_url?: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
         }
         Update: {
@@ -100,15 +100,15 @@ export type Database = {
           contact_name?: string | null
           created_at?: string
           discovered_at?: string
-          domain?: string
-          email_body?: string
-          email_subject?: string
+          domain?: string | null
+          email_body?: string | null
+          email_subject?: string | null
           id?: string
           notes?: string | null
           product_id?: string
           source_media_mention_id?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
-          target_url?: string
+          target_url?: string | null
           tier?: Database["public"]["Enums"]["prospect_tier"]
         }
         Relationships: [
@@ -204,7 +204,6 @@ export type Database = {
           notes: string | null
           product_id: string
           status: Database["public"]["Enums"]["directory_submission_status"]
-          submit_url: string
           submitted_at: string | null
         }
         Insert: {
@@ -219,7 +218,6 @@ export type Database = {
           notes?: string | null
           product_id: string
           status?: Database["public"]["Enums"]["directory_submission_status"]
-          submit_url: string
           submitted_at?: string | null
         }
         Update: {
@@ -234,7 +232,6 @@ export type Database = {
           notes?: string | null
           product_id?: string
           status?: Database["public"]["Enums"]["directory_submission_status"]
-          submit_url?: string
           submitted_at?: string | null
         }
         Relationships: [
@@ -262,11 +259,11 @@ export type Database = {
           created_at: string
           deadline: string | null
           id: string
-          processed_at: string | null
           publication_domain: string | null
           raw_body: string | null
           raw_text: string | null
           source: Database["public"]["Enums"]["media_mention_source"]
+          submitted_at: string | null
           topic_summary: string | null
           url: string | null
         }
@@ -277,11 +274,11 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           id?: string
-          processed_at?: string | null
           publication_domain?: string | null
           raw_body?: string | null
           raw_text?: string | null
           source: Database["public"]["Enums"]["media_mention_source"]
+          submitted_at?: string | null
           topic_summary?: string | null
           url?: string | null
         }
@@ -292,11 +289,11 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           id?: string
-          processed_at?: string | null
           publication_domain?: string | null
           raw_body?: string | null
           raw_text?: string | null
           source?: Database["public"]["Enums"]["media_mention_source"]
+          submitted_at?: string | null
           topic_summary?: string | null
           url?: string | null
         }
@@ -624,7 +621,7 @@ export type Database = {
         | "featured"
         | "email"
         | "unknown"
-      prospect_action_type: "self_service" | "email_outreach"
+      prospect_action_type: "email_outreach" | "social_media"
       prospect_status: "new" | "contacted" | "dismissed"
       prospect_tier:
         | "competitor_backlink"
@@ -776,7 +773,7 @@ export const Constants = {
         "email",
         "unknown",
       ],
-      prospect_action_type: ["self_service", "email_outreach"],
+      prospect_action_type: ["email_outreach", "social_media"],
       prospect_status: ["new", "contacted", "dismissed"],
       prospect_tier: [
         "competitor_backlink",

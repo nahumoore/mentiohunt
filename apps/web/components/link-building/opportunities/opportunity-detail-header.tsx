@@ -48,7 +48,7 @@ export function OpportunityDetailHeader({
             <TierIcon className="size-3" />
             {tierCfg.label}
           </span>
-          {mediaMention && <SourceBadge source={mediaMention.source} />}
+          {mediaMention && actionType !== "social_media" && <SourceBadge source={mediaMention.source} />}
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${actionCfg.color}`}
           >

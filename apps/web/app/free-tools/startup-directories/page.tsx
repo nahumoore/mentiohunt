@@ -1,7 +1,20 @@
 import type { Metadata } from "next"
+import type { Tables } from "@workspace/supabase/database-types"
 
 import { Footer, Navbar } from "@/components/landing"
 import { StartupDirectoriesBrowser } from "./tool"
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+
+async function getDirectories(): Promise<Tables<"directories">[]> {
+  const res = await fetch(`${APP_URL}/api/free-tool/directories`, {
+    next: { revalidate: 3600 },
+  })
+
+  if (!res.ok) return []
+
+  return res.json()
+}
 
 export const metadata: Metadata = {
   title: "Startup Directory Browser - Free Tool",
@@ -26,11 +39,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function StartupDirectoriesPage() {
+export default async function StartupDirectoriesPage() {
+  const directories = await getDirectories()
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <Navbar overlay />
-      <StartupDirectoriesBrowser />
+      <StartupDirectoriesBrowser directories={directories} />
       <Footer />
     </main>
   )

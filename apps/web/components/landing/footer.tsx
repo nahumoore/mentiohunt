@@ -67,6 +67,21 @@ function FooterSocialProof() {
           src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1153691&theme=neutral&t=1779549223016"
         />
       </a>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <a
+        href="https://www.nxgntools.com/tools/mentiohunt?utm_source=mentiohunt"
+        target="_blank"
+        rel="noopener nofollow"
+        aria-label="Featured on NextGen Tools"
+        className="inline-flex rounded-lg transition-opacity hover:opacity-85"
+      >
+        <img
+          src="https://www.nxgntools.com/api/embed/mentiohunt?type=FEATURED_ON&hideUpvotes=true"
+          alt="Featured on NextGen Tools"
+          height={48}
+          style={{ width: "auto" }}
+        />
+      </a>
     </div>
   )
 }

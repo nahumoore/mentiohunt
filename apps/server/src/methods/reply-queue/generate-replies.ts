@@ -7,6 +7,53 @@ import type { AnalyzedPost } from "./analyze-posts.js"
 
 const log = createLogger("reply-queue-generate")
 
+const REPLY_STRUCTURES = [
+  {
+    name: "counterpoint",
+    instruction:
+      "Start by pushing back on something in the post — a minor disagreement, a nuance they missed, or a common assumption worth questioning. Then build your actual point from there.",
+  },
+  {
+    name: "specific_detail",
+    instruction:
+      "Lead with a specific word, number, or detail from the post. Don't summarize — zoom in on one concrete thing and unpack it.",
+  },
+  {
+    name: "question_first",
+    instruction:
+      "Open with a question that challenges their assumption or pushes them to think differently. Then give your take.",
+  },
+  {
+    name: "mid_conversation",
+    instruction:
+      "Write as if you're already in the middle of a conversation. No setup, no preamble. Jump straight into your point.",
+  },
+  {
+    name: "blunt_take",
+    instruction:
+      "Lead with one short, direct sentence — your main take on the post. Then back it up in the next paragraph.",
+  },
+  {
+    name: "broader_observation",
+    instruction:
+      "Start with a short observation about the broader space or pattern you've noticed, then connect it to what they're dealing with.",
+  },
+  {
+    name: "personal_angle",
+    instruction:
+      "Start from what you've personally seen or dealt with that's relevant to their situation. Keep it short and specific.",
+  },
+  {
+    name: "flip_the_frame",
+    instruction:
+      "Reframe their problem from a different angle — maybe what they think is the issue isn't the actual bottleneck. Lead with the reframe.",
+  },
+] as const
+
+function pickReplyStructure() {
+  return REPLY_STRUCTURES[Math.floor(Math.random() * REPLY_STRUCTURES.length)]!
+}
+
 export interface PostWithReply extends AnalyzedPost {
   suggested_reply: string
 }
@@ -28,18 +75,21 @@ export async function generateReplies(
     posts.map((post) => limit(() => generateReply(post, product, customVoiceInstructions)))
   )
 
-  const successful = results.filter((r): r is { post: PostWithReply; cost: number } => r !== null)
+  const successful = results.filter(
+    (r): r is { post: PostWithReply; cost: number; structure: string } => r !== null
+  )
   const totalCost = results.reduce((sum, r) => sum + (r?.cost ?? 0), 0)
 
   log.info("replies result", {
     generated: successful.length,
     failed: results.length - successful.length,
-    posts: successful.map(({ post: p }) => ({
+    posts: successful.map(({ post: p, structure }) => ({
       title: p.title ?? truncateWords(p.body, 10),
       platform: p.platform,
       community: p.community,
       fit_score: p.fit_score,
       fit_category: p.fit_category,
+      reply_structure: structure,
       suggested_reply: p.suggested_reply,
     })),
   })
@@ -51,13 +101,14 @@ async function generateReply(
   post: AnalyzedPost,
   product: { product_name: string; product_description: string },
   customVoiceInstructions: string | null
-): Promise<{ post: PostWithReply; cost: number } | null> {
+): Promise<{ post: PostWithReply; cost: number; structure: string } | null> {
   const blueskyNote =
     post.platform === "bluesky"
       ? "\n\nIMPORTANT: This is a Bluesky post. Reply must be under 300 characters."
       : ""
 
   const useDefaultVoice = !customVoiceInstructions?.trim()
+  const replyStructure = pickReplyStructure()
 
   const systemInstructions = useDefaultVoice
     ? `You are replying to a social media post on behalf of someone who built ${product.product_name}.
@@ -86,10 +137,20 @@ Never use these phrases — they sound like AI:
 - "honestly"
 - "what separates X is Y"
 - "certainly", "absolutely", "great question"
+- "this hits different"
+- "this resonates"
+- "this is solid" or "this is a solid [noun]" as an opener
+- "doing the heavy lifting"
+- "cutting through the noise"
+- "curious how" as a closing question
+
+### How to open this reply (non-negotiable)
+
+${replyStructure.instruction}
 
 ### Formatting (non-negotiable)
 
-- Separate every paragraph with a line break.
+- Separate every paragraph with a blank line (two newlines).
 - Each paragraph must be 1-2 sentences max. Never write a wall of text.
 - Don't add bullet points or lists.
 
@@ -151,7 +212,7 @@ Write a reply to this post.`,
     const reply = useDefaultVoice
       ? postProcessReply(parsed.suggested_reply)
       : parsed.suggested_reply
-    return { post: { ...post, suggested_reply: reply }, cost }
+    return { post: { ...post, suggested_reply: reply }, cost, structure: replyStructure.name }
   } catch (err) {
     log.warn("reply generation failed", { postId: post.post_id, error: String(err) })
     return null

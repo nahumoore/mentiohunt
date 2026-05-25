@@ -196,6 +196,7 @@ export default async function DashboardLayout({
     : null
   let backlinkNetworkMembership: BacklinkNetworkMembership | null = null
   let hasRunningCommunityRun = false
+  let hasReplyQueueConfig = false
 
   if (product) {
     const [
@@ -276,6 +277,10 @@ export default async function DashboardLayout({
         (config) => config.last_run_status === "running"
       )
 
+    hasReplyQueueConfig =
+      !replyQueueConfigsResult.error &&
+      (replyQueueConfigsResult.data ?? []).length > 0
+
     if (replyQueueConfigsResult.error) {
       console.error(
         "Error fetching reply queue configs:",
@@ -341,6 +346,7 @@ export default async function DashboardLayout({
       directorySubmissions={directorySubmissions}
       communityMentions={communityMentions}
       hasRunningCommunityRun={hasRunningCommunityRun}
+      hasReplyQueueConfig={hasReplyQueueConfig}
       discoverySettings={discoverySettings}
       backlinkNetworkMembership={backlinkNetworkMembership}
     >

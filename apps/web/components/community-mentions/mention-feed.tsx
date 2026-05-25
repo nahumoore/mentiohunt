@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 import type { CommunityMention } from "@/app/dashboard/community-mentions/reply-queue/_data"
 import { useCommunityMentionStore } from "@/stores/community-mention-store"
@@ -23,6 +24,7 @@ export function MentionFeed() {
   const allMentions = useCommunityMentionStore((state) => state.mentions)
   const isLoading = useCommunityMentionStore((state) => state.isLoading)
   const hasRunningRun = useCommunityMentionStore((state) => state.hasRunningRun)
+  const hasReplyQueueConfig = useCommunityMentionStore((state) => state.hasReplyQueueConfig)
   const updateMentionStatus = useCommunityMentionStore(
     (state) => state.updateMentionStatus
   )
@@ -46,8 +48,17 @@ export function MentionFeed() {
   const totalPages = Math.max(1, Math.ceil(filteredList.length / PAGE_SIZE))
   const paginated = filteredList.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
+  function updateReplyStatus(id: string, status: "replied" | "dismissed") {
+    fetch("/api/community-mentions/update-reply", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    }).catch(() => {})
+  }
+
   function handleMarkReplied(id: string) {
     setExitDirections((prev) => ({ ...prev, [id]: "right" }))
+    updateReplyStatus(id, "replied")
     setTimeout(() => {
       updateMentionStatus(id, "replied")
     }, 16)
@@ -55,6 +66,10 @@ export function MentionFeed() {
 
   function handleMarkDismissed(id: string) {
     setExitDirections((prev) => ({ ...prev, [id]: "left" }))
+    updateReplyStatus(id, "dismissed")
+    toast("Got it — we'll filter similar posts going forward.", {
+      duration: 4000,
+    })
     setTimeout(() => {
       updateMentionStatus(id, "dismissed")
     }, 16)
@@ -83,6 +98,25 @@ export function MentionFeed() {
             We&apos;re searching Reddit and your configured communities for posts
             that match your product. This usually takes a few minutes — check
             back shortly.
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  if (allMentions.length === 0 && !hasRunningRun && hasReplyQueueConfig) {
+    return (
+      <section className="rounded-2xl border border-border bg-card px-6 py-16 text-center">
+        <div className="mx-auto flex max-w-md flex-col items-center gap-3">
+          <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+            <IconLoader2 className="size-5 animate-spin text-primary" />
+          </span>
+          <h2 className="text-base font-semibold text-foreground">
+            Loading threads and posts
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Your first scan is queued. We&apos;ll search the communities you
+            configured and surface relevant threads shortly.
           </p>
         </div>
       </section>

@@ -11,8 +11,10 @@ type CommunityMentionStore = {
   mentions: CommunityMention[]
   isLoading: boolean
   hasRunningRun: boolean
+  hasReplyQueueConfig: boolean
   setMentions: (mentions: CommunityMention[]) => void
   setHasRunningRun: (value: boolean) => void
+  setHasReplyQueueConfig: (value: boolean) => void
   updateMentionStatus: (mentionId: string, status: MentionStatus) => void
   clearMentions: () => void
 }
@@ -22,8 +24,10 @@ export const useCommunityMentionStore = create<CommunityMentionStore>()(
     mentions: [],
     isLoading: true,
     hasRunningRun: false,
+    hasReplyQueueConfig: false,
     setMentions: (mentions) => set({ mentions, isLoading: false }),
     setHasRunningRun: (value) => set({ hasRunningRun: value }),
+    setHasReplyQueueConfig: (value) => set({ hasReplyQueueConfig: value }),
     updateMentionStatus: (mentionId, status) =>
       set((state) => ({
         mentions: state.mentions.map((mention) =>

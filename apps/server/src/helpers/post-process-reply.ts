@@ -114,6 +114,42 @@ const KEYWORDS_TO_REPLACE: { keyword: string; replacement: [string, ...string[]]
     keyword: "\\bleverage\\b",
     replacement: ["use", "take advantage of", "lean on"],
   },
+  {
+    keyword: "\\bexactly\\b",
+    replacement: ["precisely", "right", "yes", "that's it", "exactly"],
+  },
+  {
+    keyword: "\\bsolid\\b",
+    replacement: ["good", "interesting", "worth noting", "useful", "solid"],
+  },
+  {
+    keyword: "\\bresonates\\b",
+    replacement: ["clicks", "makes sense", "tracks", "rings true", "lands"],
+  },
+  {
+    keyword: "\\bresonate\\b",
+    replacement: ["click", "make sense", "track", "ring true", "land"],
+  },
+  {
+    keyword: "hits different",
+    replacement: ["stands out", "feels different", "lands differently", "is worth noting"],
+  },
+  {
+    keyword: "doing the heavy lifting",
+    replacement: ["doing most of the work", "handling the hard part", "taking care of it"],
+  },
+  {
+    keyword: "worth checking out",
+    replacement: ["worth a look", "might be useful", "could be worth trying"],
+  },
+  {
+    keyword: "cutting through the noise",
+    replacement: ["filtering out the clutter", "finding the useful stuff", "separating signal from junk"],
+  },
+  {
+    keyword: "\\bplaybook\\b",
+    replacement: ["approach", "strategy", "method", "workflow"],
+  },
 ]
 
 export function postProcessReply(content: string): string {
@@ -154,8 +190,8 @@ export function postProcessReply(content: string): string {
   // lowercase first char
   cleaned = cleaned.charAt(0).toLowerCase() + cleaned.slice(1)
 
-  // collapse multiple consecutive line breaks to one
-  cleaned = cleaned.replace(/\n\n+/g, "\n")
+  // normalize 3+ consecutive line breaks down to two (preserve paragraph breaks)
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n")
 
   return cleaned
 }

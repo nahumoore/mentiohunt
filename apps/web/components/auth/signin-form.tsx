@@ -9,7 +9,7 @@ import {
   FieldSeparator,
 } from "@workspace/ui/components/field";
 import { Input } from "@workspace/ui/components/input";
-import { captureEvent, identifyAnalyticsUser } from "@/lib/analytics";
+import { captureEvent, identifyAnalyticsUser, setPersonProperties } from "@/lib/analytics";
 import { supabaseClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import {
@@ -192,6 +192,8 @@ export function SigninForm({
       identifyAnalyticsUser(data.user.id, { email: data.user.email });
     }
     captureEvent("user_signed_in", { method: "email" });
+    setPersonProperties({ last_login: new Date().toISOString() });
+    sessionStorage.setItem("ph_session_tracked", "1");
 
     const { data: aalData } =
       await supabase.auth.mfa.getAuthenticatorAssuranceLevel();

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { Resend } from "resend"
 
 import { supabaseServer } from "@/lib/supabase/server"
-import { PRIMARY_EMAIL } from "@workspace/supabase/email-settings"
+import { PRIMARY_EMAIL } from "@workspace/email-settings"
 
 export const runtime = "nodejs"
 
@@ -17,11 +17,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const body = await req.json() as { directoryDomain?: string; message?: string }
+  const body = (await req.json()) as {
+    directoryDomain?: string
+    message?: string
+  }
   const { directoryDomain, message } = body
 
   if (!directoryDomain || !message?.trim()) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    )
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY)
@@ -44,7 +50,10 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     console.error("Flag email error:", error)
-    return NextResponse.json({ error: "Failed to send report" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to send report" },
+      { status: 500 }
+    )
   }
 
   return NextResponse.json({ ok: true })

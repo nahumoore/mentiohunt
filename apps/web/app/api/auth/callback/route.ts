@@ -1,5 +1,6 @@
 import { FREE_TRIAL_DAYS } from "@/consts/billing"
 import { supabaseServer } from "@/lib/supabase/server"
+import { supabaseAdmin } from "@workspace/supabase/admin"
 import type { TablesInsert } from "@workspace/supabase/database-types"
 import { NextResponse, type NextRequest } from "next/server"
 
@@ -66,6 +67,17 @@ export async function GET(request: NextRequest) {
         `${origin}/signin?auth_error=profile_creation_error`
       )
     }
+
+    const nextSendAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
+    supabaseAdmin
+      .from("email_sequences")
+      .upsert(
+        { user_id: user.id, type: "onboarding", next_send_at: nextSendAt },
+        { onConflict: "user_id,type", ignoreDuplicates: true }
+      )
+      .then(({ error: seqError }) => {
+        if (seqError) console.error("Failed to create email sequence:", seqError.message)
+      })
 
     return NextResponse.redirect(`${origin}/onboarding`)
   }

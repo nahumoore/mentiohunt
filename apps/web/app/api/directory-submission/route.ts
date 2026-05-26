@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { Resend } from "resend"
 
-import { PRIMARY_EMAIL } from "@workspace/supabase/email-settings"
+import { PRIMARY_EMAIL } from "@workspace/email-settings"
 
 const PRICING_LABELS: Record<string, string> = {
   free: "Free",
@@ -39,7 +39,10 @@ export async function POST(req: NextRequest) {
     !description ||
     !whySubmit
   ) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    )
   }
 
   const { error } = await resend.emails.send({
@@ -70,7 +73,10 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     console.error("Resend error:", error)
-    return NextResponse.json({ error: "Failed to send submission" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to send submission" },
+      { status: 500 }
+    )
   }
 
   return NextResponse.json({ ok: true })

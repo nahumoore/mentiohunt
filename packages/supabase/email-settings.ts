@@ -1,1 +1,1 @@
-export const PRIMARY_EMAIL = "nicolas@mentiohunt.com"
+export * from "../email-settings.js"

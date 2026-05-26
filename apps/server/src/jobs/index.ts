@@ -1,5 +1,6 @@
 import cron from "node-cron"
 import { runDiscoverMediaMentions } from "./discover-media-mentions.js"
+import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
 import { runReplyQueueScheduler } from "./reply-queue-scheduler.js"
 import { updateDirectorySeoMetrics } from "./update-directory-seo-metrics.js"
 import { runWeeklyDirectoryCheck } from "./weekly-directory-submission-check.js"
@@ -42,4 +43,13 @@ export function registerJobs(): void {
     }
   })
   console.log("[cron] Scheduled: media mentions discovery (06:00 + 18:00 UTC)")
+
+  cron.schedule("0 * * * *", async () => {
+    try {
+      await runFeedbackEmailSequence()
+    } catch (err) {
+      console.error("[cron] Error running feedback email sequence:", err)
+    }
+  })
+  console.log("[cron] Scheduled: feedback email sequence (hourly)")
 }

@@ -1,3 +1,4 @@
+import { ALERTS_FROM } from "@workspace/supabase/email-settings"
 import { Resend } from "resend"
 import { createLogger } from "../logger.js"
 import { escapeHtml, mentiohuntTemplate } from "./email-template.js"
@@ -55,7 +56,7 @@ export async function sendMentiohuntEmail({
     })
 
     await resend.emails.send({
-      from: "Mentiohunt <alerts@mentiohunt.com>",
+      from: ALERTS_FROM,
       to,
       subject: email.subject,
       html: email.html,

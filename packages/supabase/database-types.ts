@@ -251,6 +251,50 @@ export type Database = {
           },
         ]
       }
+      email_sequences: {
+        Row: {
+          created_at: string
+          id: string
+          next_send_at: string
+          reply_token: string
+          status: string
+          step: number
+          stopped_at: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          next_send_at: string
+          reply_token?: string
+          status?: string
+          step?: number
+          stopped_at?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          next_send_at?: string
+          reply_token?: string
+          status?: string
+          step?: number
+          stopped_at?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sequences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media_mentions: {
         Row: {
           author_handle: string | null

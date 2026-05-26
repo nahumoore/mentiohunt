@@ -8,6 +8,7 @@ import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunitie
 import { directoryOpportunitiesRouter } from "./find-directory-opportunities.js"
 import { ingestMediaMentionsRouter } from "./ingest-media-mentions.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
+import { resendInboundWebhookRouter } from "./resend-inbound-webhook.js"
 import { runReplyQueueRouter } from "./run-reply-queue.js"
 import { verifyDirectoryUrlsRouter } from "./verify-directory-urls.js"
 
@@ -16,6 +17,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(analyzeBacklinkSiteRouter)
   app.use(onboardingCompleteRouter)
   app.use(ingestMediaMentionsRouter)
+  app.use(resendInboundWebhookRouter)
 
   if (isDev) {
     app.use(directoryOpportunitiesRouter)

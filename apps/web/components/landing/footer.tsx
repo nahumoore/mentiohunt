@@ -22,6 +22,7 @@ const resourceLinks = [
   { href: "/directory-submission", label: "Submit a Directory" },
   { href: "/about", label: "About" },
   { href: "/alternatives", label: "Alternatives" },
+  { href: "/compare", label: "Tool Comparisons" },
 ]
 
 const legalLinks = [

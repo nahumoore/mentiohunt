@@ -5,9 +5,12 @@ import type { MDXComponents } from "mdx/types"
 import Link from "next/link"
 import type { ReactElement } from "react"
 import {
+  PricingComparison,
   PricingNote,
   QuickVerdict,
+  ScoreCard,
   ToolStrengths,
+  UserOpinion,
   WhenToChoose,
 } from "./comparison-components"
 import { CodeBlock } from "./code-block"
@@ -211,5 +214,8 @@ export default function BlogStylings(): MDXComponents {
     WhenToChoose,
     PricingNote,
     EmailDraft,
+    UserOpinion,
+    ScoreCard,
+    PricingComparison,
   }
 }

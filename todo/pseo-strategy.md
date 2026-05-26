@@ -6,44 +6,6 @@
 
 ### Primary Template: `/backlinks-from/[platform]` (COMPLETE ✅)
 
-Best pSEO candidate. Confirmed demand from Google Suggest. Each page = same structure, platform-specific playbook. Mentiohunt discovery engine is the natural CTA.
-
-**Build index page first** — `/backlinks-from/` defines the cluster and can rank on its own for broad "how to get backlinks" queries.
-
-Build order:
-
-- [x] `/backlinks-from/` — index page (build first)
-- [x] `/backlinks-from/reddit` — highest relevance, ties to both engines
-- [x] `/backlinks-from/medium`
-- [x] `/backlinks-from/quora`
-- [x] `/backlinks-from/wikipedia`
-- [x] `/backlinks-from/forbes`
-- [x] `/backlinks-from/news-websites`
-- [x] `/backlinks-from/instagram`
-- [x] `/backlinks-from/pinterest`
-- [x] `/backlinks-from/chatgpt` ← AI search angle, early mover
-
----
-
-### Internal Linking Architecture
-
-Pillar page: `/blog/how-to-find-backlink-opportunities`
-
-```
-Pillar → /backlinks-from/ index (generic "see all platforms" link)
-Pillar → individual spokes (contextual body links — see mapping below)
-Spokes → Pillar (every spoke page links back to pillar)
-Spokes → related spokes (1-2 cross-links per page)
-```
-
-**Contextual link mapping (pillar body → spoke):**
-
-- Step 3 (Google operators) → `/backlinks-from/google`
-- Step 5 (unlinked mentions) → `/backlinks-from/reddit`, `/backlinks-from/quora`
-- Step 6 (broken links) → `/backlinks-from/medium` or `/backlinks-from/news-websites`
-
-Contextual body links pass more authority than the index link alone. Update the pillar article as spokes are built.
-
 ---
 
 ### Secondary Template: `/link-building-for/[niche]`

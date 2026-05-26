@@ -23,6 +23,11 @@ export type BlogPostMeta = {
   readTime?: string
   category?: string
   featured?: boolean
+  toolA?: string
+  toolB?: string
+  toolAUrl?: string
+  toolBUrl?: string
+  verdict?: string
 }
 
 export type ContentType =
@@ -32,6 +37,7 @@ export type ContentType =
   | "free-tools"
   | "guides"
   | "alternatives"
+  | "compare"
 
 function getContentDirectory(contentType: ContentType = "blog"): string {
   return path.join(process.cwd(), "resources", contentType)
@@ -43,6 +49,7 @@ function getDefaultCategory(contentType: ContentType): string {
   if (contentType === "free-tools") return "Free Tool"
   if (contentType === "articles") return "Article"
   if (contentType === "backlinks-from") return "Platform Guide"
+  if (contentType === "compare") return "Comparison"
   return "Blog"
 }
 
@@ -109,6 +116,11 @@ export function getPostBySlug(
         featured: typeof data.featured === "boolean" ? data.featured : undefined,
         id: toStringValue(data.id) || undefined,
         readTime: toStringValue(data.readTime, calculateReadTime(content)),
+        toolA: toStringValue(data.toolA) || undefined,
+        toolB: toStringValue(data.toolB) || undefined,
+        toolAUrl: toStringValue(data.toolAUrl) || undefined,
+        toolBUrl: toStringValue(data.toolBUrl) || undefined,
+        verdict: toStringValue(data.verdict) || undefined,
       },
       content,
     }

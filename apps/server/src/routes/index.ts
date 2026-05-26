@@ -1,6 +1,7 @@
 import type { Application } from "express"
 import { analyzeBacklinkSiteRouter } from "./analyze-backlink-site.js"
 import { devDiscoverMediaMentionsRouter } from "./dev-discover-media-mentions.js"
+import { devPopulateMissingSeoMetricsRouter } from "./dev-populate-missing-seo-metrics.js"
 import { devProcessMediaMentionsRouter } from "./dev-process-media-mentions.js"
 import { devUpdateAllSeoMetricsRouter } from "./dev-update-all-seo-metrics.js"
 import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunities-by-url.js"
@@ -23,5 +24,6 @@ export function registerRoutes(app: Application, isDev: boolean): void {
     app.use(runReplyQueueRouter)
     app.use(devProcessMediaMentionsRouter)
     app.use(devDiscoverMediaMentionsRouter)
+    app.use(devPopulateMissingSeoMetricsRouter)
   }
 }

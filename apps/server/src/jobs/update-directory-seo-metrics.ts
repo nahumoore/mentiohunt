@@ -61,6 +61,90 @@ async function fetchAhrefsMetrics(domains: string[]): Promise<ApifyResult[]> {
   return res.json() as Promise<ApifyResult[]>
 }
 
+export async function updateMissingDirectorySeoMetrics(): Promise<void> {
+  if (!process.env.APIFY_TOKEN) {
+    console.error("[seo-metrics] APIFY_TOKEN not set, skipping")
+    return
+  }
+
+  console.log("[seo-metrics] Starting missing SEO metrics population")
+
+  const { data: directories, error } = await supabaseAdmin
+    .from("directories")
+    .select("id, domain")
+    .eq("is_active", true)
+    .is("seo_metrics_updated_at", null)
+
+  if (error) {
+    console.error("[seo-metrics] Failed to fetch directories:", error.message)
+    return
+  }
+
+  if (!directories?.length) {
+    console.log("[seo-metrics] No directories with missing SEO metrics")
+    return
+  }
+
+  console.log(`[seo-metrics] Found ${directories.length} directories with missing metrics`)
+
+  const batches = chunk(directories, BATCH_SIZE)
+  let updated = 0
+  let failed = 0
+
+  for (const [i, batch] of batches.entries()) {
+    const domains = batch.map((d) => d.domain)
+    console.log(
+      `[seo-metrics] Batch ${i + 1}/${batches.length} (${domains.length} domains)`
+    )
+
+    let results: ApifyResult[]
+    try {
+      results = await fetchAhrefsMetrics(domains)
+    } catch (err) {
+      console.error(`[seo-metrics] Apify failed for batch ${i + 1}:`, err)
+      failed += batch.length
+      continue
+    }
+
+    const byDomain = new Map(
+      results.map((r) => [normalizeDomain(r.normalized_url ?? r.url ?? ""), r])
+    )
+
+    for (const dir of batch) {
+      const r = byDomain.get(normalizeDomain(dir.domain))
+      if (!r || r.error) {
+        console.warn(`[seo-metrics] No result for ${dir.domain}`)
+        failed++
+        continue
+      }
+
+      const { error: updateError } = await supabaseAdmin
+        .from("directories")
+        .update({
+          domain_rating: toNumber(r.domainRating),
+          backlinks: toNumber(r.backlinks),
+          referring_domains: toNumber(r.refdomains),
+          dofollow_backlinks: toNumber(r.dofollowBacklinks),
+          dofollow_referring_domains: toNumber(r.dofollowRefdomains),
+          seo_metrics_updated_at: new Date().toISOString(),
+        })
+        .eq("id", dir.id)
+
+      if (updateError) {
+        console.error(
+          `[seo-metrics] DB update failed for ${dir.domain}:`,
+          updateError.message
+        )
+        failed++
+      } else {
+        updated++
+      }
+    }
+  }
+
+  console.log(`[seo-metrics] Done — updated=${updated} failed=${failed}`)
+}
+
 export async function updateDirectorySeoMetrics(): Promise<void> {
   if (!process.env.APIFY_TOKEN) {
     console.error("[seo-metrics] APIFY_TOKEN not set, skipping")

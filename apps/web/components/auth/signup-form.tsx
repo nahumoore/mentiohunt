@@ -44,13 +44,8 @@ export function SignupForm({
   }, []);
 
   useEffect(() => {
-    if (!accountCreated) {
-      return;
-    }
-
-    captureEvent("signup_confirmation_prompt_shown", {
-      method: "email",
-    });
+    if (!accountCreated) return;
+    captureEvent("signup_confirmation_prompt_shown", { method: "email" });
   }, [accountCreated]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -69,9 +64,7 @@ export function SignupForm({
         method: "email",
         error_count: validation.error.issues.length,
       });
-      const errors = validation.error.issues
-        .map((err) => err.message)
-        .join(", ");
+      const errors = validation.error.issues.map((err) => err.message).join(", ");
       toast.error(errors);
       setIsEmailLoading(false);
       return;
@@ -79,16 +72,11 @@ export function SignupForm({
 
     const supabase = supabaseClient();
 
-    captureEvent("signup_started", {
-      method: "email",
-    });
+    captureEvent("signup_started", { method: "email" });
 
     const { data, error } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/api/auth/callback`,
-      },
     });
 
     if (error) {
@@ -105,10 +93,7 @@ export function SignupForm({
       identifyAnalyticsUser(data.user.id, { email: data.user.email });
     }
 
-    captureEvent("user_signed_up", {
-      method: "email",
-      email: formData.email,
-    });
+    captureEvent("user_signed_up", { method: "email", email: formData.email });
 
     setUserEmail(formData.email);
     setAccountCreated(true);
@@ -119,13 +104,8 @@ export function SignupForm({
     setIsGoogleLoading(true);
     const supabase = supabaseClient();
 
-    captureEvent("signup_started", {
-      method: "google",
-    });
-    captureEvent("oauth_started", {
-      provider: "google",
-      flow: "signup",
-    });
+    captureEvent("signup_started", { method: "google" });
+    captureEvent("oauth_started", { provider: "google", flow: "signup" });
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -143,29 +123,29 @@ export function SignupForm({
       setIsGoogleLoading(false);
       return;
     }
-
   };
 
   const isLoading = isEmailLoading || isGoogleLoading;
 
   if (accountCreated) {
     return (
-      <div className={cn("flex flex-col items-center gap-8 text-center", className)} {...props}>
-        {/* Logo */}
-        <Link
-          href="/"
-          className="transition-opacity hover:opacity-80"
-        >
+      <div
+        className={cn("flex flex-col items-center gap-8 text-center", className)}
+        {...props}
+      >
+        <Link href="/" className="transition-opacity hover:opacity-80">
           <div
             className="flex size-12 items-center justify-center rounded-xl bg-primary/10 ring-2 ring-primary/20"
-            style={{ boxShadow: "0 0 28px color-mix(in oklch, var(--crimson-carrot) 22%, transparent)" }}
+            style={{
+              boxShadow:
+                "0 0 28px color-mix(in oklch, var(--crimson-carrot) 22%, transparent)",
+            }}
           >
             <IconBrandMentiohunt className="size-7 rotate-12 text-primary" />
           </div>
           <span className="sr-only">Mentiohunt</span>
         </Link>
 
-        {/* Icon + message */}
         <div className="flex flex-col items-center gap-5">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -177,7 +157,9 @@ export function SignupForm({
           </motion.div>
 
           <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">Check your inbox</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Check your inbox
+            </h1>
             <p className="max-w-xs text-sm text-muted-foreground">
               Confirmation link sent to{" "}
               <span className="font-medium text-foreground">{userEmail}</span>.
@@ -203,21 +185,22 @@ export function SignupForm({
 
   return (
     <div className={cn("flex flex-col gap-8", className)} {...props}>
-      {/* Logo */}
       <Link
         href="/"
         className="flex justify-center transition-opacity hover:opacity-80"
       >
         <div
           className="flex size-12 items-center justify-center rounded-xl bg-primary/10 ring-2 ring-primary/20"
-          style={{ boxShadow: "0 0 28px color-mix(in oklch, var(--crimson-carrot) 22%, transparent)" }}
+          style={{
+            boxShadow:
+              "0 0 28px color-mix(in oklch, var(--crimson-carrot) 22%, transparent)",
+          }}
         >
           <IconBrandMentiohunt className="size-7 rotate-12 text-primary" />
         </div>
         <span className="sr-only">Mentiohunt</span>
       </Link>
 
-      {/* Heading */}
       <div className="flex flex-col items-center gap-1.5 text-center">
         <h1 className="text-3xl font-bold tracking-tight">
           Find backlinks daily.

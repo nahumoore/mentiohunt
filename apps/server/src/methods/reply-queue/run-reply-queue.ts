@@ -50,7 +50,7 @@ export async function runReplyQueue({
     .single()
 
   const isFirstRun = !config.last_run_at
-  const dateWindowDays = isFirstRun ? 7 : 1
+  const dateWindowDays = isFirstRun ? 7 : 3
   const dateTo = new Date()
   const dateFrom = new Date(
     dateTo.getTime() - dateWindowDays * 24 * 60 * 60 * 1000

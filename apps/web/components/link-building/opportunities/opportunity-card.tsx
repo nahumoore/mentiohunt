@@ -70,9 +70,9 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
           </div>
         </div>
 
-        {/* domain */}
+        {/* domain / fallback title */}
         <p className="text-base font-semibold text-foreground">
-          {prospect.domain}
+          {prospect.domain ?? prospect.contact_name ?? actionCfg.label}
         </p>
 
         {prospect.notes && (

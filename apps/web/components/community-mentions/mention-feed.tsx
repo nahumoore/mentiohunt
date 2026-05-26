@@ -13,7 +13,8 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import type { CommunityMention } from "@/app/dashboard/community-mentions/reply-queue/_data"
+import type { CommunityMention, MentionSortKey } from "@/app/dashboard/community-mentions/reply-queue/_data"
+import { SORT_OPTIONS } from "@/app/dashboard/community-mentions/reply-queue/_data"
 import { useCommunityMentionStore } from "@/stores/community-mention-store"
 import { MentionCard } from "./mention-card"
 import { MentionSidebar } from "./mention-sidebar"
@@ -29,6 +30,7 @@ export function MentionFeed() {
     (state) => state.updateMentionStatus
   )
   const [currentPage, setCurrentPage] = useState(1)
+  const [sortKey, setSortKey] = useState<MentionSortKey>("relevance")
   const [exitDirections, setExitDirections] = useState<Record<string, "left" | "right">>({})
   const [showScrollTop, setShowScrollTop] = useState(false)
 
@@ -41,7 +43,18 @@ export function MentionFeed() {
   function filtered(): CommunityMention[] {
     return allMentions
       .filter((m) => m.status === "new")
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .sort((a, b) => {
+        switch (sortKey) {
+          case "date":
+            return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
+          case "reactions":
+            return b.engagement.reactions - a.engagement.reactions
+          case "comments":
+            return b.engagement.comments - a.engagement.comments
+          default:
+            return b.relevanceScore - a.relevanceScore
+        }
+      })
   }
 
   const filteredList = filtered()
@@ -126,6 +139,26 @@ export function MentionFeed() {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
       <div className="space-y-6 lg:col-span-8">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">Sort by</span>
+          <div className="flex gap-1">
+            {SORT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => { setSortKey(opt.value); setCurrentPage(1) }}
+                className={cn(
+                  "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                  sortKey === opt.value
+                    ? "border-primary bg-primary text-white"
+                    : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {filteredList.length === 0 ? (
           <section className="rounded-2xl border border-border bg-card px-6 py-12 text-center">
             <div className="mx-auto flex max-w-md flex-col items-center gap-3">

@@ -38,7 +38,11 @@ export function OpportunityDetailHeader({
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-3">
         <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-          {mediaMention?.publication_domain ?? domain}
+          {mediaMention?.publication_domain ||
+            domain ||
+            mediaMention?.author_name ||
+            mediaMention?.author_handle ||
+            ACTION_TYPE_CONFIG[actionType].label}
         </h1>
 
         <div className="flex flex-wrap items-center gap-2">

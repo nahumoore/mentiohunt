@@ -82,6 +82,21 @@ function FooterSocialProof() {
           style={{ width: "auto" }}
         />
       </a>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <a
+        href="https://dang.ai/"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        aria-label="Dang.ai"
+        className="inline-flex rounded-lg transition-opacity hover:opacity-85"
+      >
+        <img
+          src="https://cdn.prod.website-files.com/63d8afd87da01fb58ea3fbcb/6487e2868c6c8f93b4828827_dang-badge.png"
+          alt="Dang.ai"
+          width={150}
+          height={54}
+        />
+      </a>
     </div>
   )
 }

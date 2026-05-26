@@ -97,6 +97,21 @@ function FooterSocialProof() {
           height={54}
         />
       </a>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <a
+        href="https://twelve.tools"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        aria-label="Featured on Twelve Tools"
+        className="inline-flex rounded-lg transition-opacity hover:opacity-85"
+      >
+        <img
+          src="https://twelve.tools/badge0-white.svg"
+          alt="Featured on Twelve Tools"
+          width={200}
+          height={54}
+        />
+      </a>
     </div>
   )
 }

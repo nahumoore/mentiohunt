@@ -63,17 +63,6 @@ export async function gatherPosts(options: {
 
   if (platforms.includes("reddit")) {
     for (const keyword of keywords) {
-      tasks.push(
-        searchReddit(keyword, timeOption, 25)
-          .then((posts) => {
-            posts.forEach((p) => addPost(mapRedditPost(p)))
-            log.info("reddit global search", { keyword, found: posts.length })
-          })
-          .catch((err) =>
-            log.warn("reddit global search failed", { keyword, error: String(err) })
-          )
-      )
-
       for (const community of redditCommunities) {
         const subreddit = community.replace(/^r\//, "")
         tasks.push(

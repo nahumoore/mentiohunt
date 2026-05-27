@@ -8,9 +8,9 @@ export const runtime = "nodejs"
 const audienceSchema = z.object({
   monitoringKeywords: z
     .array(
-      z.string().trim().min(4).max(80).refine(
-        (kw) => { const words = kw.trim().split(/\s+/); return words.length >= 3 && words.length <= 4 },
-        { message: "Keyword must be 3–4 words" }
+      z.string().trim().min(3).max(80).refine(
+        (kw) => { const words = kw.trim().split(/\s+/); return words.length >= 2 && words.length <= 3 },
+        { message: "Keyword must be 2–3 words" }
       )
     )
     .min(4)
@@ -31,8 +31,8 @@ const systemInstructions = [
   "Return JSON only with this exact shape:",
   '{"monitoringKeywords":["keyword"],"monitoringCommunities":[{"platform":"reddit","community":"SaaS"}]}',
   "Rules:",
-  "- monitoringKeywords must contain 4 to 10 short-tail phrases, each exactly 3 to 4 words long, that the product's target audience uses when asking for recommendations, alternatives, or help with the problem this product solves.",
-  "- Prefer broad phrasing over specific product names so the phrases match more posts (e.g. 'best backlink tool' not 'best backlink tool for SaaS startups').",
+  "- monitoringKeywords must contain 4 to 10 short-tail phrases, each exactly 2 to 3 words long, that the product's target audience uses when asking for recommendations, alternatives, or help with the problem this product solves.",
+  "- Prefer broad phrasing over specific product names so the phrases match more posts (e.g. 'backlink tool' not 'best backlink tool for SaaS').",
   "- Do not include brand names or competitor names in keywords.",
   "- monitoringCommunities must contain 8 to 10 real subreddit names without the r/ prefix.",
   "- Pick communities where the product's likely buyers or users actively discuss the problem this product solves.",

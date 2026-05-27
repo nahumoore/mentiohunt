@@ -86,8 +86,10 @@ resendInboundWebhookRouter.post("/webhooks/resend-inbound", async (req, res) => 
   const addresses = parseToAddresses(body)
   const token = addresses.flatMap((a) => extractReplyToken(a) ?? []).at(0)
 
+  console.log("[resend-inbound] addresses:", JSON.stringify(addresses), "token:", token)
+
   if (!token) {
-    log.info("no reply token found in inbound email", { to: addresses })
+    console.log("[resend-inbound] no reply token found, body keys:", Object.keys(body))
     res.status(200).json({ ok: true })
     return
   }
@@ -99,11 +101,11 @@ resendInboundWebhookRouter.post("/webhooks/resend-inbound", async (req, res) => 
     .eq("status", "active")
 
   if (error) {
-    log.error("failed to stop sequence", { token, error: error.message })
+    console.error("[resend-inbound] supabase error:", error.message, "token:", token)
     res.status(500).json({ error: "failed to stop sequence" })
     return
   }
 
-  log.info("sequence stopped via reply", { token })
+  console.log("[resend-inbound] sequence stopped for token:", token)
   res.status(200).json({ ok: true })
 })

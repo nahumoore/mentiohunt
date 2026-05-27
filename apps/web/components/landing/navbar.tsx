@@ -22,13 +22,11 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
       <div className="container mx-auto">
         <div className="flex items-center justify-between gap-4 rounded-full border border-border/70 bg-card/75 px-4 py-2.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] ring-1 ring-white/10 backdrop-blur-xl ring-inset sm:px-5 dark:shadow-[0_2px_20px_-4px_rgba(0,0,0,0.35)]">
           <div className="flex min-w-0 items-center gap-7">
-            <Link href="/" className="flex items-center gap-2 shrink-0">
+            <Link href="/" className="flex shrink-0 items-center gap-2">
               <IconBrandMentiohunt className="h-6 w-6 rotate-12 text-primary drop-shadow-[0_4px_12px_rgba(255,96,0,0.24)]" />
               <span className="font-heading text-base font-semibold tracking-tight">
                 <span className="text-foreground">Mentio</span>
-                <span className="text-blaze-orange">
-                  hunt
-                </span>
+                <span className="text-blaze-orange">hunt</span>
               </span>
             </Link>
 

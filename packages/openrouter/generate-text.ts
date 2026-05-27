@@ -21,9 +21,11 @@ function getOpenRouterApiKey() {
 
 export type GenerateTextOptions = {
   model?: OpenRouterModel
+  fallbackModels?: OpenRouterModel[]
   input: string
   systemInstructions?: string
   thinkingBudget?: number
+  timeoutMs?: number
   responseFormat?: {
     type: "json_schema"
     json_schema: {
@@ -50,12 +52,14 @@ type ChatCompletionResponse = {
 
 async function generateStructuredText({
   model,
+  fallbackModels,
   input,
   systemInstructions,
   thinkingBudget,
+  timeoutMs = 30_000,
   responseFormat,
 }: Required<Pick<GenerateTextOptions, "model" | "input" | "responseFormat">> &
-  Pick<GenerateTextOptions, "systemInstructions" | "thinkingBudget">): Promise<{ text: string; cost: number }> {
+  Pick<GenerateTextOptions, "fallbackModels" | "systemInstructions" | "thinkingBudget" | "timeoutMs">): Promise<{ text: string; cost: number }> {
   const messages = [
     ...(systemInstructions
       ? [{ role: "system" as const, content: systemInstructions }]
@@ -63,14 +67,19 @@ async function generateStructuredText({
     { role: "user" as const, content: input },
   ]
 
+  const hasFallbacks = fallbackModels && fallbackModels.length > 0
+
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${getOpenRouterApiKey()}`,
       "Content-Type": "application/json",
     },
+    signal: AbortSignal.timeout(timeoutMs),
     body: JSON.stringify({
-      model,
+      ...(hasFallbacks
+        ? { models: [model, ...fallbackModels], route: "fallback" }
+        : { model }),
       messages,
       response_format: responseFormat,
       ...(thinkingBudget ? { reasoning: { max_tokens: thinkingBudget } } : {}),
@@ -109,17 +118,21 @@ async function generateStructuredText({
 
 export async function generateText({
   model = DEFAULT_GENERATE_TEXT_MODEL,
+  fallbackModels,
   input,
   systemInstructions,
   thinkingBudget,
+  timeoutMs,
   responseFormat,
 }: GenerateTextOptions): Promise<string> {
   if (responseFormat) {
     const { text } = await generateStructuredText({
       model,
+      fallbackModels,
       input,
       systemInstructions,
       thinkingBudget,
+      timeoutMs,
       responseFormat,
     })
     return text
@@ -140,17 +153,21 @@ export async function generateText({
 
 export async function generateTextWithUsage({
   model = DEFAULT_GENERATE_TEXT_MODEL,
+  fallbackModels,
   input,
   systemInstructions,
   thinkingBudget,
+  timeoutMs,
   responseFormat,
 }: GenerateTextOptions): Promise<{ text: string; cost: number }> {
   if (responseFormat) {
     return generateStructuredText({
       model,
+      fallbackModels,
       input,
       systemInstructions,
       thinkingBudget,
+      timeoutMs,
       responseFormat,
     })
   }

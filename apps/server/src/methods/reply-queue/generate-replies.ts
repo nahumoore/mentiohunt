@@ -129,6 +129,7 @@ Description: ${product.product_description}
 - Never give your thoughts on a tool you don't have enough information about.
 - Don't ask for DMs.
 - No emoji.
+- When the product is genuinely relevant to what the person needs, mention it by name naturally — never force it, but don't omit it when it fits.
 
 Never use these phrases — they sound like AI:
 - "the real X is/was" (real talk, real play, real move, real thing)

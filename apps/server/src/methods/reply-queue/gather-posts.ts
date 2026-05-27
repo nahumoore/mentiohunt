@@ -15,12 +15,15 @@ export interface GatheredPost {
   post_id: string
   title: string | null
   body: string
+  display_body?: string
   url: string
   community: string | null
   author: string | null
   engagement: number
   comment_count: number
   post_created_at: string | null
+  is_crosspost: boolean
+  has_text_body: boolean
 }
 
 export interface ConfigCommunity {
@@ -132,12 +135,16 @@ function truncateBody(text: string, maxWords: number): string {
   return words.length <= maxWords ? text : words.slice(0, maxWords).join(" ") + "…"
 }
 
+const EMPTY_SELFTEXT = new Set(["", "[deleted]", "[removed]"])
+
 function mapRedditPost(p: RedditPost): GatheredPost {
+  const selftext = p.selftext?.trim() ?? ""
+  const hasTextBody = !EMPTY_SELFTEXT.has(selftext) && selftext.length >= 20
   return {
     platform: "reddit",
     post_id: p.id,
     title: p.title || null,
-    body: p.selftext || p.title || "",
+    body: (hasTextBody ? selftext : null) ?? p.title ?? "",
     url: `https://www.reddit.com${p.permalink}`,
     community: p.subreddit ? `r/${p.subreddit}` : null,
     author: p.author ?? null,
@@ -146,6 +153,8 @@ function mapRedditPost(p: RedditPost): GatheredPost {
     post_created_at: p.created_utc
       ? new Date(p.created_utc * 1000).toISOString()
       : null,
+    is_crosspost: (p.crosspost_parent_list?.length ?? 0) > 0,
+    has_text_body: hasTextBody,
   }
 }
 
@@ -159,11 +168,14 @@ function mapBlueskyPost(p: BlueskyPost): GatheredPost {
     post_id: p.id,
     title: null,
     body,
+    display_body: p.text,
     url: p.url,
     community: null,
     author: p.author_handle,
     engagement: p.like_count,
     comment_count: p.reply_count,
     post_created_at: p.created_at,
+    is_crosspost: false,
+    has_text_body: body.trim().length >= 20,
   }
 }

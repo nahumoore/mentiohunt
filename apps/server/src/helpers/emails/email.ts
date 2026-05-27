@@ -18,6 +18,7 @@ type DirectoryOnboardingResult = {
   gaps: number
   errors: number
   newRows: number
+  totalActiveDirectories: number
 }
 
 type MediaMentionsOnboardingResult = {
@@ -79,12 +80,12 @@ function pluralize(count: number, singular: string, plural = `${singular}s`) {
 function statCard(label: string, value: string, detail: string) {
   return `
     <td class="mobile-stack" width="50%" style="padding:0 6px 12px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE6DD; border-radius:12px; background-color:#FFFCFA;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #F0ECE8; border-radius:12px; background-color:#FFFFFF;">
         <tr>
           <td style="padding:18px;">
-            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#A33A1B; margin:0 0 8px; line-height:1.4;">${escapeHtml(label)}</p>
-            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:28px; font-weight:700; color:#1A1614; margin:0; line-height:1.1;">${escapeHtml(value)}</p>
-            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:13px; color:#6D625B; margin:8px 0 0; line-height:1.5;">${escapeHtml(detail)}</p>
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#FF5400; margin:0 0 8px; line-height:1.4;">${escapeHtml(label)}</p>
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:28px; font-weight:700; color:#241611; margin:0; line-height:1.1;">${escapeHtml(value)}</p>
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:13px; color:#6F625A; margin:8px 0 0; line-height:1.5;">${escapeHtml(detail)}</p>
           </td>
         </tr>
       </table>
@@ -94,9 +95,9 @@ function statCard(label: string, value: string, detail: string) {
 function statusNote(title: string, message: string) {
   return `
     <tr>
-      <td colspan="2" style="padding:14px 16px; border:1px solid #EFE6DD; border-radius:12px; background-color:#FFFCFA;">
-        <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:14px; font-weight:700; color:#1A1614; margin:0 0 4px; line-height:1.5;">${escapeHtml(title)}</p>
-        <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:14px; color:#6D625B; margin:0; line-height:1.6;">${escapeHtml(message)}</p>
+      <td colspan="2" style="padding:14px 16px; border:1px solid #F0ECE8; border-radius:12px; background-color:#FFF8F2;">
+        <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:14px; font-weight:700; color:#241611; margin:0 0 4px; line-height:1.5;">${escapeHtml(title)}</p>
+        <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:14px; color:#6F625A; margin:0; line-height:1.6;">${escapeHtml(message)}</p>
       </td>
     </tr>`
 }
@@ -121,11 +122,11 @@ export async function sendMentionsAlert({
     unsubscribeUrl: generateUnsubscribeUrl(userId, "alerts"),
     previewText: `We found ${pluralize(mentionsCount, "mention")} that could be worth replying to.`,
     body: `
-      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4A413B; margin:0 0 18px; line-height:1.7;">Hi,</p>
-      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4A413B; margin:0 0 24px; line-height:1.7;">We found <strong style="color:#1A1614;">${escapeHtml(pluralize(mentionsCount, "mention"))}</strong> for <strong style="color:#1A1614;">${escapeHtml(productName)}</strong> that could be worth replying to.</p>
+      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 18px; line-height:1.7;">Hi,</p>
+      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 24px; line-height:1.7;">We found <strong style="color:#241611;">${escapeHtml(pluralize(mentionsCount, "mention"))}</strong> for <strong style="color:#241611;">${escapeHtml(productName)}</strong> that could be worth replying to.</p>
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td style="border-radius:10px; background-color:#CF4820;">
+          <td style="border-radius:10px; background-color:#FF5400;">
             <a href="${APP_URL}/dashboard/community-mentions/reply-queue" style="display:inline-block; padding:13px 18px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:14px; font-weight:700; color:#FFFFFF; text-decoration:none; border-radius:10px;">View your reply queue</a>
           </td>
         </tr>
@@ -158,98 +159,105 @@ export async function sendOnboardingCompleteEmail({
     replyQueueResult.status === "fulfilled"
       ? replyQueueResult.value.mentionsFound
       : 0
-  const prospectsCreated =
-    directoryResult.status === "fulfilled"
-      ? directoryResult.value.newRows
-      : 0
-  const mediaMentionsCreated =
+  const backlinkProspectsCreated =
     mediaMentionsResult.status === "fulfilled"
       ? mediaMentionsResult.value.prospectsCreated
       : 0
-
-  const replyQueueSummary =
-    replyQueueResult.status === "fulfilled"
-      ? `
-        <tr>
-          ${statCard(
-            "Reply queue",
-            String(replyQueueResult.value.mentionsFound),
-            `suggested ${replyQueueResult.value.mentionsFound === 1 ? "reply" : "replies"} from ${pluralize(replyQueueResult.value.postsScanned, "post")} scanned`
-          )}
-          ${statCard(
-            "Community scan",
-            String(replyQueueResult.value.postsScanned),
-            "posts checked against your product and keywords"
-          )}
-        </tr>`
-      : statusNote(
-          "Community monitoring scan did not finish",
-          "Your monitoring setup was saved, but the first scan failed. We will keep the setup available so it can be run again."
-        )
-
-  const directorySummary =
+  const indexedDirectories =
+    directoryResult.status === "fulfilled" ? directoryResult.value.indexed : 0
+  const totalActiveDirectories =
     directoryResult.status === "fulfilled"
-      ? `
-        <tr>
-          ${statCard(
-            "New directories",
-            String(directoryResult.value.newRows),
-            `new ${directoryResult.value.newRows === 1 ? "directory" : "directories"} added to your tracking list`
-          )}
-          ${statCard(
-            "Already indexed",
-            String(directoryResult.value.indexed),
-            `${pluralize(directoryResult.value.checked, "directory", "directories")} checked, ${directoryResult.value.indexed} already indexed by Google`
-          )}
-        </tr>
-        ${
-          directoryResult.value.errors > 0
-            ? statusNote(
-                "Some directory checks were inconclusive",
-                `${pluralize(directoryResult.value.errors, "directory", "directories")} could not be verified during this run.`
-              )
-            : ""
-        }`
-      : statusNote(
-          "Directory discovery did not finish",
-          "Your product setup was saved, but the first directory discovery run failed. We will keep the setup available so it can be run again."
-        )
+      ? directoryResult.value.totalActiveDirectories
+      : 0
 
-  const mediaMentionsSummary =
-    mediaMentionsResult.status === "fulfilled"
-      ? `
-        <tr>
-          ${statCard(
-            "Media mention leads",
-            String(mediaMentionsResult.value.prospectsCreated),
-            `${mediaMentionsResult.value.prospectsCreated === 1 ? "outreach draft" : "outreach drafts"} created from recent media mentions`
-          )}
-        </tr>`
-      : statusNote(
-          "Media mentions processing did not finish",
-          "Your setup was saved. We will match relevant media mentions against your product on the next run."
+  const replyQueueCard =
+    replyQueueResult.status === "fulfilled"
+      ? statCard(
+          "Possible Mentions",
+          String(replyQueueResult.value.mentionsFound),
+          `suggested ${replyQueueResult.value.mentionsFound === 1 ? "reply" : "replies"} from ${pluralize(replyQueueResult.value.postsScanned, "post")} scanned`
         )
+      : ""
+
+  const backlinkOpportunitiesCard =
+    mediaMentionsResult.status === "fulfilled"
+      ? statCard(
+          "Backlink opportunities",
+          String(mediaMentionsResult.value.prospectsCreated),
+          `${mediaMentionsResult.value.prospectsCreated === 1 ? "backlink prospect row" : "backlink prospect rows"} created from recent media mentions`
+        )
+      : ""
+
+  const directoryCoverageCard =
+    directoryResult.status === "fulfilled"
+      ? statCard(
+          "Directory coverage",
+          `${directoryResult.value.indexed}/${directoryResult.value.totalActiveDirectories}`,
+          "active directories indexed for your product"
+        )
+      : ""
+
+  const primaryCardsRow =
+    replyQueueCard || backlinkOpportunitiesCard
+      ? `<tr>${replyQueueCard}${backlinkOpportunitiesCard}</tr>`
+      : ""
+  const directoryCardRow = directoryCoverageCard
+    ? `<tr>${directoryCoverageCard}</tr>`
+    : ""
+  const statusNotes = `
+    ${
+      replyQueueResult.status === "rejected"
+        ? statusNote(
+            "Community monitoring scan did not finish",
+            "Your monitoring setup was saved, but the first scan failed. We will keep the setup available so it can be run again."
+          )
+        : ""
+    }
+    ${
+      mediaMentionsResult.status === "rejected"
+        ? statusNote(
+            "Backlink opportunity processing did not finish",
+            "Your setup was saved. We will match relevant backlink opportunities against your product on the next run."
+          )
+        : ""
+    }
+    ${
+      directoryResult.status === "rejected"
+        ? statusNote(
+            "Directory discovery did not finish",
+            "Your product setup was saved, but the first directory discovery run failed. We will keep the setup available so it can be run again."
+          )
+        : ""
+    }
+    ${
+      directoryResult.status === "fulfilled" && directoryResult.value.errors > 0
+        ? statusNote(
+            "Some directory checks were inconclusive",
+            `${pluralize(directoryResult.value.errors, "directory", "directories")} could not be verified during this run.`
+          )
+        : ""
+    }`
 
   await sendMentiohuntEmail({
     to,
     subject: `Your Mentiohunt onboarding results for ${productName}`,
     unsubscribeUrl: generateUnsubscribeUrl(userId, "alerts"),
-    previewText: `We found ${pluralize(replyQueueFound, "reply opportunity", "reply opportunities")}, added ${pluralize(prospectsCreated, "directory prospect")}, and matched ${pluralize(mediaMentionsCreated, "media mention lead")} for ${productName}.`,
+    previewText: `We found ${pluralize(replyQueueFound, "possible mention")}, created ${pluralize(backlinkProspectsCreated, "backlink opportunity", "backlink opportunities")}, and indexed ${indexedDirectories}/${totalActiveDirectories} active directories for ${productName}.`,
     footerReason:
       "You received this email because you completed onboarding for Mentiohunt.",
     body: `
-      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4A413B; margin:0 0 18px; line-height:1.7;">${escapeHtml(greeting)}</p>
-      <h1 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:28px; color:#1A1614; margin:0 0 16px; line-height:1.2; letter-spacing:-0.5px;">Your first opportunities are ready</h1>
-      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4A413B; margin:0 0 26px; line-height:1.7;">We finished the initial Mentiohunt setup for <strong style="color:#1A1614;">${escapedProductName}</strong>. Here is what we found across community monitoring and backlink prospecting.</p>
+      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 18px; line-height:1.7;">${escapeHtml(greeting)}</p>
+      <h1 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:28px; color:#241611; margin:0 0 16px; line-height:1.2; letter-spacing:-0.5px;">Your first opportunities are ready</h1>
+      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 26px; line-height:1.7;">We finished the initial Mentiohunt setup for <strong style="color:#241611;">${escapedProductName}</strong>. Here is what we found across community monitoring and backlink prospecting.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 -6px 10px;">
-        ${replyQueueSummary}
-        ${directorySummary}
-        ${mediaMentionsSummary}
+        ${primaryCardsRow}
+        ${directoryCardRow}
+        ${statusNotes}
       </table>
-      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:15px; color:#6D625B; margin:18px 0 24px; line-height:1.7;">Next, review the queue and decide which opportunities are worth acting on first. Mentiohunt will show the fit rationale and prep work before you reach out or reply.</p>
+      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:15px; color:#6F625A; margin:18px 0 24px; line-height:1.7;">Next, review the queue and decide which opportunities are worth acting on first. Mentiohunt will show the fit rationale and prep work before you reach out or reply.</p>
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td style="border-radius:10px; background-color:#CF4820;">
+          <td style="border-radius:10px; background-color:#FF5400;">
             <a href="${APP_URL}/dashboard" style="display:inline-block; padding:13px 18px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:14px; font-weight:700; color:#FFFFFF; text-decoration:none; border-radius:10px;">Review your opportunities</a>
           </td>
         </tr>

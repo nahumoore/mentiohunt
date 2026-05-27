@@ -650,14 +650,14 @@ export type Database = {
     Enums: {
       billing_tier: "free" | "pro" | "agency"
       directory_check_method: "serp_check" | "head_check"
-      email_sequence_status: "active" | "stopped" | "completed"
-      email_sequence_type: "onboarding"
       directory_submission_status:
         | "not_submitted"
         | "submitted"
         | "indexed"
         | "not_indexed"
         | "dismissed"
+      email_sequence_status: "active" | "stopped" | "completed"
+      email_sequence_type: "onboarding"
       media_mention_source:
         | "email_inbox"
         | "twitter"
@@ -809,6 +809,8 @@ export const Constants = {
         "not_indexed",
         "dismissed",
       ],
+      email_sequence_status: ["active", "stopped", "completed"],
+      email_sequence_type: ["onboarding"],
       media_mention_source: [
         "email_inbox",
         "twitter",

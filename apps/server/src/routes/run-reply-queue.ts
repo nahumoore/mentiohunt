@@ -11,10 +11,12 @@ export async function runReplyQueueForConfig({
   configId,
   userId,
   sendEmailAlerts = true,
+  maxPosts,
 }: {
   configId: string
   userId: string
   sendEmailAlerts?: boolean
+  maxPosts?: number
 }) {
   const { data: run, error } = await supabaseAdmin
     .from("reply_queue_runs")
@@ -27,8 +29,13 @@ export async function runReplyQueueForConfig({
     throw new Error("Failed to create run")
   }
 
+  await supabaseAdmin
+    .from("reply_queue_configs")
+    .update({ last_run_status: "running" })
+    .eq("id", configId)
+
   const result = await withRouteLog(`run-reply-queue-${configId}`, () =>
-    runReplyQueue({ configId, runId: run.id, sendEmailAlerts })
+    runReplyQueue({ configId, runId: run.id, sendEmailAlerts, maxPosts })
   )
 
   return { message: "Run complete", runId: run.id, ...result }

@@ -21,6 +21,7 @@ export interface RedditPost {
   author?: string
   num_comments?: number
   comments?: RedditComment[]
+  crosspost_parent_list?: unknown[]
 }
 
 interface RedditListingChild {

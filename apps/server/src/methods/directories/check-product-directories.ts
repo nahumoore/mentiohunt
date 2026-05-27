@@ -14,6 +14,7 @@ export type DirectoryOpportunitiesCheckResult = {
   gaps: number
   errors: number
   newRows: number
+  totalActiveDirectories: number
 }
 
 export type DirectoryOpportunitiesCheckOptions = {
@@ -50,6 +51,18 @@ export async function checkProductDirectoryOpportunities(
     .eq("product_id", productId)
     .single()
 
+  const { count: activeDirectoryCount, error: activeDirectoryCountError } =
+    await supabaseAdmin
+      .from("directories")
+      .select("id", { count: "exact", head: true })
+      .eq("is_active", true)
+
+  if (activeDirectoryCountError) {
+    log.warn("failed to count active directories", {
+      error: activeDirectoryCountError.message,
+    })
+  }
+
   let directoriesQuery = supabaseAdmin
     .from("directories")
     .select("id, domain, submit_url, slug_pattern, check_method, domain_rating")
@@ -76,7 +89,15 @@ export async function checkProductDirectoryOpportunities(
       drMin: settings?.dr_min ?? null,
       drMax: settings?.dr_max ?? null,
     })
-    return { productId, checked: 0, indexed: 0, gaps: 0, errors: 0, newRows: 0 }
+    return {
+      productId,
+      checked: 0,
+      indexed: 0,
+      gaps: 0,
+      errors: 0,
+      newRows: 0,
+      totalActiveDirectories: activeDirectoryCount ?? 0,
+    }
   }
 
   const slug = toSlug(product.product_name)
@@ -222,5 +243,6 @@ export async function checkProductDirectoryOpportunities(
     gaps: gapResults.length,
     errors: errorCount,
     newRows: insertCount ?? 0,
+    totalActiveDirectories: activeDirectoryCount ?? directories.length,
   }
 }

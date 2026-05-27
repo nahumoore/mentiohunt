@@ -30,12 +30,16 @@ export async function filterPosts(
   let totalCost = 0
 
   await Promise.all(
-    batches.map(async (batch) => {
+    batches.map(async (batch, i) => {
+      const t = Date.now()
+      console.log(`[filter-posts] batch ${i + 1}/${batches.length} START (${batch.length} posts)`)
       try {
         const { ids, cost } = await filterBatch(batch, product, keywords)
         for (const id of ids) relevantIds.add(id)
         totalCost += cost
+        console.log(`[filter-posts] batch ${i + 1}/${batches.length} END ${Date.now() - t}ms (${ids.length} kept)`)
       } catch (err) {
+        console.log(`[filter-posts] batch ${i + 1}/${batches.length} FAILED ${Date.now() - t}ms — passing all through`)
         log.warn("filter batch failed, passing all through", { error: String(err) })
         for (const p of batch) relevantIds.add(p.post_id)
       }
@@ -94,6 +98,7 @@ When in doubt, exclude. Return only IDs of posts that are a clear fit.`
 
   const { text, cost } = await generateTextWithUsage({
     model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
+    fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
     systemInstructions,
     thinkingBudget: FILTER_THINKING_BUDGET,
     input: `Posts:\n${JSON.stringify(payload, null, 2)}`,

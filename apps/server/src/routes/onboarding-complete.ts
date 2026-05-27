@@ -117,15 +117,45 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
   }
 
   try {
+    const t0 = Date.now()
+    console.log("[onboarding] jobs START", { userId, productId, replyQueueConfigId })
+
     const [replyQueueResult, directoryResult, mediaMentionsResult] = await Promise.allSettled([
-      runReplyQueueForConfig({
-        configId: replyQueueConfigId,
-        userId,
-        sendEmailAlerts: SEND_INDIVIDUAL_ONBOARDING_EMAILS,
-      }),
-      findDirectoryOpportunitiesForProduct(productId),
-      processMediaMentionsForProduct(productId, userId),
+      (async () => {
+        const t = Date.now()
+        console.log("[onboarding] runReplyQueueForConfig START")
+        try {
+          return await runReplyQueueForConfig({
+            configId: replyQueueConfigId,
+            userId,
+            sendEmailAlerts: SEND_INDIVIDUAL_ONBOARDING_EMAILS,
+            maxPosts: 50,
+          })
+        } finally {
+          console.log(`[onboarding] runReplyQueueForConfig END ${Date.now() - t}ms`)
+        }
+      })(),
+      (async () => {
+        const t = Date.now()
+        console.log("[onboarding] findDirectoryOpportunities START")
+        try {
+          return await findDirectoryOpportunitiesForProduct(productId)
+        } finally {
+          console.log(`[onboarding] findDirectoryOpportunities END ${Date.now() - t}ms`)
+        }
+      })(),
+      (async () => {
+        const t = Date.now()
+        console.log("[onboarding] processMediaMentions START")
+        try {
+          return await processMediaMentionsForProduct(productId, userId)
+        } finally {
+          console.log(`[onboarding] processMediaMentions END ${Date.now() - t}ms`)
+        }
+      })(),
     ])
+
+    console.log(`[onboarding] all jobs END ${Date.now() - t0}ms`)
 
     if (replyQueueResult.status === "rejected") {
       log.error("onboarding reply queue run failed", {

@@ -179,20 +179,21 @@ export async function processMediaMentionsForProduct(
     return { prospectsCreated: 0 }
   }
 
-  const { error: insertError } = await supabaseAdmin
+  const { count: insertCount, error: insertError } = await supabaseAdmin
     .from("backlink_prospects")
     .upsert(rows, {
       onConflict: "product_id,source_media_mention_id",
       ignoreDuplicates: true,
-    })
+      count: "exact",
+  })
 
   if (insertError) {
     log.error("failed to insert backlink_prospects", { error: insertError.message })
     return { prospectsCreated: 0 }
   }
 
-  log.info("backlink prospects created", { count: rows.length, productId })
-  return { prospectsCreated: rows.length }
+  log.info("backlink prospects created", { count: insertCount ?? rows.length, productId })
+  return { prospectsCreated: insertCount ?? rows.length }
 }
 
 function extractHostname(url: string): string {

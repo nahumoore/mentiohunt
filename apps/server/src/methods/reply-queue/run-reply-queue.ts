@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import { sendMentionsAlert } from "../../helpers/emails/email.js"
 import { createLogger } from "../../helpers/logger.js"
 import { analyzePosts } from "./analyze-posts.js"
+import { filterDuplicates } from "./filter-duplicates.js"
 import { filterPosts } from "./filter-posts.js"
 import { gatherPosts, type ConfigCommunity } from "./gather-posts.js"
 import { generateReplies } from "./generate-replies.js"
@@ -12,10 +13,12 @@ export async function runReplyQueue({
   configId,
   runId,
   sendEmailAlerts = true,
+  maxPosts,
 }: {
   configId: string
   runId: string
   sendEmailAlerts?: boolean
+  maxPosts?: number
 }): Promise<{ postsScanned: number; mentionsFound: number }> {
   const { data: config, error: configError } = await supabaseAdmin
     .from("reply_queue_configs")
@@ -62,12 +65,12 @@ export async function runReplyQueue({
     const communities =
       (config.communities as unknown as ConfigCommunity[]) ?? []
 
-    const gathered = await gatherPosts({
+    const gathered = filterDuplicates(await gatherPosts({
       platforms: config.platforms,
       communities,
       keywords: config.keywords,
       dateWindowDays,
-    })
+    }))
 
     const { data: existingItems } = await supabaseAdmin
       .from("reply_queue_items")
@@ -83,9 +86,13 @@ export async function runReplyQueue({
         .map((item) => `${item.platform}:${item.title!.toLowerCase().trim()}`)
     )
 
+    const seenPostIdsInBatch = new Set<string>()
     const seenTitlesInBatch = new Set<string>()
     const fresh = gathered.filter((p) => {
-      if (existingKeys.has(`${p.platform}:${p.post_id}`)) return false
+      const postKey = `${p.platform}:${p.post_id}`
+      if (existingKeys.has(postKey)) return false
+      if (seenPostIdsInBatch.has(postKey)) return false
+      seenPostIdsInBatch.add(postKey)
       if (p.title) {
         const titleKey = `${p.platform}:${p.title.toLowerCase().trim()}`
         if (existingTitles.has(titleKey)) return false
@@ -120,8 +127,14 @@ export async function runReplyQueue({
       dropped: fresh.length - communityFiltered.length,
     })
 
+    const postsToProcess = maxPosts ? communityFiltered.slice(0, maxPosts) : communityFiltered
+
+    if (maxPosts && communityFiltered.length > maxPosts) {
+      log.info("post cap applied", { cap: maxPosts, before: communityFiltered.length })
+    }
+
     const { posts: filtered, totalCost: filterCost } = await filterPosts(
-      communityFiltered,
+      postsToProcess,
       product,
       config.keywords
     )
@@ -153,7 +166,7 @@ export async function runReplyQueue({
         platform: p.platform,
         post_id: p.post_id,
         title: p.title,
-        body: p.body,
+        body: p.display_body ?? p.body,
         url: p.url,
         community: p.community,
         author: p.author,
@@ -167,7 +180,11 @@ export async function runReplyQueue({
         user_status: "new" as const,
       }))
 
-      await supabaseAdmin.from("reply_queue_items").insert(rows)
+      const { error: insertError } = await supabaseAdmin.from("reply_queue_items").insert(rows)
+      if (insertError) {
+        log.error("failed to insert reply queue items", { error: insertError.message, count: rows.length })
+        throw new Error(`Failed to insert reply queue items: ${insertError.message}`)
+      }
     }
 
     await supabaseAdmin

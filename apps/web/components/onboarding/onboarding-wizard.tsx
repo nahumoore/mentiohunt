@@ -11,13 +11,13 @@ import {
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
-import { type ChecklistTask } from "@/components/onboarding/generating-checklist"
 import { StepAudience } from "@/components/onboarding/step-audience"
+import { StepCompetitors } from "@/components/onboarding/step-competitors"
 import { StepLaunch } from "@/components/onboarding/step-launch"
 import { StepProduct } from "@/components/onboarding/step-product"
-import { StepUrl, type GeneratingPhase } from "@/components/onboarding/step-url"
+import { StepUrl } from "@/components/onboarding/step-url"
 import {
   DEFAULT_MONITORING_PLATFORMS,
   DEFAULT_OPPORTUNITY_TYPES,
@@ -34,6 +34,13 @@ import {
   type OnboardingFieldErrors,
 } from "@/consts/onboarding"
 import type { FetchedSiteDetails } from "@/lib/onboarding/fetch-site"
+
+type LoadingField =
+  | "productName"
+  | "productDescription"
+  | "competitors"
+  | "monitoringKeywords"
+  | "monitoringCommunities"
 
 function normalizeOnboardingData(data: OnboardingData): OnboardingData {
   return {
@@ -70,17 +77,6 @@ function normalizeSubmissionData(data: OnboardingData): OnboardingData {
   }
 }
 
-const INITIAL_CHECKLIST: ChecklistTask[] = [
-  { id: "site", label: "Reading your site", status: "pending" },
-  { id: "product", label: "Drafting product profile", status: "pending" },
-  { id: "competitors", label: "Finding competitors", status: "pending" },
-  {
-    id: "audience",
-    label: "Picking communities & keywords",
-    status: "pending",
-  },
-]
-
 export function OnboardingWizard({ userName }: { userName?: string | null }) {
   const router = useRouter()
   const {
@@ -104,13 +100,8 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
   const [submitMessage, setSubmitMessage] = useState("")
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const [generatingPhase, setGeneratingPhase] =
-    useState<GeneratingPhase>("idle")
-  const [checklist, setChecklist] = useState<ChecklistTask[]>(INITIAL_CHECKLIST)
-  const [siteCache, setSiteCache] = useState<FetchedSiteDetails | null>(null)
-  const [cachedWebsiteUrl, setCachedWebsiteUrl] = useState<string>("")
-  const generatingRef = useRef(false)
+  const [isFetchingSite, setIsFetchingSite] = useState(false)
+  const [loadingFields, setLoadingFields] = useState<Set<LoadingField>>(new Set())
 
   const safeData = normalizeOnboardingData(data)
 
@@ -137,198 +128,84 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     setSubmitMessage("")
   }
 
-  const setTaskStatus = (
-    id: string,
-    status: ChecklistTask["status"],
-    error?: string
-  ) => {
-    setChecklist((prev) =>
-      prev.map((task) => (task.id === id ? { ...task, status, error } : task))
-    )
-  }
-
-  const runGeneration = async (
-    websiteUrl: string,
-    site: FetchedSiteDetails
-  ) => {
-    if (generatingRef.current) return
-    generatingRef.current = true
-
-    setSiteCache(site)
-    setCachedWebsiteUrl(websiteUrl)
-    setGeneratingPhase("generating")
-
-    setChecklist((prev) =>
-      prev.map((task) =>
-        task.id === "site"
-          ? { ...task, status: "done" }
-          : task.id === "product" ||
-              task.id === "competitors" ||
-              task.id === "audience"
-            ? { ...task, status: "loading" }
-            : task
-      )
-    )
-
-    type ProductResult = { productName: string; productDescription: string }
-    type CompetitorsResult = { competitors: string[] }
-    type AudienceResult = {
-      monitoringKeywords: string[]
-      monitoringCommunities: MonitoringCommunity[]
-    }
-
-    async function callGenerate<T>(
-      url: string,
-      body: Record<string, unknown>,
-      taskId: string
-    ): Promise<T | null> {
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        })
-        const json = await res.json()
-        if (!res.ok)
-          throw new Error((json as { error?: string }).error ?? "Failed.")
-        setTaskStatus(taskId, "done")
-        captureEvent("onboarding_ai_generated", { field: taskId })
-        return json as T
-      } catch (err) {
-        setTaskStatus(
-          taskId,
-          "error",
-          err instanceof Error ? err.message : "Failed."
-        )
-        return null
-      }
-    }
-
-    const [productResult, competitorsResult, audienceResult] =
-      await Promise.all([
-        callGenerate<ProductResult>(
-          "/api/onboarding/generate/product",
-          { site },
-          "product"
-        ),
-        callGenerate<CompetitorsResult>(
-          "/api/onboarding/generate/competitors",
-          { site, websiteUrl },
-          "competitors"
-        ),
-        callGenerate<AudienceResult>(
-          "/api/onboarding/generate/audience",
-          { site },
-          "audience"
-        ),
-      ])
-
-    generatingRef.current = false
-
-    if (!productResult || !competitorsResult || !audienceResult) {
-      setGeneratingPhase("error")
-      return
-    }
-
-    updateData({
-      websiteUrl,
-      productName: productResult.productName,
-      productDescription: productResult.productDescription,
-      competitors: competitorsResult.competitors,
-      opportunityTypes: DEFAULT_OPPORTUNITY_TYPES,
-      monitoringPlatforms: [...DEFAULT_MONITORING_PLATFORMS],
-      monitoringKeywords: audienceResult.monitoringKeywords,
-      monitoringCommunities: audienceResult.monitoringCommunities,
-      emailAlertsEnabled: true,
+  const clearLoadingFields = (...fields: LoadingField[]) => {
+    setLoadingFields((prev) => {
+      const next = new Set(prev)
+      for (const f of fields) next.delete(f)
+      return next
     })
-
-    setGeneratingPhase("done")
-    setCurrentStep(1)
   }
 
-  const retryTask = async (id: string) => {
-    if (!siteCache || !cachedWebsiteUrl) return
+  const generateCompetitors = async (
+    site: FetchedSiteDetails,
+    websiteUrl: string,
+    productName: string,
+    productDescription: string
+  ) => {
+    try {
+      const res = await fetch("/api/onboarding/generate/competitors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ site, websiteUrl, productName, productDescription }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        updateData({ competitors: (json as { competitors: string[] }).competitors })
+        captureEvent("onboarding_ai_generated", { field: "competitors" })
+      }
+    } finally {
+      clearLoadingFields("competitors")
+    }
+  }
 
-    setTaskStatus(id, "loading")
-
-    if (id === "product") {
-      try {
-        const res = await fetch("/api/onboarding/generate/product", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ site: siteCache }),
-        })
-        const json = await res.json()
-        if (!res.ok) throw new Error(json.error ?? "Failed.")
+  const generateAudience = async (
+    site: FetchedSiteDetails,
+    productName: string,
+    productDescription: string
+  ) => {
+    try {
+      const res = await fetch("/api/onboarding/generate/audience", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ site, productName, productDescription }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        const typed = json as {
+          monitoringKeywords: string[]
+          monitoringCommunities: MonitoringCommunity[]
+        }
         updateData({
-          productName: json.productName,
-          productDescription: json.productDescription,
+          monitoringKeywords: typed.monitoringKeywords,
+          monitoringCommunities: typed.monitoringCommunities,
         })
-        setTaskStatus("product", "done")
-      } catch (err) {
-        setTaskStatus(
-          "product",
-          "error",
-          err instanceof Error ? err.message : "Failed."
-        )
-        return
+        captureEvent("onboarding_ai_generated", { field: "audience" })
       }
+    } finally {
+      clearLoadingFields("monitoringKeywords", "monitoringCommunities")
     }
+  }
 
-    if (id === "competitors") {
-      try {
-        const res = await fetch("/api/onboarding/generate/competitors", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            site: siteCache,
-            websiteUrl: cachedWebsiteUrl,
-          }),
-        })
-        const json = await res.json()
-        if (!res.ok) throw new Error(json.error ?? "Failed.")
-        updateData({ competitors: json.competitors })
-        setTaskStatus("competitors", "done")
-      } catch (err) {
-        setTaskStatus(
-          "competitors",
-          "error",
-          err instanceof Error ? err.message : "Failed."
-        )
-        return
+  const generateProduct = async (site: FetchedSiteDetails, websiteUrl: string) => {
+    let productName = ""
+    let productDescription = ""
+    try {
+      const res = await fetch("/api/onboarding/generate/product", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ site }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        productName = (json as { productName: string }).productName
+        productDescription = (json as { productDescription: string }).productDescription
+        updateData({ productName, productDescription })
+        captureEvent("onboarding_ai_generated", { field: "product" })
       }
-    }
-
-    if (id === "audience") {
-      try {
-        const res = await fetch("/api/onboarding/generate/audience", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ site: siteCache }),
-        })
-        const json = await res.json()
-        if (!res.ok) throw new Error(json.error ?? "Failed.")
-        updateData({
-          monitoringKeywords: json.monitoringKeywords,
-          monitoringCommunities: json.monitoringCommunities,
-        })
-        setTaskStatus("audience", "done")
-      } catch (err) {
-        setTaskStatus(
-          "audience",
-          "error",
-          err instanceof Error ? err.message : "Failed."
-        )
-        return
-      }
-    }
-
-    const allDone = checklist.every((task) =>
-      task.id === id ? true : task.status === "done"
-    )
-    if (allDone) {
-      setGeneratingPhase("done")
-      setCurrentStep(1)
+    } finally {
+      clearLoadingFields("productName", "productDescription")
+      void generateCompetitors(site, websiteUrl, productName, productDescription)
+      void generateAudience(site, productName, productDescription)
     }
   }
 
@@ -347,14 +224,9 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
       return
     }
 
-    setGeneratingPhase("fetching-site")
+    setIsFetchingSite(true)
     setFieldErrors({})
     setSubmitMessage("")
-    setChecklist(
-      INITIAL_CHECKLIST.map((t) =>
-        t.id === "site" ? { ...t, status: "loading" } : t
-      )
-    )
 
     try {
       const res = await fetch("/api/onboarding/fetch-site", {
@@ -363,22 +235,37 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
         body: JSON.stringify({ websiteUrl: normalizedUrl }),
       })
       const json = await res.json()
+
       if (!res.ok) {
-        setGeneratingPhase("idle")
-        setChecklist(INITIAL_CHECKLIST)
+        setIsFetchingSite(false)
         setFieldErrors({
-          websiteUrl: json.error ?? "Failed to reach your site.",
+          websiteUrl: (json as { error?: string }).error ?? "Failed to reach your site.",
         })
         return
       }
-      const fetchedSite = json.site as FetchedSiteDetails
+
+      const fetchedSite = (json as { site: FetchedSiteDetails }).site
+      const websiteUrl = (json as { websiteUrl: string }).websiteUrl
       captureEvent("onboarding_site_fetched", {
         had_sitemap: Boolean((fetchedSite as { sitemap?: unknown }).sitemap),
       })
-      await runGeneration(json.websiteUrl as string, fetchedSite)
+
+      updateData({ websiteUrl })
+      setIsFetchingSite(false)
+      setLoadingFields(
+        new Set<LoadingField>([
+          "productName",
+          "productDescription",
+          "competitors",
+          "monitoringKeywords",
+          "monitoringCommunities",
+        ])
+      )
+      setCurrentStep(1)
+
+      void generateProduct(fetchedSite, websiteUrl)
     } catch {
-      setGeneratingPhase("idle")
-      setChecklist(INITIAL_CHECKLIST)
+      setIsFetchingSite(false)
       setSubmitMessage("Failed to reach the server. Check your connection.")
     }
   }
@@ -388,19 +275,24 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     const nextErrors: OnboardingFieldErrors = {}
 
     if (step === 1) {
-      const productResult =
-        productDescriptionStepSchema.safeParse(normalizedData)
-      const competitorsResult = competitorsStepSchema.safeParse(normalizedData)
-      for (const result of [productResult, competitorsResult]) {
-        if (result.success) continue
-        const issue = result.error.issues[0]
+      const productResult = productDescriptionStepSchema.safeParse(normalizedData)
+      if (!productResult.success) {
+        const issue = productResult.error.issues[0]
         const field = issue?.path[0] as OnboardingField | undefined
-        if (field && issue && !nextErrors[field])
-          nextErrors[field] = issue.message
+        if (field && issue) nextErrors[field] = issue.message
       }
     }
 
     if (step === 2) {
+      const competitorsResult = competitorsStepSchema.safeParse(normalizedData)
+      if (!competitorsResult.success) {
+        const issue = competitorsResult.error.issues[0]
+        const field = issue?.path[0] as OnboardingField | undefined
+        if (field && issue) nextErrors[field] = issue.message
+      }
+    }
+
+    if (step === 3) {
       const monitoringResult = monitoringStepSchema.safeParse(normalizedData)
       if (!monitoringResult.success) {
         const issue = monitoringResult.error.issues[0]
@@ -421,7 +313,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
 
   const nextStep = () => {
     if (!validateStep(currentStep)) return
-    const stepNames = ["url", "product", "audience", "launch"] as const
+    const stepNames = ["url", "product", "competitors", "audience", "launch"] as const
     captureEvent("onboarding_step_completed", {
       step: stepNames[currentStep] ?? String(currentStep),
       step_index: currentStep,
@@ -501,28 +393,19 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     )
   }
 
-  const isGenerating =
-    generatingPhase === "fetching-site" || generatingPhase === "generating"
-
-  if (currentStep === 0 || isGenerating || generatingPhase === "error") {
+  if (currentStep === 0) {
     return (
       <StepUrl
         userName={userName}
         data={safeData}
         errors={fieldErrors}
         submitMessage={submitMessage}
-        generatingPhase={generatingPhase}
-        checklist={checklist}
+        isFetching={isFetchingSite}
         isSigningOut={isSigningOut}
         onUrlChange={(value) => updateField("websiteUrl", value)}
         onNameChange={(value) => updateField("userName", value)}
         onSubmit={() => void startGeneration()}
         onSignOut={() => void handleSignOut()}
-        onRetry={retryTask}
-        onRetryAll={() => {
-          if (!siteCache) return
-          void runGeneration(cachedWebsiteUrl, siteCache)
-        }}
       />
     )
   }
@@ -568,17 +451,27 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
               <StepProduct
                 data={safeData}
                 errors={fieldErrors}
+                loadingFields={loadingFields}
                 updateField={updateField}
               />
             )}
             {currentStep === 2 && (
-              <StepAudience
+              <StepCompetitors
                 data={safeData}
                 errors={fieldErrors}
+                loadingFields={loadingFields}
                 updateField={updateField}
               />
             )}
-            {currentStep === 3 && <StepLaunch data={safeData} />}
+            {currentStep === 3 && (
+              <StepAudience
+                data={safeData}
+                errors={fieldErrors}
+                loadingFields={loadingFields}
+                updateField={updateField}
+              />
+            )}
+            {currentStep === 4 && <StepLaunch data={safeData} />}
           </div>
         </div>
 

@@ -9,21 +9,26 @@ type TextFieldProps = {
   value: string
   error?: string
   placeholder?: string
+  isLoading?: boolean
   onChange: (value: string) => void
 }
 
-export function TextField({ label, value, error, placeholder, onChange }: TextFieldProps) {
+export function TextField({ label, value, error, placeholder, isLoading, onChange }: TextFieldProps) {
   return (
     <Field>
       <FieldLabel className="text-[0.7rem] font-bold tracking-[0.24em] text-muted-foreground uppercase">
         {label}
       </FieldLabel>
-      <Input
-        value={value}
-        placeholder={placeholder}
-        onChange={(event) => onChange(event.target.value)}
-        className={cn("h-12", error ? "border-destructive" : "border-border")}
-      />
+      {isLoading ? (
+        <div className="h-12 animate-pulse rounded-md bg-muted" />
+      ) : (
+        <Input
+          value={value}
+          placeholder={placeholder}
+          onChange={(event) => onChange(event.target.value)}
+          className={cn("h-12", error ? "border-destructive" : "border-border")}
+        />
+      )}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </Field>
   )

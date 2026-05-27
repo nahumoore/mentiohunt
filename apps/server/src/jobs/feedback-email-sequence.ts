@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
-import { sendFeedbackSequenceEmail } from "../helpers/emails/feedback-sequence.js"
+import { sendFeedbackSequenceEmail } from "../email-sequences/feedback-sequence.js"
 import { classifyFunnelStage, getUserFiredEvents } from "../helpers/posthog-query.js"
 import { createLogger } from "../helpers/logger.js"
 

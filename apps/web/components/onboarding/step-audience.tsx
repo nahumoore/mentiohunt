@@ -10,10 +10,12 @@ import type {
 export function StepAudience({
   data,
   errors,
+  loadingFields,
   updateField,
 }: {
   data: OnboardingData
   errors: OnboardingFieldErrors
+  loadingFields: Set<string>
   updateField: <Key extends OnboardingField>(
     field: Key,
     value: OnboardingData[Key]
@@ -27,6 +29,7 @@ export function StepAudience({
         placeholder="e.g. best backlink tool"
         error={errors.monitoringKeywords}
         maxItems={10}
+        isLoading={loadingFields.has("monitoringKeywords")}
         onChange={(items) => updateField("monitoringKeywords", items)}
       />
       <EditableList
@@ -36,6 +39,7 @@ export function StepAudience({
         prefix="r/"
         error={errors.monitoringCommunities}
         maxItems={10}
+        isLoading={loadingFields.has("monitoringCommunities")}
         normalizeItem={(value) =>
           value
             .replace(/^\/?r\//i, "")

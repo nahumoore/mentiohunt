@@ -13,18 +13,19 @@ const competitorsSchema = z.object({
 const requestSchema = z.object({
   site: z.record(z.unknown()),
   websiteUrl: z.string().url(),
+  productName: z.string().trim().default(""),
+  productDescription: z.string().trim().default(""),
 })
 
 const systemInstructions = [
-  "You are helping populate onboarding data for a backlink prospecting product called Mentiohunt.",
-  "Analyze the homepage signals and return a list of real competing products.",
+  "Given a product's name, description, and homepage signals, identify real products that compete directly with it.",
   "Return JSON only with this exact shape:",
   '{"competitors":["https://example.com"]}',
   "Rules:",
-  "- competitors must contain 8 to 10 unique homepage URLs for real competing products or close alternatives.",
+  "- competitors must contain 8 to 10 unique homepage URLs of real products that serve the same audience and solve the same problem.",
   "- Use absolute HTTPS URLs only.",
   "- Do not include the input site itself.",
-  "- If the homepage is ambiguous, still produce the best plausible competitor list from the available signals.",
+  "- If the homepage is ambiguous, infer the most plausible competitor set from the available signals.",
 ].join("\n")
 
 function extractJsonObject(input: string): string {
@@ -52,7 +53,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const input = ["Homepage signals:", JSON.stringify(parsed.data.site, null, 2)].join("\n")
+    const input = [
+      `Website: ${parsed.data.websiteUrl}`,
+      parsed.data.productName && `Product name: ${parsed.data.productName}`,
+      parsed.data.productDescription && `Product description: ${parsed.data.productDescription}`,
+      "Homepage signals:",
+      JSON.stringify(parsed.data.site, null, 2),
+    ]
+      .filter(Boolean)
+      .join("\n")
     const output = await generateText({ input, systemInstructions })
     const result = competitorsSchema.safeParse(JSON.parse(extractJsonObject(output)))
 

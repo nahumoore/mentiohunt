@@ -9,7 +9,12 @@ export const ONBOARDING_STEPS = [
   {
     title: "Your product",
     description:
-      "Review your product profile and the competitors we found. Edit anything that looks off.",
+      "Review your product name and description. Edit anything that looks off.",
+  },
+  {
+    title: "Competitors",
+    description:
+      "These are the sites we'll mine for backlink opportunities. Add or remove as needed.",
   },
   {
     title: "Where to listen",

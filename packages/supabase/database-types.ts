@@ -257,10 +257,10 @@ export type Database = {
           id: string
           next_send_at: string
           reply_token: string
-          status: string
+          status: Database["public"]["Enums"]["email_sequence_status"]
           step: number
           stopped_at: string | null
-          type: string
+          type: Database["public"]["Enums"]["email_sequence_type"]
           user_id: string
         }
         Insert: {
@@ -268,10 +268,10 @@ export type Database = {
           id?: string
           next_send_at: string
           reply_token?: string
-          status?: string
+          status?: Database["public"]["Enums"]["email_sequence_status"]
           step?: number
           stopped_at?: string | null
-          type: string
+          type: Database["public"]["Enums"]["email_sequence_type"]
           user_id: string
         }
         Update: {
@@ -279,10 +279,10 @@ export type Database = {
           id?: string
           next_send_at?: string
           reply_token?: string
-          status?: string
+          status?: Database["public"]["Enums"]["email_sequence_status"]
           step?: number
           stopped_at?: string | null
-          type?: string
+          type?: Database["public"]["Enums"]["email_sequence_type"]
           user_id?: string
         }
         Relationships: [
@@ -650,6 +650,8 @@ export type Database = {
     Enums: {
       billing_tier: "free" | "pro" | "agency"
       directory_check_method: "serp_check" | "head_check"
+      email_sequence_status: "active" | "stopped" | "completed"
+      email_sequence_type: "onboarding"
       directory_submission_status:
         | "not_submitted"
         | "submitted"

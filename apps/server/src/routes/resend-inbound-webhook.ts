@@ -34,7 +34,6 @@ function verifySvixSignature(
 }
 
 function extractReplyToken(address: string): string | null {
-  // Matches reply-{uuid}@xaipreno.resend.app
   const match = address.match(/reply-([0-9a-f-]{36})@/i)
   return match?.[1] ?? null
 }
@@ -86,26 +85,28 @@ resendInboundWebhookRouter.post("/webhooks/resend-inbound", async (req, res) => 
   const addresses = parseToAddresses(body)
   const token = addresses.flatMap((a) => extractReplyToken(a) ?? []).at(0)
 
-  console.log("[resend-inbound] addresses:", JSON.stringify(addresses), "token:", token)
-
   if (!token) {
-    console.log("[resend-inbound] no reply token found, body keys:", Object.keys(body))
+    log.info("no reply token found in inbound email", { to: addresses })
     res.status(200).json({ ok: true })
     return
   }
 
-  const { error } = await supabaseAdmin
+  const { error, count } = await supabaseAdmin
     .from("email_sequences")
-    .update({ status: "stopped", stopped_at: new Date().toISOString() })
+    .update({ status: "stopped", stopped_at: new Date().toISOString() }, { count: "exact" })
     .eq("reply_token", token)
     .eq("status", "active")
 
   if (error) {
-    console.error("[resend-inbound] supabase error:", error.message, "token:", token)
+    log.error("failed to stop sequence", { token, error: error.message })
     res.status(500).json({ error: "failed to stop sequence" })
     return
   }
 
-  console.log("[resend-inbound] sequence stopped for token:", token)
+  if (count === 0) {
+    log.warn("no active sequence found for token", { token })
+  }
+
+  log.info("sequence stopped via reply", { token })
   res.status(200).json({ ok: true })
 })

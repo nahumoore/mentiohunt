@@ -14,6 +14,7 @@ type EditableListProps = {
   error?: string
   maxItems: number
   showFavicon?: boolean
+  isLoading?: boolean
   normalizeItem?: (value: string) => string
   onChange: (items: string[]) => void
 }
@@ -26,6 +27,7 @@ export function EditableList({
   error,
   maxItems,
   showFavicon = false,
+  isLoading = false,
   normalizeItem = (value) => value.trim(),
   onChange,
 }: EditableListProps) {
@@ -52,6 +54,25 @@ export function EditableList({
     if (event.key !== "Enter") return
     event.preventDefault()
     addItem()
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <label className="text-[0.7rem] font-bold tracking-[0.24em] text-muted-foreground uppercase">
+          {label}
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {[48, 72, 60, 56, 80].map((w) => (
+            <div
+              key={w}
+              className="h-6 animate-pulse rounded-full bg-muted"
+              style={{ width: `${w}px` }}
+            />
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (

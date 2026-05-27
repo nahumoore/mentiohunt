@@ -11,14 +11,13 @@ const productInfoSchema = z.object({
 })
 
 const systemInstructions = [
-  "You are helping populate onboarding data for a backlink prospecting product called Mentiohunt.",
-  "Analyze the homepage signals and return the product name and a concise product description.",
+  "Extract the product name and a concise description from the homepage signals provided.",
   "Return JSON only with this exact shape:",
   '{"productName":"string","productDescription":"string"}',
   "Rules:",
   "- productName must be the product/company name from the site, not the legal entity suffix.",
   "- productDescription must be concrete, plain English, and between 24 and 280 characters.",
-  "- Focus on the product, target user, and outcome. Avoid hype and avoid first person voice.",
+  "- Focus on what the product does, who it is for, and the outcome it delivers. Avoid hype and avoid first person voice.",
 ].join("\n")
 
 function extractJsonObject(input: string): string {

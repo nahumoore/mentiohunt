@@ -27,16 +27,15 @@ const audienceSchema = z.object({
 })
 
 const systemInstructions = [
-  "You are helping populate onboarding data for a backlink prospecting product called Mentiohunt.",
-  "Analyze the homepage signals and return monitoring keywords and Reddit communities.",
+  "Given a product's name, description, and homepage signals, identify monitoring keywords and Reddit communities relevant to it.",
   "Return JSON only with this exact shape:",
   '{"monitoringKeywords":["keyword"],"monitoringCommunities":[{"platform":"reddit","community":"SaaS"}]}',
   "Rules:",
-  "- monitoringKeywords must contain 4 to 10 short-tail phrases, each exactly 3 to 4 words long, that people use when asking for tools, alternatives, recommendations, or help with this problem.",
+  "- monitoringKeywords must contain 4 to 10 short-tail phrases, each exactly 3 to 4 words long, that the product's target audience uses when asking for recommendations, alternatives, or help with the problem this product solves.",
   "- Prefer broad phrasing over specific product names so the phrases match more posts (e.g. 'best backlink tool' not 'best backlink tool for SaaS startups').",
   "- Do not include brand names or competitor names in keywords.",
   "- monitoringCommunities must contain 8 to 10 real subreddit names without the r/ prefix.",
-  "- Pick communities where founders, marketers, operators, or the likely buyers discuss this problem.",
+  "- Pick communities where the product's likely buyers or users actively discuss the problem this product solves.",
 ].join("\n")
 
 function extractJsonObject(input: string): string {
@@ -62,8 +61,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request payload." }, { status: 400 })
   }
 
+  const productName = typeof body.productName === "string" ? body.productName.trim() : ""
+  const productDescription = typeof body.productDescription === "string" ? body.productDescription.trim() : ""
+
   try {
-    const input = ["Homepage signals:", JSON.stringify(body.site, null, 2)].join("\n")
+    const input = [
+      productName && `Product name: ${productName}`,
+      productDescription && `Product description: ${productDescription}`,
+      "Homepage signals:",
+      JSON.stringify(body.site, null, 2),
+    ]
+      .filter(Boolean)
+      .join("\n")
     const output = await generateText({ input, systemInstructions })
     const result = audienceSchema.safeParse(JSON.parse(extractJsonObject(output)))
 

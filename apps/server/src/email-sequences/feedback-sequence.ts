@@ -1,10 +1,11 @@
 import {
   FOUNDER_FROM,
   INBOUND_DOMAIN,
+  PRIMARY_EMAIL,
 } from "@workspace/supabase/email-settings"
 import { Resend } from "resend"
-import { createLogger } from "../logger.js"
-import type { FunnelStage } from "../posthog-query.js"
+import { createLogger } from "../helpers/logger.js"
+import type { FunnelStage } from "../helpers/posthog-query.js"
 
 const log = createLogger("feedback-sequence-email")
 
@@ -289,7 +290,7 @@ export async function sendFeedbackSequenceEmail({
   }
 
   const { subject, body } = contentFn(stage, firstName)
-  const replyTo = buildReplyToAddress(replyToken)
+  const replyTo = [PRIMARY_EMAIL, buildReplyToAddress(replyToken)]
 
   try {
     const resend = getResend()

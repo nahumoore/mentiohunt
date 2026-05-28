@@ -1,5 +1,6 @@
 import {
   IconArrowLeft,
+  IconArrowRight,
   IconBrandX,
   IconCalendar,
   IconClock,
@@ -17,7 +18,12 @@ import { Navbar } from "@/components/landing/navbar"
 import { ArticleTableOfContents } from "@/components/resources/article-table-of-contents"
 import BlogStylings from "@/components/resources/blog-stylings"
 import { getArticleHeadings } from "@/lib/mdx-headings"
-import { getPostBySlug, getResourceSlugs, type BlogPostMeta } from "@/lib/mdx"
+import {
+  getAllResources,
+  getPostBySlug,
+  getResourceSlugs,
+  type BlogPostMeta,
+} from "@/lib/mdx"
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -94,6 +100,9 @@ export default async function ComparePage({ params }: Props) {
   const { meta, content } = post
   const headings = getArticleHeadings(content)
   const tools = getToolNames(meta)
+  const related = getAllResources("compare")
+    .filter((c) => c.slug !== slug)
+    .slice(0, 3)
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -254,6 +263,90 @@ export default async function ComparePage({ params }: Props) {
             <ArticleTableOfContents headings={headings} />
           </div>
         </div>
+        {/* Related comparisons */}
+        {related.length > 0 && (
+          <section className="border-t border-border/60 bg-muted/20 py-14">
+            <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <h2 className="font-heading text-xl font-semibold tracking-[-0.03em] text-foreground">
+                More comparisons
+              </h2>
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {related.map((comparison) => {
+                  const relatedTools = getToolNames(comparison)
+                  return (
+                    <Link
+                      key={comparison.slug}
+                      href={`/compare/${comparison.slug}`}
+                      className="group flex flex-col rounded-2xl border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-blaze-orange)]/30 hover:shadow-[0_8px_30px_-8px_rgba(255,133,0,0.14)]"
+                    >
+                      {/* VS header */}
+                      <div className="flex items-center gap-3 rounded-t-2xl border-b border-border/60 bg-muted/30 px-5 py-4">
+                        <div className="flex flex-1 items-center gap-2">
+                          {comparison.toolAUrl && (
+                            <Image
+                              src={`https://www.google.com/s2/favicons?domain=${comparison.toolAUrl}&sz=32`}
+                              alt={`${relatedTools.a} favicon`}
+                              width={16}
+                              height={16}
+                              className="h-4 w-4 rounded-sm object-contain"
+                              unoptimized
+                            />
+                          )}
+                          <span className="truncate font-heading text-sm font-semibold tracking-[-0.02em] text-foreground">
+                            {relatedTools.a}
+                          </span>
+                        </div>
+
+                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-[var(--color-blaze-orange)]/30 bg-[var(--color-blaze-orange)]/8 text-[0.5rem] font-bold tracking-[0.1em] text-[var(--color-princeton-orange)] uppercase">
+                          vs
+                        </span>
+
+                        <div className="flex flex-1 items-center justify-end gap-2">
+                          <span className="truncate text-right font-heading text-sm font-semibold tracking-[-0.02em] text-foreground">
+                            {relatedTools.b}
+                          </span>
+                          {comparison.toolBUrl && (
+                            <Image
+                              src={`https://www.google.com/s2/favicons?domain=${comparison.toolBUrl}&sz=32`}
+                              alt={`${relatedTools.b} favicon`}
+                              width={16}
+                              height={16}
+                              className="h-4 w-4 rounded-sm object-contain"
+                              unoptimized
+                            />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Body */}
+                      <div className="flex flex-1 flex-col p-5">
+                        <p className="line-clamp-2 flex-1 text-xs leading-5 text-muted-foreground">
+                          {comparison.verdict ?? comparison.description}
+                        </p>
+
+                        <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
+                          <span className="text-xs text-muted-foreground">
+                            {comparison.readTime
+                              ? getReadTimeLabel(comparison.readTime)
+                              : null}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-princeton-orange)] transition-all duration-200 group-hover:gap-1.5">
+                            Read
+                            <IconArrowRight
+                              size={11}
+                              stroke={2.5}
+                              className="transition-transform duration-200 group-hover:translate-x-0.5"
+                            />
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />

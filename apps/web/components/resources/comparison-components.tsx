@@ -23,50 +23,33 @@ export function QuickVerdict({ toolA, toolB, ifA, ifB }: QuickVerdictProps) {
   const aItems = ifA.split("|")
   const bItems = ifB.split("|")
 
+  const side = "border-b border-border bg-muted/40 p-6 sm:border-b-0 sm:border-r"
+
   return (
     <div className="my-8 grid grid-cols-1 overflow-hidden rounded-xl border border-border sm:grid-cols-2">
-      <div className="border-b border-border bg-muted/40 p-6 sm:border-b-0 sm:border-r">
+      <div className={side}>
         <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           Choose
         </p>
         <p className="mb-4 font-semibold text-foreground">{toolA}</p>
         <ul className="space-y-2.5">
           {aItems.map((item, i) => (
-            <li
-              key={i}
-              className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground"
-            >
-              <IconArrowRight
-                className="mt-0.5 size-3.5 shrink-0 opacity-40"
-                stroke={2.5}
-              />
+            <li key={i} className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
+              <IconArrowRight className="mt-0.5 size-3.5 shrink-0 opacity-40" stroke={2.5} />
               {item}
             </li>
           ))}
         </ul>
       </div>
-      <div
-        className="p-6"
-        style={{
-          background:
-            "color-mix(in oklab, var(--background) 92%, var(--pumpkin-spice) 8%)",
-        }}
-      >
-        <p
-          className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.18em]"
-          style={{ color: "var(--pumpkin-spice)" }}
-        >
+      <div className="bg-muted/40 p-6">
+        <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           Choose
         </p>
         <p className="mb-4 font-semibold text-foreground">{toolB}</p>
         <ul className="space-y-2.5">
           {bItems.map((item, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
-              <IconCheck
-                className="mt-0.5 size-3.5 shrink-0"
-                stroke={2.5}
-                style={{ color: "var(--pumpkin-spice)" }}
-              />
+            <li key={i} className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
+              <IconArrowRight className="mt-0.5 size-3.5 shrink-0 opacity-40" stroke={2.5} />
               <span>{item}</span>
             </li>
           ))}
@@ -116,46 +99,18 @@ interface WhenToChooseProps {
   primary?: boolean
 }
 
-export function WhenToChoose({ tool, items, primary }: WhenToChooseProps) {
+export function WhenToChoose({ tool, items }: WhenToChooseProps) {
   const list = items.split("|")
 
   return (
-    <div
-      className={cn(
-        "my-6 rounded-xl border p-5",
-        primary ? "border-border" : "border-border bg-muted/30"
-      )}
-      style={
-        primary
-          ? {
-              background:
-                "color-mix(in oklab, var(--background) 92%, var(--pumpkin-spice) 8%)",
-              borderLeftWidth: "3px",
-              borderLeftColor: "var(--pumpkin-spice)",
-            }
-          : undefined
-      }
-    >
-      <p
-        className={cn(
-          "mb-3 text-[10px] font-bold uppercase tracking-[0.18em]",
-          !primary && "text-muted-foreground"
-        )}
-        style={primary ? { color: "var(--pumpkin-spice)" } : undefined}
-      >
+    <div className="my-6 rounded-xl border border-border bg-muted/30 p-5">
+      <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
         Choose {tool} if:
       </p>
       <ul className="space-y-2.5">
         {list.map((item, i) => (
           <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed">
-            <IconCheck
-              className={cn(
-                "mt-0.5 size-3.5 shrink-0",
-                !primary && "text-muted-foreground"
-              )}
-              stroke={2.5}
-              style={primary ? { color: "var(--pumpkin-spice)" } : undefined}
-            />
+            <IconCheck className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" stroke={2.5} />
             <span>{item}</span>
           </li>
         ))}
@@ -285,7 +240,7 @@ export function UserOpinion({ name, role, source, quote, upvotes }: UserOpinionP
 
       {/* Author */}
       <div className="relative mt-5 flex items-center gap-3 border-t border-border/60 pt-4">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-blaze-orange)]/15 text-[11px] font-bold text-[var(--color-princeton-orange)]">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-blaze-orange)]/15 text-[11px] font-bold text-(--color-princeton-orange)">
           {initials}
         </div>
         <div className="flex flex-col">
@@ -324,7 +279,7 @@ export function ScoreCard({ toolA, toolB, scores }: ScoreCardProps) {
       {/* Header */}
       <div className="grid grid-cols-[minmax(100px,160px)_1fr_1fr] border-b border-border bg-muted/40 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em]">
         <span className="text-muted-foreground">Category</span>
-        <span className="px-3 text-[var(--color-princeton-orange)]">{toolA}</span>
+        <span className="px-3 text-muted-foreground">{toolA}</span>
         <span className="px-3 text-muted-foreground">{toolB}</span>
       </div>
 
@@ -347,14 +302,17 @@ export function ScoreCard({ toolA, toolB, scores }: ScoreCardProps) {
               <span
                 className={cn(
                   "w-8 shrink-0 text-sm font-semibold tabular-nums",
-                  aWins ? "text-[var(--color-princeton-orange)]" : "text-muted-foreground"
+                  aWins ? "text-(--color-princeton-orange)" : "text-muted-foreground"
                 )}
               >
                 {row.a}/10
               </span>
               <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-border">
                 <div
-                  className="h-full rounded-full bg-[var(--color-princeton-orange)]"
+                  className={cn(
+                    "h-full rounded-full",
+                    aWins ? "bg-(--color-princeton-orange)" : "bg-muted-foreground/30"
+                  )}
                   style={{ width: `${row.a * 10}%` }}
                 />
               </div>
@@ -365,14 +323,17 @@ export function ScoreCard({ toolA, toolB, scores }: ScoreCardProps) {
               <span
                 className={cn(
                   "w-8 shrink-0 text-sm font-semibold tabular-nums",
-                  bWins ? "text-foreground" : "text-muted-foreground"
+                  bWins ? "text-(--color-princeton-orange)" : "text-muted-foreground"
                 )}
               >
                 {row.b}/10
               </span>
               <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-border">
                 <div
-                  className="h-full rounded-full bg-foreground/25"
+                  className={cn(
+                    "h-full rounded-full",
+                    bWins ? "bg-(--color-princeton-orange)" : "bg-muted-foreground/30"
+                  )}
                   style={{ width: `${row.b * 10}%` }}
                 />
               </div>

@@ -1,16 +1,10 @@
-Create a comprehensive, source-backed market research report about Ahrefs.
+Create a comprehensive, source-backed market research report about Mention.
 
-Focus 100% on Ahrefs. Do not make this a generic industry report. The goal is to understand Ahrefs deeply enough to create useful comparison, alternative, positioning, and educational content for Mentiohunt.
-
-Mentiohunt context:
-
-- Mentiohunt helps founders and small marketing teams find backlink opportunities and monitor communities for relevant conversations.
-- It focuses on opportunity discovery, fit scoring, rationale, outreach preparation, and timely community reply suggestions.
-- Do not assume Mentiohunt has features unless explicitly stated above.
+Focus 100% on Mention. Do not make this a generic industry report. The goal is to understand Mention deeply enough to create useful comparison, alternative, positioning, educational, and product research content about Mention itself.
 
 Research requirements:
 
-- Use current, reliable sources wherever possible, including the official Ahrefs website, pricing page, docs, changelog, help center, reviews, comparison pages, social profiles, app marketplace listings, and reputable third-party review sites.
+- Use current, reliable sources wherever possible, including the official Mention website, pricing page, docs, changelog, help center, reviews, comparison pages, social profiles, app marketplace listings, and reputable third-party review sites.
 - Cite sources inline for every factual claim, especially pricing, features, target customers, integrations, and limitations.
 - Clearly label anything that is inferred, outdated, unavailable, or not verified.
 - If pricing or feature information is hidden behind sales/contact forms, state that clearly and summarize what is publicly available.
@@ -18,15 +12,15 @@ Research requirements:
 
 Output the report in Markdown using this exact structure:
 
-# Ahrefs Market Research Report
+# Mention Market Research Report
 
 ## Executive Summary
 
-Summarize what Ahrefs is, who it is for, the main value proposition, and the biggest reasons a customer might choose it.
+Summarize what Mention is, who it is for, the main value proposition, and the biggest reasons a customer might choose it.
 
 ## Product Overview
 
-Explain what Ahrefs does in plain language.
+Explain what Mention does in plain language.
 Include:
 
 - Core product category
@@ -38,7 +32,7 @@ Include:
 
 ## Target Customers
 
-Describe who Ahrefs appears to serve best.
+Describe who Mention appears to serve best.
 Include:
 
 - Company size
@@ -49,7 +43,7 @@ Include:
 
 ## Core Features
 
-List and explain the main Ahrefs features.
+List and explain the main Mention features.
 For each feature, include:
 
 - What it does
@@ -59,7 +53,7 @@ For each feature, include:
 
 ## Pricing
 
-Research Ahrefs pricing in detail.
+Research Mention pricing in detail.
 Include:
 
 - Free plan or trial availability
@@ -76,18 +70,18 @@ If pricing is not public, include a clear "Pricing Not Public" note and summariz
 
 ## Pros
 
-List the strongest advantages of Ahrefs based on official claims, reviews, and third-party commentary.
+List the strongest advantages of Mention based on official claims, reviews, and third-party commentary.
 For each pro, explain why it matters and cite the source.
 
 ## Cons
 
-List the most important limitations, complaints, risks, or tradeoffs of Ahrefs.
+List the most important limitations, complaints, risks, or tradeoffs of Mention.
 For each con, explain the practical impact and cite the source.
 Do not invent criticism. If evidence is weak, label it as weak or anecdotal.
 
 ## Customer Reviews And Sentiment
 
-Summarize what users say about Ahrefs across review platforms, communities, social posts, and case studies.
+Summarize what users say about Mention across review platforms, communities, social posts, and case studies.
 Include:
 
 - Common praise themes
@@ -98,11 +92,11 @@ Include:
 
 ## Use Cases
 
-Describe the strongest use cases for Ahrefs.
+Describe the strongest use cases for Mention.
 For each use case, include:
 
 - User goal
-- How Ahrefs supports it
+- How Mention supports it
 - Who benefits most
 - Any gaps or caveats
 
@@ -113,7 +107,7 @@ Include source citations.
 
 ## Onboarding And Ease Of Use
 
-Assess how easy Ahrefs appears to be to adopt.
+Assess how easy Mention appears to be to adopt.
 Include:
 
 - Setup requirements
@@ -124,7 +118,7 @@ Include:
 
 ## Differentiation
 
-Explain how Ahrefs tries to stand out.
+Explain how Mention tries to stand out.
 Include:
 
 - Unique claims
@@ -135,28 +129,30 @@ Include:
 
 ## Competitive Landscape
 
-Identify products that Ahrefs is commonly compared against.
+Identify products that Mention is commonly compared against.
 For each competitor, include:
 
 - Product name
-- Why it competes with Ahrefs
-- Main difference from Ahrefs
+- Why it competes with Mention
+- Main difference from Mention
 - Source citation
 
-## Comparison Notes For Mentiohunt
+## Mention Positioning Analysis
 
-Analyze where Mentiohunt may overlap with or differ from Ahrefs, based only on the Mentiohunt context provided above.
+Analyze how Mention positions itself in the market.
 Include:
 
-- Areas of overlap
-- Areas where Ahrefs appears stronger
-- Areas where Mentiohunt may have a clearer angle
-- Gaps Mentiohunt should avoid claiming unless verified
-- Content angles that could be useful for Mentiohunt
+- Main positioning angles
+- Primary customer pains it addresses
+- Outcomes it promises
+- Trust signals it uses
+- Category language it relies on
+- Claims that are clearly supported by evidence
+- Claims that require further verification
 
-## Content Opportunities For Mentiohunt
+## Content Opportunities About Mention
 
-Suggest content ideas Mentiohunt could create using this research.
+Suggest content ideas that could be created using this research.
 Include:
 
 - Alternative pages
@@ -170,14 +166,15 @@ For each idea, explain the likely search intent and why the topic may be useful.
 
 ## Messaging Takeaways
 
-Extract positioning lessons from Ahrefs.
+Extract positioning lessons from Mention.
 Include:
 
-- Strong phrases or concepts Ahrefs uses
+- Strong phrases or concepts Mention uses
 - Customer pains they emphasize
 - Outcomes they promise
 - Trust signals they rely on
-- Messaging gaps Mentiohunt could address differently
+- Messaging gaps or unclear areas in Mention's public positioning
+- Angles that appear differentiated versus generic social listening tools
 
 ## Risks And Unknowns
 
@@ -188,7 +185,7 @@ Explain what should be checked manually before publishing content.
 
 Provide a complete list of all sources used, grouped by type:
 
-- Official Ahrefs sources
+- Official Mention sources
 - Review sites
 - Third-party articles
 - Social/community sources

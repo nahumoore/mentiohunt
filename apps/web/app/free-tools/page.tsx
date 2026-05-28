@@ -12,6 +12,7 @@ import {
 
 import { IconBrandMentiohunt } from "@/components/custom-icons/brand-mentiohunt"
 import { Footer, Navbar } from "@/components/landing"
+import { FREE_TOOL_NAMES } from "@/consts/free-tools"
 import { Button } from "@workspace/ui/components/button"
 
 export const metadata: Metadata = {
@@ -52,7 +53,7 @@ const tools = [
     description:
       "Paste your product URL and find startup directories where you can apply for relevant backlink opportunities.",
     icon: IconLink,
-    href: "/free-tools/directory-backlink-opportunity-finder",
+    href: `/free-tools/${FREE_TOOL_NAMES.directoryBacklinkOpportunityFinder}`,
     steps: ["Product URL", "Directory gaps", "Apply next"],
   },
   {
@@ -62,7 +63,7 @@ const tools = [
     description:
       "Enter any website URL to pull live Ahrefs authority metrics and estimate a fair market price for a backlink, adjusted for link type, placement, and content format.",
     icon: IconCalculator,
-    href: "/free-tools/backlink-price-calculator",
+    href: `/free-tools/${FREE_TOOL_NAMES.backlinkPriceCalculator}`,
     steps: ["Paste site URL", "Pull metrics", "Get price range"],
   },
 ]
@@ -226,7 +227,7 @@ export default function FreeToolsPage() {
             </p>
           </div>
 
-          <div className="mx-auto mt-12 grid max-w-md gap-4 md:max-w-2xl lg:max-w-3xl">
+          <div className="mx-auto mt-12 grid max-w-md gap-5 md:max-w-3xl md:grid-cols-2 lg:max-w-6xl lg:grid-cols-3">
             {tools.map((tool) => {
               const Icon = tool.icon
 
@@ -234,15 +235,16 @@ export default function FreeToolsPage() {
                 <Link
                   key={tool.name}
                   href={tool.href}
-                  className="group relative flex min-h-[18.5rem] flex-col overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/92 p-6 transition-colors duration-300 outline-none hover:border-[var(--color-princeton-orange)]/24 focus-visible:ring-3 focus-visible:ring-ring/30"
+                  className="group relative flex min-h-[22rem] flex-col overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/92 p-6 shadow-[0_22px_70px_-56px_rgba(255,133,0,0.7)] transition-all duration-300 outline-none hover:-translate-y-1 hover:border-[var(--color-princeton-orange)]/35 hover:bg-background hover:shadow-[0_30px_80px_-54px_rgba(255,133,0,0.85)] focus-visible:ring-3 focus-visible:ring-ring/30"
                 >
                   <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/45 to-transparent" />
+                  <div className="pointer-events-none absolute -right-16 -top-16 size-36 rounded-full bg-[var(--color-blaze-orange)]/0 blur-3xl transition-colors duration-300 group-hover:bg-[var(--color-blaze-orange)]/12" />
 
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex size-11 items-center justify-center rounded-[1.1rem] border border-[var(--color-blaze-orange)]/15 bg-[var(--color-blaze-orange)]/8 text-[var(--color-princeton-orange)]">
+                    <div className="flex size-12 items-center justify-center rounded-[1.15rem] border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/9 text-[var(--color-princeton-orange)] shadow-inner shadow-[var(--color-amber-flame)]/10 transition-colors group-hover:border-[var(--color-princeton-orange)]/35 group-hover:bg-[var(--color-blaze-orange)]/12">
                       <Icon size={23} stroke={2.35} />
                     </div>
-                    <span className="rounded-full border border-border bg-background px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    <span className="rounded-full border border-border/80 bg-background/80 px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground backdrop-blur">
                       {tool.status}
                     </span>
                   </div>
@@ -251,7 +253,7 @@ export default function FreeToolsPage() {
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
                       {tool.eyebrow}
                     </p>
-                    <h3 className="mt-2 font-heading text-[1.7rem] font-semibold tracking-[-0.045em] text-balance">
+                    <h3 className="mt-2 font-heading text-[1.55rem] font-semibold leading-[1.05] tracking-[-0.045em] text-balance sm:text-[1.65rem]">
                       {tool.name}
                     </h3>
                     <p className="mt-4 text-sm leading-7 text-muted-foreground">
@@ -263,7 +265,7 @@ export default function FreeToolsPage() {
                     {tool.steps.map((step) => (
                       <span
                         key={step}
-                        className="rounded-full border border-border/80 bg-background px-3 py-1 text-xs text-muted-foreground"
+                        className="rounded-full border border-border/80 bg-background/80 px-3 py-1 text-xs text-muted-foreground transition-colors group-hover:border-[var(--color-princeton-orange)]/20"
                       >
                         {step}
                       </span>

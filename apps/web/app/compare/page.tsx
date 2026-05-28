@@ -144,17 +144,41 @@ export default function ComparePage() {
                   >
                     {/* VS header */}
                     <div className="flex items-center gap-3 rounded-t-2xl border-b border-border/60 bg-muted/30 px-6 py-5">
-                      <span className="flex-1 font-heading text-lg font-semibold tracking-[-0.02em] text-foreground">
-                        {tools.a}
-                      </span>
+                      <div className="flex flex-1 items-center gap-2.5">
+                        {comparison.toolAUrl && (
+                          <Image
+                            src={`https://www.google.com/s2/favicons?domain=${comparison.toolAUrl}&sz=32`}
+                            alt={`${tools.a} favicon`}
+                            width={18}
+                            height={18}
+                            className="h-[18px] w-[18px] rounded-sm object-contain"
+                            unoptimized
+                          />
+                        )}
+                        <span className="font-heading text-lg font-semibold tracking-[-0.02em] text-foreground">
+                          {tools.a}
+                        </span>
+                      </div>
 
                       <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-[var(--color-blaze-orange)]/30 bg-[var(--color-blaze-orange)]/8 text-[0.6rem] font-bold tracking-[0.1em] text-[var(--color-princeton-orange)] uppercase">
                         vs
                       </span>
 
-                      <span className="flex-1 text-right font-heading text-lg font-semibold tracking-[-0.02em] text-foreground">
-                        {tools.b}
-                      </span>
+                      <div className="flex flex-1 items-center justify-end gap-2.5">
+                        <span className="font-heading text-lg font-semibold tracking-[-0.02em] text-foreground">
+                          {tools.b}
+                        </span>
+                        {comparison.toolBUrl && (
+                          <Image
+                            src={`https://www.google.com/s2/favicons?domain=${comparison.toolBUrl}&sz=32`}
+                            alt={`${tools.b} favicon`}
+                            width={18}
+                            height={18}
+                            className="h-[18px] w-[18px] rounded-sm object-contain"
+                            unoptimized
+                          />
+                        )}
+                      </div>
                     </div>
 
                     {/* Body */}

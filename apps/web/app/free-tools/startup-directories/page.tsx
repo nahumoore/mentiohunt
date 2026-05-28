@@ -2,18 +2,21 @@ import type { Metadata } from "next"
 import type { Tables } from "@workspace/supabase/database-types"
 
 import { Footer, Navbar } from "@/components/landing"
+import { supabaseServer } from "@/lib/supabase/server"
 import { StartupDirectoriesBrowser } from "./tool"
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-
 async function getDirectories(): Promise<Tables<"directories">[]> {
-  const res = await fetch(`${APP_URL}/api/free-tool/directories`, {
-    next: { revalidate: 3600 },
-  })
+  const supabase = await supabaseServer()
 
-  if (!res.ok) return []
+  const { data } = await supabase
+    .from("directories")
+    .select(
+      "id, name, domain, submit_url, category, is_free, is_active, submit_url_ok, submit_url_verified_at, check_method, slug_pattern, domain_rating, backlinks, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at, created_at"
+    )
+    .eq("is_active", true)
+    .order("domain_rating", { ascending: false, nullsFirst: false })
 
-  return res.json()
+  return data ?? []
 }
 
 export const metadata: Metadata = {

@@ -8,6 +8,7 @@ import {
   IconFolderSearch,
   IconLink,
   IconTargetArrow,
+  IconWorldSearch,
 } from "@tabler/icons-react"
 
 import { IconBrandMentiohunt } from "@/components/custom-icons/brand-mentiohunt"
@@ -65,6 +66,16 @@ const tools = [
     icon: IconCalculator,
     href: `/free-tools/${FREE_TOOL_NAMES.backlinkPriceCalculator}`,
     steps: ["Paste site URL", "Pull metrics", "Get price range"],
+  },
+  {
+    name: "Backlink Opportunity Finder",
+    eyebrow: "Website to opportunities",
+    status: "Free",
+    description:
+      "Enter your website URL and surface relevant blogs, resource pages, and content hubs where a backlink to your product would be a strong fit.",
+    icon: IconWorldSearch,
+    href: `/free-tools/${FREE_TOOL_NAMES.backlinkOpportunityFinder}`,
+    steps: ["Paste URL", "Find relevant sites", "Reach out"],
   },
 ]
 
@@ -227,7 +238,7 @@ export default function FreeToolsPage() {
             </p>
           </div>
 
-          <div className="mx-auto mt-12 grid max-w-md gap-5 md:max-w-3xl md:grid-cols-2 lg:max-w-6xl lg:grid-cols-3">
+          <div className="mx-auto mt-12 grid max-w-md gap-5 md:max-w-3xl md:grid-cols-2 lg:max-w-6xl lg:grid-cols-4">
             {tools.map((tool) => {
               const Icon = tool.icon
 

@@ -5,14 +5,16 @@ import {
   IconBolt,
   IconCalculator,
   IconChecklist,
+  IconExternalLink,
   IconFolderSearch,
   IconLink,
+  IconSparkles,
   IconSwords,
-  IconTargetArrow,
   IconWorldSearch,
 } from "@tabler/icons-react"
 
 import { IconBrandMentiohunt } from "@/components/custom-icons/brand-mentiohunt"
+import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
 import { Footer, Navbar } from "@/components/landing"
 import { FREE_TOOL_NAMES } from "@/consts/free-tools"
 import { Button } from "@workspace/ui/components/button"
@@ -88,6 +90,16 @@ const tools = [
     href: `/free-tools/${FREE_TOOL_NAMES.competitorBacklinkGap}`,
     steps: ["Paste URL", "Find gap sites", "Close the gap"],
   },
+  {
+    name: "Subreddit Finder",
+    eyebrow: "Website to communities",
+    status: "Free",
+    description:
+      "Enter your website URL and find the most relevant Reddit communities for your product. Get a ranked list with fit rationale so you know exactly where to show up.",
+    icon: IconBrandRedditNew,
+    href: `/free-tools/${FREE_TOOL_NAMES.subredditFinder}`,
+    steps: ["Paste URL", "Find subreddits", "Engage"],
+  },
 ]
 
 const operatingNotes = [
@@ -110,13 +122,13 @@ export default function FreeToolsPage() {
             backgroundSize: "34px 34px",
           }}
         />
-        <div className="pointer-events-none absolute left-1/2 top-20 -z-10 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full border border-[var(--color-blaze-orange)]/15" />
-        <div className="pointer-events-none absolute left-1/2 top-28 -z-10 h-[22rem] w-[22rem] -translate-x-1/2 rounded-full border border-[var(--color-amber-flame)]/15" />
+        <div className="pointer-events-none absolute left-1/2 top-20 -z-10 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full border border-blaze-orange/15" />
+        <div className="pointer-events-none absolute left-1/2 top-28 -z-10 h-88 w-88 -translate-x-1/2 rounded-full border border-amber-flame/15" />
 
         <div className="container mx-auto max-w-7xl">
           <div className="grid gap-10 lg:grid-cols-[1.04fr_0.96fr] lg:items-end">
             <div className="relative z-10 max-w-4xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-[var(--color-princeton-orange)]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blaze-orange/25 bg-blaze-orange/8 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-(--color-princeton-orange)">
                 <IconBolt size={13} stroke={2.6} />
                 Free outreach tools
               </div>
@@ -146,83 +158,52 @@ export default function FreeToolsPage() {
                   asChild
                   variant="outline"
                   size="lg"
-                  className="h-12 rounded-full border-[var(--color-blaze-orange)]/25 bg-background/70 px-6 text-sm backdrop-blur transition-colors hover:border-[var(--color-princeton-orange)]/40 hover:bg-[var(--color-blaze-orange)]/8"
+                  className="h-12 rounded-full border-blaze-orange/25 bg-background/70 px-6 text-sm backdrop-blur transition-colors hover:border-princeton-orange/40 hover:bg-blaze-orange/8"
                 >
                   <Link href="/signup">Turn checks into a queue</Link>
                 </Button>
               </div>
             </div>
 
-            <div className="relative min-h-[26rem] lg:min-h-[34rem]">
-              <div className="absolute inset-x-10 top-8 bottom-12 rounded-[2rem] border border-border/60 bg-card/55 backdrop-blur-sm" />
+            <div className="flex items-start justify-center lg:justify-end">
+              <div className="w-full max-w-88 rounded-2xl border border-border/60 bg-card/80 p-5 shadow-[0_20px_60px_-20px_rgba(255,133,0,0.15)]">
+                <div className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-background/70 px-3.5 py-2.5">
+                  <IconWorldSearch size={14} stroke={2.2} className="shrink-0 text-muted-foreground/40" />
+                  <span className="flex-1 truncate text-sm text-muted-foreground/60">yoursite.com</span>
+                  <span className="rounded-lg bg-blaze-orange/10 px-2.5 py-1 text-[0.65rem] font-semibold text-(--color-princeton-orange)">
+                    Analyze
+                  </span>
+                </div>
 
-              <div className="relative mx-auto max-w-[31rem] overflow-hidden rounded-[2rem] border border-border/70 bg-card/92 p-4 shadow-[0_30px_90px_-54px_rgba(255,133,0,0.38)]">
-                <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
-
-                <div className="relative rounded-[1.45rem] border border-border/70 bg-background/86 p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground/60">
-                        Today&apos;s free tool
-                      </p>
-                      <h2 className="mt-2 font-heading text-2xl font-semibold tracking-[-0.045em]">
-                        Opportunity bench
-                      </h2>
-                    </div>
-                    <div className="flex size-12 items-center justify-center rounded-2xl border border-[var(--color-blaze-orange)]/15 bg-[var(--color-blaze-orange)]/8 text-[var(--color-princeton-orange)]">
-                      <IconTargetArrow size={24} stroke={2.4} />
-                    </div>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-3 rounded-xl border border-blaze-orange/15 bg-blaze-orange/6 px-3.5 py-3">
+                    <IconSparkles size={13} stroke={2.3} className="shrink-0 text-(--color-princeton-orange)" />
+                    <span className="flex-1 truncate text-sm font-medium">techcrunch.com</span>
+                    <span className="rounded-md border border-blaze-orange/20 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-(--color-princeton-orange)">
+                      Strong fit
+                    </span>
                   </div>
-
-                  <div className="mt-7 space-y-3">
-                    {tools.map((tool, index) => {
-                      const Icon = tool.icon
-
-                      return (
-                        <div
-                          key={tool.name}
-                          className="group rounded-[1.35rem] border border-border/70 bg-card/75 p-4 transition-colors hover:border-[var(--color-princeton-orange)]/20 hover:bg-background"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div
-                              className={
-                                index === 0
-                                  ? "flex size-10 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-blaze-orange)]/15 bg-[var(--color-blaze-orange)]/8 text-[var(--color-princeton-orange)]"
-                                  : "flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-background text-muted-foreground"
-                              }
-                            >
-                              <Icon size={20} stroke={2.4} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-heading text-base font-semibold tracking-[-0.025em]">
-                                {tool.name}
-                              </p>
-                              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                {tool.eyebrow}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
+                  <div className="flex items-center gap-3 rounded-xl border border-border/40 px-3.5 py-3">
+                    <IconExternalLink size={13} stroke={2.2} className="shrink-0 text-muted-foreground/35" />
+                    <span className="flex-1 truncate text-sm text-muted-foreground/70">indiehackers.com</span>
+                    <span className="rounded-md border border-border/60 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-muted-foreground/50">
+                      Good fit
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-xl border border-border/40 px-3.5 py-3">
+                    <IconExternalLink size={13} stroke={2.2} className="shrink-0 text-muted-foreground/35" />
+                    <span className="flex-1 truncate text-sm text-muted-foreground/70">producthunt.com</span>
+                    <span className="rounded-md border border-border/60 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-muted-foreground/50">
+                      Good fit
+                    </span>
                   </div>
                 </div>
-              </div>
 
-              <div className="absolute bottom-0 left-0 right-0 mx-auto max-w-[28rem] rounded-[1.6rem] border border-border/70 bg-background/92 p-5 shadow-[0_24px_70px_-46px_rgba(255,133,0,0.32)] backdrop-blur sm:left-auto sm:right-8">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
-                    <IconChecklist size={21} stroke={2.4} />
-                  </div>
-                  <div>
-                    <p className="font-heading text-lg font-semibold tracking-[-0.035em]">
-                      Designed for a fast yes, no, or maybe.
-                    </p>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      These tools help you browse directory options and find
-                      backlink opportunities before you build another spreadsheet.
-                    </p>
-                  </div>
+                <div className="mt-4 flex items-center gap-2.5 border-t border-border/40 pt-4">
+                  <IconChecklist size={13} stroke={2.2} className="shrink-0 text-muted-foreground/35" />
+                  <p className="text-xs text-muted-foreground/55">
+                    Paste a URL, get a result. No login required.
+                  </p>
                 </div>
               </div>
             </div>
@@ -234,7 +215,7 @@ export default function FreeToolsPage() {
         id="tools"
         className="relative overflow-hidden border-y border-border/70 bg-[linear-gradient(180deg,var(--color-background)_0%,color-mix(in_oklab,var(--color-background)_90%,var(--color-amber-glow)_10%)_100%)] px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/70 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-amber-flame/70 to-transparent" />
         <div className="container mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
@@ -257,13 +238,13 @@ export default function FreeToolsPage() {
                 <Link
                   key={tool.name}
                   href={tool.href}
-                  className="group relative flex min-h-[22rem] flex-col overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/92 p-6 shadow-[0_22px_70px_-56px_rgba(255,133,0,0.7)] transition-all duration-300 outline-none hover:-translate-y-1 hover:border-[var(--color-princeton-orange)]/35 hover:bg-background hover:shadow-[0_30px_80px_-54px_rgba(255,133,0,0.85)] focus-visible:ring-3 focus-visible:ring-ring/30"
+                  className="group relative flex min-h-88 flex-col overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/92 p-6 shadow-[0_22px_70px_-56px_rgba(255,133,0,0.7)] transition-all duration-300 outline-none hover:-translate-y-1 hover:border-princeton-orange/35 hover:bg-background hover:shadow-[0_30px_80px_-54px_rgba(255,133,0,0.85)] focus-visible:ring-3 focus-visible:ring-ring/30"
                 >
-                  <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/45 to-transparent" />
-                  <div className="pointer-events-none absolute -right-16 -top-16 size-36 rounded-full bg-[var(--color-blaze-orange)]/0 blur-3xl transition-colors duration-300 group-hover:bg-[var(--color-blaze-orange)]/12" />
+                  <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-linear-to-r from-transparent via-amber-flame/45 to-transparent" />
+                  <div className="pointer-events-none absolute -right-16 -top-16 size-36 rounded-full bg-blaze-orange/0 blur-3xl transition-colors duration-300 group-hover:bg-blaze-orange/12" />
 
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex size-12 items-center justify-center rounded-[1.15rem] border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/9 text-[var(--color-princeton-orange)] shadow-inner shadow-[var(--color-amber-flame)]/10 transition-colors group-hover:border-[var(--color-princeton-orange)]/35 group-hover:bg-[var(--color-blaze-orange)]/12">
+                    <div className="flex size-12 items-center justify-center rounded-[1.15rem] border border-blaze-orange/20 bg-blaze-orange/9 text-(--color-princeton-orange) shadow-inner shadow-(--color-amber-flame)/10 transition-colors group-hover:border-princeton-orange/35 group-hover:bg-blaze-orange/12">
                       <Icon size={23} stroke={2.35} />
                     </div>
                     <span className="rounded-full border border-border/80 bg-background/80 px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground backdrop-blur">
@@ -287,14 +268,14 @@ export default function FreeToolsPage() {
                     {tool.steps.map((step) => (
                       <span
                         key={step}
-                        className="rounded-full border border-border/80 bg-background/80 px-3 py-1 text-xs text-muted-foreground transition-colors group-hover:border-[var(--color-princeton-orange)]/20"
+                        className="rounded-full border border-border/80 bg-background/80 px-3 py-1 text-xs text-muted-foreground transition-colors group-hover:border-princeton-orange/20"
                       >
                         {step}
                       </span>
                     ))}
                   </div>
 
-                  <div className="mt-auto inline-flex items-center gap-2 self-start pt-6 text-sm font-semibold text-foreground transition-colors group-hover:text-[var(--color-princeton-orange)]">
+                  <div className="mt-auto inline-flex items-center gap-2 self-start pt-6 text-sm font-semibold text-foreground transition-colors group-hover:text-(--color-princeton-orange)">
                     Try it free
                     <IconArrowRight
                       size={16}
@@ -313,8 +294,8 @@ export default function FreeToolsPage() {
         <div className="container mx-auto max-w-7xl">
           <div className="grid overflow-hidden rounded-[2.25rem] border border-border bg-card shadow-[0_30px_100px_-55px_rgba(255,96,0,0.55)] lg:grid-cols-[1fr_1.1fr]">
             <div className="relative overflow-hidden bg-foreground p-7 text-background sm:p-10">
-              <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-[var(--color-blaze-orange)]/30 blur-3xl" />
-              <div className="absolute bottom-0 left-0 h-28 w-28 translate-y-1/3 rounded-full bg-[var(--color-amber-flame)]/25 blur-2xl" />
+              <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-blaze-orange/30 blur-3xl" />
+              <div className="absolute bottom-0 left-0 h-28 w-28 translate-y-1/3 rounded-full bg-amber-flame/25 blur-2xl" />
               <div className="relative">
                 <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-background/55">
                   Operating notes
@@ -333,7 +314,7 @@ export default function FreeToolsPage() {
                     key={note}
                     className="flex gap-4 rounded-[1.35rem] border border-border bg-background/65 p-4"
                   >
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-blaze-orange)]/10 font-heading text-sm font-semibold text-[var(--color-princeton-orange)]">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blaze-orange/10 font-heading text-sm font-semibold text-(--color-princeton-orange)">
                       {index + 1}
                     </div>
                     <p className="text-sm leading-7 text-muted-foreground">

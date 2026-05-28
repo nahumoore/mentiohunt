@@ -7,71 +7,67 @@ import {
   IconArrowRight,
   IconBolt,
   IconCheck,
-  IconExternalLink,
-  IconLock,
   IconLoader2,
-  IconSearch,
+  IconLock,
   IconSend,
   IconSparkles,
-  IconSwords,
-  IconTargetArrow,
+  IconUsers,
 } from "@tabler/icons-react"
+
+import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
 
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 
-type BacklinkGap = {
+type Subreddit = {
   id: string
-  domain: string
-  name: string | null
-  da: number | null
-  url: string | null
-  type: string
-  reason: string | null
-}
-
-type Competitor = {
-  id: string
-  domain: string
   name: string
-  da: number
-  totalBacklinks: number
-  gapCount: number
-  gaps: BacklinkGap[]
+  title: string
+  members: number
+  activityLevel: string
+  score: number
+  category: string
+  reason: string
+  url: string
 }
 
 type Summary = {
-  competitorsFound: number
-  totalGaps: number
-  highPriority: number
+  found: number
+  scored: number
+  highFit: number
 }
 
 const loadingStages = [
-  "Analyzing your website",
-  "Identifying your top competitors",
-  "Fetching competitor backlinks",
-  "Calculating your backlink gaps",
+  "Reading your website content",
+  "Identifying your niche and audience",
+  "Scanning Reddit communities",
+  "Scoring community fit and engagement signals",
 ]
 
 const proofPoints = [
-  "Surfaces real gaps — sites linking to competitors but not you.",
-  "Each gap includes a fit rationale so you know what to pitch.",
-  "Built to turn gap analysis into a prioritized outreach list.",
+  "Surfaces niche-relevant subreddits — not just the biggest ones.",
+  "Each result includes a plain-language fit rationale.",
+  "Ranked by audience overlap, not just subscriber count.",
 ]
 
-const gapTypeColors: Record<string, string> = {
-  "Resource Page":
-    "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  "Blog Mention":
+const categoryColors: Record<string, string> = {
+  "Founder Community":
     "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
-  "Link Roundup":
+  "Industry Specific":
+    "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  "Tool Discussion":
     "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  "Niche Blog":
+  "Audience Community":
     "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  Community:
+}
+
+const activityColors: Record<string, string> = {
+  "Very Active":
+    "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  Active:
+    "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  Moderate:
     "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300",
-  "Competitor Blog":
-    "border-fuchsia-500/25 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300",
 }
 
 function normalizeDomain(rawUrl: string) {
@@ -83,27 +79,40 @@ function normalizeDomain(rawUrl: string) {
   }
 }
 
-function getFaviconUrl(domain: string) {
-  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`
+function formatMembers(count: number) {
+  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`
+  if (count >= 1_000) return `${(count / 1_000).toFixed(0)}K`
+  return String(count)
 }
 
-export function CompetitorBacklinkGap() {
+function ScoreBadge({ score }: { score: number }) {
+  const color =
+    score >= 75
+      ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+      : score >= 50
+        ? "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+        : "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+
+  return (
+    <span
+      className={`rounded-full border px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] ${color}`}
+    >
+      {score} fit
+    </span>
+  )
+}
+
+export function SubredditFinder() {
   const [websiteUrl, setWebsiteUrl] = useState("")
   const [submittedUrl, setSubmittedUrl] = useState("")
   const [phase, setPhase] = useState<"idle" | "loading" | "results">("idle")
   const [stageIndex, setStageIndex] = useState(0)
-  const [competitors, setCompetitors] = useState<Competitor[]>([])
+  const [subreddits, setSubreddits] = useState<Subreddit[]>([])
   const [summary, setSummary] = useState<Summary | null>(null)
-  const [selectedCompetitorId, setSelectedCompetitorId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const resultsRef = useRef<HTMLElement>(null)
 
   const websiteDomain = submittedUrl ? normalizeDomain(submittedUrl) : "your site"
-
-  const selectedCompetitor =
-    competitors.find((c) => c.id === selectedCompetitorId) ??
-    competitors[0] ??
-    null
 
   useEffect(() => {
     if (phase !== "loading") return
@@ -143,11 +152,10 @@ export function CompetitorBacklinkGap() {
     setSubmittedUrl(trimmedUrl)
     setStageIndex(0)
     setError(null)
-    setSelectedCompetitorId(null)
     setPhase("loading")
 
     const [res] = await Promise.all([
-      fetch("/api/free-tool/competitor-backlink-gap", {
+      fetch("/api/free-tool/subreddit-finder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: trimmedUrl }),
@@ -163,12 +171,11 @@ export function CompetitorBacklinkGap() {
     }
 
     const data = (await res.json()) as {
-      competitors: Competitor[]
+      subreddits: Subreddit[]
       summary: Summary
     }
-    setCompetitors(data.competitors)
+    setSubreddits(data.subreddits)
     setSummary(data.summary)
-    setSelectedCompetitorId(data.competitors[0]?.id ?? null)
     setPhase("results")
   }
 
@@ -194,24 +201,24 @@ export function CompetitorBacklinkGap() {
                 className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-[var(--color-princeton-orange)] transition-colors hover:bg-[var(--color-blaze-orange)]/12"
               >
                 <IconBolt size={13} stroke={2.6} />
-                Free backlink tool
+                Free community tool
               </Link>
 
               <h1 className="mt-7 font-heading text-5xl font-semibold tracking-[-0.065em] text-balance sm:text-7xl lg:text-[6.2rem] lg:leading-[0.88]">
-                Competitor Backlink Gap Analysis
+                Subreddit Finder
               </h1>
 
               <p className="mt-7 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-                Enter your website URL and see which sites link to your
-                competitors but not to you. Built for founders who want to
-                close real gaps, not guess at outreach targets.
+                Enter your website URL and discover the Reddit communities where
+                your product fits best. Get a ranked list with fit rationale so
+                you know exactly where to show up.
               </p>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-3">
                 {[
                   ["URL in", "Paste your website"],
-                  ["Find gaps", "3 competitors analyzed"],
-                  ["Reach out", "Target missing links"],
+                  ["Scan", "Find relevant subreddits"],
+                  ["Engage", "Reply where it fits"],
                 ].map(([label, text]) => (
                   <div
                     key={label}
@@ -239,14 +246,14 @@ export function CompetitorBacklinkGap() {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
-                        Run a gap analysis
+                        Run a scan
                       </p>
                       <h2 className="mt-2 font-heading text-3xl font-semibold tracking-[-0.05em]">
-                        Find competitor backlinks
+                        Find your subreddits
                       </h2>
                     </div>
                     <div className="flex size-12 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)] text-white">
-                      <IconSwords size={25} stroke={2.4} />
+                      <IconBrandRedditNew className="size-6" />
                     </div>
                   </div>
 
@@ -255,7 +262,7 @@ export function CompetitorBacklinkGap() {
                       htmlFor="website-url"
                       className="text-sm font-medium text-foreground"
                     >
-                      Your website URL
+                      Website URL
                     </label>
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <Input
@@ -273,7 +280,7 @@ export function CompetitorBacklinkGap() {
                         disabled={phase === "loading"}
                         className="h-12 rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
                       >
-                        {phase === "loading" ? "Analyzing" : "Find gaps"}
+                        {phase === "loading" ? "Scanning" : "Find subreddits"}
                         {phase === "loading" ? (
                           <IconLoader2 className="animate-spin" size={16} />
                         ) : (
@@ -290,9 +297,7 @@ export function CompetitorBacklinkGap() {
                         className="mt-0.5 shrink-0 text-destructive"
                         stroke={2.2}
                       />
-                      <p className="text-sm leading-6 text-destructive">
-                        {error}
-                      </p>
+                      <p className="text-sm leading-6 text-destructive">{error}</p>
                     </div>
                   ) : null}
 
@@ -300,15 +305,15 @@ export function CompetitorBacklinkGap() {
                     {phase === "idle" ? (
                       <div className="flex gap-3">
                         <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
-                          <IconSearch size={20} stroke={2.4} />
+                          <IconBrandRedditNew className="size-5" />
                         </div>
                         <div>
                           <p className="font-heading text-base font-semibold tracking-[-0.03em]">
                             Ready when your URL is.
                           </p>
                           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            Enter your website URL to find which sites link to
-                            your competitors but not to you.
+                            Enter your website URL to discover the best
+                            subreddits for your product.
                           </p>
                         </div>
                       </div>
@@ -326,7 +331,7 @@ export function CompetitorBacklinkGap() {
                           </div>
                           <div>
                             <p className="font-heading text-base font-semibold tracking-[-0.03em]">
-                              Analyzing {websiteDomain}
+                              Scanning {websiteDomain}
                             </p>
                             <p className="mt-1 text-sm text-muted-foreground">
                               {loadingStages[stageIndex]}
@@ -366,11 +371,14 @@ export function CompetitorBacklinkGap() {
                         </div>
                         <div>
                           <p className="font-heading text-base font-semibold tracking-[-0.03em]">
-                            Gap analysis complete for {websiteDomain}.
+                            Scan complete for {websiteDomain}.
                           </p>
                           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            {summary?.totalGaps ?? 0} backlink gaps found
-                            across {summary?.competitorsFound ?? 0} competitors.
+                            {subreddits.length}{" "}
+                            {subreddits.length === 1
+                              ? "subreddit"
+                              : "subreddits"}{" "}
+                            ready below.
                           </p>
                         </div>
                       </div>
@@ -394,11 +402,12 @@ export function CompetitorBacklinkGap() {
                 Results
               </p>
               <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">
-                Backlinks your competitors have. You don&apos;t.
+                Communities worth showing up in.
               </h2>
               <p className="mt-5 max-w-md text-sm leading-7 text-muted-foreground">
-                Each gap is a site linking to a competitor but not to you — a
-                real outreach target with a clear fit rationale.
+                The scanner returns a ranked list of subreddits matched to your
+                product — each one paired with a fit rationale so you know what
+                threads to watch and how to contribute.
               </p>
 
               <div className="mt-7 space-y-3">
@@ -419,23 +428,23 @@ export function CompetitorBacklinkGap() {
               {!hasResults ? (
                 <div className="rounded-[2rem] border border-dashed border-[var(--color-blaze-orange)]/30 bg-card/70 p-8 text-center">
                   <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
-                    <IconTargetArrow size={24} stroke={2.4} />
+                    <IconBrandRedditNew className="size-6" />
                   </div>
                   <h3 className="mt-5 font-heading text-2xl font-semibold tracking-[-0.045em]">
-                    Results appear after the analysis.
+                    Results appear after the scan.
                   </h3>
                   <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
-                    Enter your website URL above to find competitor backlink
-                    gaps.
+                    Enter your website URL above to find the most relevant
+                    subreddits for your product.
                   </p>
                 </div>
               ) : (
                 <>
                   <div className="grid gap-3 sm:grid-cols-3">
                     {[
-                      [summary?.competitorsFound ?? 0, "competitors analyzed"],
-                      [summary?.totalGaps ?? 0, "backlink gaps found"],
-                      [summary?.highPriority ?? 0, "high priority"],
+                      [summary?.found ?? 0, "subreddits found"],
+                      [summary?.scored ?? 0, "communities scored"],
+                      [summary?.highFit ?? 0, "high fit"],
                     ].map(([value, label]) => (
                       <div
                         key={String(label)}
@@ -451,164 +460,91 @@ export function CompetitorBacklinkGap() {
                     ))}
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    {competitors.map((competitor) => {
-                      const isSelected =
-                        selectedCompetitor?.id === competitor.id
+                  {subreddits.length === 0 ? (
+                    <div className="rounded-[2rem] border border-border bg-card/70 p-8 text-center">
+                      <h3 className="font-heading text-2xl font-semibold tracking-[-0.045em]">
+                        No subreddits surfaced yet.
+                      </h3>
+                      <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
+                        We couldn&apos;t identify strong community matches from
+                        this scan. Sign up to unlock deeper discovery with
+                        keyword targeting and competitor analysis.
+                      </p>
+                    </div>
+                  ) : (
+                    subreddits.map((subreddit, index) => {
+                      const categoryColor =
+                        categoryColors[subreddit.category] ??
+                        "border-border bg-background/70 text-muted-foreground"
+                      const activityColor =
+                        activityColors[subreddit.activityLevel] ??
+                        "border-border bg-background/70 text-muted-foreground"
 
                       return (
-                        <button
-                          key={competitor.id}
-                          type="button"
-                          onClick={() =>
-                            setSelectedCompetitorId(competitor.id)
-                          }
-                          className={`group relative overflow-hidden rounded-[1.75rem] border p-5 text-left transition-all duration-300 ${
-                            isSelected
-                              ? "border-[var(--color-blaze-orange)]/35 bg-card shadow-[0_16px_50px_-28px_rgba(255,96,0,0.5)]"
-                              : "border-border bg-card/70 hover:border-[var(--color-blaze-orange)]/20 hover:bg-card"
-                          }`}
+                        <article
+                          key={subreddit.id}
+                          className="group relative overflow-hidden rounded-[1.75rem] border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-blaze-orange)]/35 hover:shadow-[0_22px_70px_-54px_rgba(255,96,0,0.65)] sm:p-6"
                         >
-                          {isSelected ? (
-                            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
-                          ) : null}
+                          <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
 
-                          <div className="flex items-center gap-3">
-                            <div className="flex size-11 shrink-0 items-center justify-center rounded-[1.1rem] border border-border bg-background shadow-sm">
-                              <span
-                                aria-hidden="true"
-                                className="size-6 rounded-md bg-contain bg-center bg-no-repeat"
-                                style={{
-                                  backgroundImage: `url(${getFaviconUrl(competitor.domain)})`,
-                                }}
-                              />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p
-                                className={`truncate font-heading text-base font-semibold tracking-[-0.025em] transition-colors duration-200 ${
-                                  isSelected
-                                    ? "text-foreground"
-                                    : "text-muted-foreground group-hover:text-foreground"
-                                }`}
-                              >
-                                {competitor.name}
-                              </p>
-                              <p className="truncate text-xs text-muted-foreground">
-                                {competitor.domain}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div
-                            className={`grid transition-all duration-300 ease-in-out ${
-                              isSelected
-                                ? "mt-4 grid-rows-[1fr] opacity-100"
-                                : "grid-rows-[0fr] opacity-0"
-                            }`}
-                          >
-                            <div className="overflow-hidden">
-                              <div className="flex items-center justify-between border-t border-border/70 pt-3">
-                                <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                                  DA {competitor.da}
-                                </span>
-                                <div className="text-right">
-                                  <span className="font-heading text-xl font-semibold tracking-[-0.045em] text-[var(--color-princeton-orange)]">
-                                    {competitor.gapCount}
+                          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex min-w-0 gap-4">
+                              <div className="flex size-12 shrink-0 items-center justify-center rounded-[1.15rem] border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 text-[var(--color-princeton-orange)]">
+                                <IconBrandRedditNew className="size-6" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h3 className="font-heading text-2xl font-semibold tracking-[-0.045em]">
+                                    {subreddit.name}
+                                  </h3>
+                                  <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                    {String(index + 1).padStart(2, "0")}
                                   </span>
-                                  <span className="ml-1.5 text-xs text-muted-foreground">
-                                    gap sites
-                                  </span>
+                                  <ScoreBadge score={subreddit.score} />
+                                </div>
+                                <div className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+                                  <IconUsers size={13} stroke={2.2} />
+                                  <span>{formatMembers(subreddit.members)} members</span>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
 
-                  <div
-                    key={selectedCompetitor?.id}
-                    className="animate-in fade-in slide-in-from-bottom-2 space-y-4 duration-300"
-                  >
-                  {selectedCompetitor?.gaps.map((gap, index) => {
-                    const typeColor =
-                      gapTypeColors[gap.type] ??
-                      "border-border bg-background/70 text-muted-foreground"
-
-                    return (
-                      <article
-                        key={gap.id}
-                        className="group relative overflow-hidden rounded-[1.75rem] border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-blaze-orange)]/35 hover:shadow-[0_22px_70px_-54px_rgba(255,96,0,0.65)] sm:p-6"
-                      >
-                        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
-
-                        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex min-w-0 gap-4">
-                            <div className="flex size-12 shrink-0 items-center justify-center rounded-[1.15rem] border border-border bg-background shadow-sm">
+                            <div className="flex flex-wrap gap-2 sm:justify-end">
                               <span
-                                aria-hidden="true"
-                                className="size-7 rounded-md bg-contain bg-center bg-no-repeat"
-                                style={{
-                                  backgroundImage: `url(${getFaviconUrl(gap.domain)})`,
-                                }}
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h4 className="font-heading text-2xl font-semibold tracking-[-0.045em]">
-                                  {gap.name ?? gap.domain}
-                                </h4>
-                                <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                                  {String(index + 1).padStart(2, "0")}
-                                </span>
-                              </div>
-                              <p className="mt-1 text-sm text-muted-foreground">
-                                {gap.domain}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2 sm:justify-end">
-                            <span
-                              className={`rounded-full border px-3 py-1 text-xs font-semibold ${typeColor}`}
-                            >
-                              {gap.type}
-                            </span>
-                            {gap.da !== null ? (
-                              <span className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-muted-foreground">
-                                DA {gap.da}
+                                className={`rounded-full border px-3 py-1 text-xs font-semibold ${categoryColor}`}
+                              >
+                                {subreddit.category}
                               </span>
-                            ) : null}
+                              <span
+                                className={`rounded-full border px-3 py-1 text-xs font-semibold ${activityColor}`}
+                              >
+                                {subreddit.activityLevel}
+                              </span>
+                            </div>
                           </div>
-                        </div>
 
-                        {gap.reason ? (
                           <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                            {gap.reason}
+                            {subreddit.reason}
                           </p>
-                        ) : null}
 
-                        {gap.url ? (
                           <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/70 pt-4">
                             <p className="truncate text-sm text-muted-foreground">
-                              {gap.url}
+                              {subreddit.url}
                             </p>
                             <Link
-                              href={gap.url}
+                              href={subreddit.url}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center gap-2 self-start rounded-full text-sm font-semibold text-foreground outline-none transition-colors hover:text-[var(--color-princeton-orange)] focus-visible:ring-3 focus-visible:ring-ring/30 sm:self-auto"
                             >
-                              View site
-                              <IconExternalLink size={16} stroke={2.4} />
+                              View subreddit
+                              <IconBrandRedditNew className="size-4" />
                             </Link>
                           </div>
-                        ) : null}
-                      </article>
-                    )
-                  })}
-                  </div>
+                        </article>
+                      )
+                    })
+                  )}
 
                   <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/25 bg-card p-6 shadow-[0_28px_90px_-54px_rgba(255,96,0,0.75)] sm:p-8">
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,var(--color-amber-glow)_0,transparent_17rem)] opacity-[0.14]" />
@@ -618,16 +554,16 @@ export function CompetitorBacklinkGap() {
                         <IconLock size={23} stroke={2.5} />
                       </div>
                       <p className="mt-5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-[var(--color-princeton-orange)]">
-                        Unlock the full gap list
+                        Unlock continuous monitoring
                       </p>
                       <h3 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.055em] text-balance">
-                        Sign up to track all competitor backlinks and close gaps
-                        faster.
+                        Get alerted when relevant threads go live — before the
+                        window closes.
                       </h3>
                       <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
-                        Get a recurring backlink gap queue that updates as your
-                        competitors earn new links — so you always have a
-                        prioritized outreach list.
+                        Mentiohunt watches your matched subreddits for posts
+                        that fit your product and surfaces them with a suggested
+                        reply — while the thread is still active.
                       </p>
                       <Button
                         asChild
@@ -655,15 +591,15 @@ export function CompetitorBacklinkGap() {
             <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
-                  More than a one-off check
+                  More than one scan
                 </p>
                 <h2 className="mt-4 max-w-2xl font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">
-                  Turn gap analysis into a recurring outreach queue.
+                  Turn community discovery into a recurring reply queue.
                 </h2>
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-                  Mentiohunt tracks your competitors&apos; new backlinks and
-                  surfaces fresh gaps as they appear — so you always have a
-                  prioritized list of outreach targets.
+                  Mentiohunt monitors your matched subreddits continuously —
+                  surfacing threads where your product is a natural fit and
+                  drafting a suggested reply so you can engage while it matters.
                 </p>
               </div>
 
@@ -674,7 +610,7 @@ export function CompetitorBacklinkGap() {
                   className="h-11 rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
                 >
                   <Link href="/signup">
-                    Build your queue
+                    Start monitoring
                     <IconSend size={16} stroke={2.4} />
                   </Link>
                 </Button>

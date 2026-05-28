@@ -1,14 +1,20 @@
 export const IconBrandRedditNew = ({
   className,
   style,
+  size,
 }: {
   className?: string;
   style?: React.CSSProperties;
+  size?: number | string;
+  [key: string]: unknown;
 }) => {
+  const dimension = size ?? 24;
   return (
     <svg
       className={className}
       style={style}
+      width={dimension}
+      height={dimension}
       viewBox="0 0 512 512"
       fillRule="evenodd"
       clipRule="evenodd"

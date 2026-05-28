@@ -5,6 +5,7 @@ export const FREE_TOOL_NAMES = {
   directoryBacklinkOpportunityFinder: "directory-backlink-opportunity-finder",
   backlinkPriceCalculator: "backlink-price-calculator",
   backlinkOpportunityFinder: "backlink-opportunity-finder",
+  competitorBacklinkGap: "competitor-backlink-gap",
 } as const
 
 export type FreeToolName =

@@ -7,6 +7,7 @@ import {
   IconChecklist,
   IconFolderSearch,
   IconLink,
+  IconSwords,
   IconTargetArrow,
   IconWorldSearch,
 } from "@tabler/icons-react"
@@ -76,6 +77,16 @@ const tools = [
     icon: IconWorldSearch,
     href: `/free-tools/${FREE_TOOL_NAMES.backlinkOpportunityFinder}`,
     steps: ["Paste URL", "Find relevant sites", "Reach out"],
+  },
+  {
+    name: "Competitor Backlink Gap Analysis",
+    eyebrow: "Competitor gaps to outreach",
+    status: "Free",
+    description:
+      "Enter your website URL and see which sites link to your competitors but not to you. Turn gap analysis into a prioritized outreach list.",
+    icon: IconSwords,
+    href: `/free-tools/${FREE_TOOL_NAMES.competitorBacklinkGap}`,
+    steps: ["Paste URL", "Find gap sites", "Close the gap"],
   },
 ]
 
@@ -238,7 +249,7 @@ export default function FreeToolsPage() {
             </p>
           </div>
 
-          <div className="mx-auto mt-12 grid max-w-md gap-5 md:max-w-3xl md:grid-cols-2 lg:max-w-6xl lg:grid-cols-4">
+          <div className="mx-auto mt-12 grid max-w-md gap-5 md:max-w-3xl md:grid-cols-2 lg:max-w-6xl lg:grid-cols-3">
             {tools.map((tool) => {
               const Icon = tool.icon
 

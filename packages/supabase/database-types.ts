@@ -69,10 +69,10 @@ export type Database = {
           domain: string | null
           email_body: string | null
           email_subject: string | null
+          found_url: string | null
           id: string
           notes: string | null
           product_id: string
-          source_media_mention_id: string | null
           status: Database["public"]["Enums"]["prospect_status"]
           target_url: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
@@ -86,10 +86,10 @@ export type Database = {
           domain?: string | null
           email_body?: string | null
           email_subject?: string | null
+          found_url?: string | null
           id?: string
           notes?: string | null
           product_id: string
-          source_media_mention_id?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
@@ -103,10 +103,10 @@ export type Database = {
           domain?: string | null
           email_body?: string | null
           email_subject?: string | null
+          found_url?: string | null
           id?: string
           notes?: string | null
           product_id?: string
-          source_media_mention_id?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
           tier?: Database["public"]["Enums"]["prospect_tier"]
@@ -117,13 +117,6 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "backlink_prospects_source_media_mention_id_fkey"
-            columns: ["source_media_mention_id"]
-            isOneToOne: false
-            referencedRelation: "media_mentions"
             referencedColumns: ["id"]
           },
         ]
@@ -294,54 +287,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      media_mentions: {
-        Row: {
-          author_handle: string | null
-          author_name: string | null
-          contact_email: string | null
-          created_at: string
-          deadline: string | null
-          id: string
-          publication_domain: string | null
-          raw_body: string | null
-          raw_text: string | null
-          source: Database["public"]["Enums"]["media_mention_source"]
-          submitted_at: string | null
-          topic_summary: string | null
-          url: string | null
-        }
-        Insert: {
-          author_handle?: string | null
-          author_name?: string | null
-          contact_email?: string | null
-          created_at?: string
-          deadline?: string | null
-          id?: string
-          publication_domain?: string | null
-          raw_body?: string | null
-          raw_text?: string | null
-          source: Database["public"]["Enums"]["media_mention_source"]
-          submitted_at?: string | null
-          topic_summary?: string | null
-          url?: string | null
-        }
-        Update: {
-          author_handle?: string | null
-          author_name?: string | null
-          contact_email?: string | null
-          created_at?: string
-          deadline?: string | null
-          id?: string
-          publication_domain?: string | null
-          raw_body?: string | null
-          raw_text?: string | null
-          source?: Database["public"]["Enums"]["media_mention_source"]
-          submitted_at?: string | null
-          topic_summary?: string | null
-          url?: string | null
-        }
-        Relationships: []
       }
       product_backlink_discovery_settings: {
         Row: {
@@ -658,15 +603,6 @@ export type Database = {
         | "dismissed"
       email_sequence_status: "active" | "stopped" | "completed"
       email_sequence_type: "onboarding"
-      media_mention_source:
-        | "email_inbox"
-        | "twitter"
-        | "bluesky"
-        | "journofinder"
-        | "qwoted"
-        | "featured"
-        | "email"
-        | "unknown"
       prospect_action_type: "email_outreach" | "social_media"
       prospect_status: "new" | "contacted" | "dismissed"
       prospect_tier:
@@ -811,16 +747,6 @@ export const Constants = {
       ],
       email_sequence_status: ["active", "stopped", "completed"],
       email_sequence_type: ["onboarding"],
-      media_mention_source: [
-        "email_inbox",
-        "twitter",
-        "bluesky",
-        "journofinder",
-        "qwoted",
-        "featured",
-        "email",
-        "unknown",
-      ],
       prospect_action_type: ["email_outreach", "social_media"],
       prospect_status: ["new", "contacted", "dismissed"],
       prospect_tier: [

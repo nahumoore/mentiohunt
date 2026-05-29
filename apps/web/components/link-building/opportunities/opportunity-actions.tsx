@@ -11,8 +11,6 @@ import { useProspectStore } from "@/stores/prospect-store"
 
 interface OpportunityActionsProps {
   prospectId: string
-  targetUrl: string
-  originalUrl: string | null | undefined
   actionType: ProspectActionType
 }
 

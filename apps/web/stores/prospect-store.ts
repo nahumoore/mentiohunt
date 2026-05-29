@@ -27,7 +27,6 @@ export type ProspectDetail = ProspectListItem &
     | "email_subject"
     | "email_body"
     | "created_at"
-    | "source_media_mention_id"
   >
 
 type ProspectStore = {

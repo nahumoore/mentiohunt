@@ -1,5 +1,4 @@
 import cron from "node-cron"
-import { runDiscoverMediaMentions } from "./discover-media-mentions.js"
 import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
 import { runReplyQueueScheduler } from "./reply-queue-scheduler.js"
 import { updateDirectorySeoMetrics } from "./update-directory-seo-metrics.js"
@@ -33,16 +32,18 @@ export function registerJobs(): void {
       console.error("[cron] Error running weekly directory check:", err)
     }
   })
-  console.log("[cron] Scheduled: weekly directory submission check (Mon 03:00 UTC)")
+  console.log(
+    "[cron] Scheduled: weekly directory submission check (Mon 03:00 UTC)"
+  )
 
-  cron.schedule("0 6,18 * * *", async () => {
-    try {
-      await runDiscoverMediaMentions()
-    } catch (err) {
-      console.error("[cron] Error running media mentions discovery:", err)
-    }
-  })
-  console.log("[cron] Scheduled: media mentions discovery (06:00 + 18:00 UTC)")
+  // cron.schedule("0 6 * * *", async () => {
+  //   try {
+  //     await runDiscoverProductMentions()
+  //   } catch (err) {
+  //     console.error("[cron] Error running per-product mention discovery:", err)
+  //   }
+  // })
+  // console.log("[cron] Scheduled: per-product mention discovery (06:00 UTC daily)")
 
   cron.schedule("0 * * * *", async () => {
     try {

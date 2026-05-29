@@ -3,7 +3,6 @@ import { Router, type IRouter } from "express"
 import { timingSafeEqual } from "node:crypto"
 import { sendOnboardingCompleteEmail } from "../helpers/emails/email.js"
 import { createLogger } from "../helpers/logger.js"
-import { processMediaMentionsForProduct } from "../methods/media-mentions/process-media-mentions-for-product.js"
 import { findDirectoryOpportunitiesForProduct } from "./find-directory-opportunities.js"
 import { runReplyQueueForConfig } from "./run-reply-queue.js"
 
@@ -16,9 +15,6 @@ type ReplyQueueOnboardingResult = Awaited<
 >
 type DirectoryOnboardingResult = Awaited<
   ReturnType<typeof findDirectoryOpportunitiesForProduct>
->
-type MediaMentionsOnboardingResult = Awaited<
-  ReturnType<typeof processMediaMentionsForProduct>
 >
 
 export const onboardingCompleteRouter: IRouter = Router()
@@ -46,13 +42,11 @@ async function sendOnboardingSummaryEmail({
   productId,
   replyQueueResult,
   directoryResult,
-  mediaMentionsResult,
 }: {
   userId: string
   productId: string
   replyQueueResult: PromiseSettledResult<ReplyQueueOnboardingResult>
   directoryResult: PromiseSettledResult<DirectoryOnboardingResult>
-  mediaMentionsResult: PromiseSettledResult<MediaMentionsOnboardingResult>
 }) {
   const [
     { data: profile, error: profileError },
@@ -94,7 +88,6 @@ async function sendOnboardingSummaryEmail({
     productName: product.product_name,
     replyQueueResult,
     directoryResult,
-    mediaMentionsResult,
   })
 }
 
@@ -120,7 +113,7 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
     const t0 = Date.now()
     console.log("[onboarding] jobs START", { userId, productId, replyQueueConfigId })
 
-    const [replyQueueResult, directoryResult, mediaMentionsResult] = await Promise.allSettled([
+    const [replyQueueResult, directoryResult] = await Promise.allSettled([
       (async () => {
         const t = Date.now()
         console.log("[onboarding] runReplyQueueForConfig START")
@@ -144,15 +137,6 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
           console.log(`[onboarding] findDirectoryOpportunities END ${Date.now() - t}ms`)
         }
       })(),
-      (async () => {
-        const t = Date.now()
-        console.log("[onboarding] processMediaMentions START")
-        try {
-          return await processMediaMentionsForProduct(productId, userId)
-        } finally {
-          console.log(`[onboarding] processMediaMentions END ${Date.now() - t}ms`)
-        }
-      })(),
     ])
 
     console.log(`[onboarding] all jobs END ${Date.now() - t0}ms`)
@@ -171,19 +155,11 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
       })
     }
 
-    if (mediaMentionsResult.status === "rejected") {
-      log.error("onboarding media mentions processing failed", {
-        productId,
-        error: String(mediaMentionsResult.reason),
-      })
-    }
-
     await sendOnboardingSummaryEmail({
       userId,
       productId,
       replyQueueResult,
       directoryResult,
-      mediaMentionsResult,
     })
 
     res.json({

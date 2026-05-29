@@ -21,10 +21,6 @@ type DirectoryOnboardingResult = {
   totalActiveDirectories: number
 }
 
-type MediaMentionsOnboardingResult = {
-  prospectsCreated: number
-}
-
 function getResend() {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) throw new Error("Missing RESEND_API_KEY")
@@ -262,7 +258,6 @@ export async function sendOnboardingCompleteEmail({
   productName,
   replyQueueResult,
   directoryResult,
-  mediaMentionsResult,
 }: {
   to: string
   userId: string
@@ -270,7 +265,6 @@ export async function sendOnboardingCompleteEmail({
   productName: string
   replyQueueResult: PromiseSettledResult<ReplyQueueOnboardingResult>
   directoryResult: PromiseSettledResult<DirectoryOnboardingResult>
-  mediaMentionsResult: PromiseSettledResult<MediaMentionsOnboardingResult>
 }) {
   const firstName = userName?.trim().split(/\s+/)[0]
   const greeting = firstName ? `Hi ${firstName},` : "Hi,"
@@ -278,10 +272,6 @@ export async function sendOnboardingCompleteEmail({
   const replyQueueFound =
     replyQueueResult.status === "fulfilled"
       ? replyQueueResult.value.mentionsFound
-      : 0
-  const backlinkProspectsCreated =
-    mediaMentionsResult.status === "fulfilled"
-      ? mediaMentionsResult.value.prospectsCreated
       : 0
   const indexedDirectories =
     directoryResult.status === "fulfilled" ? directoryResult.value.indexed : 0
@@ -299,15 +289,6 @@ export async function sendOnboardingCompleteEmail({
         )
       : ""
 
-  const backlinkOpportunitiesCard =
-    mediaMentionsResult.status === "fulfilled"
-      ? statCard(
-          "Backlink opportunities",
-          String(mediaMentionsResult.value.prospectsCreated),
-          `${mediaMentionsResult.value.prospectsCreated === 1 ? "backlink prospect row" : "backlink prospect rows"} created from recent media mentions`
-        )
-      : ""
-
   const directoryCoverageCard =
     directoryResult.status === "fulfilled"
       ? statCard(
@@ -317,10 +298,7 @@ export async function sendOnboardingCompleteEmail({
         )
       : ""
 
-  const primaryCardsRow =
-    replyQueueCard || backlinkOpportunitiesCard
-      ? `<tr>${replyQueueCard}${backlinkOpportunitiesCard}</tr>`
-      : ""
+  const primaryCardsRow = replyQueueCard ? `<tr>${replyQueueCard}</tr>` : ""
   const directoryCardRow = directoryCoverageCard
     ? `<tr>${directoryCoverageCard}</tr>`
     : ""
@@ -330,14 +308,6 @@ export async function sendOnboardingCompleteEmail({
         ? statusNote(
             "Community monitoring scan did not finish",
             "Your monitoring setup was saved, but the first scan failed. We will keep the setup available so it can be run again."
-          )
-        : ""
-    }
-    ${
-      mediaMentionsResult.status === "rejected"
-        ? statusNote(
-            "Backlink opportunity processing did not finish",
-            "Your setup was saved. We will match relevant backlink opportunities against your product on the next run."
           )
         : ""
     }
@@ -362,13 +332,13 @@ export async function sendOnboardingCompleteEmail({
     to,
     subject: `Your Mentiohunt onboarding results for ${productName}`,
     unsubscribeUrl: generateUnsubscribeUrl(userId, "alerts"),
-    previewText: `We found ${pluralize(replyQueueFound, "possible mention")}, created ${pluralize(backlinkProspectsCreated, "backlink opportunity", "backlink opportunities")}, and indexed ${indexedDirectories}/${totalActiveDirectories} active directories for ${productName}.`,
+    previewText: `We found ${pluralize(replyQueueFound, "possible mention")} and indexed ${indexedDirectories}/${totalActiveDirectories} active directories for ${productName}.`,
     footerReason:
       "You received this email because you completed onboarding for Mentiohunt.",
     body: `
       <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 18px; line-height:1.7;">${escapeHtml(greeting)}</p>
       <h1 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:28px; color:#241611; margin:0 0 16px; line-height:1.2; letter-spacing:-0.5px;">Your first opportunities are ready</h1>
-      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 26px; line-height:1.7;">We finished the initial Mentiohunt setup for <strong style="color:#241611;">${escapedProductName}</strong>. Here is what we found across community monitoring and backlink prospecting.</p>
+      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 26px; line-height:1.7;">We finished the initial Mentiohunt setup for <strong style="color:#241611;">${escapedProductName}</strong>. Here is what we found across community monitoring and directory prospecting.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 -6px 10px;">
         ${primaryCardsRow}
         ${directoryCardRow}

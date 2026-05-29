@@ -2,7 +2,6 @@ import { supabaseServer } from "@/lib/supabase/server"
 import type { ProspectDetail } from "@/stores/prospect-store"
 import { notFound, redirect } from "next/navigation"
 
-import type { MediaMention } from "../_data"
 import { ProspectClientPage } from "./client-page"
 
 export default async function ProspectPage({
@@ -23,7 +22,7 @@ export default async function ProspectPage({
   const { data: prospect, error } = await supabase
     .from("backlink_prospects")
     .select(
-      "id, product_id, domain, target_url, tier, action_type, status, discovered_at, contact_email, contact_name, email_subject, email_body, notes, created_at, source_media_mention_id"
+      "id, product_id, domain, target_url, tier, action_type, status, discovered_at, contact_email, contact_name, email_subject, email_body, notes, created_at"
     )
     .eq("id", slug)
     .maybeSingle()
@@ -47,29 +46,10 @@ export default async function ProspectPage({
     notFound()
   }
 
-  let mediaMention: MediaMention | null = null
-
-  if (prospect.source_media_mention_id) {
-    const { data, error: mmError } = await supabase
-      .from("media_mentions")
-      .select(
-        "id, source, topic_summary, deadline, publication_domain, author_name, author_handle, url, raw_text, raw_body, created_at"
-      )
-      .eq("id", prospect.source_media_mention_id)
-      .maybeSingle()
-
-    if (mmError) {
-      console.error("Error fetching media mention:", mmError)
-    } else {
-      mediaMention = data ?? null
-    }
-  }
-
   return (
     <ProspectClientPage
       prospect={prospect as ProspectDetail}
       product={{ productName: product.product_name, websiteUrl: product.website_url }}
-      mediaMention={mediaMention}
     />
   )
 }

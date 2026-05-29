@@ -283,7 +283,7 @@ async function classify(
   return { kept, totalCost }
 }
 
-export async function discoverMediaMentions(): Promise<void> {
+export async function discoverMediaMentions(): Promise<{ inserted: number; bySource: Record<string, number> }> {
   log.info("discovery started")
 
   const { posts: raw, apifyCostUsd } = await gather()
@@ -295,7 +295,7 @@ export async function discoverMediaMentions(): Promise<void> {
       llm_cost_usd: totalCost.toFixed(4),
       apify_cost_usd: apifyCostUsd.toFixed(4),
     })
-    return
+    return { inserted: 0, bySource: {} }
   }
 
   const todayStr = today()
@@ -321,7 +321,7 @@ export async function discoverMediaMentions(): Promise<void> {
 
   if (error) {
     log.error("upsert failed", { error: error.message })
-    return
+    return { inserted: 0, bySource: {} }
   }
 
   const insertedRows = inserted ?? []
@@ -339,4 +339,6 @@ export async function discoverMediaMentions(): Promise<void> {
     llm_cost_usd: totalCost.toFixed(4),
     apify_cost_usd: apifyCostUsd.toFixed(4),
   })
+
+  return { inserted: insertedRows.length, bySource }
 }

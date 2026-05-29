@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto"
 
 const APP_URL = "https://mentiohunt.com"
 
-export type EmailType = "alerts" | "marketing"
+export type EmailType = "alerts" | "marketing" | "digest"
 
 function getSecret(): string {
   const secret = process.env.INTERNAL_API_KEY

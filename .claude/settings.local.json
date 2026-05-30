@@ -7,7 +7,12 @@
       "Bash(pnpm --filter openrouter typecheck)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:apify.com)",
-      "Bash(pnpm *)"
+      "Bash(pnpm *)",
+      "Bash(cp -r /Users/nahuelmoreno/Documents/projects/mentions/.agents/skills/article-writer /Users/nahuelmoreno/Documents/projects/mentions/.claude/skills/)",
+      "Bash(cp -r /Users/nahuelmoreno/Documents/projects/mentions/.agents/skills/frontend-design /Users/nahuelmoreno/Documents/projects/mentions/.claude/skills/)",
+      "Bash(cp -r /Users/nahuelmoreno/Documents/projects/mentions/.agents/skills/journalist-query-response /Users/nahuelmoreno/Documents/projects/mentions/.claude/skills/)",
+      "Bash(cp -r /Users/nahuelmoreno/Documents/projects/mentions/.agents/skills/keyword-research /Users/nahuelmoreno/Documents/projects/mentions/.claude/skills/)",
+      "Bash(cp -r /Users/nahuelmoreno/Documents/projects/mentions/.agents/skills/supabase-postgres-best-practices /Users/nahuelmoreno/Documents/projects/mentions/.claude/skills/)"
     ]
   },
   "enableAllProjectMcpServers": true,

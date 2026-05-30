@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
-import { sendMediaMentionsDigestEmail } from "../helpers/emails/email.js"
+import { sendMediaMentionsDigestEmail } from "../helpers/emails/send-media-mentions-digest.js"
 import { createLogger } from "../helpers/logger.js"
 import { discoverMentionsForProduct } from "../methods/media-mentions/discover-mentions-for-product.js"
 

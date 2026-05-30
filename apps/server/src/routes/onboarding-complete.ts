@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { Router, type IRouter } from "express"
 import { timingSafeEqual } from "node:crypto"
-import { sendOnboardingCompleteEmail } from "../helpers/emails/email.js"
+import { sendOnboardingCompleteEmail } from "../helpers/emails/send-onboarding-complete.js"
 import { createLogger } from "../helpers/logger.js"
 import { findDirectoryOpportunitiesForProduct } from "./find-directory-opportunities.js"
 import { runReplyQueueForConfig } from "./run-reply-queue.js"

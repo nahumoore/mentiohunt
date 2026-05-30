@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
-import { sendMentionsAlert } from "../../helpers/emails/email.js"
+import { sendMentionsAlert } from "../../helpers/emails/send-mentions-alert.js"
 import { createLogger } from "../../helpers/logger.js"
 import { analyzePosts } from "./analyze-posts.js"
 import { filterDuplicates } from "./filter-duplicates.js"

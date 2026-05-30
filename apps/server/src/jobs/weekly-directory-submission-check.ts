@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
-import { sendDirectoryWeeklyDigestEmail } from "../helpers/emails/email.js"
+import { sendDirectoryWeeklyDigestEmail } from "../helpers/emails/send-directory-weekly-digest.js"
 import { createLogger } from "../helpers/logger.js"
 import { checkProductDirectoryOpportunities } from "../methods/directories/check-product-directories.js"
 

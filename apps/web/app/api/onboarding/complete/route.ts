@@ -131,13 +131,13 @@ export async function POST(request: Request) {
     productId = createdProduct.id
   }
 
-  const settingsPayload: TablesInsert<"product_backlink_discovery_settings"> = {
+  const settingsPayload: TablesInsert<"backlink_prospects_settings"> = {
     product_id: productId,
     opportunity_types: opportunityTypes,
   }
 
   const { error: upsertSettingsError } = await supabase
-    .from("product_backlink_discovery_settings")
+    .from("backlink_prospects_settings")
     .upsert(settingsPayload)
 
   if (upsertSettingsError) {

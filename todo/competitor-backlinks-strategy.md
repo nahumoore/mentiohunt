@@ -4,12 +4,12 @@
 
 Mentiohunt's Backlink Building engine already discovers **directory** opportunities for each product via `apps/server/src/methods/directories/check-product-directories.ts` and upserts them into `backlink_prospects`. The same table's `tier` enum already supports `competitor_backlink` (see `packages/supabase/database-types.ts:333`), and onboarding already collects each product's competitor URLs (`products.competitors: string[]`, stored as fully-qualified homepage URLs from `apps/web/app/api/onboarding/complete/route.ts:65-71`).
 
-What's missing: a server-side flow that, for each product, pulls the referring domains/pages linking to its competitors, filters them by the user's quality bar (DR range, traffic, dofollow, language — already in `product_backlink_discovery_settings`), enriches contacts, and upserts the survivors as `tier="competitor_backlink"` prospects. This doc plans that flow, scheduled-only, mirroring the existing directory discovery pattern.
+What's missing: a server-side flow that, for each product, pulls the referring domains/pages linking to its competitors, filters them by the user's quality bar (DR range, traffic, dofollow, language — already in `backlink_prospects_settings`), enriches contacts, and upserts the survivors as `tier="competitor_backlink"` prospects. This doc plans that flow, scheduled-only, mirroring the existing directory discovery pattern.
 
 Decisions captured up front:
 - **Apify actor (backlinks)**: `pro100chok~ahrefs-seo-tools` — Ahrefs All-in-One SEO Scraper, searchType="backlinks". $5/1k results, no Ahrefs subscription needed. Confirm exact output field names from live run before wiring filters.
 - **Trigger**: scheduled cron only (no manual UI button this iteration)
-- **Onboarding/settings**: no new fields — reuse `competitors[]` + `product_backlink_discovery_settings`
+- **Onboarding/settings**: no new fields — reuse `competitors[]` + `backlink_prospects_settings`
 - **Contacts**: in scope, basic enrichment
 
 ## Approach
@@ -23,7 +23,7 @@ Decisions captured up front:
 ### 2. Discovery method
 `apps/server/src/methods/competitor-backlinks/discover-competitor-backlinks.ts` — entry `discoverCompetitorBacklinks(productId: string)`:
 1. Load `products.competitors, website_url` (specific columns per AGENTS.md DB rule)
-2. Load `product_backlink_discovery_settings` row; **skip** if `opportunity_types` does not include `"competitor_backlink"` (mirrors gate at `check-product-directories.ts:42-46`)
+2. Load `backlink_prospects_settings` row; **skip** if `opportunity_types` does not include `"competitor_backlink"` (mirrors gate at `check-product-directories.ts:42-46`)
 3. For each competitor URL → call `runApifyActor(COMPETITOR_BACKLINKS_SCRAPER, { url })` via `p-limit` (concurrency 3) + `p-retry` on 429/5xx (reuse `apps/server/src/helpers/rate-limit.ts`)
 4. Normalize each result into `{ referring_domain, referring_page_url, dr, traffic, dofollow, language }`
 
@@ -58,7 +58,7 @@ Row shape:
 
 ### 6. Scheduled job
 `apps/server/src/jobs/discover-competitor-backlinks.ts`:
-- Selects all `product_backlink_discovery_settings` rows where `opportunity_types @> '{competitor_backlink}'`
+- Selects all `backlink_prospects_settings` rows where `opportunity_types @> '{competitor_backlink}'`
 - For each: `await discoverCompetitorBacklinks(productId)` via `p-limit` (concurrency 2 across products)
 - Registered in `apps/server/src/jobs/index.ts` with cron `"0 3 * * 1"` (Mon 03:00 UTC, weekly). Existing `!isDev` gate keeps it production-only.
 
@@ -100,7 +100,7 @@ Row shape:
 
 ## Verification
 
-1. Seed one product with a known competitor (e.g. linear.app), `opportunity_types` containing `"competitor_backlink"`, sane `product_backlink_discovery_settings` (`dr_min: 20`, `traffic_min: 100`).
+1. Seed one product with a known competitor (e.g. linear.app), `opportunity_types` containing `"competitor_backlink"`, sane `backlink_prospects_settings` (`dr_min: 20`, `traffic_min: 100`).
 2. Dev-only one-shot trigger: temporarily call `discoverCompetitorBacklinks(productId)` from a guarded dev route or `tsx` script, inspect `.logs/` via `withRouteLog` or scoped logger.
 3. Run `pnpm --filter server typecheck && pnpm --filter server build`.
 4. Inspect Supabase: rows in `backlink_prospects` with `tier="competitor_backlink"`, `directory_id IS NULL`, sensible `domain` + `target_url`, `contact_email` populated for ~top 20.

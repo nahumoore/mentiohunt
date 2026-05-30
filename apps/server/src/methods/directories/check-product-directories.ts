@@ -46,7 +46,7 @@ export async function checkProductDirectoryOpportunities(
   }
 
   const { data: settings } = await supabaseAdmin
-    .from("product_backlink_discovery_settings")
+    .from("backlink_prospects_settings")
     .select("dr_min, dr_max")
     .eq("product_id", productId)
     .single()

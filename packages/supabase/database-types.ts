@@ -291,7 +291,7 @@ export type Database = {
           },
         ]
       }
-      product_backlink_discovery_settings: {
+      backlink_prospects_settings: {
         Row: {
           dr_max: number | null
           dr_min: number

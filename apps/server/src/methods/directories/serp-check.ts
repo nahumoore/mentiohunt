@@ -1,4 +1,6 @@
 import { toSlug } from "./slug.js"
+import { runApifyActor } from "../../actors/run-apify-actor.js"
+import { SCRAPERLINK_GOOGLE_SERP, type GoogleSerpInput, type GoogleSerpItem } from "../../actors/google-serp-scraper.js"
 
 export type CheckResult = {
   status: "listed" | "gap" | "error";
@@ -11,23 +13,9 @@ type Directory = {
   submit_url: string;
 };
 
-type SerpResult = {
-  title?: string;
-  url?: string;
-  description?: string;
-};
-
-type ApifyItem = {
-  results?: SerpResult[];
-};
-
 const NON_LISTING_SEGMENTS = ["competitors", "alternatives", "compare", "vs", "reviews"]
 
 export const SERP_BATCH_SIZE = 7
-
-function apifyUrl(token: string) {
-  return `https://api.apify.com/v2/acts/scraperlink~google-search-results-serp-scraper/run-sync-get-dataset-items?token=${token}`
-}
 
 function isListingUrl(url: string, slug: string): boolean {
   const lower = url.toLowerCase()
@@ -36,35 +24,24 @@ function isListingUrl(url: string, slug: string): boolean {
 }
 
 export async function serpCheck(directory: Directory, productName: string): Promise<CheckResult> {
-  const token = process.env.APIFY_TOKEN;
-  if (!token) {
-    throw new Error("APIFY_TOKEN is not set");
-  }
-
   const query = `site:${directory.domain} "${productName}"`;
 
-  const response = await fetch(apifyUrl(token), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  let items: GoogleSerpItem[]
+  try {
+    items = await runApifyActor<GoogleSerpItem[]>(SCRAPERLINK_GOOGLE_SERP, {
       keyword: query,
       limit: "10",
       country: "US",
       include_merged: false,
-    }),
-    signal: AbortSignal.timeout(90_000),
-  });
-
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
+    } satisfies GoogleSerpInput, 90)
+  } catch (err) {
     return {
       status: "error",
       url: directory.submit_url,
-      reason: `Apify HTTP ${response.status}: ${text.slice(0, 200)}`,
-    };
+      reason: err instanceof Error ? err.message : String(err),
+    }
   }
 
-  const items: ApifyItem[] = await response.json();
   const results = items.flatMap((item) => item.results ?? [])
 
   if (results.length === 0) {
@@ -92,34 +69,25 @@ export async function serpBatchCheck(
   const resultMap = new Map<string, CheckResult>()
   if (directories.length === 0) return resultMap
 
-  const token = process.env.APIFY_TOKEN
-  if (!token) throw new Error("APIFY_TOKEN is not set")
-
   const domainQuery = directories.map((d) => `site:${d.domain}`).join(" OR ")
   const query = `"${productName}" ${domainQuery}`
 
-  const response = await fetch(apifyUrl(token), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  let items: GoogleSerpItem[]
+  try {
+    items = await runApifyActor<GoogleSerpItem[]>(SCRAPERLINK_GOOGLE_SERP, {
       keyword: query,
       limit: "20",
       country: "US",
       include_merged: false,
-    }),
-    signal: AbortSignal.timeout(90_000),
-  })
-
-  if (!response.ok) {
-    const text = await response.text().catch(() => "")
-    const reason = `Apify HTTP ${response.status}: ${text.slice(0, 200)}`
+    } satisfies GoogleSerpInput, 90)
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err)
     for (const dir of directories) {
       resultMap.set(dir.domain, { status: "error", url: dir.submit_url, reason })
     }
     return resultMap
   }
 
-  const items: ApifyItem[] = await response.json()
   const results = items.flatMap((item) => item.results ?? [])
   const slug = toSlug(productName)
 

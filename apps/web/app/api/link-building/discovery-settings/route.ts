@@ -77,7 +77,7 @@ export async function PUT(request: Request) {
     return buildValidationError("Product not found.", 404)
   }
 
-  const settingsPayload: TablesInsert<"product_backlink_discovery_settings"> = {
+  const settingsPayload: TablesInsert<"backlink_prospects_settings"> = {
     product_id: product.id,
     opportunity_types: opportunityTypes.map(
       (opportunityType) => opportunityTypeToProspectTier[opportunityType]
@@ -88,7 +88,7 @@ export async function PUT(request: Request) {
   }
 
   const { error: upsertSettingsError } = await supabase
-    .from("product_backlink_discovery_settings")
+    .from("backlink_prospects_settings")
     .upsert(settingsPayload)
 
   if (upsertSettingsError) {

@@ -26,7 +26,7 @@ const DEFAULT_DISCOVERY_SETTINGS: DiscoverySettings = {
 }
 
 type DiscoverySettingsRow = Pick<
-  Tables<"product_backlink_discovery_settings">,
+  Tables<"backlink_prospects_settings">,
   "opportunity_types" | "dr_min" | "dr_max"
 >
 
@@ -221,7 +221,7 @@ export default async function DashboardLayout({
         .eq("product_id", product.id)
         .order("discovered_at", { ascending: false }),
       supabase
-        .from("product_backlink_discovery_settings")
+        .from("backlink_prospects_settings")
         .select("opportunity_types, dr_min, dr_max")
         .eq("product_id", product.id)
         .maybeSingle(),

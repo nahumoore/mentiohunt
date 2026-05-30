@@ -10,7 +10,7 @@ export async function runWeeklyDirectoryCheck(): Promise<void> {
   log.info("starting weekly directory submission check")
 
   const { data: settings, error } = await supabaseAdmin
-    .from("product_backlink_discovery_settings")
+    .from("backlink_prospects_settings")
     .select("product_id")
 
   if (error) throw new Error(`Failed to load product settings: ${error.message}`)

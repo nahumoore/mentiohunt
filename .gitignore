@@ -36,5 +36,9 @@ npm-debug.log*
 .DS_Store
 *.pem
 
+# Python
+apps/scraper/.venv/
+apps/scraper/__pycache__/
+
 # Local skill with embedded API key
 .agents/skills/keyword-research/

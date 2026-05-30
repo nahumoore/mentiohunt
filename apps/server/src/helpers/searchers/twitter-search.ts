@@ -1,26 +1,9 @@
-import { APIDOJO_TWEET_SCRAPER, runApifyActor } from "../../actors/apify.js"
+import { APIDOJO_TWEET_SCRAPER, type RawTweet } from "../../actors/tweet-scraper.js"
+import { runApifyActor } from "../../actors/run-apify-actor.js"
 import { createLogger } from "../logger.js"
 
 const log = createLogger("twitter-search")
 const APIDOJO_TWEET_SCRAPER_COST_PER_TWEET_USD = 0.0004
-
-// Confirmed output shape from apidojo/tweet-scraper (verified live 2026-05-25).
-// createdAt is Twitter date format: "Mon May 25 15:02:04 +0000 2026" — parse via new Date().
-interface RawTweet {
-  id?: string
-  text?: string
-  fullText?: string
-  url?: string
-  createdAt?: string
-  author?: {
-    userName?: string
-    name?: string
-  }
-  likeCount?: number
-  replyCount?: number
-  retweetCount?: number
-  viewCount?: number
-}
 
 export interface TwitterPost {
   id: string

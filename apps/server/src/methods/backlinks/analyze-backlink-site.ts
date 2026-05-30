@@ -1,9 +1,6 @@
-import {
-  AHREFS_AUTHORITY_CHECKER,
-  AHREFS_SEO_TOOLS,
-  AHREFS_TRAFFIC_SEARCH_TYPE,
-  runApifyActor,
-} from "../../actors/apify.js"
+import { AHREFS_AUTHORITY_CHECKER, type AhrefsAuthorityResult } from "../../actors/ahrefs-authority-checker.js"
+import { AHREFS_SEO_TOOLS, AHREFS_TRAFFIC_SEARCH_TYPE } from "../../actors/ahrefs-seo-tools.js"
+import { runApifyActor } from "../../actors/run-apify-actor.js"
 import { createLogger } from "../../helpers/logger.js"
 
 const log = createLogger("analyze-backlink-site")
@@ -16,17 +13,6 @@ export type BacklinkSiteMetrics = {
   dofollowBacklinks: number | null
   dofollowReferringDomains: number | null
   traffic: number | null
-}
-
-type AuthorityResult = {
-  url?: string
-  normalized_url?: string
-  domainRating?: number | string | null
-  backlinks?: number | string | null
-  refdomains?: number | string | null
-  dofollowBacklinks?: number | string | null
-  dofollowRefdomains?: number | string | null
-  error?: string
 }
 
 function normalizeDomain(raw: string): string {
@@ -70,7 +56,7 @@ export async function analyzeBacklinkSite({
   log.info("analyzing site", { domain })
 
   const [authorityResult, trafficResult] = await Promise.allSettled([
-    runApifyActor<AuthorityResult[]>(AHREFS_AUTHORITY_CHECKER, {
+    runApifyActor<AhrefsAuthorityResult[]>(AHREFS_AUTHORITY_CHECKER, {
       start_urls: [{ url: canonicalUrl }],
     }),
     runApifyActor<Record<string, unknown>[]>(AHREFS_SEO_TOOLS, {

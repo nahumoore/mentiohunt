@@ -1,18 +1,7 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
-import { AHREFS_AUTHORITY_CHECKER } from "../actors/apify.js"
+import { AHREFS_AUTHORITY_CHECKER, type AhrefsAuthorityResult } from "../actors/ahrefs-authority-checker.js"
 
 const BATCH_SIZE = 25
-
-type ApifyResult = {
-  url?: string
-  normalized_url?: string
-  domainRating?: number | string | null
-  backlinks?: number | string | null
-  refdomains?: number | string | null
-  dofollowBacklinks?: number | string | null
-  dofollowRefdomains?: number | string | null
-  error?: string
-}
 
 function normalizeDomain(raw: string): string {
   const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
@@ -42,7 +31,7 @@ function toNumber(value: number | string | null | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null
 }
 
-async function fetchAhrefsMetrics(domains: string[]): Promise<ApifyResult[]> {
+async function fetchAhrefsMetrics(domains: string[]): Promise<AhrefsAuthorityResult[]> {
   const token = process.env.APIFY_TOKEN
   const url = `https://api.apify.com/v2/acts/${AHREFS_AUTHORITY_CHECKER}/run-sync-get-dataset-items?token=${token}&timeout=300`
 
@@ -58,7 +47,7 @@ async function fetchAhrefsMetrics(domains: string[]): Promise<ApifyResult[]> {
   })
 
   if (!res.ok) throw new Error(`Apify ${res.status}: ${res.statusText}`)
-  return res.json() as Promise<ApifyResult[]>
+  return res.json() as Promise<AhrefsAuthorityResult[]>
 }
 
 export async function updateMissingDirectorySeoMetrics(): Promise<void> {
@@ -97,7 +86,7 @@ export async function updateMissingDirectorySeoMetrics(): Promise<void> {
       `[seo-metrics] Batch ${i + 1}/${batches.length} (${domains.length} domains)`
     )
 
-    let results: ApifyResult[]
+    let results: AhrefsAuthorityResult[]
     try {
       results = await fetchAhrefsMetrics(domains)
     } catch (err) {
@@ -178,7 +167,7 @@ export async function updateDirectorySeoMetrics(): Promise<void> {
       `[seo-metrics] Batch ${i + 1}/${batches.length} (${domains.length} domains)`
     )
 
-    let results: ApifyResult[]
+    let results: AhrefsAuthorityResult[]
     try {
       results = await fetchAhrefsMetrics(domains)
     } catch (err) {

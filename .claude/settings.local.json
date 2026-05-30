@@ -4,7 +4,10 @@
       "Bash(Get-ChildItem -Path apps\\\\web -Directory -Exclude \".next\")",
       "Bash(Select-Object Name)",
       "Bash(pnpm --filter server typecheck)",
-      "Bash(pnpm --filter openrouter typecheck)"
+      "Bash(pnpm --filter openrouter typecheck)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:apify.com)",
+      "Bash(pnpm *)"
     ]
   },
   "enableAllProjectMcpServers": true,

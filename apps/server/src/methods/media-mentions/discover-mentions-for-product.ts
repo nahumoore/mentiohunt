@@ -168,11 +168,16 @@ export async function discoverMentionsForProduct(product: {
             return null
           }
 
+          const cleanDomain =
+            validation.domain && JUNK_DOMAINS.has(validation.domain)
+              ? null
+              : validation.domain
+
           log.info("prospect validated", {
             postId: post.id,
             valid: true,
             action_type: validation.actionType,
-            domain: validation.domain,
+            domain: cleanDomain,
             has_email: !!validation.email,
           })
 
@@ -182,7 +187,7 @@ export async function discoverMentionsForProduct(product: {
             const result = await generateOutreachEmail(product, {
               id: post.id,
               topic_summary: llm.topic_summary,
-              publication_domain: validation.domain,
+              publication_domain: cleanDomain,
               author_name: post.author_name,
               url: post.url,
             })
@@ -195,11 +200,11 @@ export async function discoverMentionsForProduct(product: {
             log.info("outreach email generated", { postId: post.id, subject: emailSubject })
           }
 
-          const targetUrl = validation.domain ? `https://${validation.domain}` : null
+          const targetUrl = cleanDomain ? `https://${cleanDomain}` : null
 
           const row = {
             product_id: product.id,
-            domain: validation.domain,
+            domain: cleanDomain,
             found_url: post.url,
             target_url: targetUrl,
             tier: "media_mention" as const,
@@ -209,6 +214,7 @@ export async function discoverMentionsForProduct(product: {
             email_subject: emailSubject,
             email_body: emailBody,
             notes: reason,
+            raw_post_text: rawText,
           }
 
           log.info("prospect ready", {

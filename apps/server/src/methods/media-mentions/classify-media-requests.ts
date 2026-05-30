@@ -50,6 +50,7 @@ For each post, extract:
 
   const requestOptions = {
     model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
+    fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
     systemInstructions,
     thinkingBudget: 2000,
     input: `Posts:\n${JSON.stringify(payload, null, 2)}`,

@@ -43,6 +43,7 @@ export async function validateProspect(draft: ProspectDraft): Promise<Validation
   try {
     const { text } = await generateTextWithUsage({
       model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
+      fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
       systemInstructions: SYSTEM,
       input,
       responseFormat: {

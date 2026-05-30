@@ -50,25 +50,13 @@ type ChatCompletionResponse = {
   }
 }
 
-async function generateStructuredText({
-  model,
-  fallbackModels,
-  input,
-  systemInstructions,
-  thinkingBudget,
-  timeoutMs = 30_000,
-  responseFormat,
-}: Required<Pick<GenerateTextOptions, "model" | "input" | "responseFormat">> &
-  Pick<GenerateTextOptions, "fallbackModels" | "systemInstructions" | "thinkingBudget" | "timeoutMs">): Promise<{ text: string; cost: number }> {
-  const messages = [
-    ...(systemInstructions
-      ? [{ role: "system" as const, content: systemInstructions }]
-      : []),
-    { role: "user" as const, content: input },
-  ]
-
-  const hasFallbacks = fallbackModels && fallbackModels.length > 0
-
+async function callModel(
+  modelId: string,
+  messages: Array<{ role: "system" | "user"; content: string }>,
+  responseFormat: Required<Pick<GenerateTextOptions, "responseFormat">>["responseFormat"],
+  thinkingBudget: number | undefined,
+  timeoutMs: number
+): Promise<{ text: string; cost: number }> {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -77,9 +65,7 @@ async function generateStructuredText({
     },
     signal: AbortSignal.timeout(timeoutMs),
     body: JSON.stringify({
-      ...(hasFallbacks
-        ? { models: [model, ...fallbackModels], route: "fallback" }
-        : { model }),
+      model: modelId,
       messages,
       response_format: responseFormat,
       ...(thinkingBudget ? { reasoning: { max_tokens: thinkingBudget } } : {}),
@@ -101,19 +87,46 @@ async function generateStructuredText({
   const content = data?.choices?.[0]?.message?.content
   const cost = data?.usage?.cost ?? 0
 
-  let text: string
-
   if (typeof content === "string") {
-    text = content
+    return { text: content, cost }
   } else if (content !== undefined && content !== null) {
-    text = JSON.stringify(content)
+    return { text: JSON.stringify(content), cost }
   } else {
     throw new Error(
       `OpenRouter response did not include text content: ${JSON.stringify(data)}`
     )
   }
+}
 
-  return { text, cost }
+async function generateStructuredText({
+  model,
+  fallbackModels,
+  input,
+  systemInstructions,
+  thinkingBudget,
+  timeoutMs = 30_000,
+  responseFormat,
+}: Required<Pick<GenerateTextOptions, "model" | "input" | "responseFormat">> &
+  Pick<GenerateTextOptions, "fallbackModels" | "systemInstructions" | "thinkingBudget" | "timeoutMs">): Promise<{ text: string; cost: number }> {
+  const messages = [
+    ...(systemInstructions
+      ? [{ role: "system" as const, content: systemInstructions }]
+      : []),
+    { role: "user" as const, content: input },
+  ]
+
+  const modelsToTry = [model, ...(fallbackModels ?? [])]
+  let lastErr: unknown
+
+  for (const modelId of modelsToTry) {
+    try {
+      return await callModel(modelId, messages, responseFormat, thinkingBudget, timeoutMs)
+    } catch (err) {
+      lastErr = err
+    }
+  }
+
+  throw lastErr
 }
 
 export async function generateText({

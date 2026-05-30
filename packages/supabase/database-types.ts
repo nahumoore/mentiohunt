@@ -73,6 +73,7 @@ export type Database = {
           id: string
           notes: string | null
           product_id: string
+          raw_post_text: string | null
           status: Database["public"]["Enums"]["prospect_status"]
           target_url: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
@@ -90,6 +91,7 @@ export type Database = {
           id?: string
           notes?: string | null
           product_id: string
+          raw_post_text?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
@@ -107,6 +109,7 @@ export type Database = {
           id?: string
           notes?: string | null
           product_id?: string
+          raw_post_text?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
           tier?: Database["public"]["Enums"]["prospect_tier"]

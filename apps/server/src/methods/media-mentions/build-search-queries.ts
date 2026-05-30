@@ -40,6 +40,7 @@ Rules:
   try {
     const { text } = await generateTextWithUsage({
       model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
+      fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
       systemInstructions,
       input: "Extract the topic keyword phrases.",
       responseFormat: {

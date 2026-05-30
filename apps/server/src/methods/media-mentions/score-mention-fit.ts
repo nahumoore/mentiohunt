@@ -74,25 +74,31 @@ async function scoreBatch(
     raw_text: m.raw_text ?? "(none)",
   }))
 
-  const systemInstructions = `You are evaluating journalist inbound requests (HARO-style) to decide if a product would be a genuinely relevant source or expert for the journalist's story.
+  const systemInstructions = `You are evaluating journalist inbound requests (HARO-style) to decide if the product's founder or team would be a genuinely relevant, credible expert source for the journalist's story.
 
 Product: ${product.product_name}
 Description: ${product.product_description}
 
 Each item is a journalist or publication publicly requesting sources, quotes, case studies, or product recommendations for a specific story. Score how well this product fits as a source for THAT story.
 
-Scoring guide (fit_score 1-100):
-- 90-100: Story topic is squarely in the product's domain; the journalist is clearly looking for exactly what this product does or the audience it serves.
-- 70-89: Story is in a related space; the product could credibly be mentioned as a relevant tool or example, and the journalist's audience overlaps with the product's ICP.
-- 50-69: Loose connection; product could stretch to fit but would feel tangential.
-- <50: Different industry, audience, or topic — product has no plausible relevance to this story.
+The key question is: "Would a journalist writing this story plausibly want to quote this product's founder or feature this product?" — not "could this product help someone in the story."
 
-Be strict. Only score ≥70 if you can clearly articulate why this product belongs in the journalist's story. Topical adjacency is not enough — the product must serve the story's core subject or audience.
+Scoring guide (fit_score 1-100):
+- 90-100: Story is squarely about what this product does (e.g. link building, community monitoring, PR outreach, founder growth tools, SEO automation). The journalist is asking for exactly this kind of expertise or product example.
+- 70-89: Story covers digital marketing, startup growth, content strategy, or B2B SaaS — topics where this product is a credible, on-topic example or expert source.
+- 50-69: Loose match; story touches the product's world but the connection requires stretching.
+- <50: Different domain — score low even if the product could theoretically "help" someone in the story. This includes: fashion/beauty/lifestyle, travel, health/wellness, personal stories, physical products, finance, legal, food, or any B2C consumer topic.
+
+Hard rules:
+- Do NOT score ≥70 just because the product "could help brands find this opportunity" or "could help someone respond." That is never sufficient.
+- Do NOT score ≥70 for requests seeking physical products, lifestyle brands, personal anecdotes, or experts in unrelated professional domains (medicine, law, engineering, etc.).
+- Do NOT score ≥70 for requests where the audience is consumers, not founders or marketing teams.
 
 Return ALL mentions with their scores and a one-sentence reason.`
 
   const requestOptions = {
     model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
+    fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
     systemInstructions,
     thinkingBudget: SCORE_THINKING_BUDGET,
     input: `Mentions:\n${JSON.stringify(payload, null, 2)}`,

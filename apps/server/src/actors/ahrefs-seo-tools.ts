@@ -30,11 +30,13 @@ export type AhrefsSeoToolsInput = {
 // Field names unverified — extracted dynamically by scanning for keys matching /traffic/i.
 export type AhrefsSeoToolsResult = Record<string, unknown>
 
-export type AhrefsBacklinkResult = {
-  sourceUrl?: string
-  sourceDomainRating?: number | string | null
-  dofollow?: boolean
-  traffic?: number | string | null
-  language?: string
-  targetUrl?: string
+// Verified field names from live sample run (searchType="backlinks").
+export type AhrefsBacklinkItem = {
+  urlFrom: string
+  urlTo: string
+  anchor: string
+  domainRating: number
+  title: string
+  textPre: string
+  textPost: string
 }

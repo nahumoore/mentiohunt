@@ -1,0 +1,168 @@
+import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
+import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
+import { createLogger } from "../../helpers/logger.js"
+import type { TaggedBacklinkItem } from "./filter-backlinks.js"
+
+const log = createLogger("score-backlink-relevance")
+
+export type PageType = "roundup" | "comparison" | "resource" | "brand-mention" | "other"
+
+export type ScoredBacklinkItem = TaggedBacklinkItem & {
+  relevanceScore: number
+  relevanceReason: string
+  pageType: PageType
+}
+
+const RETRY_DELAYS_MS = [3_000, 10_000, 30_000]
+
+function extractUrlPath(url: string): string {
+  try {
+    return new URL(url).pathname
+  } catch {
+    return url
+  }
+}
+
+export async function scoreBacklinkRelevance(
+  items: TaggedBacklinkItem[],
+  product: { product_name: string; product_description: string }
+): Promise<{ results: ScoredBacklinkItem[]; totalCost: number }> {
+  if (items.length === 0) return { results: [], totalCost: 0 }
+
+  const payload = items.map((item) => {
+    const entry: Record<string, string | number> = {
+      id: item.urlFrom,
+      title: item.title || "(no title)",
+      anchor: item.anchor || "(no anchor)",
+      urlTo_path: extractUrlPath(item.urlTo),
+      competitor: item.competitorDomain,
+    }
+    if (item.textPre) entry["textPre"] = item.textPre
+    if (item.textPost) entry["textPost"] = item.textPost
+    return entry
+  })
+
+  const systemInstructions = `You are evaluating pages that link to a competitor product. Score how relevant each page is as a backlink outreach opportunity for this product.
+
+Product: ${product.product_name}
+Description: ${product.product_description}
+
+Each item is a page that currently links to a competitor. Score whether this product could realistically be added to or featured on that page.
+
+Score guide (1-5):
+- 5: Perfect fit — roundup/comparison of tools in this exact category, or resource page for this product's audience
+- 4: Strong fit — clearly relevant page, product could be added with minimal stretch
+- 3: Moderate fit — some relevance but requires context; borderline inclusion
+- 2: Weak fit — loose connection, product mention would feel forced
+- 1: No fit — different domain entirely (lifestyle, physical products, unrelated B2C)
+
+Also classify the page type:
+- "roundup": list of multiple tools/products (e.g., "11 best X tools")
+- "comparison": head-to-head comparison page (e.g., "X vs Y")
+- "resource": educational content, guides, how-tos that mention tools
+- "brand-mention": single brand/product mention in an article
+- "other": everything else
+
+Return ALL items with their scores, reasons, and page types.`
+
+  const requestOptions = {
+    model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
+    fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+    systemInstructions,
+    thinkingBudget: 2000,
+    input: `Pages:\n${JSON.stringify(payload, null, 2)}`,
+    responseFormat: {
+      type: "json_schema" as const,
+      json_schema: {
+        name: "backlink_relevance_scores",
+        strict: true,
+        schema: {
+          type: "object",
+          properties: {
+            results: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  score: { type: "number" },
+                  reason: { type: "string" },
+                  pageType: { type: "string", enum: ["roundup", "comparison", "resource", "brand-mention", "other"] },
+                },
+                required: ["id", "score", "reason", "pageType"],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["results"],
+          additionalProperties: false,
+        },
+      },
+    },
+  }
+
+  let lastErr: unknown
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      const { text, cost } = await generateTextWithUsage(requestOptions)
+
+      let parsed: { results: { id: string; score: number; reason: string; pageType: string }[] }
+      try {
+        parsed = JSON.parse(text) as typeof parsed
+      } catch (parseErr) {
+        log.warn("json parse failed", { error: String(parseErr) })
+        return { results: [], totalCost: 0 }
+      }
+
+      const scoreById = new Map(parsed.results.map((r) => [r.id, r]))
+
+      const scored: ScoredBacklinkItem[] = items
+        .map((item) => {
+          const s = scoreById.get(item.urlFrom)
+          if (!s) return null
+          return {
+            ...item,
+            relevanceScore: Math.round(s.score),
+            relevanceReason: s.reason,
+            pageType: s.pageType as PageType,
+          }
+        })
+        .filter((r): r is ScoredBacklinkItem => r !== null)
+
+      for (const r of scored) {
+        log.info("scored item", {
+          urlFrom: r.urlFrom,
+          title: r.title || "(no title)",
+          score: r.relevanceScore,
+          pageType: r.pageType,
+          passed: r.relevanceScore >= 3,
+          reason: r.relevanceReason,
+          competitor: r.competitorDomain,
+        })
+      }
+
+      log.info("scoring complete", {
+        total: items.length,
+        scored: scored.length,
+        passing: scored.filter((r) => r.relevanceScore >= 3).length,
+        cost_usd: cost.toFixed(4),
+      })
+
+      return { results: scored, totalCost: cost }
+    } catch (err) {
+      lastErr = err
+      const msg = String(err)
+      const isRateLimit = msg.includes("rate_limit_exceeded") || msg.includes('"code":429') || msg.includes("429")
+      if (isRateLimit && attempt < RETRY_DELAYS_MS.length) {
+        const delay = RETRY_DELAYS_MS[attempt]!
+        log.warn("rate limited, retrying", { attempt: attempt + 1, delay_ms: delay })
+        await new Promise((resolve) => setTimeout(resolve, delay))
+        continue
+      }
+      break
+    }
+  }
+
+  log.warn("scoring failed", { error: String(lastErr) })
+  return { results: [], totalCost: 0 }
+}

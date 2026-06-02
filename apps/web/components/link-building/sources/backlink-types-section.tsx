@@ -32,8 +32,7 @@ export function BacklinkTypesSection({
         const cfg = TYPE_CONFIG[type]
         const Icon = cfg.icon
         const isActive = activeTypes.has(type)
-        const isComingSoon =
-          type === "competitor_backlinks" || type === "unlinked_mentions"
+        const isComingSoon = type === "unlinked_mentions"
 
         return (
           <div
@@ -51,7 +50,9 @@ export function BacklinkTypesSection({
               isComingSoon
                 ? "cursor-default opacity-50 grayscale"
                 : "cursor-pointer hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset",
-              !isComingSoon && !isActive && "opacity-50 grayscale hover:opacity-80"
+              !isComingSoon &&
+                !isActive &&
+                "opacity-50 grayscale hover:opacity-80"
             )}
           >
             <div
@@ -71,7 +72,9 @@ export function BacklinkTypesSection({
                   </span>
                 ) : (
                   !isActive && (
-                    <span className="text-xs text-muted-foreground">Paused</span>
+                    <span className="text-xs text-muted-foreground">
+                      Paused
+                    </span>
                   )
                 )}
               </div>

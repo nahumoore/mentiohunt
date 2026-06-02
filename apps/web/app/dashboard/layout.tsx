@@ -11,6 +11,7 @@ import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
 import type { CommunityMention } from "@/stores/community-mention-store"
 import type { DirectorySubmissionListItem } from "@/stores/directory-submission-store"
 import type { DiscoverySettings } from "@/stores/discovery-settings-store"
+import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import type { ProspectListItem } from "@/stores/prospect-store"
 import type { Tables } from "@workspace/supabase/database-types"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
@@ -25,9 +26,18 @@ const DEFAULT_DISCOVERY_SETTINGS: DiscoverySettings = {
   drMax: null,
 }
 
+const DEFAULT_VOICE_TONE =
+  "Write in a casual, direct founder-to-founder tone. Keep it short — 3 to 4 sentences max. No corporate language, no buzzwords. Imagine tapping a fellow builder on the shoulder, not sending a formal pitch to a procurement team. Be genuine, not salesy."
+
+const DEFAULT_OFFERING = `To make it worth their time, mention we're open to one of the following:
+- A genuine Trustpilot or G2 review of their product
+- A written testimonial they can use on their website or landing page
+- A content collaboration or guest post swap
+- A shoutout on our social channels or newsletter`
+
 type DiscoverySettingsRow = Pick<
   Tables<"backlink_prospects_settings">,
-  "opportunity_types" | "dr_min" | "dr_max"
+  "opportunity_types" | "dr_min" | "dr_max" | "voice_tone" | "offering"
 >
 
 type ReplyQueueItemRow = Pick<
@@ -63,6 +73,15 @@ function mapDiscoverySettings(
     }),
     drMin: settings.dr_min,
     drMax: settings.dr_max,
+  }
+}
+
+function mapOutreachSettings(
+  settings: DiscoverySettingsRow | null
+): OutreachSettings {
+  return {
+    voiceTone: settings?.voice_tone ?? DEFAULT_VOICE_TONE,
+    offering: settings?.offering ?? DEFAULT_OFFERING,
   }
 }
 
@@ -189,10 +208,14 @@ export default async function DashboardLayout({
   }
 
   let prospects: ProspectListItem[] = []
+  let hasCompletedProspectRun = false
   let directorySubmissions: DirectorySubmissionListItem[] = []
   let communityMentions: CommunityMention[] = []
   let discoverySettings: DiscoverySettings | null = product
     ? DEFAULT_DISCOVERY_SETTINGS
+    : null
+  let outreachSettings: OutreachSettings | null = product
+    ? mapOutreachSettings(null)
     : null
   let backlinkNetworkMembership: BacklinkNetworkMembership | null = null
   let hasRunningCommunityRun = false
@@ -205,6 +228,7 @@ export default async function DashboardLayout({
       discoverySettingsResult,
       replyQueueConfigsResult,
       backlinkNetworkResult,
+      lastProspectRunResult,
     ] = await Promise.all([
       supabase
         .from("backlink_prospects")
@@ -222,7 +246,7 @@ export default async function DashboardLayout({
         .order("discovered_at", { ascending: false }),
       supabase
         .from("backlink_prospects_settings")
-        .select("opportunity_types, dr_min, dr_max")
+        .select("opportunity_types, dr_min, dr_max, voice_tone, offering")
         .eq("product_id", product.id)
         .maybeSingle(),
       supabase
@@ -236,6 +260,14 @@ export default async function DashboardLayout({
         .eq("product_id", product.id)
         .eq("user_id", user.id)
         .maybeSingle(),
+      supabase
+        .from("backlink_prospect_runs")
+        .select("id, status")
+        .eq("product_id", product.id)
+        .eq("status", "completed")
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ])
 
     const { data: prospectRows, error: prospectsError } = prospectsResult
@@ -245,6 +277,7 @@ export default async function DashboardLayout({
     }
 
     prospects = prospectRows ?? []
+    hasCompletedProspectRun = !lastProspectRunResult.error && lastProspectRunResult.data !== null
 
     if (directorySubmissionsResult.error) {
       console.error(
@@ -273,6 +306,7 @@ export default async function DashboardLayout({
       )
     } else {
       discoverySettings = mapDiscoverySettings(discoverySettingsResult.data)
+      outreachSettings = mapOutreachSettings(discoverySettingsResult.data)
     }
 
     hasRunningCommunityRun =
@@ -347,11 +381,13 @@ export default async function DashboardLayout({
       profile={profile}
       product={product}
       prospects={prospects}
+      hasCompletedProspectRun={hasCompletedProspectRun}
       directorySubmissions={directorySubmissions}
       communityMentions={communityMentions}
       hasRunningCommunityRun={hasRunningCommunityRun}
       hasReplyQueueConfig={hasReplyQueueConfig}
       discoverySettings={discoverySettings}
+      outreachSettings={outreachSettings}
       backlinkNetworkMembership={backlinkNetworkMembership}
     >
       <SidebarProvider>

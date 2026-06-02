@@ -12,7 +12,16 @@
       "Bash(cp -r /Users/nahuelmoreno/Documents/projects/mentions/.agents/skills/frontend-design /Users/nahuelmoreno/Documents/projects/mentions/.claude/skills/)",
       "Bash(cp -r /Users/nahuelmoreno/Documents/projects/mentions/.agents/skills/journalist-query-response /Users/nahuelmoreno/Documents/projects/mentions/.claude/skills/)",
       "Bash(cp -r /Users/nahuelmoreno/Documents/projects/mentions/.agents/skills/keyword-research /Users/nahuelmoreno/Documents/projects/mentions/.claude/skills/)",
-      "Bash(cp -r /Users/nahuelmoreno/Documents/projects/mentions/.agents/skills/supabase-postgres-best-practices /Users/nahuelmoreno/Documents/projects/mentions/.claude/skills/)"
+      "Bash(cp -r /Users/nahuelmoreno/Documents/projects/mentions/.agents/skills/supabase-postgres-best-practices /Users/nahuelmoreno/Documents/projects/mentions/.claude/skills/)",
+      "WebFetch(domain:docs.dataforseo.com)",
+      "WebFetch(domain:dataforseo.com)",
+      "WebFetch(domain:api.apify.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebSearch",
+      "WebFetch(domain:ahrefs.com)",
+      "WebFetch(domain:docs.ahrefs.com)",
+      "WebFetch(domain:moz.com)",
+      "WebFetch(domain:developers.moz.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

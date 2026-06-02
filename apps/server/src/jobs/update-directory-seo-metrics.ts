@@ -1,5 +1,8 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
-import { AHREFS_AUTHORITY_CHECKER, type AhrefsAuthorityResult } from "../actors/ahrefs-authority-checker.js"
+import {
+  AHREFS_AUTHORITY_CHECKER,
+  type AhrefsAuthorityResult,
+} from "../helpers/actors/ahrefs-authority-checker.js"
 
 const BATCH_SIZE = 25
 
@@ -31,7 +34,9 @@ function toNumber(value: number | string | null | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null
 }
 
-async function fetchAhrefsMetrics(domains: string[]): Promise<AhrefsAuthorityResult[]> {
+async function fetchAhrefsMetrics(
+  domains: string[]
+): Promise<AhrefsAuthorityResult[]> {
   const token = process.env.APIFY_TOKEN
   const url = `https://api.apify.com/v2/acts/${AHREFS_AUTHORITY_CHECKER}/run-sync-get-dataset-items?token=${token}&timeout=300`
 
@@ -74,7 +79,9 @@ export async function updateMissingDirectorySeoMetrics(): Promise<void> {
     return
   }
 
-  console.log(`[seo-metrics] Found ${directories.length} directories with missing metrics`)
+  console.log(
+    `[seo-metrics] Found ${directories.length} directories with missing metrics`
+  )
 
   const batches = chunk(directories, BATCH_SIZE)
   let updated = 0

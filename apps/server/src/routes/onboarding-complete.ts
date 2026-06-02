@@ -3,6 +3,7 @@ import { Router, type IRouter } from "express"
 import { timingSafeEqual } from "node:crypto"
 import { sendOnboardingCompleteEmail } from "../helpers/emails/send-onboarding-complete.js"
 import { createLogger } from "../helpers/logger.js"
+import { discoverCompetitorBacklinks } from "../methods/competitor-backlinks/discover-competitor-backlinks.js"
 import { findDirectoryOpportunitiesForProduct } from "./find-directory-opportunities.js"
 import { runReplyQueueForConfig } from "./run-reply-queue.js"
 
@@ -10,12 +11,8 @@ const log = createLogger("route-onboarding-complete")
 
 const SEND_INDIVIDUAL_ONBOARDING_EMAILS = false
 
-type ReplyQueueOnboardingResult = Awaited<
-  ReturnType<typeof runReplyQueueForConfig>
->
-type DirectoryOnboardingResult = Awaited<
-  ReturnType<typeof findDirectoryOpportunitiesForProduct>
->
+type ReplyQueueOnboardingResult = Awaited<ReturnType<typeof runReplyQueueForConfig>>
+type DirectoryOnboardingResult = Awaited<ReturnType<typeof findDirectoryOpportunitiesForProduct>>
 
 export const onboardingCompleteRouter: IRouter = Router()
 
@@ -113,7 +110,7 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
     const t0 = Date.now()
     console.log("[onboarding] jobs START", { userId, productId, replyQueueConfigId })
 
-    const [replyQueueResult, directoryResult] = await Promise.allSettled([
+    const [replyQueueResult, directoryResult, backlinkDiscoveryResult] = await Promise.allSettled([
       (async () => {
         const t = Date.now()
         console.log("[onboarding] runReplyQueueForConfig START")
@@ -137,6 +134,33 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
           console.log(`[onboarding] findDirectoryOpportunities END ${Date.now() - t}ms`)
         }
       })(),
+      (async () => {
+        const t = Date.now()
+        console.log("[onboarding] discoverCompetitorBacklinks START")
+        try {
+          const { data: product } = await supabaseAdmin
+            .from("products")
+            .select("id, user_id, product_name, product_description, website_url, competitors")
+            .eq("id", productId)
+            .single()
+
+          if (!product) return { prospectsCreated: 0, totalCostUsd: 0 }
+
+          const { data: settings } = await supabaseAdmin
+            .from("backlink_prospects_settings")
+            .select("dr_min, dr_max, voice_tone, offering")
+            .eq("product_id", productId)
+            .single()
+
+          return await discoverCompetitorBacklinks(
+            { ...product, competitors: (product.competitors as string[]) ?? [] },
+            { dr_min: settings?.dr_min ?? 0, dr_max: settings?.dr_max ?? null },
+            { voice_tone: settings?.voice_tone ?? null, offering: settings?.offering ?? null }
+          )
+        } finally {
+          console.log(`[onboarding] discoverCompetitorBacklinks END ${Date.now() - t}ms`)
+        }
+      })(),
     ])
 
     console.log(`[onboarding] all jobs END ${Date.now() - t0}ms`)
@@ -155,6 +179,13 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
       })
     }
 
+    if (backlinkDiscoveryResult.status === "rejected") {
+      log.error("onboarding backlink discovery failed", {
+        productId,
+        error: String(backlinkDiscoveryResult.reason),
+      })
+    }
+
     await sendOnboardingSummaryEmail({
       userId,
       productId,
@@ -164,10 +195,9 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
 
     res.json({
       success: true,
-      replyQueue:
-        replyQueueResult.status === "fulfilled" ? replyQueueResult.value : null,
-      directoryOpportunities:
-        directoryResult.status === "fulfilled" ? directoryResult.value : null,
+      replyQueue: replyQueueResult.status === "fulfilled" ? replyQueueResult.value : null,
+      directoryOpportunities: directoryResult.status === "fulfilled" ? directoryResult.value : null,
+      backlinkDiscovery: backlinkDiscoveryResult.status === "fulfilled" ? backlinkDiscoveryResult.value : null,
     })
   } catch (err) {
     log.error("unhandled onboarding jobs error", { error: String(err) })

@@ -118,11 +118,22 @@ async function generateStructuredText({
   const modelsToTry = [model, ...(fallbackModels ?? [])]
   let lastErr: unknown
 
-  for (const modelId of modelsToTry) {
+  for (let i = 0; i < modelsToTry.length; i++) {
+    const modelId = modelsToTry[i]!
+    const isFallback = i > 0
     try {
-      return await callModel(modelId, messages, responseFormat, thinkingBudget, timeoutMs)
+      const result = await callModel(modelId, messages, responseFormat, thinkingBudget, timeoutMs)
+      if (isFallback) {
+        console.warn(`[openrouter] fallback model succeeded: ${modelId} (primary: ${modelsToTry[0]})`)
+      }
+      return result
     } catch (err) {
       lastErr = err
+      if (isFallback) {
+        console.warn(`[openrouter] fallback model failed: ${modelId} — ${String(err)}`)
+      } else if (modelsToTry.length > 1) {
+        console.warn(`[openrouter] primary model failed, trying fallback: ${modelId} — ${String(err)}`)
+      }
     }
   }
 

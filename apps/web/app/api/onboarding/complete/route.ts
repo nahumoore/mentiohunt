@@ -1,12 +1,8 @@
 import { onboardingSchema, type OpportunityTypeId } from "@/consts/onboarding"
+import { OPPORTUNITY_TYPE_TO_PROSPECT_TIER } from "@/lib/opportunity-types"
 import { supabaseServer } from "@/lib/supabase/server"
 import { waitUntil } from "@vercel/functions"
-import type {
-  Database,
-  Json,
-  TablesInsert,
-  TablesUpdate,
-} from "@workspace/supabase/database-types"
+import type { Json, TablesInsert, TablesUpdate } from "@workspace/supabase/database-types"
 import { NextResponse } from "next/server"
 
 export const runtime = "nodejs"
@@ -16,15 +12,6 @@ const SERVER_URL = process.env.SERVER_URL ?? "http://localhost:3001"
 function buildValidationError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status })
 }
-
-const opportunityTypeToProspectTier = {
-  competitor_backlinks: "competitor_backlink",
-  unlinked_mentions: "unlinked_mention",
-  media_mentions: "media_mention",
-} satisfies Record<
-  OpportunityTypeId,
-  Database["public"]["Enums"]["prospect_tier"]
->
 
 async function runOnboardingJobsOnServer(payload: {
   userId: string
@@ -77,7 +64,7 @@ export async function POST(request: Request) {
   }
 
   const opportunityTypes = parsedRequest.data.opportunityTypes.map(
-    (opportunityType) => opportunityTypeToProspectTier[opportunityType]
+    (opportunityType) => OPPORTUNITY_TYPE_TO_PROSPECT_TIER[opportunityType]
   )
 
   const { data: existingProducts, error: existingProductsError } = await supabase

@@ -1,3 +1,4 @@
+import pLimit from "p-limit"
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../helpers/logger.js"
@@ -14,6 +15,13 @@ export type ScoredBacklinkItem = TaggedBacklinkItem & {
 }
 
 const RETRY_DELAYS_MS = [3_000, 10_000, 30_000]
+const BATCH_SIZE = 20
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+  return out
+}
 
 function extractUrlPath(url: string): string {
   try {
@@ -23,26 +31,8 @@ function extractUrlPath(url: string): string {
   }
 }
 
-export async function scoreBacklinkRelevance(
-  items: TaggedBacklinkItem[],
-  product: { product_name: string; product_description: string }
-): Promise<{ results: ScoredBacklinkItem[]; totalCost: number }> {
-  if (items.length === 0) return { results: [], totalCost: 0 }
-
-  const payload = items.map((item) => {
-    const entry: Record<string, string | number> = {
-      id: item.urlFrom,
-      title: item.title || "(no title)",
-      anchor: item.anchor || "(no anchor)",
-      urlTo_path: extractUrlPath(item.urlTo),
-      competitor: item.competitorDomain,
-    }
-    if (item.textPre) entry["textPre"] = item.textPre
-    if (item.textPost) entry["textPost"] = item.textPost
-    return entry
-  })
-
-  const systemInstructions = `You are evaluating pages that link to a competitor product. Score how relevant each page is as a backlink outreach opportunity for this product.
+const SYSTEM_INSTRUCTIONS = (product: { product_name: string; product_description: string }) =>
+  `You are evaluating pages that link to a competitor product. Score how relevant each page is as a backlink outreach opportunity for this product.
 
 Product: ${product.product_name}
 Description: ${product.product_description}
@@ -65,53 +55,96 @@ Also classify the page type:
 
 Return ALL items with their scores, reasons, and page types.`
 
-  const requestOptions = {
-    model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
-    fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
-    systemInstructions,
-    thinkingBudget: 2000,
-    input: `Pages:\n${JSON.stringify(payload, null, 2)}`,
-    responseFormat: {
-      type: "json_schema" as const,
-      json_schema: {
-        name: "backlink_relevance_scores",
-        strict: true,
-        schema: {
-          type: "object",
-          properties: {
-            results: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  id: { type: "string" },
-                  score: { type: "number" },
-                  reason: { type: "string" },
-                  pageType: { type: "string", enum: ["roundup", "comparison", "resource", "brand-mention", "other"] },
-                },
-                required: ["id", "score", "reason", "pageType"],
-                additionalProperties: false,
-              },
+const RESPONSE_FORMAT = {
+  type: "json_schema" as const,
+  json_schema: {
+    name: "backlink_relevance_scores",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        results: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              score: { type: "number" },
+              reason: { type: "string" },
+              pageType: { type: "string", enum: ["roundup", "comparison", "resource", "brand-mention", "other"] },
             },
+            required: ["id", "score", "reason", "pageType"],
+            additionalProperties: false,
           },
-          required: ["results"],
-          additionalProperties: false,
         },
       },
+      required: ["results"],
+      additionalProperties: false,
     },
-  }
+  },
+}
+
+export async function scoreBacklinkRelevance(
+  items: TaggedBacklinkItem[],
+  product: { product_name: string; product_description: string }
+): Promise<{ results: ScoredBacklinkItem[]; totalCost: number }> {
+  if (items.length === 0) return { results: [], totalCost: 0 }
+
+  const batches = chunk(items, BATCH_SIZE)
+  const limit = pLimit(5)
+
+  const batchResults = await Promise.all(
+    batches.map((batch) => limit(() => scoreBatch(batch, product)))
+  )
+
+  const results = batchResults.flatMap((r) => r.results)
+  const totalCost = batchResults.reduce((sum, r) => sum + r.cost, 0)
+
+  log.info("scoring complete", {
+    total: items.length,
+    scored: results.length,
+    passing: results.filter((r) => r.relevanceScore >= 3).length,
+    cost_usd: totalCost.toFixed(4),
+  })
+
+  return { results, totalCost }
+}
+
+async function scoreBatch(
+  items: TaggedBacklinkItem[],
+  product: { product_name: string; product_description: string }
+): Promise<{ results: ScoredBacklinkItem[]; cost: number }> {
+  const payload = items.map((item) => {
+    const entry: Record<string, string | number> = {
+      id: item.urlFrom,
+      title: item.title || "(no title)",
+      anchor: item.anchor || "(no anchor)",
+      urlTo_path: extractUrlPath(item.urlTo),
+      competitor: item.competitorDomain,
+    }
+    if (item.textPre) entry["textPre"] = item.textPre
+    if (item.textPost) entry["textPost"] = item.textPost
+    return entry
+  })
 
   let lastErr: unknown
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
     try {
-      const { text, cost } = await generateTextWithUsage(requestOptions)
+      const { text, cost } = await generateTextWithUsage({
+        model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
+        fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+        systemInstructions: SYSTEM_INSTRUCTIONS(product),
+        thinkingBudget: 2000,
+        input: `Pages:\n${JSON.stringify(payload, null, 2)}`,
+        responseFormat: RESPONSE_FORMAT,
+      })
 
       let parsed: { results: { id: string; score: number; reason: string; pageType: string }[] }
       try {
         parsed = JSON.parse(text) as typeof parsed
       } catch (parseErr) {
         log.warn("json parse failed", { error: String(parseErr) })
-        return { results: [], totalCost: 0 }
+        return { results: [], cost: 0 }
       }
 
       const scoreById = new Map(parsed.results.map((r) => [r.id, r]))
@@ -141,14 +174,7 @@ Return ALL items with their scores, reasons, and page types.`
         })
       }
 
-      log.info("scoring complete", {
-        total: items.length,
-        scored: scored.length,
-        passing: scored.filter((r) => r.relevanceScore >= 3).length,
-        cost_usd: cost.toFixed(4),
-      })
-
-      return { results: scored, totalCost: cost }
+      return { results: scored, cost }
     } catch (err) {
       lastErr = err
       const msg = String(err)
@@ -164,5 +190,5 @@ Return ALL items with their scores, reasons, and page types.`
   }
 
   log.warn("scoring failed", { error: String(lastErr) })
-  return { results: [], totalCost: 0 }
+  return { results: [], cost: 0 }
 }

@@ -27,12 +27,16 @@ export type ProspectDetail = ProspectListItem &
     | "email_subject"
     | "email_body"
     | "created_at"
+    | "found_url"
+    | "contact_social_links"
   >
 
 type ProspectStore = {
   prospects: ProspectListItem[]
+  hasCompletedRun: boolean
   prospectDetailsById: Record<string, ProspectDetail>
   setProspects: (prospects: ProspectListItem[]) => void
+  setHasCompletedRun: (hasCompletedRun: boolean) => void
   updateProspectStatuses: (
     prospectIds: string[],
     status: BacklinkProspect["status"]
@@ -59,8 +63,10 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
 
 export const useProspectStore = create<ProspectStore>()((set) => ({
   prospects: [],
+  hasCompletedRun: false,
   prospectDetailsById: {},
   setProspects: (prospects) => set({ prospects }),
+  setHasCompletedRun: (hasCompletedRun) => set({ hasCompletedRun }),
   updateProspectStatuses: (prospectIds, status) =>
     set((state) => {
       const idSet = new Set(prospectIds)

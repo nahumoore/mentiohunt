@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 
+import { BacklinkContextCard } from "@/components/link-building/opportunities/backlink-context-card"
 import { MediaMentionPanel } from "@/components/link-building/opportunities/media-mention-panel"
 import { OpportunityActions } from "@/components/link-building/opportunities/opportunity-actions"
 import { OpportunityContactCard } from "@/components/link-building/opportunities/opportunity-contact-card"
@@ -60,6 +61,14 @@ export function ProspectClientPage({
             <MediaMentionPanel sourceUrl={current.target_url ?? null} />
           )}
 
+          {current.tier === "competitor_backlink" &&
+            current.action_type === "email_outreach" && (
+              <BacklinkContextCard
+                foundUrl={current.found_url ?? null}
+                targetUrl={current.target_url ?? null}
+              />
+            )}
+
           {current.action_type !== "social_media" && (
             <OutreachDraft
               subject={current.email_subject ?? ""}
@@ -76,6 +85,7 @@ export function ProspectClientPage({
             <OpportunityContactCard
               contactName={current.contact_name}
               contactEmail={current.contact_email}
+              contactSocialLinks={current.contact_social_links}
             />
           )}
 

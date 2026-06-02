@@ -11,6 +11,10 @@ export async function runApifyActor<T>(
     body: JSON.stringify(input),
     signal: AbortSignal.timeout((timeoutSec + 60) * 1000),
   })
-  if (!res.ok) throw new Error(`Apify ${res.status}: ${res.statusText}`)
+  if (!res.ok) {
+    let body = ""
+    try { body = await res.text() } catch { /* ignore */ }
+    throw new Error(`Apify ${res.status}: ${res.statusText}${body ? ` — ${body}` : ""}`)
+  }
   return res.json() as Promise<T>
 }

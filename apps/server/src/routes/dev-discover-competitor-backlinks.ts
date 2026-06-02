@@ -20,7 +20,7 @@ devDiscoverCompetitorBacklinksRouter.post("/dev/discover-competitor-backlinks", 
 
     const { data: product, error: productError } = await supabaseAdmin
       .from("products")
-      .select("id, product_name, product_description, website_url, competitors")
+      .select("id, user_id, product_name, product_description, website_url, competitors")
       .eq("id", productId)
       .single()
 
@@ -32,13 +32,18 @@ devDiscoverCompetitorBacklinksRouter.post("/dev/discover-competitor-backlinks", 
 
     const { data: settings } = await supabaseAdmin
       .from("backlink_prospects_settings")
-      .select("dr_min, dr_max")
+      .select("dr_min, dr_max, voice_tone, offering")
       .eq("product_id", productId)
       .single()
 
     const filterSettings = {
       dr_min: settings?.dr_min ?? 0,
       dr_max: settings?.dr_max ?? null,
+    }
+
+    const emailSettings = {
+      voice_tone: settings?.voice_tone ?? null,
+      offering: settings?.offering ?? null,
     }
 
     log.info("product loaded", {
@@ -50,7 +55,7 @@ devDiscoverCompetitorBacklinksRouter.post("/dev/discover-competitor-backlinks", 
     })
 
     try {
-      const result = await discoverCompetitorBacklinks(product, filterSettings)
+      const result = await discoverCompetitorBacklinks(product, filterSettings, emailSettings)
       log.info("done", { productId, ...result })
       res.json({ ok: true, productId, product_name: product.product_name, ...result })
     } catch (err) {

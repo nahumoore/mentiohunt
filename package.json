@@ -7,7 +7,7 @@
     "dev": "turbo dev --filter=server --filter=web",
     "dev:server": "turbo dev --filter=server",
     "dev:web": "turbo dev --filter=web",
-    "dev:scraper": "cd apps/scraper && uvicorn main:app --reload --port 8000",
+    "dev:scraper": "cd apps/scraper && .venv/bin/uvicorn main:app --reload --port 8000",
     "lint": "turbo lint",
     "format": "turbo format",
     "supabase:types": "supabase gen types typescript --project-id eagakiaavexoykhvvkwc --schema public > packages/supabase/database-types.ts",

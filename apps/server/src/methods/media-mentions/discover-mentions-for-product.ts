@@ -40,6 +40,33 @@ async function prefilterExistingProspects(
   )
 }
 
+async function createRun(productId: string, queries: string[]): Promise<string | null> {
+  const { data, error } = await supabaseAdmin
+    .from("backlink_prospect_runs" as string)
+    .insert({ product_id: productId, strategy: "media_mention", input: { queries }, status: "running" })
+    .select("id")
+    .single()
+  if (error) {
+    log.warn("failed to create run", { productId, error: error.message })
+    return null
+  }
+  return (data as { id: string }).id
+}
+
+async function completeRun(runId: string, prospectsCreated: number, costUsd: number): Promise<void> {
+  await supabaseAdmin
+    .from("backlink_prospect_runs" as string)
+    .update({ status: "completed", completed_at: new Date().toISOString(), prospects_created: prospectsCreated, cost_usd: costUsd })
+    .eq("id", runId)
+}
+
+async function failRun(runId: string, error: string): Promise<void> {
+  await supabaseAdmin
+    .from("backlink_prospect_runs" as string)
+    .update({ status: "failed", completed_at: new Date().toISOString(), error })
+    .eq("id", runId)
+}
+
 export async function discoverMentionsForProduct(product: {
   id: string
   product_name: string
@@ -50,10 +77,14 @@ export async function discoverMentionsForProduct(product: {
   log.info("discovery started", { productId: product.id })
 
   const queries = await buildSearchQueries(product)
+  const runId = await createRun(product.id, queries)
+
+  try {
   const { posts: rawPosts, apifyCostUsd } = await gatherMediaPosts(queries)
 
   if (rawPosts.length === 0) {
     log.info("no posts gathered", { productId: product.id })
+    if (runId) await completeRun(runId, 0, apifyCostUsd)
     return { prospectsCreated: 0, totalCostUsd: apifyCostUsd }
   }
 
@@ -71,6 +102,7 @@ export async function discoverMentionsForProduct(product: {
   })
 
   if (freshPosts.length === 0) {
+    if (runId) await completeRun(runId, 0, apifyCostUsd)
     return { prospectsCreated: 0, totalCostUsd: apifyCostUsd }
   }
 
@@ -78,6 +110,7 @@ export async function discoverMentionsForProduct(product: {
 
   if (kept.length === 0) {
     log.info("no media requests found after classification", { productId: product.id })
+    if (runId) await completeRun(runId, 0, apifyCostUsd + classifyCost)
     return { prospectsCreated: 0, totalCostUsd: apifyCostUsd + classifyCost }
   }
 
@@ -115,6 +148,7 @@ export async function discoverMentionsForProduct(product: {
       productId: product.id,
       classified: kept.length,
     })
+    if (runId) await completeRun(runId, 0, apifyCostUsd + classifyCost + scoreCost)
     return { prospectsCreated: 0, totalCostUsd: apifyCostUsd + classifyCost + scoreCost }
   }
 
@@ -234,6 +268,7 @@ export async function discoverMentionsForProduct(product: {
 
   if (rows.length === 0) {
     log.info("no prospects to insert", { productId: product.id })
+    if (runId) await completeRun(runId, 0, apifyCostUsd + classifyCost + scoreCost)
     return { prospectsCreated: 0, totalCostUsd: apifyCostUsd + classifyCost + scoreCost }
   }
 
@@ -246,10 +281,13 @@ export async function discoverMentionsForProduct(product: {
       productId: product.id,
       error: insertError.message,
     })
+    if (runId) await completeRun(runId, 0, apifyCostUsd + classifyCost + scoreCost)
     return { prospectsCreated: 0, totalCostUsd: apifyCostUsd + classifyCost + scoreCost }
   }
 
   const created = insertCount ?? rows.length
+  const totalCostUsd = apifyCostUsd + classifyCost + scoreCost
+
   log.info("discovery complete", {
     productId: product.id,
     gathered: rawPosts.length,
@@ -261,8 +299,13 @@ export async function discoverMentionsForProduct(product: {
     llm_cost_usd: (classifyCost + scoreCost).toFixed(4),
   })
 
-  return {
-    prospectsCreated: created,
-    totalCostUsd: apifyCostUsd + classifyCost + scoreCost,
+  if (runId) await completeRun(runId, created, totalCostUsd)
+  return { prospectsCreated: created, totalCostUsd }
+
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    log.error("discovery run failed", { productId: product.id, error: msg })
+    if (runId) await failRun(runId, msg)
+    return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 }

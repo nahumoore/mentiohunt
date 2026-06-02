@@ -1,5 +1,8 @@
-import { APIDOJO_TWEET_SCRAPER, type RawTweet } from "../../actors/tweet-scraper.js"
-import { runApifyActor } from "../../actors/run-apify-actor.js"
+import { runApifyActor } from "../actors/run-apify-actor.js"
+import {
+  APIDOJO_TWEET_SCRAPER,
+  type RawTweet,
+} from "../actors/tweet-scraper.js"
 import { createLogger } from "../logger.js"
 
 const log = createLogger("twitter-search")
@@ -33,7 +36,9 @@ function mapRawTweet(raw: RawTweet): TwitterPost | null {
   if (!id || !text || !url || !createdAt || !authorHandle) return null
 
   const parsedDate = new Date(createdAt)
-  const isoDate = isNaN(parsedDate.getTime()) ? createdAt : parsedDate.toISOString()
+  const isoDate = isNaN(parsedDate.getTime())
+    ? createdAt
+    : parsedDate.toISOString()
 
   return {
     id,

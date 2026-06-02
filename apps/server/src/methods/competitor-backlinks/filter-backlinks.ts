@@ -1,4 +1,4 @@
-import type { AhrefsBacklinkItem } from "../../actors/ahrefs-seo-tools.js"
+import type { AhrefsBacklinkItem } from "../../helpers/actors/ahrefs-seo-tools.js"
 import { createLogger } from "../../helpers/logger.js"
 
 const log = createLogger("filter-backlinks")
@@ -23,7 +23,9 @@ const NOISE_DOMAINS = new Set([
 
 const NOISE_PATH_SEGMENTS = ["/user/", "/profile/", "/members/", "/author/"]
 
-export type TaggedBacklinkItem = AhrefsBacklinkItem & { competitorDomain: string }
+export type TaggedBacklinkItem = AhrefsBacklinkItem & {
+  competitorDomain: string
+}
 
 export type FilterSettings = {
   dr_min: number
@@ -34,7 +36,11 @@ function extractDomainFromUrl(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./i, "").toLowerCase()
   } catch {
-    return url.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/.*$/, "").toLowerCase()
+    return url
+      .replace(/^https?:\/\//i, "")
+      .replace(/^www\./i, "")
+      .replace(/\/.*$/, "")
+      .toLowerCase()
   }
 }
 
@@ -59,7 +65,8 @@ export function filterBacklinks(
   // Apply DR range filter
   const drFiltered = items.filter((item) => {
     if (item.domainRating < settings.dr_min) return false
-    if (settings.dr_max !== null && item.domainRating > settings.dr_max) return false
+    if (settings.dr_max !== null && item.domainRating > settings.dr_max)
+      return false
     return true
   })
 
@@ -101,7 +108,9 @@ export function filterBacklinks(
     }
 
     // Sort by DR desc, take top 15
-    const deduped = [...bestByDomain.values()].sort((a, b) => b.domainRating - a.domainRating)
+    const deduped = [...bestByDomain.values()].sort(
+      (a, b) => b.domainRating - a.domainRating
+    )
     const capped = deduped.slice(0, CAP_PER_COMPETITOR)
 
     log.info("competitor dedup + cap", {

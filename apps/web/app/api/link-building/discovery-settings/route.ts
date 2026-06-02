@@ -1,9 +1,7 @@
 import { OPPORTUNITY_TYPE_IDS, type OpportunityTypeId } from "@/consts/onboarding"
+import { OPPORTUNITY_TYPE_TO_PROSPECT_TIER } from "@/lib/opportunity-types"
 import { supabaseServer } from "@/lib/supabase/server"
-import type {
-  Database,
-  TablesInsert,
-} from "@workspace/supabase/database-types"
+import type { TablesInsert } from "@workspace/supabase/database-types"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -20,15 +18,6 @@ const discoverySettingsSchema = z.object({
   drMin: z.number().int().min(0).max(100),
   drMax: z.number().int().min(0).max(100).nullable(),
 })
-
-const opportunityTypeToProspectTier = {
-  competitor_backlinks: "competitor_backlink",
-  unlinked_mentions: "unlinked_mention",
-  media_mentions: "media_mention",
-} satisfies Record<
-  OpportunityTypeId,
-  Database["public"]["Enums"]["prospect_tier"]
->
 
 function buildValidationError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status })
@@ -80,7 +69,7 @@ export async function PUT(request: Request) {
   const settingsPayload: TablesInsert<"backlink_prospects_settings"> = {
     product_id: product.id,
     opportunity_types: opportunityTypes.map(
-      (opportunityType) => opportunityTypeToProspectTier[opportunityType]
+      (opportunityType) => OPPORTUNITY_TYPE_TO_PROSPECT_TIER[opportunityType]
     ),
     dr_min: drMin,
     dr_max: drMax,

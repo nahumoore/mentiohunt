@@ -1,4 +1,5 @@
 import cron from "node-cron"
+import { deactivateExpiredFreeTrials } from "./deactivate-expired-free-trials.js"
 import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
 import { runReplyQueueScheduler } from "./reply-queue-scheduler.js"
 import { updateDirectorySeoMetrics } from "./update-directory-seo-metrics.js"
@@ -14,6 +15,17 @@ export function registerJobs(): void {
   })
   console.log(
     "[cron] Scheduled: directory SEO metrics update (1st of each month)"
+  )
+
+  cron.schedule("15 0,8,16 * * *", async () => {
+    try {
+      await deactivateExpiredFreeTrials()
+    } catch (err) {
+      console.error("[cron] Error deactivating expired free trials:", err)
+    }
+  })
+  console.log(
+    "[cron] Scheduled: free trial deactivation (00:15, 08:15, 16:15 UTC)"
   )
 
   cron.schedule("0 0 * * *", async () => {
@@ -44,6 +56,15 @@ export function registerJobs(): void {
   //   }
   // })
   // console.log("[cron] Scheduled: per-product mention discovery (06:00 UTC daily)")
+
+  // cron.schedule("0 4 * * *", async () => {
+  //   try {
+  //     await runDailyBacklinkDiscovery()
+  //   } catch (err) {
+  //     console.error("[cron] Error running daily backlink discovery:", err)
+  //   }
+  // })
+  // console.log("[cron] Scheduled: daily backlink discovery (04:00 UTC)")
 
   cron.schedule("0 * * * *", async () => {
     try {

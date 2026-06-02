@@ -1,19 +1,29 @@
+import {
+  SCRAPERLINK_GOOGLE_SERP,
+  type GoogleSerpInput,
+  type GoogleSerpItem,
+} from "../../helpers/actors/google-serp-scraper.js"
+import { runApifyActor } from "../../helpers/actors/run-apify-actor.js"
 import { toSlug } from "./slug.js"
-import { runApifyActor } from "../../actors/run-apify-actor.js"
-import { SCRAPERLINK_GOOGLE_SERP, type GoogleSerpInput, type GoogleSerpItem } from "../../actors/google-serp-scraper.js"
 
 export type CheckResult = {
-  status: "listed" | "gap" | "error";
-  url: string;
-  reason?: string;
-};
+  status: "listed" | "gap" | "error"
+  url: string
+  reason?: string
+}
 
 type Directory = {
-  domain: string;
-  submit_url: string;
-};
+  domain: string
+  submit_url: string
+}
 
-const NON_LISTING_SEGMENTS = ["competitors", "alternatives", "compare", "vs", "reviews"]
+const NON_LISTING_SEGMENTS = [
+  "competitors",
+  "alternatives",
+  "compare",
+  "vs",
+  "reviews",
+]
 
 export const SERP_BATCH_SIZE = 7
 
@@ -23,17 +33,24 @@ function isListingUrl(url: string, slug: string): boolean {
   return !NON_LISTING_SEGMENTS.some((seg) => lower.includes(`/${seg}`))
 }
 
-export async function serpCheck(directory: Directory, productName: string): Promise<CheckResult> {
-  const query = `site:${directory.domain} "${productName}"`;
+export async function serpCheck(
+  directory: Directory,
+  productName: string
+): Promise<CheckResult> {
+  const query = `site:${directory.domain} "${productName}"`
 
   let items: GoogleSerpItem[]
   try {
-    items = await runApifyActor<GoogleSerpItem[]>(SCRAPERLINK_GOOGLE_SERP, {
-      keyword: query,
-      limit: "10",
-      country: "US",
-      include_merged: false,
-    } satisfies GoogleSerpInput, 90)
+    items = await runApifyActor<GoogleSerpItem[]>(
+      SCRAPERLINK_GOOGLE_SERP,
+      {
+        keyword: query,
+        limit: "10",
+        country: "US",
+        include_merged: false,
+      } satisfies GoogleSerpInput,
+      90
+    )
   } catch (err) {
     return {
       status: "error",
@@ -74,16 +91,24 @@ export async function serpBatchCheck(
 
   let items: GoogleSerpItem[]
   try {
-    items = await runApifyActor<GoogleSerpItem[]>(SCRAPERLINK_GOOGLE_SERP, {
-      keyword: query,
-      limit: "20",
-      country: "US",
-      include_merged: false,
-    } satisfies GoogleSerpInput, 90)
+    items = await runApifyActor<GoogleSerpItem[]>(
+      SCRAPERLINK_GOOGLE_SERP,
+      {
+        keyword: query,
+        limit: "20",
+        country: "US",
+        include_merged: false,
+      } satisfies GoogleSerpInput,
+      90
+    )
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err)
     for (const dir of directories) {
-      resultMap.set(dir.domain, { status: "error", url: dir.submit_url, reason })
+      resultMap.set(dir.domain, {
+        status: "error",
+        url: dir.submit_url,
+        reason,
+      })
     }
     return resultMap
   }

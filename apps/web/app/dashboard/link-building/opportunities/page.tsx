@@ -11,6 +11,7 @@ import { useProspectStore } from "@/stores/prospect-store"
 
 export default function OpportunitiesPage() {
   const prospects = useProspectStore((state) => state.prospects)
+  const hasCompletedRun = useProspectStore((state) => state.hasCompletedRun)
 
   useEffect(() => {
     captureEvent("opportunities_list_viewed", { count: prospects.length })
@@ -31,7 +32,7 @@ export default function OpportunitiesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {prospects.length === 0 ? (
+      {prospects.length === 0 && !hasCompletedRun ? (
         <Card className="px-6 py-16 text-center">
           <div className="mx-auto flex max-w-md flex-col items-center gap-3">
             <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">

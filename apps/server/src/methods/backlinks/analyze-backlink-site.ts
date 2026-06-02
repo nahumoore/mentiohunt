@@ -1,6 +1,12 @@
-import { AHREFS_AUTHORITY_CHECKER, type AhrefsAuthorityResult } from "../../actors/ahrefs-authority-checker.js"
-import { AHREFS_SEO_TOOLS, AHREFS_TRAFFIC_SEARCH_TYPE } from "../../actors/ahrefs-seo-tools.js"
-import { runApifyActor } from "../../actors/run-apify-actor.js"
+import {
+  AHREFS_AUTHORITY_CHECKER,
+  type AhrefsAuthorityResult,
+} from "../../helpers/actors/ahrefs-authority-checker.js"
+import {
+  AHREFS_SEO_TOOLS,
+  AHREFS_TRAFFIC_SEARCH_TYPE,
+} from "../../helpers/actors/ahrefs-seo-tools.js"
+import { runApifyActor } from "../../helpers/actors/run-apify-actor.js"
 import { createLogger } from "../../helpers/logger.js"
 
 const log = createLogger("analyze-backlink-site")
@@ -66,14 +72,15 @@ export async function analyzeBacklinkSite({
   ])
 
   if (authorityResult.status === "rejected") {
-    log.error("authority actor failed", { error: String(authorityResult.reason) })
+    log.error("authority actor failed", {
+      error: String(authorityResult.reason),
+    })
     throw new Error("Could not fetch authority metrics. Try again later.")
   }
 
   const items = authorityResult.value
-  const item = items.find(
-    (r) => !r.error && (r.normalized_url || r.url)
-  ) ?? items[0]
+  const item =
+    items.find((r) => !r.error && (r.normalized_url || r.url)) ?? items[0]
 
   if (!item || item.error) {
     log.warn("authority actor returned error", { item })
@@ -83,14 +90,20 @@ export async function analyzeBacklinkSite({
   }
 
   let traffic: number | null = null
-  if (trafficResult.status === "fulfilled" && Array.isArray(trafficResult.value) && trafficResult.value.length > 0) {
+  if (
+    trafficResult.status === "fulfilled" &&
+    Array.isArray(trafficResult.value) &&
+    trafficResult.value.length > 0
+  ) {
     const firstItem = trafficResult.value[0]
     if (firstItem !== undefined) {
       traffic = extractTrafficFromItem(firstItem)
       log.info("traffic result", { traffic, raw: firstItem })
     }
   } else if (trafficResult.status === "rejected") {
-    log.warn("traffic actor failed — degrading gracefully", { error: String(trafficResult.reason) })
+    log.warn("traffic actor failed — degrading gracefully", {
+      error: String(trafficResult.reason),
+    })
   }
 
   const metrics: BacklinkSiteMetrics = {

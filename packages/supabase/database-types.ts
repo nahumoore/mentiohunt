@@ -59,11 +59,62 @@ export type Database = {
           },
         ]
       }
+      backlink_prospect_runs: {
+        Row: {
+          completed_at: string | null
+          cost_usd: number | null
+          error: string | null
+          id: string
+          input: Json
+          metadata: Json | null
+          product_id: string
+          prospects_created: number
+          started_at: string
+          status: Database["public"]["Enums"]["run_status"]
+          strategy: Database["public"]["Enums"]["prospect_tier"]
+        }
+        Insert: {
+          completed_at?: string | null
+          cost_usd?: number | null
+          error?: string | null
+          id?: string
+          input?: Json
+          metadata?: Json | null
+          product_id: string
+          prospects_created?: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["run_status"]
+          strategy: Database["public"]["Enums"]["prospect_tier"]
+        }
+        Update: {
+          completed_at?: string | null
+          cost_usd?: number | null
+          error?: string | null
+          id?: string
+          input?: Json
+          metadata?: Json | null
+          product_id?: string
+          prospects_created?: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["run_status"]
+          strategy?: Database["public"]["Enums"]["prospect_tier"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backlink_prospect_runs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       backlink_prospects: {
         Row: {
           action_type: Database["public"]["Enums"]["prospect_action_type"]
           contact_email: string | null
           contact_name: string | null
+          contact_social_links: Json | null
           created_at: string
           discovered_at: string
           domain: string | null
@@ -82,6 +133,7 @@ export type Database = {
           action_type: Database["public"]["Enums"]["prospect_action_type"]
           contact_email?: string | null
           contact_name?: string | null
+          contact_social_links?: Json | null
           created_at?: string
           discovered_at?: string
           domain?: string | null
@@ -100,6 +152,7 @@ export type Database = {
           action_type?: Database["public"]["Enums"]["prospect_action_type"]
           contact_email?: string | null
           contact_name?: string | null
+          contact_social_links?: Json | null
           created_at?: string
           discovered_at?: string
           domain?: string | null
@@ -119,6 +172,44 @@ export type Database = {
             foreignKeyName: "backlink_prospects_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      backlink_prospects_settings: {
+        Row: {
+          dr_max: number | null
+          dr_min: number
+          offering: string | null
+          opportunity_types: Database["public"]["Enums"]["prospect_tier"][]
+          product_id: string
+          updated_at: string
+          voice_tone: string | null
+        }
+        Insert: {
+          dr_max?: number | null
+          dr_min?: number
+          offering?: string | null
+          opportunity_types?: Database["public"]["Enums"]["prospect_tier"][]
+          product_id: string
+          updated_at?: string
+          voice_tone?: string | null
+        }
+        Update: {
+          dr_max?: number | null
+          dr_min?: number
+          offering?: string | null
+          opportunity_types?: Database["public"]["Enums"]["prospect_tier"][]
+          product_id?: string
+          updated_at?: string
+          voice_tone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backlink_prospects_settings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -287,38 +378,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      backlink_prospects_settings: {
-        Row: {
-          dr_max: number | null
-          dr_min: number
-          opportunity_types: Database["public"]["Enums"]["prospect_tier"][]
-          product_id: string
-          updated_at: string
-        }
-        Insert: {
-          dr_max?: number | null
-          dr_min?: number
-          opportunity_types?: Database["public"]["Enums"]["prospect_tier"][]
-          product_id: string
-          updated_at?: string
-        }
-        Update: {
-          dr_max?: number | null
-          dr_min?: number
-          opportunity_types?: Database["public"]["Enums"]["prospect_tier"][]
-          product_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_discovery_settings_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: true
-            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -612,6 +671,7 @@ export type Database = {
         | "competitor_backlink"
         | "unlinked_mention"
         | "media_mention"
+      run_status: "pending" | "running" | "completed" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -757,6 +817,7 @@ export const Constants = {
         "unlinked_mention",
         "media_mention",
       ],
+      run_status: ["pending", "running", "completed", "failed"],
     },
   },
 } as const

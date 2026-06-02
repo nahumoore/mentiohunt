@@ -1,6 +1,12 @@
 "use client"
 
-import { IconArrowRight, IconCalendar } from "@tabler/icons-react"
+import {
+  IconArrowRight,
+  IconCalendar,
+  IconMailCheck,
+  IconMailOff,
+  IconSwords,
+} from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 
@@ -18,12 +24,26 @@ const TIER_BORDER: Record<ProspectTier, string> = {
   media_mention: "border-l-sky-500",
 }
 
+function extractHostname(url: string | null): string | null {
+  if (!url) return null
+  try {
+    return new URL(url).hostname.replace(/^www\./, "")
+  } catch {
+    return null
+  }
+}
+
 export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
   const router = useRouter()
   const tierCfg = TYPE_CONFIG[prospect.tier]
   const actionCfg = ACTION_TYPE_CONFIG[prospect.action_type]
   const TierIcon = tierCfg.icon
   const ActionIcon = actionCfg.icon
+  const hasEmail = !!prospect.contact_email?.trim()
+  const competitorHostname =
+    prospect.tier === "competitor_backlink"
+      ? extractHostname(prospect.target_url)
+      : null
 
   return (
     <div
@@ -71,9 +91,20 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
         </div>
 
         {/* domain / fallback title */}
-        <p className="text-base font-semibold text-foreground">
-          {prospect.domain ?? prospect.contact_name ?? actionCfg.label}
-        </p>
+        <div className="flex flex-col gap-1">
+          <p className="text-base font-semibold text-foreground">
+            {prospect.domain ?? prospect.contact_name ?? actionCfg.label}
+          </p>
+          {competitorHostname && (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <IconSwords className="size-3 shrink-0 text-amber-500/70" />
+              links to{" "}
+              <span className="font-medium text-foreground/70">
+                {competitorHostname}
+              </span>
+            </span>
+          )}
+        </div>
 
         {prospect.notes && (
           <p className="line-clamp-2 text-xs text-muted-foreground">
@@ -85,22 +116,28 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
       <div className="border-t border-border/50" />
 
       <div className="flex items-center justify-between gap-4 px-5 py-3">
-        {/* contact + date */}
-        <div className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
-          {(prospect.contact_name ?? prospect.contact_email) && (
-            <span className="truncate">
-              {prospect.contact_name
-                ? `${prospect.contact_name}${prospect.contact_email ? ` · ${prospect.contact_email}` : ""}`
-                : prospect.contact_email}
+        <div className="flex min-w-0 items-center gap-3 text-xs text-muted-foreground">
+          {/* contact readiness */}
+          {hasEmail ? (
+            <span className="inline-flex items-center gap-1 text-emerald-600">
+              <IconMailCheck className="size-3.5 shrink-0" />
+              {prospect.contact_name ?? prospect.contact_email}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-muted-foreground/60">
+              <IconMailOff className="size-3.5 shrink-0" />
+              No contact
             </span>
           )}
+
+          <span className="text-border">·</span>
+
           <span className="flex items-center gap-1">
             <IconCalendar className="size-3 shrink-0" />
             {formatDate(prospect.discovered_at)}
           </span>
         </div>
 
-        {/* open cta */}
         <IconArrowRight className="size-6 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" />
       </div>
     </div>

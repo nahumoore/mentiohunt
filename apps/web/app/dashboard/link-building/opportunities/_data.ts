@@ -1,16 +1,15 @@
 import {
   IconCircleX,
-  IconLink,
   IconListDetails,
   IconMailForward,
-  IconNews,
+  IconMessageShare,
   IconSend,
   IconSparkles,
-  IconMessageShare,
-  IconSwords,
 } from "@tabler/icons-react"
 import type { Database } from "@workspace/supabase/database-types"
 import type { ElementType } from "react"
+
+import { PROSPECT_TIER_CONFIG } from "@/lib/opportunity-types"
 
 export type ProspectStatus = Database["public"]["Enums"]["prospect_status"]
 export type ProspectTier = Database["public"]["Enums"]["prospect_tier"]
@@ -48,29 +47,7 @@ export const ALL_FILTER_CONFIG = {
   icon: IconListDetails,
 }
 
-export const TYPE_CONFIG: Record<ProspectTier, TierConfig> = {
-  competitor_backlink: {
-    label: "Competitor backlink",
-    description:
-      "A page that references competitors or similar products and may be a fit for outreach.",
-    icon: IconSwords,
-    color: "text-amber-600 bg-amber-500/10",
-  },
-  unlinked_mention: {
-    label: "Unlinked mention",
-    description:
-      "A page that mentions your product or brand context but has not linked yet.",
-    icon: IconLink,
-    color: "text-violet-600 bg-violet-500/10",
-  },
-  media_mention: {
-    label: "Media mention",
-    description:
-      "A press or media reference to your product that surfaced via inbox or social monitoring.",
-    icon: IconNews,
-    color: "text-sky-600 bg-sky-500/10",
-  },
-}
+export const TYPE_CONFIG: Record<ProspectTier, TierConfig> = PROSPECT_TIER_CONFIG
 
 export const STATUS_CONFIG: Record<ProspectStatus, StatusConfig> = {
   new: {
@@ -90,22 +67,23 @@ export const STATUS_CONFIG: Record<ProspectStatus, StatusConfig> = {
   },
 }
 
-export const ACTION_TYPE_CONFIG: Record<ProspectActionType, ActionTypeConfig> = {
-  email_outreach: {
-    label: "Email outreach",
-    description:
-      "Use the prepared outreach draft when contact details are available.",
-    icon: IconMailForward,
-    color: "text-orange-600 bg-orange-500/10",
-  },
-  social_media: {
-    label: "Social reply",
-    description:
-      "Reply to the post on the social platform where it was discovered.",
-    icon: IconMessageShare,
-    color: "text-neutral-700 bg-neutral-500/10",
-  },
-}
+export const ACTION_TYPE_CONFIG: Record<ProspectActionType, ActionTypeConfig> =
+  {
+    email_outreach: {
+      label: "Email outreach",
+      description:
+        "Use the prepared outreach draft when contact details are available.",
+      icon: IconMailForward,
+      color: "text-orange-600 bg-orange-500/10",
+    },
+    social_media: {
+      label: "Social reply",
+      description:
+        "Reply to the post on the social platform where it was discovered.",
+      icon: IconMessageShare,
+      color: "text-neutral-700 bg-neutral-500/10",
+    },
+  }
 
 export const STATUS_FILTERS: ProspectFilterConfig[] = [
   {
@@ -137,4 +115,3 @@ export function formatDate(iso: string): string {
     year: "numeric",
   })
 }
-

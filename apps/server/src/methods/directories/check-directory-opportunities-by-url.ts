@@ -36,14 +36,19 @@ function chunk<T>(arr: T[], size: number): T[][] {
 export async function checkDirectoryOpportunitiesByUrl(input: {
   url: string
   productName: string
+  freeOnly?: boolean
 }): Promise<DirectoryOpportunitiesByUrlResult> {
-  const { url, productName } = input
+  const { url, productName, freeOnly } = input
   const slug = toSlug(productName)
 
-  const { data: directories, error: dirError } = await supabaseAdmin
+  let query = supabaseAdmin
     .from("directories")
     .select("id, name, domain, submit_url, slug_pattern, check_method, category, is_free, is_active")
     .eq("is_active", true)
+
+  if (freeOnly) query = query.eq("is_free", true)
+
+  const { data: directories, error: dirError } = await query
 
   if (dirError) throw new Error(`Failed to load directories: ${dirError.message}`)
   if (!directories || directories.length === 0) {

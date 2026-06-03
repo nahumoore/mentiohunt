@@ -38,6 +38,7 @@ directoryOpportunitiesByUrlRouter.post(
       typeof req.body.url === "string" ? req.body.url.trim() : ""
     const rawProductName =
       typeof req.body.productName === "string" ? req.body.productName.trim() : ""
+    const freeOnly = req.body.freeOnly === true
 
     if (!rawUrl) {
       res.status(400).json({ error: "url is required" })
@@ -51,7 +52,7 @@ directoryOpportunitiesByUrlRouter.post(
     try {
       const result = await withRouteLog(
         `find-directory-opportunities-by-url-${new URL(rawUrl).hostname}`,
-        () => checkDirectoryOpportunitiesByUrl({ url: rawUrl, productName: rawProductName })
+        () => checkDirectoryOpportunitiesByUrl({ url: rawUrl, productName: rawProductName, freeOnly })
       )
       res.json(result)
     } catch (err) {

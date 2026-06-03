@@ -10,6 +10,8 @@ const STEP_DELAYS_MS = [
   96 * 60 * 60 * 1000,  // after step 1: wait 96h for step 2
 ]
 
+const MIN_PROFILE_AGE_MS = 2 * 60 * 60 * 1000 // never send within 2h of signup
+
 export async function runFeedbackEmailSequence() {
   log.info("scheduler tick")
 
@@ -36,12 +38,18 @@ export async function runFeedbackEmailSequence() {
     try {
       const { data: profile, error: profileError } = await supabaseAdmin
         .from("profiles")
-        .select("email, name")
+        .select("email, name, created_at")
         .eq("id", seq.user_id)
         .single()
 
       if (profileError || !profile?.email) {
         log.warn("no profile for sequence", { sequenceId: seq.id, userId: seq.user_id })
+        continue
+      }
+
+      const profileAgeMs = Date.now() - new Date(profile.created_at).getTime()
+      if (profileAgeMs < MIN_PROFILE_AGE_MS) {
+        log.info("skipping — profile too new", { sequenceId: seq.id, userId: seq.user_id, profileAgeMs })
         continue
       }
 

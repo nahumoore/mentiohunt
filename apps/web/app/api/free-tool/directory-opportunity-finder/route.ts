@@ -42,6 +42,12 @@ export async function POST(req: NextRequest) {
       ? (body as { productUrl: string }).productUrl.trim()
       : ""
 
+  const freeOnly =
+    body !== null &&
+    typeof body === "object" &&
+    "freeOnly" in body &&
+    (body as Record<string, unknown>).freeOnly === true
+
   if (!rawProductUrl) {
     return NextResponse.json({ error: "productUrl is required" }, { status: 400 })
   }
@@ -80,7 +86,7 @@ export async function POST(req: NextRequest) {
         "x-internal-api-key": process.env.INTERNAL_API_KEY ?? "",
         "x-forwarded-client-ip": ip,
       },
-      body: JSON.stringify({ url, productName }),
+      body: JSON.stringify({ url, productName, freeOnly }),
     }
   )
 

@@ -7,6 +7,8 @@ import {
   IconArrowRight,
   IconBolt,
   IconCheck,
+  IconClipboard,
+  IconClipboardCheck,
   IconExternalLink,
   IconFolderSearch,
   IconLock,
@@ -71,6 +73,8 @@ export function DirectoryBacklinkOpportunityFinder() {
   const [directories, setDirectories] = useState<GapDirectory[]>([])
   const [summary, setSummary] = useState<Summary | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [freeOnly, setFreeOnly] = useState(true)
+  const [copied, setCopied] = useState(false)
   const resultsRef = useRef<HTMLElement>(null)
 
   const productDomain = useMemo(
@@ -122,7 +126,7 @@ export function DirectoryBacklinkOpportunityFinder() {
       const res = await fetch("/api/free-tool/directory-opportunity-finder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productUrl: trimmedUrl }),
+        body: JSON.stringify({ productUrl: trimmedUrl, freeOnly }),
       })
 
       const data = await res.json()
@@ -148,6 +152,16 @@ export function DirectoryBacklinkOpportunityFinder() {
   }
 
   const hasResults = phase === "results"
+
+  function handleCopy() {
+    const text = directories
+      .map((d) => `${d.name ?? d.domain} — ${d.submit_url}`)
+      .join("\n")
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   return (
     <>
@@ -257,6 +271,19 @@ export function DirectoryBacklinkOpportunityFinder() {
                         )}
                       </Button>
                     </div>
+                    <label className="flex cursor-pointer items-center gap-2.5 self-start">
+                      <div
+                        className={`relative h-5 w-9 rounded-full transition-colors ${freeOnly ? "bg-[var(--color-blaze-orange)]" : "bg-border"}`}
+                        onClick={() => setFreeOnly((v) => !v)}
+                      >
+                        <span
+                          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${freeOnly ? "translate-x-4" : "translate-x-0.5"}`}
+                        />
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        Free submissions only
+                      </span>
+                    </label>
                   </form>
 
                   {error ? (
@@ -425,6 +452,28 @@ export function DirectoryBacklinkOpportunityFinder() {
                       </div>
                     ))}
                   </div>
+
+                  {directories.length > 0 ? (
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={handleCopy}
+                        className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-muted-foreground shadow-sm transition-colors hover:border-[var(--color-blaze-orange)]/35 hover:text-foreground"
+                      >
+                        {copied ? (
+                          <>
+                            <IconClipboardCheck size={14} stroke={2.4} className="text-[var(--color-princeton-orange)]" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <IconClipboard size={14} stroke={2.4} />
+                            Copy list
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ) : null}
 
                   {directories.length === 0 ? (
                     <div className="rounded-[2rem] border border-border bg-card/70 p-8 text-center">

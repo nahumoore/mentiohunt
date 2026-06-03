@@ -21,6 +21,8 @@ export function SocialReplyDraft({
 }: SocialReplyDraftProps) {
   const hasDraft = !!body?.trim()
 
+  if (!hasDraft) return null
+
   return (
     <div className="rounded-lg border border-border/60 bg-card">
       <div className="flex items-center justify-between gap-3 px-5 py-4">
@@ -43,29 +45,21 @@ export function SocialReplyDraft({
         )}
       </div>
 
-      {!hasDraft ? (
-        <div className="border-t border-border/50 px-5 py-4">
-          <p className="text-sm text-muted-foreground">
-            No reply draft generated yet. Open the post and reply manually.
-          </p>
+      <div className="flex flex-col gap-3 border-t border-border/50 px-5 py-4">
+        <pre className="max-h-72 overflow-y-auto whitespace-pre-wrap font-sans text-sm leading-6">
+          {body}
+        </pre>
+        <div className="flex justify-end">
+          <CopyButton
+            text={body!}
+            onCopy={() =>
+              captureEvent("outreach_reply_copied", {
+                prospect_id: prospectId,
+              })
+            }
+          />
         </div>
-      ) : (
-        <div className="flex flex-col gap-3 border-t border-border/50 px-5 py-4">
-          <pre className="max-h-72 overflow-y-auto whitespace-pre-wrap font-sans text-sm leading-6">
-            {body}
-          </pre>
-          <div className="flex justify-end">
-            <CopyButton
-              text={body!}
-              onCopy={() =>
-                captureEvent("outreach_reply_copied", {
-                  prospect_id: prospectId,
-                })
-              }
-            />
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   )
 }

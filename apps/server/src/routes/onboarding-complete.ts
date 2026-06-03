@@ -4,6 +4,7 @@ import { timingSafeEqual } from "node:crypto"
 import { sendOnboardingCompleteEmail } from "../helpers/emails/send-onboarding-complete.js"
 import { createLogger } from "../helpers/logger.js"
 import { discoverCompetitorBacklinks } from "../methods/competitor-backlinks/discover-competitor-backlinks.js"
+import { discoverMentionsForProduct } from "../methods/media-mentions/discover-mentions-for-product.js"
 import { findDirectoryOpportunitiesForProduct } from "./find-directory-opportunities.js"
 import { runReplyQueueForConfig } from "./run-reply-queue.js"
 
@@ -110,7 +111,7 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
     const t0 = Date.now()
     console.log("[onboarding] jobs START", { userId, productId, replyQueueConfigId })
 
-    const [replyQueueResult, directoryResult, backlinkDiscoveryResult] = await Promise.allSettled([
+    const [replyQueueResult, directoryResult, backlinkDiscoveryResult, mediaMentionsResult] = await Promise.allSettled([
       (async () => {
         const t = Date.now()
         console.log("[onboarding] runReplyQueueForConfig START")
@@ -161,6 +162,26 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
           console.log(`[onboarding] discoverCompetitorBacklinks END ${Date.now() - t}ms`)
         }
       })(),
+      (async () => {
+        const t = Date.now()
+        console.log("[onboarding] discoverMentionsForProduct START")
+        try {
+          const { data: product } = await supabaseAdmin
+            .from("products")
+            .select("id, product_name, product_description, website_url, competitors")
+            .eq("id", productId)
+            .single()
+
+          if (!product) return { prospectsCreated: 0, totalCostUsd: 0 }
+
+          return await discoverMentionsForProduct({
+            ...product,
+            competitors: (product.competitors as string[]) ?? [],
+          })
+        } finally {
+          console.log(`[onboarding] discoverMentionsForProduct END ${Date.now() - t}ms`)
+        }
+      })(),
     ])
 
     console.log(`[onboarding] all jobs END ${Date.now() - t0}ms`)
@@ -186,6 +207,13 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
       })
     }
 
+    if (mediaMentionsResult.status === "rejected") {
+      log.error("onboarding media mentions discovery failed", {
+        productId,
+        error: String(mediaMentionsResult.reason),
+      })
+    }
+
     await sendOnboardingSummaryEmail({
       userId,
       productId,
@@ -198,6 +226,7 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
       replyQueue: replyQueueResult.status === "fulfilled" ? replyQueueResult.value : null,
       directoryOpportunities: directoryResult.status === "fulfilled" ? directoryResult.value : null,
       backlinkDiscovery: backlinkDiscoveryResult.status === "fulfilled" ? backlinkDiscoveryResult.value : null,
+      mediaMentions: mediaMentionsResult.status === "fulfilled" ? mediaMentionsResult.value : null,
     })
   } catch (err) {
     log.error("unhandled onboarding jobs error", { error: String(err) })

@@ -1,5 +1,5 @@
 import { createLogger } from "../../helpers/logger.js"
-import { searchBluesky } from "../../helpers/searchers/bluesky-search.js"
+import { searchBluesky, warmBlueskyToken } from "../../helpers/searchers/bluesky-search.js"
 import { searchTwitter } from "../../helpers/searchers/twitter-search.js"
 
 const log = createLogger("gather-media-posts")
@@ -29,6 +29,8 @@ export async function gatherMediaPosts(
   const until = new Date().toISOString()
 
   log.info("searching platforms", { queries: queries.length, bluesky_window: "24h" })
+
+  await warmBlueskyToken()
 
   const tasks: Promise<GatherChunk>[] = []
 
@@ -83,14 +85,17 @@ export async function gatherMediaPosts(
   const results = await Promise.all(tasks)
   const apifyCostUsd = results.reduce((sum, r) => sum + r.apifyCostUsd, 0)
 
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
   const seen = new Set<string>()
   const deduped: RawPost[] = []
   for (const result of results) {
     for (const post of result.posts) {
-      if (!seen.has(post.url)) {
-        seen.add(post.url)
-        deduped.push(post)
-      }
+      if (seen.has(post.url)) continue
+      const postDate = new Date(post.created_at)
+      if (!isNaN(postDate.getTime()) && postDate < cutoff) continue
+      seen.add(post.url)
+      deduped.push(post)
     }
   }
 

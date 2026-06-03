@@ -87,6 +87,10 @@ function mapBlueskyPost(post: BlueskyPostRecord): BlueskyPost {
   }
 }
 
+export async function warmBlueskyToken(): Promise<void> {
+  await getBlueskyAccessToken()
+}
+
 async function getBlueskyAccessToken(): Promise<string | null> {
   if (tokenCache && Date.now() < tokenCache.expiresAt - 5 * 60 * 1000) {
     return tokenCache.accessJwt

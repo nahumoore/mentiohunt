@@ -107,6 +107,7 @@ Return ALL posts with their scores. Be precise — a score of 72 must reflect ge
   try {
     const { text, cost } = await generateTextWithUsage({
       model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
+      fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
       systemInstructions,
       thinkingBudget: ANALYZE_THINKING_BUDGET,
       input: `Posts:\n${JSON.stringify(payload, null, 2)}`,

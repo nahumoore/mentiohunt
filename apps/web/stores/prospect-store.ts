@@ -29,6 +29,7 @@ export type ProspectDetail = ProspectListItem &
     | "created_at"
     | "found_url"
     | "contact_social_links"
+    | "raw_post_text"
   >
 
 type ProspectStore = {

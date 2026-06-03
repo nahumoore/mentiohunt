@@ -88,23 +88,20 @@ export function AppSidebar({
         ) : isFreeTrial ? (
           <Link
             href="/dashboard/billing"
-            className="group/trial relative mx-1 overflow-hidden rounded-2xl border border-blaze-orange/20 bg-gradient-to-br from-amber-glow/14 via-sidebar to-sidebar p-3 shadow-[0_12px_32px_rgba(255,84,0,0.08)] transition-all duration-200 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-xl group-data-[collapsible=icon]:p-0 hover:-translate-y-0.5 hover:border-blaze-orange/35 hover:shadow-[0_16px_36px_rgba(255,84,0,0.13)] focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none"
+            className="group/trial mx-1 flex items-center gap-2.5 rounded-xl border border-blaze-orange/20 bg-blaze-orange/5 p-2.5 transition-colors hover:border-blaze-orange/35 hover:bg-blaze-orange/8 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
             aria-label={`Free trial: ${trialTimeLabel}. Upgrade in billing.`}
           >
-            <div className="pointer-events-none absolute -top-8 -right-7 size-20 rounded-full bg-blaze-orange/12 blur-2xl transition-transform duration-300 group-hover/trial:scale-125 group-data-[collapsible=icon]:hidden" />
-            <div className="relative flex items-start gap-2.5 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-0">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-blaze-orange/12 text-blaze-orange group-data-[collapsible=icon]:size-6">
-                <IconAlertTriangle className="size-4" stroke={2.2} />
+            <span className="flex size-6 shrink-0 items-center justify-center text-blaze-orange">
+              <IconAlertTriangle className="size-4" stroke={2} />
+            </span>
+            <span className="min-w-0 group-data-[collapsible=icon]:hidden">
+              <span className="block text-[0.68rem] leading-4 font-semibold tracking-[0.14em] text-blaze-orange uppercase">
+                Free trial
               </span>
-              <span className="min-w-0 group-data-[collapsible=icon]:hidden">
-                <span className="block text-[0.68rem] leading-4 font-bold tracking-[0.16em] text-blaze-orange uppercase">
-                  Free trial
-                </span>
-                <span className="mt-0.5 block text-sm leading-5 font-semibold text-sidebar-foreground">
-                  {trialTimeLabel}
-                </span>
+              <span className="block text-xs leading-4 text-muted-foreground">
+                {trialTimeLabel}
               </span>
-            </div>
+            </span>
           </Link>
         ) : null}
         <NavUser user={user} />

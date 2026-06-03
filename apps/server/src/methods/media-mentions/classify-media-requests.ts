@@ -49,8 +49,8 @@ For each post, extract:
 - publication_domain: domain of the publication/outlet if mentioned (e.g. "techcrunch.com"), else null`
 
   const requestOptions = {
-    model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
-    fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+    model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH,
+    fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE],
     systemInstructions,
     thinkingBudget: 2000,
     input: `Posts:\n${JSON.stringify(payload, null, 2)}`,

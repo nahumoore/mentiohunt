@@ -45,12 +45,6 @@ export async function checkProductDirectoryOpportunities(
     throw new Error(`Product ${productId} has no product_name set`)
   }
 
-  const { data: settings } = await supabaseAdmin
-    .from("backlink_prospects_settings")
-    .select("dr_min, dr_max")
-    .eq("product_id", productId)
-    .single()
-
   const { count: activeDirectoryCount, error: activeDirectoryCountError } =
     await supabaseAdmin
       .from("directories")
@@ -68,14 +62,6 @@ export async function checkProductDirectoryOpportunities(
     .select("id, domain, submit_url, slug_pattern, check_method, domain_rating")
     .eq("is_active", true)
 
-  if (settings) {
-    directoriesQuery = directoriesQuery.gte("domain_rating", settings.dr_min)
-
-    if (settings.dr_max !== null) {
-      directoriesQuery = directoriesQuery.lte("domain_rating", settings.dr_max)
-    }
-  }
-
   if (typeof options.maxDirectories === "number") {
     directoriesQuery = directoriesQuery.limit(options.maxDirectories)
   }
@@ -84,11 +70,7 @@ export async function checkProductDirectoryOpportunities(
 
   if (dirError) throw new Error(`Failed to load directories: ${dirError.message}`)
   if (!directories || directories.length === 0) {
-    log.warn("no matching active directories found", {
-      productId,
-      drMin: settings?.dr_min ?? null,
-      drMax: settings?.dr_max ?? null,
-    })
+    log.warn("no matching active directories found", { productId })
     return {
       productId,
       checked: 0,
@@ -101,12 +83,7 @@ export async function checkProductDirectoryOpportunities(
   }
 
   const slug = toSlug(product.product_name)
-  log.info(`checking ${directories.length} directories`, {
-    productId,
-    slug,
-    drMin: settings?.dr_min ?? null,
-    drMax: settings?.dr_max ?? null,
-  })
+  log.info(`checking ${directories.length} directories`, { productId, slug })
 
   // Phase 1: head_check directories concurrently
   const headDirs = directories.filter((d) => d.check_method === "head_check")

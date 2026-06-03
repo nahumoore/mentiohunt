@@ -43,8 +43,8 @@ export default function OpportunitiesPage() {
             </h2>
             <p className="text-sm text-muted-foreground">
               We&apos;re analyzing your site and competitors to surface relevant
-              backlink opportunities. This usually takes a few minutes — check
-              back shortly.
+              backlink opportunities. This usually takes a few minutes —
+              you&apos;ll receive an email once done!
             </p>
           </div>
         </Card>

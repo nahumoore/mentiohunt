@@ -9,6 +9,8 @@ import { OpportunityContactCard } from "@/components/link-building/opportunities
 import { OpportunityDetailHeader } from "@/components/link-building/opportunities/opportunity-detail-header"
 import { OpportunityMetaCard } from "@/components/link-building/opportunities/opportunity-meta-card"
 import { OutreachDraft } from "@/components/link-building/opportunities/outreach-draft"
+import { SocialPostCard } from "@/components/link-building/opportunities/social-post-card"
+import { SocialReplyDraft } from "@/components/link-building/opportunities/social-reply-draft"
 import { captureEvent } from "@/lib/analytics"
 import type { ProspectDetail } from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
@@ -57,25 +59,39 @@ export function ProspectClientPage({
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         {/* main column */}
         <div className="flex flex-col gap-6">
-          {current.tier === "media_mention" && (
-            <MediaMentionPanel sourceUrl={current.target_url ?? null} />
-          )}
-
-          {current.tier === "competitor_backlink" &&
-            current.action_type === "email_outreach" && (
-              <BacklinkContextCard
-                foundUrl={current.found_url ?? null}
-                targetUrl={current.target_url ?? null}
+          {current.action_type === "social_media" ? (
+            <>
+              <SocialPostCard
+                postText={current.raw_post_text ?? null}
+                postUrl={current.found_url ?? null}
+                fitReason={current.notes ?? null}
               />
-            )}
+              <SocialReplyDraft
+                body={current.email_body ?? null}
+                prospectId={current.id}
+                postUrl={current.found_url}
+              />
+            </>
+          ) : (
+            <>
+              {current.tier === "media_mention" && (
+                <MediaMentionPanel sourceUrl={current.target_url ?? null} />
+              )}
 
-          {current.action_type !== "social_media" && (
-            <OutreachDraft
-              subject={current.email_subject ?? ""}
-              body={current.email_body ?? ""}
-              prospectId={current.id}
-              contactEmail={current.contact_email}
-            />
+              {current.tier === "competitor_backlink" && (
+                <BacklinkContextCard
+                  foundUrl={current.found_url ?? null}
+                  targetUrl={current.target_url ?? null}
+                />
+              )}
+
+              <OutreachDraft
+                subject={current.email_subject ?? ""}
+                body={current.email_body ?? ""}
+                prospectId={current.id}
+                contactEmail={current.contact_email}
+              />
+            </>
           )}
         </div>
 

@@ -127,6 +127,7 @@ async function cleanScraperResult(
   try {
     const { text } = await generateTextWithUsage({
       model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
+      fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
       input,
       systemInstructions: `Extract the article author's personal contact info from scraped web page data.
 

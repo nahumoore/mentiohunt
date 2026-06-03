@@ -5,7 +5,7 @@ import { createLogger } from "../../helpers/logger.js"
 
 const log = createLogger("media-mentions-score-fit")
 
-export const MIN_FIT_SCORE = 70
+export const MIN_FIT_SCORE = 80
 const BATCH_SIZE = 20
 const SCORE_THINKING_BUDGET = 2000
 const CONCURRENCY = 2
@@ -93,12 +93,13 @@ Hard rules:
 - Do NOT score ≥70 just because the product "could help brands find this opportunity" or "could help someone respond." That is never sufficient.
 - Do NOT score ≥70 for requests seeking physical products, lifestyle brands, personal anecdotes, or experts in unrelated professional domains (medicine, law, engineering, etc.).
 - Do NOT score ≥70 for requests where the audience is consumers, not founders or marketing teams.
+- Do NOT score ≥70 for requests where someone is simply looking for contact information (a press office email, a PR department contact, an email address to reach someone). Those are not stories where this product's founder is a credible source.
 
 Return ALL mentions with their scores and a one-sentence reason.`
 
   const requestOptions = {
-    model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
-    fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+    model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH,
+    fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE],
     systemInstructions,
     thinkingBudget: SCORE_THINKING_BUDGET,
     input: `Mentions:\n${JSON.stringify(payload, null, 2)}`,

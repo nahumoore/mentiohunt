@@ -28,9 +28,9 @@ export function HeroContent() {
             animate="animate"
             transition={{ duration: 0.55, delay: 0.07, ease }}
           >
-            The distribution queue{" "}
+            Grow your traffic{" "}
             <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
-              for founders.
+              while you build.
             </span>
           </motion.h1>
 
@@ -41,17 +41,9 @@ export function HeroContent() {
             animate="animate"
             transition={{ duration: 0.55, delay: 0.14, ease }}
           >
-            Mentiohunt finds{" "}
-            <span className="font-semibold text-foreground">
-              high-fit sites to pitch for backlinks
-            </span>{" "}
-            and monitors{" "}
-            <span className="font-semibold text-foreground">communities</span>{" "}
-            where your product belongs — with a{" "}
-            <span className="font-semibold text-foreground">
-              ready-to-use outreach draft
-            </span>{" "}
-            for every opportunity.
+            Agents running 27/4 looking for high-fit backlinks and social media
+            posts asking for your product- Start finding opportunities to
+            distribute your product!
           </motion.p>
 
           <motion.div

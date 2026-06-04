@@ -68,17 +68,17 @@ export function HeroContent() {
               <div className="flex items-center gap-3">
                 <div className="flex items-center">
                   {[
-                    "/landing/user_1.webp",
-                    "/landing/user_2.webp",
-                    "/landing/user_3.webp",
-                    "/landing/user_4.webp",
-                  ].map((src, i) => (
+                    { src: "/landing/user_1.webp", label: "Mentiohunt user" },
+                    { src: "/landing/user_2.webp", label: "Mentiohunt user" },
+                    { src: "/landing/user_3.webp", label: "Mentiohunt user" },
+                    { src: "/landing/user_4.webp", label: "Mentiohunt user" },
+                  ].map(({ src, label }, i) => (
                     <div
                       key={src}
                       className="relative h-11 w-11 overflow-hidden rounded-full border-[2.5px] border-background shadow-md"
                       style={{ marginLeft: i === 0 ? 0 : "-0.75rem" }}
                     >
-                      <Image src={src} alt="" fill className="object-cover" />
+                      <Image src={src} alt={label} fill className="object-cover" />
                     </div>
                   ))}
                 </div>

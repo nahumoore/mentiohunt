@@ -1,10 +1,10 @@
-Create a comprehensive, source-backed market research report about Mention.
+Create a comprehensive, source-backed market research report about F5Bot.
 
-Focus 100% on Mention. Do not make this a generic industry report. The goal is to understand Mention deeply enough to create useful comparison, alternative, positioning, educational, and product research content about Mention itself.
+Focus 100% on F5Bot. Do not make this a generic industry report. The goal is to understand F5Bot deeply enough to create useful comparison, alternative, positioning, educational, and product research content about F5Bot itself.
 
 Research requirements:
 
-- Use current, reliable sources wherever possible, including the official Mention website, pricing page, docs, changelog, help center, reviews, comparison pages, social profiles, app marketplace listings, and reputable third-party review sites.
+- Use current, reliable sources wherever possible, including the official F5Bot website, pricing page, docs, changelog, help center, reviews, comparison pages, social profiles, app marketplace listings, and reputable third-party review sites.
 - Cite sources inline for every factual claim, especially pricing, features, target customers, integrations, and limitations.
 - Clearly label anything that is inferred, outdated, unavailable, or not verified.
 - If pricing or feature information is hidden behind sales/contact forms, state that clearly and summarize what is publicly available.
@@ -12,15 +12,15 @@ Research requirements:
 
 Output the report in Markdown using this exact structure:
 
-# Mention Market Research Report
+# F5Bot Market Research Report
 
 ## Executive Summary
 
-Summarize what Mention is, who it is for, the main value proposition, and the biggest reasons a customer might choose it.
+Summarize what F5Bot is, who it is for, the main value proposition, and the biggest reasons a customer might choose it.
 
 ## Product Overview
 
-Explain what Mention does in plain language.
+Explain what F5Bot does in plain language.
 Include:
 
 - Core product category
@@ -32,7 +32,7 @@ Include:
 
 ## Target Customers
 
-Describe who Mention appears to serve best.
+Describe who F5Bot appears to serve best.
 Include:
 
 - Company size
@@ -43,7 +43,7 @@ Include:
 
 ## Core Features
 
-List and explain the main Mention features.
+List and explain the main F5Bot features.
 For each feature, include:
 
 - What it does
@@ -53,7 +53,7 @@ For each feature, include:
 
 ## Pricing
 
-Research Mention pricing in detail.
+Research F5Bot pricing in detail.
 Include:
 
 - Free plan or trial availability
@@ -70,18 +70,18 @@ If pricing is not public, include a clear "Pricing Not Public" note and summariz
 
 ## Pros
 
-List the strongest advantages of Mention based on official claims, reviews, and third-party commentary.
+List the strongest advantages of F5Bot based on official claims, reviews, and third-party commentary.
 For each pro, explain why it matters and cite the source.
 
 ## Cons
 
-List the most important limitations, complaints, risks, or tradeoffs of Mention.
+List the most important limitations, complaints, risks, or tradeoffs of F5Bot.
 For each con, explain the practical impact and cite the source.
 Do not invent criticism. If evidence is weak, label it as weak or anecdotal.
 
 ## Customer Reviews And Sentiment
 
-Summarize what users say about Mention across review platforms, communities, social posts, and case studies.
+Summarize what users say about F5Bot across review platforms, communities, social posts, and case studies.
 Include:
 
 - Common praise themes
@@ -92,11 +92,11 @@ Include:
 
 ## Use Cases
 
-Describe the strongest use cases for Mention.
+Describe the strongest use cases for F5Bot.
 For each use case, include:
 
 - User goal
-- How Mention supports it
+- How F5Bot supports it
 - Who benefits most
 - Any gaps or caveats
 
@@ -107,7 +107,7 @@ Include source citations.
 
 ## Onboarding And Ease Of Use
 
-Assess how easy Mention appears to be to adopt.
+Assess how easy F5Bot appears to be to adopt.
 Include:
 
 - Setup requirements
@@ -118,7 +118,7 @@ Include:
 
 ## Differentiation
 
-Explain how Mention tries to stand out.
+Explain how F5Bot tries to stand out.
 Include:
 
 - Unique claims
@@ -129,17 +129,17 @@ Include:
 
 ## Competitive Landscape
 
-Identify products that Mention is commonly compared against.
+Identify products that F5Bot is commonly compared against.
 For each competitor, include:
 
 - Product name
-- Why it competes with Mention
-- Main difference from Mention
+- Why it competes with F5Bot
+- Main difference from F5Bot
 - Source citation
 
-## Mention Positioning Analysis
+## F5Bot Positioning Analysis
 
-Analyze how Mention positions itself in the market.
+Analyze how F5Bot positions itself in the market.
 Include:
 
 - Main positioning angles
@@ -150,7 +150,7 @@ Include:
 - Claims that are clearly supported by evidence
 - Claims that require further verification
 
-## Content Opportunities About Mention
+## Content Opportunities About F5Bot
 
 Suggest content ideas that could be created using this research.
 Include:
@@ -166,14 +166,14 @@ For each idea, explain the likely search intent and why the topic may be useful.
 
 ## Messaging Takeaways
 
-Extract positioning lessons from Mention.
+Extract positioning lessons from F5Bot.
 Include:
 
-- Strong phrases or concepts Mention uses
+- Strong phrases or concepts F5Bot uses
 - Customer pains they emphasize
 - Outcomes they promise
 - Trust signals they rely on
-- Messaging gaps or unclear areas in Mention's public positioning
+- Messaging gaps or unclear areas in F5Bot's public positioning
 - Angles that appear differentiated versus generic social listening tools
 
 ## Risks And Unknowns
@@ -185,7 +185,7 @@ Explain what should be checked manually before publishing content.
 
 Provide a complete list of all sources used, grouped by type:
 
-- Official Mention sources
+- Official F5Bot sources
 - Review sites
 - Third-party articles
 - Social/community sources

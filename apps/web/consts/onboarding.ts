@@ -55,7 +55,7 @@ export const DEFAULT_OPPORTUNITY_TYPES = [
   "media_mentions",
 ] satisfies OpportunityTypeId[]
 
-export const DEFAULT_MONITORING_PLATFORMS = ["reddit", "bluesky"] as const
+export const DEFAULT_MONITORING_PLATFORMS = ["reddit", "bluesky", "facebook", "twitter"] as const
 
 export type OpportunityTypeId = (typeof OPPORTUNITY_TYPE_IDS)[number]
 export type MonitoringPlatform = (typeof DEFAULT_MONITORING_PLATFORMS)[number]
@@ -166,7 +166,7 @@ const monitoringCommunitySchema = z.object({
 
 export const monitoringStepSchema = z.object({
   monitoringPlatforms: z
-    .array(z.enum(["reddit", "bluesky"]))
+    .array(z.enum(["reddit", "bluesky", "facebook", "twitter"]))
     .min(1, "Keep at least one monitoring platform active."),
   monitoringKeywords: z
     .array(z.string().trim().min(2).max(120))

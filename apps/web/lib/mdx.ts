@@ -28,6 +28,8 @@ export type BlogPostMeta = {
   toolAUrl?: string
   toolBUrl?: string
   verdict?: string
+  dateModified?: string
+  faqs?: Array<{ question: string; answer: string }>
 }
 
 export type ContentType =
@@ -121,6 +123,10 @@ export function getPostBySlug(
         toolAUrl: toStringValue(data.toolAUrl) || undefined,
         toolBUrl: toStringValue(data.toolBUrl) || undefined,
         verdict: toStringValue(data.verdict) || undefined,
+        dateModified: toStringValue(data.dateModified) || undefined,
+        faqs: Array.isArray(data.faqs)
+          ? (data.faqs as unknown as Array<{ question: string; answer: string }>)
+          : undefined,
       },
       content,
     }

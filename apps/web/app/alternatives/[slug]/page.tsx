@@ -9,6 +9,7 @@ import type { Metadata } from "next"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import Image from "next/image"
 import Link from "next/link"
+import Script from "next/script"
 import { notFound } from "next/navigation"
 import remarkGfm from "remark-gfm"
 
@@ -69,6 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       url: `https://mentiohunt.com/alternatives/${slug}`,
       publishedTime: post.meta.date,
+      modifiedTime: post.meta.dateModified ?? post.meta.date,
       authors: post.meta.author ? [post.meta.author] : ["Nicolas More"],
       images: post.meta.image ? [post.meta.image] : undefined,
     },
@@ -89,9 +91,56 @@ export default async function AlternativePage({ params }: Props) {
 
   const { meta, content } = post
   const headings = getArticleHeadings(content)
+  const author = meta.author === "Unknown" ? "Nicolas More" : (meta.author ?? "Nicolas More")
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: meta.title,
+    description: getSummary(meta),
+    datePublished: meta.date,
+    dateModified: meta.dateModified ?? meta.date,
+    author: {
+      "@type": "Person",
+      name: author,
+      url: "https://x.com/nicolasmore_",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Mentiohunt",
+      url: "https://mentiohunt.com",
+    },
+    url: `https://mentiohunt.com/alternatives/${meta.slug}`,
+    ...(meta.image ? { image: `https://mentiohunt.com${meta.image}` } : {}),
+  }
+
+  const faqSchema =
+    meta.faqs && meta.faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: meta.faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: { "@type": "Answer", text: faq.answer },
+          })),
+        }
+      : null
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <Script
+        id="article-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      {faqSchema && (
+        <Script
+          id="faq-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
       <Navbar />
 
       <main className="flex-1">
@@ -136,7 +185,9 @@ export default async function AlternativePage({ params }: Props) {
                   </span>
                   <span className="inline-flex items-center gap-1.5">
                     <IconCalendar size={14} stroke={2} />
-                    {formatDate(meta.date)}
+                    {meta.dateModified
+                      ? `Updated ${formatDate(meta.dateModified)}`
+                      : formatDate(meta.date)}
                   </span>
                   <a
                     href="https://x.com/nicolasmore_"
@@ -145,7 +196,7 @@ export default async function AlternativePage({ params }: Props) {
                     className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
                   >
                     <IconBrandX size={14} stroke={2} />
-                    Nicolas More
+                    {author}
                   </a>
                 </div>
               </div>
@@ -170,7 +221,42 @@ export default async function AlternativePage({ params }: Props) {
             <article className="text-foreground lg:max-w-[720px]">
               <MDXContent source={content} />
 
-              <div className="mt-14 rounded-2xl border border-[var(--color-blaze-orange)]/20 bg-[linear-gradient(135deg,var(--color-background)_0%,color-mix(in_oklab,var(--color-background)_82%,var(--color-amber-glow)_18%)_100%)] p-7 shadow-[0_8px_40px_-12px_rgba(255,133,0,0.16)]">
+              <div className="mt-12 flex items-start gap-4 rounded-2xl border border-border bg-muted/30 p-5">
+                <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border border-border">
+                  <Image
+                    src="/founder.webp"
+                    alt={author}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <a
+                    href="https://x.com/nicolasmore_"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-foreground transition-colors hover:text-primary"
+                  >
+                    {author}
+                  </a>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    Founder at Mentiohunt. Building distribution tools for
+                    founders and small marketing teams. Writes about backlink
+                    building, community monitoring, and founder-led growth.
+                  </p>
+                  <a
+                    href="https://x.com/nicolasmore_"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <IconBrandX size={12} stroke={2} />
+                    @nicolasmore_
+                  </a>
+                </div>
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-[var(--color-blaze-orange)]/20 bg-[linear-gradient(135deg,var(--color-background)_0%,color-mix(in_oklab,var(--color-background)_82%,var(--color-amber-glow)_18%)_100%)] p-7 shadow-[0_8px_40px_-12px_rgba(255,133,0,0.16)]">
                 <p className="font-heading text-xl font-semibold tracking-[-0.02em]">
                   Want one queue for backlink opportunities and community
                   mentions?

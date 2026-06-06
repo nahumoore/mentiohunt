@@ -4,27 +4,59 @@
 
 ---
 
-### Primary Template: `/backlinks-from/[platform]` (COMPLETE ✅)
+### Primary Template: `/backlinks-from/[platform]`
+
+Built: chatgpt, forbes, instagram, medium, news-websites, pinterest, quora, reddit, wikipedia
+
+Missing — prioritized by search volume:
+
+- [ ] `/backlinks-from/youtube` — 210/mo, LOW competition, ~5 backlinks to rank. Top priority.
+- [ ] `/backlinks-from/linkedin` — steady demand, founder ICP
+- [ ] `/backlinks-from/product-hunt` — ICP perfect match, low competition expected
+- [ ] `/backlinks-from/hacker-news` — founder ICP, low competition expected
+- [ ] `/backlinks-from/substack` — growing query
+- [ ] `/backlinks-from/github` — developer founders
+- [ ] `/backlinks-from/twitter` — 10/mo, low but easy
+
+> Do NOT build `/how-to-get-backlinks-from/[platform]` — same intent as this template, would cannibalize. Fold how-to angle into existing pages via H2s instead.
 
 ---
 
 ### Secondary Template: `/link-building-for/[niche]`
 
-Founder/ICP-aligned landing pages.
+Founder/ICP-aligned landing pages. All LOW competition, commercial intent.
 
-- [ ] `/link-building-for/saas` — strongest demand signal
-- [ ] `/link-building-for/startups`
-- [ ] `/link-building-for/small-businesses`
-- [ ] `/link-building-for/ecommerce`
+- [ ] `/link-building-for/ecommerce` — 260/mo, ~24 backlinks to rank. Build first.
+- [ ] `/link-building-for/saas` — 110/mo, ~6 backlinks to rank.
+- [ ] `/link-building-for/startups` — 40/mo
+- [ ] `/link-building-for/b2b` — no volume confirmed, skip for now
+- [ ] `/link-building-for/small-business` — 10/mo, skip
 
 ---
 
-### Content Asset: Email Templates
+### New Template: `/outreach-templates/[type]`
 
-High-volume informational, top-of-funnel. No hard product push.
+Direct product tie-in — Mentiohunt generates email drafts. Each page: templates for outreach type + CTA to generate for real prospects. All LOW competition.
 
-- [ ] `/link-building-email-templates` — core asset
-- [ ] `/backlink-outreach-email-template` — variant
+- [ ] `/outreach-templates/blogger-outreach` — 90/mo, ~21 backlinks to rank. Build first.
+- [ ] `/outreach-templates/guest-post` — 30/mo, KD 7
+- [ ] `/outreach-templates/backlink-request` — 20/mo, KD 2 (easiest)
+- [ ] `/outreach-templates/broken-link-building` — 10/mo
+- [ ] `/outreach-templates/podcast` — 10/mo
+
+---
+
+### Standalone Page: `/reddit-monitoring`
+
+Single product landing page for community monitoring engine. Not a template.
+
+- [ ] `/reddit-monitoring` — 40/mo, LOW competition, ~0.9 backlinks to rank, +50% YoY trend. Easiest ranking on site.
+
+---
+
+### Content Asset: Email Templates (deprioritized)
+
+`link building email template` = KD 50, needs ~104 backlinks. Too hard at current authority. Covered better by `/outreach-templates/` template above.
 
 ---
 

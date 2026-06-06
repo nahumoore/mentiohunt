@@ -1,100 +1,97 @@
-import {
-  IconAlertTriangle,
-  IconClockHour4,
-  IconMailFast,
-  IconRadar2,
-  IconSearch,
-  IconTargetArrow,
-} from "@tabler/icons-react"
-import type { ComponentType } from "react"
+import { IconCheck, IconMinus, IconX } from "@tabler/icons-react"
+import type { CSSProperties } from "react"
 
-type Point = {
-  title: string
-  description: string
-  Icon: ComponentType<{ className?: string }>
+type Support = "yes" | "partial" | "no"
+
+type Feature = {
+  label: string
+  mentiohunt: Support
+  seoTools: Support
+  outreachPlatforms: Support
+  manual: Support
 }
 
-const problems: Point[] = [
+const features: Feature[] = [
   {
-    title: "Research starts from zero",
-    description:
-      "Manual searches, stale lists, and tabs you have to qualify one by one.",
-    Icon: IconSearch,
+    label: "Built for founders & small teams",
+    mentiohunt: "yes",
+    seoTools: "no",
+    outreachPlatforms: "no",
+    manual: "yes",
   },
   {
-    title: "Fit is hard to explain",
-    description:
-      "A domain might look useful, but the pitch angle is still unclear.",
-    Icon: IconAlertTriangle,
+    label: "Backlink prospecting",
+    mentiohunt: "yes",
+    seoTools: "yes",
+    outreachPlatforms: "yes",
+    manual: "partial",
   },
   {
-    title: "Threads move too fast",
-    description:
-      "Relevant Reddit and forum conversations are often found after the moment has passed.",
-    Icon: IconClockHour4,
+    label: "Community monitoring",
+    mentiohunt: "yes",
+    seoTools: "no",
+    outreachPlatforms: "no",
+    manual: "partial",
+  },
+  {
+    label: "AI-drafted outreach & replies",
+    mentiohunt: "yes",
+    seoTools: "no",
+    outreachPlatforms: "partial",
+    manual: "no",
+  },
+  {
+    label: "Daily ranked opportunity queue",
+    mentiohunt: "yes",
+    seoTools: "no",
+    outreachPlatforms: "no",
+    manual: "no",
+  },
+  {
+    label: "Founder-friendly pricing",
+    mentiohunt: "yes",
+    seoTools: "no",
+    outreachPlatforms: "no",
+    manual: "yes",
   },
 ]
 
-const benefits: Point[] = [
-  {
-    title: "Ranked opportunities",
-    description:
-      "A daily queue of backlink prospects and active community conversations worth reviewing.",
-    Icon: IconTargetArrow,
-  },
-  {
-    title: "Plain-language rationale",
-    description:
-      "See why the opportunity fits before deciding whether it deserves outreach.",
-    Icon: IconRadar2,
-  },
-  {
-    title: "Drafted next steps",
-    description:
-      "Get the outreach angle, email draft, or suggested reply ready for a founder review.",
-    Icon: IconMailFast,
-  },
-]
-
-const outcomes = [
-  "Less manual searching",
-  "More qualified opportunities",
-  "Faster outreach decisions",
-]
-
-function ProblemPoint({ point }: { point: Point }) {
-  const Icon = point.Icon
-
-  return (
-    <li className="flex gap-4 border-t border-border/70 py-5 first:border-t-0 first:pt-0 last:pb-0">
-      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground">
-        <Icon className="h-5 w-5" />
-      </div>
-      <div>
-        <h3 className="text-sm font-semibold text-foreground">{point.title}</h3>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          {point.description}
-        </p>
-      </div>
-    </li>
-  )
+const gridStyle: CSSProperties = {
+  gridTemplateColumns: "minmax(160px,1fr) 128px 128px 140px 108px",
 }
 
-function BenefitPoint({ point }: { point: Point }) {
-  const Icon = point.Icon
-
+function SupportIcon({
+  support,
+  highlight = false,
+}: {
+  support: Support
+  highlight?: boolean
+}) {
+  if (support === "yes") {
+    if (highlight) {
+      return (
+        <div className="mx-auto flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-blaze-orange)]/15">
+          <IconCheck className="h-3.5 w-3.5 text-[var(--color-blaze-orange)]" />
+        </div>
+      )
+    }
+    return (
+      <div className="mx-auto flex h-6 w-6 items-center justify-center">
+        <IconCheck className="h-4 w-4 text-muted-foreground/45" />
+      </div>
+    )
+  }
+  if (support === "partial") {
+    return (
+      <div className="mx-auto flex h-6 w-6 items-center justify-center">
+        <IconMinus className="h-4 w-4 text-muted-foreground/30" />
+      </div>
+    )
+  }
   return (
-    <li className="flex gap-4 border-t border-[var(--color-blaze-orange)]/20 py-5 first:border-t-0 first:pt-0 last:pb-0">
-      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-blaze-orange)] text-white">
-        <Icon className="h-5 w-5" />
-      </div>
-      <div>
-        <h3 className="text-sm font-semibold text-foreground">{point.title}</h3>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          {point.description}
-        </p>
-      </div>
-    </li>
+    <div className="mx-auto flex h-6 w-6 items-center justify-center">
+      <IconX className="h-4 w-4 text-muted-foreground/20" />
+    </div>
   )
 }
 
@@ -111,85 +108,111 @@ export function Benefits() {
       </div>
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
+        <div className="mx-auto max-w-2xl text-center">
           <span className="text-[0.7rem] font-bold tracking-[0.24em] text-[var(--color-blaze-orange)] uppercase">
-            Benefits
+            Why Mentiohunt
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />
           <h2
             id="benefits-title"
             className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]"
           >
-            Distribution should not start in a blank spreadsheet.
+            Built for founders, not agency teams.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Mentiohunt turns scattered backlink research and community
-            monitoring into a daily queue of scored opportunities, context, and
-            outreach-ready next steps.
+            Most tools in this space target enterprise SEO teams or outreach
+            agencies. Mentiohunt is designed for the founder running
+            distribution themselves.
           </p>
         </div>
 
-        <div className="mt-14 grid overflow-hidden rounded-[2rem] border border-border bg-card shadow-[0_24px_80px_-52px_rgba(0,0,0,0.55)] lg:grid-cols-2">
-          <div className="relative p-6 sm:p-8 lg:p-10">
-            <div className="relative">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[0.68rem] font-bold tracking-[0.2em] text-muted-foreground uppercase">
-                    The old way
-                  </p>
-                  <h3 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-foreground">
-                    Scattered work, unclear payoff
-                  </h3>
-                </div>
-                <div className="hidden rounded-full border border-border bg-background px-3 py-1.5 text-[0.68rem] font-bold tracking-[0.14em] text-muted-foreground uppercase sm:block">
-                  Manual
+        <div className="mx-auto mt-14 max-w-5xl overflow-x-auto">
+          <div className="min-w-[580px]">
+            {/* Column headers */}
+            <div style={gridStyle} className="grid">
+              <div />
+              <div className="px-2">
+                <div className="rounded-t-2xl border border-b-0 border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-3 text-center">
+                  <span className="text-[0.7rem] font-bold tracking-[0.18em] text-[var(--color-blaze-orange)] uppercase">
+                    Mentiohunt
+                  </span>
                 </div>
               </div>
-
-              <ul className="mt-8">
-                {problems.map((point) => (
-                  <ProblemPoint key={point.title} point={point} />
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="relative border-t border-border bg-gradient-to-br from-[var(--color-blaze-orange)]/7 via-card to-[var(--color-amber-flame)]/8 p-6 sm:p-8 lg:border-t-0 lg:border-l lg:p-10">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-blaze-orange)]/70 to-transparent lg:inset-y-0 lg:left-0 lg:h-auto lg:w-px lg:bg-gradient-to-b" />
-            <div className="relative">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[0.68rem] font-bold tracking-[0.2em] text-[var(--color-blaze-orange)] uppercase">
-                    With Mentiohunt
-                  </p>
-                  <h3 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-foreground">
-                    Discovers opportunities in auto-pilot
-                  </h3>
-                </div>
-                <div className="hidden rounded-full bg-[var(--color-blaze-orange)] px-3 py-1.5 text-[0.68rem] font-bold tracking-[0.14em] text-white uppercase shadow-[0_12px_28px_-16px_rgba(255,84,0,0.95)] sm:block">
-                  Ready
-                </div>
+              <div className="self-end pb-3 text-center">
+                <span className="block text-xs font-semibold text-foreground/55">
+                  SEO Platforms
+                </span>
+                <span className="mt-0.5 block text-[0.63rem] text-muted-foreground/40">
+                  Ahrefs, SEMrush
+                </span>
               </div>
-
-              <ul className="mt-8">
-                {benefits.map((point) => (
-                  <BenefitPoint key={point.title} point={point} />
-                ))}
-              </ul>
+              <div className="self-end pb-3 text-center">
+                <span className="block text-xs font-semibold text-foreground/55">
+                  Outreach Tools
+                </span>
+                <span className="mt-0.5 block text-[0.63rem] text-muted-foreground/40">
+                  Pitchbox, BuzzStream
+                </span>
+              </div>
+              <div className="self-end pb-3 text-center">
+                <span className="block text-xs font-semibold text-foreground/55">
+                  Manual / DIY
+                </span>
+              </div>
             </div>
+
+            {/* Feature rows */}
+            {features.map((feature, i) => {
+              const isLast = i === features.length - 1
+              return (
+                <div
+                  key={feature.label}
+                  style={gridStyle}
+                  className="grid border-t border-border/50"
+                >
+                  <div className="py-4 pr-4 text-sm text-foreground/75">
+                    {feature.label}
+                  </div>
+                  <div
+                    className={`mx-2 flex items-center justify-center border-x border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/5 py-4 ${
+                      isLast
+                        ? "rounded-b-2xl border-b border-[var(--color-blaze-orange)]/25"
+                        : ""
+                    }`}
+                  >
+                    <SupportIcon support={feature.mentiohunt} highlight />
+                  </div>
+                  <div className="flex items-center justify-center py-4">
+                    <SupportIcon support={feature.seoTools} />
+                  </div>
+                  <div className="flex items-center justify-center py-4">
+                    <SupportIcon support={feature.outreachPlatforms} />
+                  </div>
+                  <div className="flex items-center justify-center py-4">
+                    <SupportIcon support={feature.manual} />
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Bottom border for last row non-Mentiohunt cells */}
+            <div
+              style={gridStyle}
+              className="grid border-t border-border/50"
+            />
           </div>
         </div>
 
-        <div className="mx-auto mt-6 grid max-w-5xl gap-3 sm:grid-cols-3">
-          {outcomes.map((outcome) => (
-            <div
-              key={outcome}
-              className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/70 px-4 py-3 text-center text-sm font-semibold text-foreground"
-            >
-              <span className="h-2 w-2 rounded-full bg-[var(--color-blaze-orange)]" />
-              {outcome}
-            </div>
-          ))}
+        <div className="mx-auto mt-5 flex max-w-5xl items-center justify-end gap-5 text-[0.68rem] text-muted-foreground/40">
+          <span className="flex items-center gap-1.5">
+            <IconCheck className="h-3 w-3" /> Supported
+          </span>
+          <span className="flex items-center gap-1.5">
+            <IconMinus className="h-3 w-3" /> Partial
+          </span>
+          <span className="flex items-center gap-1.5">
+            <IconX className="h-3 w-3" /> Not supported
+          </span>
         </div>
       </div>
     </section>

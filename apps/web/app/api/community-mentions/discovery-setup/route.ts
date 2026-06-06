@@ -5,7 +5,7 @@ import { z } from "zod"
 
 export const runtime = "nodejs"
 
-const platformSchema = z.enum(["reddit", "bluesky"])
+const platformSchema = z.enum(["reddit", "bluesky", "facebook", "twitter"])
 
 const communitySchema = z.object({
   platform: z.literal("reddit"),

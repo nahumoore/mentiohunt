@@ -1,8 +1,28 @@
 import Link from "next/link"
+import type { ComponentType } from "react"
 
 import { features } from "@/consts/features"
+import { IconBrandBluskyCustom } from "@/components/custom-icons/brand-blusky"
+import { IconBrandClaude } from "@/components/custom-icons/brand-claude"
+import { IconBrandChatGPT } from "@/components/custom-icons/brand-chatgpt"
+import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
+import { IconBrandHackerNews } from "@/components/custom-icons/brand-hacker-news"
+import IconBrandPerplexity from "@/components/custom-icons/brand-perplexity"
+import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
+import { IconBrandXCustom } from "@/components/custom-icons/brand-x"
 import { Button } from "@workspace/ui/components/button"
 import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
+
+const discoveryPlatforms: { name: string; Icon: ComponentType<{ className?: string }> }[] = [
+  { name: "Claude", Icon: IconBrandClaude },
+  { name: "ChatGPT", Icon: IconBrandChatGPT },
+  { name: "Perplexity", Icon: IconBrandPerplexity },
+  { name: "Google", Icon: IconBrandGoogle },
+  { name: "Reddit", Icon: IconBrandRedditNew },
+  { name: "Bluesky", Icon: IconBrandBluskyCustom },
+  { name: "X", Icon: IconBrandXCustom },
+  { name: "Hacker News", Icon: IconBrandHackerNews },
+]
 
 const productLinks = [
   { href: "/#how-it-works", label: "How it Works" },
@@ -180,7 +200,27 @@ export function Footer() {
                 fit rationale and a clear next step.
               </p>
 
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                <span className="text-[0.65rem] font-medium tracking-[0.1em] text-muted-foreground/50 uppercase">
+                  Get discovered across
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {discoveryPlatforms.map(({ name, Icon }) => (
+                    <span
+                      key={name}
+                      aria-label={name}
+                      className="flex size-7 items-center justify-center overflow-hidden rounded-[0.6rem] bg-background/70 shadow-sm"
+                    >
+                      <Icon className="size-4 opacity-80 saturate-[1.04]" />
+                    </span>
+                  ))}
+                </div>
+                <span className="text-[0.65rem] font-medium text-muted-foreground/40">
+                  & more
+                </span>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Button
                   asChild
                   size="lg"

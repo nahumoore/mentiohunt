@@ -1,7 +1,8 @@
 import {
+  AIMentionsOpportunities,
   Benefits,
   BigTestimonial,
-  DiscoverySurfaces,
+  BrandMentionSources,
   Faq,
   Footer,
   FounderIntro,
@@ -42,8 +43,9 @@ export default function Page() {
       <main className="min-h-screen bg-background text-foreground">
         <Navbar />
         <Hero />
-        <DiscoverySurfaces />
         <BigTestimonial />
+        <BrandMentionSources />
+        <AIMentionsOpportunities />
         <HowItWorks />
         <Benefits />
         <TargetPersonas />

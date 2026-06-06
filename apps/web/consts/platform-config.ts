@@ -2,8 +2,10 @@ import type { ElementType } from "react"
 import { IconBrandBluesky } from "@tabler/icons-react"
 
 import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
+import { IconBrandFacebookCustom } from "@/components/custom-icons/brand-facebook"
+import { IconBrandXCustom } from "@/components/custom-icons/brand-x"
 
-export const PLATFORM_KEYS = ["reddit", "bluesky"] as const
+export const PLATFORM_KEYS = ["reddit", "bluesky", "facebook", "twitter"] as const
 
 export type MentionPlatform = (typeof PLATFORM_KEYS)[number]
 
@@ -31,5 +33,21 @@ export const PLATFORM_CONFIG: Record<MentionPlatform, PlatformConfig> = {
     accentColor: "#0085ff",
     description:
       "Searches public Bluesky posts for your keywords. Results are sorted by engagement.",
+  },
+  facebook: {
+    label: "Facebook",
+    icon: IconBrandFacebookCustom,
+    color: "text-blue-700 bg-blue-500/10",
+    accentColor: "#3c5a9a",
+    description:
+      "Surfaces public Facebook posts via Google search. No engagement or date signals — best for broad keyword discovery.",
+  },
+  twitter: {
+    label: "X (Twitter)",
+    icon: IconBrandXCustom,
+    color: "text-zinc-900 bg-zinc-500/10",
+    accentColor: "#000000",
+    description:
+      "Searches public X posts for your keywords. Results are sorted by recency.",
   },
 }

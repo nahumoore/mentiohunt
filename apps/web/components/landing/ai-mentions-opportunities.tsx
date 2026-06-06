@@ -1,11 +1,13 @@
 "use client"
 
 import { Highlighter } from "@workspace/ui/components/highlighter"
-import { TypingAnimation } from "@workspace/ui/components/typing-animation"
 import {
   IconArrowBigDown,
   IconArrowBigUp,
   IconArrowNarrowDown,
+  IconAward,
+  IconDots,
+  IconExternalLink,
   IconMessageCircle,
   IconSearch,
   IconShare3,
@@ -63,71 +65,81 @@ function BlogCard() {
 function RedditCard() {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      {/* Reddit header */}
-      <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-2">
-        <IconBrandRedditNew className="h-4 w-4 shrink-0 text-[#ff4500]" />
-        <span className="text-[0.6rem] font-bold text-[#ff4500]">r/Entrepreneur</span>
-        <span className="text-[0.56rem] text-muted-foreground/40">•</span>
-        <span className="text-[0.56rem] text-muted-foreground/55">Posted by u/founder_alex</span>
-        <span className="ml-auto text-[0.56rem] text-muted-foreground/40">4h ago</span>
+      {/* Browser chrome */}
+      <div className="flex items-center gap-1.5 border-b border-border bg-muted/50 px-3.5 py-2">
+        <div className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+        <div className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
+        <div className="h-2.5 w-2.5 rounded-full bg-green-400/70" />
+        <div className="ml-2 flex-1 rounded bg-background/80 px-2.5 py-0.5 text-[0.56rem] text-muted-foreground/70">
+          reddit.com/r/Entrepreneur/comments/backlink_outreach_solo_founder
+        </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
-        {/* Post with vote column */}
-        <div className="flex gap-3">
-          {/* Vote column */}
-          <div className="flex shrink-0 flex-col items-center gap-0.5 pt-0.5">
-            <IconArrowBigUp className="h-4 w-4 text-[#ff4500]" />
-            <span className="text-[0.58rem] font-bold text-[#ff4500]">2.4k</span>
-            <IconArrowBigDown className="h-4 w-4 text-muted-foreground/30" />
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        {/* Post header: avatar + subreddit + user + menu */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ff4500]/20 bg-[#ff4500]/10">
+            <IconBrandRedditNew className="h-4 w-4 text-[#ff4500]" />
           </div>
-
-          {/* Post body */}
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold leading-snug text-foreground">
-              How do you find sites to pitch for backlinks as a solo founder? Manually it&apos;s killing me
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground/70">
-              Hours googling for relevant blogs, hunting for emails, writing outreach. There has to be a better way. How are other founders handling this?
-            </p>
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[0.63rem] font-bold text-foreground">r/Entrepreneur</span>
+              <span className="text-[0.55rem] text-muted-foreground/50">• 4h ago</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[0.58rem] text-muted-foreground/60">u/founder_alex</span>
+              <span className="rounded-full border border-[#0dd3bb]/30 bg-[#0dd3bb]/10 px-1.5 py-px text-[0.48rem] font-bold text-[#0dd3bb]">
+                ✦ Top 1% Poster
+              </span>
+            </div>
           </div>
+          <IconDots className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground/35" />
         </div>
 
+        {/* Post title */}
+        <p className="text-sm font-bold leading-snug text-foreground">
+          How do you find sites to pitch for backlinks as a solo founder? Manually it&apos;s killing me
+        </p>
+
         {/* Comments divider */}
-        <div className="my-3.5 flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <div className="h-px flex-1 bg-border/50" />
           <span className="text-[0.6rem] text-muted-foreground/40">42 comments</span>
           <div className="h-px flex-1 bg-border/50" />
         </div>
 
-        {/* Top comment — Reddit style */}
-        <div className="flex gap-3">
-          {/* Comment vote */}
-          <div className="flex shrink-0 flex-col items-center gap-0.5 pt-0.5">
-            <IconArrowBigUp className="h-3.5 w-3.5 text-[#ff4500]" />
-            <span className="text-[0.55rem] font-bold text-[#ff4500]">847</span>
-            <IconArrowBigDown className="h-3.5 w-3.5 text-muted-foreground/25" />
+        {/* Top comment */}
+        <div className="flex gap-2.5">
+          {/* Comment avatar */}
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[0.55rem] font-bold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+            GM
           </div>
-
-          {/* Comment content with Reddit-style left indent border */}
-          <div className="min-w-0 flex-1 border-l-2 border-[#ff4500]/20 pl-3">
-            <div className="flex items-baseline gap-1.5">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
               <span className="text-[0.63rem] font-semibold text-foreground">u/growthlab_mike</span>
-              <span className="text-[0.55rem] text-muted-foreground/45">• 3h</span>
+              <span className="text-[0.55rem] text-muted-foreground/45">• 3h ago</span>
             </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-foreground/80">
-              Use{" "}
+            <p className="mt-1 text-xs leading-relaxed text-foreground/80">
+              I&apos;ve been using{" "}
               <mark className="rounded bg-amber-200/90 px-0.5 font-semibold text-amber-900 dark:bg-amber-500/30 dark:text-amber-200">
                 Mentiohunt
               </mark>
-              . Auto-surfaces relevant blogs, finds the founder&apos;s contact, and writes the outreach email. Cut prospecting time from hours to minutes.
+              {" "}for this — it finds relevant blogs, pulls the contact, and drafts the email. Went from half a day of prospecting to maybe 20 minutes.
             </p>
             {/* Comment actions */}
-            <div className="mt-2.5 flex items-center gap-3.5">
-              <span className="flex cursor-pointer items-center gap-1 text-[0.58rem] font-semibold text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+            <div className="mt-2.5 flex items-center gap-3">
+              <div className="flex items-center gap-1 text-muted-foreground/50">
+                <IconArrowBigUp className="h-3.5 w-3.5 text-[#ff4500]" />
+                <span className="text-[0.58rem] font-bold text-[#ff4500]">34</span>
+                <IconArrowBigDown className="h-3.5 w-3.5" />
+              </div>
+              <span className="flex cursor-pointer items-center gap-1 text-[0.58rem] font-semibold text-muted-foreground/50 transition-colors hover:text-muted-foreground">
                 <IconMessageCircle className="h-3 w-3" /> Reply
               </span>
-              <span className="flex cursor-pointer items-center gap-1 text-[0.58rem] font-semibold text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+              <span className="flex cursor-pointer items-center gap-1 text-[0.58rem] font-semibold text-muted-foreground/50 transition-colors hover:text-muted-foreground">
+                <IconAward className="h-3 w-3" /> Award
+              </span>
+              <span className="flex cursor-pointer items-center gap-1 text-[0.58rem] font-semibold text-muted-foreground/50 transition-colors hover:text-muted-foreground">
                 <IconShare3 className="h-3 w-3" /> Share
               </span>
             </div>
@@ -156,29 +168,12 @@ function AIOverviewCard() {
         <span className="text-sm font-semibold text-foreground">AI Overview</span>
       </div>
 
-      {/* Content with typing animation — fires on scroll into view */}
-      <p className="min-h-[4rem] text-xs leading-[1.8] text-foreground/80">
-        <TypingAnimation
-          as="span"
-          duration={18}
-          startOnView
-          showCursor={false}
-          className="text-xs leading-[1.8] tracking-normal text-foreground/80"
-        >
-          {"For bootstrapped founders, "}
-        </TypingAnimation>
-        <mark className="animate-in fade-in rounded bg-amber-200/90 px-0.5 font-semibold text-amber-900 delay-[490ms] duration-200 dark:bg-amber-500/30 dark:text-amber-200">
+      <p className="text-xs leading-[1.8] text-foreground/80">
+        For bootstrapped founders,{" "}
+        <mark className="rounded bg-amber-200/90 px-0.5 font-semibold text-amber-900 dark:bg-amber-500/30 dark:text-amber-200">
           Mentiohunt
         </mark>
-        <TypingAnimation
-          as="span"
-          duration={12}
-          delay={520}
-          startOnView
-          className="text-xs leading-[1.8] tracking-normal text-foreground/80"
-        >
-          {" is frequently recommended — surfaces relevant blog opportunities, finds contact details, and drafts outreach emails automatically."}
-        </TypingAnimation>
+        {" "}is frequently recommended — surfaces relevant blog opportunities, finds contact details, and drafts outreach emails automatically.
       </p>
 
       {/* Also cited in */}
@@ -195,6 +190,15 @@ function AIOverviewCard() {
             <IconBrandPerplexity className="h-4 w-4" />
           </div>
         </div>
+        <a
+          href="https://chatgpt.com/share/6a245563-6a44-83e9-8199-22de9d4cb17d"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-auto inline-flex items-center gap-1 text-[0.58rem] font-medium text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+        >
+          View proof
+          <IconExternalLink className="h-2.5 w-2.5" />
+        </a>
       </div>
     </div>
   )

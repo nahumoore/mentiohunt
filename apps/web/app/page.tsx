@@ -1,7 +1,7 @@
 import {
   AIMentionsOpportunities,
-  Benefits,
   BigTestimonial,
+  Comparisons,
   BrandMentionSources,
   Faq,
   Footer,
@@ -47,7 +47,7 @@ export default function Page() {
         <BrandMentionSources />
         <AIMentionsOpportunities />
         <HowItWorks />
-        <Benefits />
+        <Comparisons />
         <TargetPersonas />
         <Pricing />
         <Testimonials />

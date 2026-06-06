@@ -1,63 +1,64 @@
 import { IconCheck, IconMinus, IconX } from "@tabler/icons-react"
 import type { CSSProperties } from "react"
+import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
 
 type Support = "yes" | "partial" | "no"
 
 type Feature = {
   label: string
-  mentiohunt: Support
   seoTools: Support
   outreachPlatforms: Support
   manual: Support
+  mentiohunt: Support
 }
 
 const features: Feature[] = [
   {
     label: "Built for founders & small teams",
-    mentiohunt: "yes",
     seoTools: "no",
     outreachPlatforms: "no",
     manual: "yes",
+    mentiohunt: "yes",
   },
   {
     label: "Backlink prospecting",
-    mentiohunt: "yes",
     seoTools: "yes",
     outreachPlatforms: "yes",
     manual: "partial",
+    mentiohunt: "yes",
   },
   {
     label: "Community monitoring",
-    mentiohunt: "yes",
     seoTools: "no",
     outreachPlatforms: "no",
     manual: "partial",
+    mentiohunt: "yes",
   },
   {
     label: "AI-drafted outreach & replies",
-    mentiohunt: "yes",
     seoTools: "no",
     outreachPlatforms: "partial",
     manual: "no",
+    mentiohunt: "yes",
   },
   {
     label: "Daily ranked opportunity queue",
-    mentiohunt: "yes",
     seoTools: "no",
     outreachPlatforms: "no",
     manual: "no",
+    mentiohunt: "yes",
   },
   {
     label: "Founder-friendly pricing",
-    mentiohunt: "yes",
     seoTools: "no",
     outreachPlatforms: "no",
     manual: "yes",
+    mentiohunt: "yes",
   },
 ]
 
 const gridStyle: CSSProperties = {
-  gridTemplateColumns: "minmax(160px,1fr) 128px 128px 140px 108px",
+  gridTemplateColumns: "minmax(160px,1fr) 128px 140px 108px 128px",
 }
 
 function SupportIcon({
@@ -77,30 +78,30 @@ function SupportIcon({
     }
     return (
       <div className="mx-auto flex h-6 w-6 items-center justify-center">
-        <IconCheck className="h-4 w-4 text-muted-foreground/45" />
+        <IconCheck className="h-4 w-4 text-foreground/60" />
       </div>
     )
   }
   if (support === "partial") {
     return (
       <div className="mx-auto flex h-6 w-6 items-center justify-center">
-        <IconMinus className="h-4 w-4 text-muted-foreground/30" />
+        <IconMinus className="h-4 w-4 text-muted-foreground/55" />
       </div>
     )
   }
   return (
     <div className="mx-auto flex h-6 w-6 items-center justify-center">
-      <IconX className="h-4 w-4 text-muted-foreground/20" />
+      <IconX className="h-4 w-4 text-muted-foreground/35" />
     </div>
   )
 }
 
-export function Benefits() {
+export function Comparisons() {
   return (
     <section
-      id="benefits"
+      id="comparisons"
       className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32"
-      aria-labelledby="benefits-title"
+      aria-labelledby="comparisons-title"
     >
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-16 left-1/2 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-[var(--color-princeton-orange)]/7 blur-[110px]" />
@@ -114,7 +115,7 @@ export function Benefits() {
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />
           <h2
-            id="benefits-title"
+            id="comparisons-title"
             className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]"
           >
             Built for founders, not agency teams.
@@ -131,13 +132,6 @@ export function Benefits() {
             {/* Column headers */}
             <div style={gridStyle} className="grid">
               <div />
-              <div className="px-2">
-                <div className="rounded-t-2xl border border-b-0 border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-3 text-center">
-                  <span className="text-[0.7rem] font-bold tracking-[0.18em] text-[var(--color-blaze-orange)] uppercase">
-                    Mentiohunt
-                  </span>
-                </div>
-              </div>
               <div className="self-end pb-3 text-center">
                 <span className="block text-xs font-semibold text-foreground/55">
                   SEO Platforms
@@ -159,6 +153,14 @@ export function Benefits() {
                   Manual / DIY
                 </span>
               </div>
+              <div className="px-2">
+                <div className="rounded-t-2xl border border-b-0 border-[var(--color-blaze-orange)]/25 px-3 py-3 text-center">
+                  <IconBrandMentiohunt className="mx-auto mb-1 h-5 w-5 text-[var(--color-blaze-orange)]" />
+                  <span className="text-[0.7rem] font-bold tracking-[0.18em] text-[var(--color-blaze-orange)] uppercase">
+                    Mentiohunt
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Feature rows */}
@@ -173,15 +175,6 @@ export function Benefits() {
                   <div className="py-4 pr-4 text-sm text-foreground/75">
                     {feature.label}
                   </div>
-                  <div
-                    className={`mx-2 flex items-center justify-center border-x border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/5 py-4 ${
-                      isLast
-                        ? "rounded-b-2xl border-b border-[var(--color-blaze-orange)]/25"
-                        : ""
-                    }`}
-                  >
-                    <SupportIcon support={feature.mentiohunt} highlight />
-                  </div>
                   <div className="flex items-center justify-center py-4">
                     <SupportIcon support={feature.seoTools} />
                   </div>
@@ -190,6 +183,15 @@ export function Benefits() {
                   </div>
                   <div className="flex items-center justify-center py-4">
                     <SupportIcon support={feature.manual} />
+                  </div>
+                  <div
+                    className={`mx-2 flex items-center justify-center border-x border-[var(--color-blaze-orange)]/25 py-4 ${
+                      isLast
+                        ? "rounded-b-2xl border-b border-[var(--color-blaze-orange)]/25"
+                        : ""
+                    }`}
+                  >
+                    <SupportIcon support={feature.mentiohunt} highlight />
                   </div>
                 </div>
               )

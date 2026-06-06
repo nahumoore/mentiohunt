@@ -1,4 +1,4 @@
-export { Benefits } from "./benefits"
+export { Comparisons } from "./comparisons"
 export { AIMentionsOpportunities } from "./ai-mentions-opportunities"
 export { BrandMentionSources } from "./brand-mention-sources"
 export { FounderIntro } from "./founder-intro"

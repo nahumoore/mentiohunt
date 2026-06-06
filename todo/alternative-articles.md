@@ -42,9 +42,10 @@ Strategy: compare two popular tools head-to-head, cover pros/cons of each, pitch
 
 ### Community monitoring comparisons (build first — strongest keyword signals)
 
-| Target keyword             | Page title                                                | Mentiohunt pitch angle                                                                                                   |
-| -------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `awario vs brand24`        | Awario vs Brand24: Honest Comparison for Small Teams      | Both priced for marketing departments — Mentiohunt for solo founders doing community manually                            |
+| Target keyword               | Page title                                                | Mentiohunt pitch angle                                                                                                   |
+| ---------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `google alerts alternative`  | Best Google Alerts Alternatives for Founders in 2026      | Google Alerts = passive email digest, no reply workflow — Mentiohunt surfaces actionable opportunities across communities |
+| `awario vs brand24`          | Awario vs Brand24: Honest Comparison for Small Teams      | Both priced for marketing departments — Mentiohunt for solo founders doing community manually                            |
 | `awario vs mention`        | Awario vs Mention: Side-by-Side for Small Teams           | Neither surfaces Reddit reply opportunities in real time — Mentiohunt does                                               |
 | `brand24 vs brandwatch`    | Brand24 vs Brandwatch: Enterprise Price vs. Founder Needs | Brandwatch is $$$, Brand24 still big-brand — Mentiohunt is the third option for founders who want action, not dashboards |
 | `brand24 vs talkwalker`    | Brand24 vs Talkwalker: Which Should Founders Use?         | Both designed for reporting, not responding — Mentiohunt surfaces opportunities you can act on today                     |

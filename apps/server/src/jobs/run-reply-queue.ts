@@ -4,9 +4,9 @@ import { sendMediaMentionsDigestEmail } from "../helpers/emails/send-media-menti
 import { createLogger } from "../helpers/logger.js"
 import { discoverMentionsForProduct } from "../methods/media-mentions/discover-mentions-for-product.js"
 
-const log = createLogger("job-discover-product-mentions")
+const log = createLogger("job-run-reply-queue")
 
-export async function runDiscoverProductMentions(): Promise<void> {
+export async function runReplyQueue(): Promise<void> {
   log.info("job started")
   try {
     const { data: profiles, error: profilesError } = await supabaseAdmin

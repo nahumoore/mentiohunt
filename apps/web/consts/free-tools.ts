@@ -7,6 +7,7 @@ export const FREE_TOOL_NAMES = {
   backlinkOpportunityFinder: "backlink-opportunity-finder",
   competitorBacklinkGap: "competitor-backlink-gap",
   subredditFinder: "subreddit-finder",
+  redditUserAnalyzer: "reddit-user-analyzer",
 } as const
 
 export type FreeToolName =

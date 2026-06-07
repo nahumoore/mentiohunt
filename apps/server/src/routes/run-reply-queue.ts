@@ -42,22 +42,36 @@ export async function runReplyQueueForConfig({
 }
 
 runReplyQueueRouter.post("/run/reply-queue", async (req, res) => {
-  const configId =
-    typeof req.body.configId === "string" ? req.body.configId.trim() : ""
-  const userId =
-    typeof req.body.userId === "string" ? req.body.userId.trim() : ""
+  const productId =
+    typeof req.body.productId === "string" ? req.body.productId.trim() : ""
 
-  if (!configId || !userId) {
-    res.status(400).json({ error: "configId and userId are required" })
+  if (!productId) {
+    res.status(400).json({ error: "productId is required" })
+    return
+  }
+
+  const { data: config, error: configError } = await supabaseAdmin
+    .from("reply_queue_configs")
+    .select("id, user_id")
+    .eq("product_id", productId)
+    .eq("status", "active")
+    .maybeSingle()
+
+  if (configError || !config) {
+    res.status(404).json({ error: "no reply queue config found for product" })
     return
   }
 
   try {
-    const result = await runReplyQueueForConfig({ configId, userId })
+    const result = await runReplyQueueForConfig({
+      configId: config.id,
+      userId: config.user_id,
+    })
     res.json(result)
   } catch (err) {
     log.error("unhandled run error", {
-      configId,
+      productId,
+      configId: config.id,
       error: String(err),
     })
     res.status(500).json({ error: String(err) })

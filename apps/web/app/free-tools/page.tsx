@@ -10,6 +10,7 @@ import {
   IconLink,
   IconSparkles,
   IconSwords,
+  IconUser,
   IconWorldSearch,
 } from "@tabler/icons-react"
 
@@ -102,6 +103,16 @@ const tools = [
     icon: IconBrandRedditNew,
     href: `/free-tools/${FREE_TOOL_NAMES.subredditFinder}`,
     steps: ["Paste URL", "Find subreddits", "Engage"],
+  },
+  {
+    name: "Reddit User Analyzer",
+    eyebrow: "Username to profile",
+    status: "Free",
+    description:
+      "Enter a Reddit username and get a full breakdown of their activity — top subreddits, karma split, interest profile, and behavior patterns.",
+    icon: IconUser,
+    href: `/free-tools/${FREE_TOOL_NAMES.redditUserAnalyzer}`,
+    steps: ["Username in", "Map activity", "Understand them"],
   },
 ]
 

@@ -48,14 +48,15 @@ export function registerJobs(): void {
     "[cron] Scheduled: weekly directory submission check (Mon 03:00 UTC)"
   )
 
+  // import { runReplyQueue } from "./run-reply-queue.js"
   // cron.schedule("0 6 * * *", async () => {
   //   try {
-  //     await runDiscoverProductMentions()
+  //     await runReplyQueue()
   //   } catch (err) {
-  //     console.error("[cron] Error running per-product mention discovery:", err)
+  //     console.error("[cron] Error running reply queue:", err)
   //   }
   // })
-  // console.log("[cron] Scheduled: per-product mention discovery (06:00 UTC daily)")
+  // console.log("[cron] Scheduled: reply queue (06:00 UTC daily)")
 
   // cron.schedule("0 4 * * *", async () => {
   //   try {

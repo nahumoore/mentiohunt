@@ -10,6 +10,7 @@ import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunitie
 import { directoryOpportunitiesRouter } from "./find-directory-opportunities.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
 import { resendInboundWebhookRouter } from "./resend-inbound-webhook.js"
+import { redditUserAnalyzerRouter } from "./reddit-user-analyzer.js"
 import { runReplyQueueRouter } from "./run-reply-queue.js"
 import { verifyDirectoryUrlsRouter } from "./verify-directory-urls.js"
 
@@ -18,6 +19,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(analyzeBacklinkSiteRouter)
   app.use(onboardingCompleteRouter)
   app.use(resendInboundWebhookRouter)
+  app.use(redditUserAnalyzerRouter)
 
   if (isDev) {
     app.use(directoryOpportunitiesRouter)

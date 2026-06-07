@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   title: "Free Tools - Mentiohunt",
   description:
     "Free founder tools for checking backlink fit, spotting community reply opportunities, and turning distribution research into a clearer next step.",
+  alternates: {
+    canonical: "/free-tools",
+  },
   openGraph: {
     title: "Free Tools - Mentiohunt",
     description:

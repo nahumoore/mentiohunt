@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Competitor Backlink Gap Analysis - Free Tool",
   description:
     "Enter your website URL and see which sites link to your competitors but not to you. Find real backlink gap opportunities and turn them into a prioritized outreach list.",
+  alternates: {
+    canonical: "/free-tools/competitor-backlink-gap",
+  },
   openGraph: {
     title: "Competitor Backlink Gap Analysis - Free Tool",
     description:

@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Subreddit Finder Tool - Free Tool",
   description:
     "Enter your website URL and find the most relevant subreddits for your product. Get a ranked list of Reddit communities with fit rationale so you know exactly where to show up.",
+  alternates: {
+    canonical: "/free-tools/subreddit-finder",
+  },
   openGraph: {
     title: "Subreddit Finder Tool - Free Tool",
     description:

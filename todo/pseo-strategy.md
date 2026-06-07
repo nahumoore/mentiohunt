@@ -10,8 +10,6 @@ Built: chatgpt, forbes, instagram, medium, news-websites, pinterest, quora, redd
 
 Missing — prioritized by search volume:
 
-- [ ] `/backlinks-from/youtube` — 210/mo, LOW competition, ~5 backlinks to rank. Top priority.
-- [ ] `/backlinks-from/linkedin` — steady demand, founder ICP
 - [ ] `/backlinks-from/product-hunt` — ICP perfect match, low competition expected
 - [ ] `/backlinks-from/hacker-news` — founder ICP, low competition expected
 - [ ] `/backlinks-from/substack` — growing query

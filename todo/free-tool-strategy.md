@@ -1,124 +1,83 @@
 # Free Tool Strategy
 
-## What Already Exists
+## Built (source of truth: `apps/web/consts/free-tools.ts`)
 
-`/free-tools/directory-backlink-opportunity-finder`
-
-Takes a product URL → checks Supabase directories table → returns directories where the product is not yet listed (gap scan). Covers the "find new directory opportunities" use case completely.
-
-**Keywords it already owns:**
-- "free backlink building tools"
-- "startup directory free"
-- "free link building sites"
-- "submit startup to directories"
-- "directory submission tool"
-- "where to get backlinks free"
-
-Do not build tools that overlap with the gap scan angle. Any new tool must answer a clearly different question.
-
----
-
-## Keyword Research Summary (May 2026)
-
-Three Apify runs, US/English, Google Suggest. Dominant signal clusters:
-
-| Cluster | Top suggestions | Intent |
+| Tool | Route | What it does |
 |---|---|---|
-| Free backlink checker | "free backlink checker", "how to check backlinks for free", "who links to", "website backlink scanner" | Tool — check existing backlinks |
-| Where to get backlinks | "where to get backlinks free", "where can I get backlinks for my website" | Transactional — already covered by existing tool |
-| SaaS / startup link building | "link building for saas companies", "saas link building strategy", "how to get backlinks for startup" | Informational + landing page |
-| Competitor intelligence | "link building agencies for saas", "saas link building services" | Commercial |
+| `directory-opportunity-finder` | `/free-tools/directory-opportunity-finder` | URL → directories where product isn't listed |
+| `directory-backlink-opportunity-finder` | `/free-tools/directory-backlink-opportunity-finder` | Same, backlink-framed variant |
+| `backlink-opportunity-finder` | `/free-tools/backlink-opportunity-finder` | Finds backlink opportunities |
+| `competitor-backlink-gap` | `/free-tools/competitor-backlink-gap` | Your URL + competitor URL → gap list |
+| `backlink-price-calculator` | `/free-tools/backlink-price-calculator` | Estimates backlink cost |
+| `subreddit-finder` | `/free-tools/subreddit-finder` | Community monitoring engine, free tier |
+
+Do not build tools that overlap with any of the above.
 
 ---
 
-## New Tool Opportunities (No Cannibalization)
+## Keyword Research (June 2026)
 
-### Tool 2 — Free Backlink Checker
-**Route:** `/free-tools/backlink-checker`
+### Backlink side
 
-**Different from existing tool:** The gap tool finds *new* directory opportunities. This tool shows *existing* backlinks pointing to a URL — completely orthogonal.
+| Keyword | Vol/mo | KD | Avg backlinks to rank | Verdict |
+|---|---|---|---|---|
+| `free backlink checker` | 3,600 | 81 | 16,736 | Ahrefs/Moz wall. Skip. |
+| `free backlink tool` | 390 | 82 | 18,442 | Skip. |
+| `free link building tool` | 390 | 42 | 861 | Possible long-term, needs authority |
+| `free backlink analysis` | 170 | 82 | 19,143 | Skip. |
+| `free backlink monitor` | 40 | 67 | 15,925 | Skip. |
 
-**Target keywords:**
-- "free backlink checker" (highest demand in dataset)
-- "free backlink checker online"
-- "how to check backlinks for free"
-- "who links to" / "who links to my website"
-- "website backlink scanner"
-- "how to check backlinks to your website"
+Generic "free backlink checker" space is owned by Ahrefs/SEMrush/Moz. KD 80+ across the board. Not worth targeting until domain authority grows substantially.
 
-**How it works with current stack:**
-- User pastes URL
-- Apify actor fetches referring domains (use an actor that scrapes backlink data — e.g. a Common Crawl-based or dedicated backlinks actor already available on Apify)
-- Cross-reference results against the Supabase directories table → label any result that matches a known directory
-- Show: domain, anchor text, "known directory" badge if matched
+### Community monitoring side
 
-**Upsell hook:** "Sign up to track new backlinks automatically and see competitor gaps."
+| Keyword | Vol/mo | KD | Avg backlinks to rank | Notes |
+|---|---|---|---|---|
+| `free social listening tool` | 720 | **16** | ~3,177* | SERP = listicles, not actual tools |
+| `reddit monitoring tool` | 40 | LOW | 0.9 | Already flagged in pseo-strategy.md |
 
-**Build complexity:** Medium — needs the right Apify actor selected and tested. The cross-reference with the directories table is free.
+*KD 16 means Google doesn't heavily weight those backlinks — content quality can win here.
 
 ---
 
-### Tool 3 — Competitor Directory Gap
-**Route:** `/free-tools/competitor-directory-gap`
+## New Tool Opportunities
 
-**Different from existing tool:** The gap tool checks one URL against all directories. This takes two URLs (yours + competitor) and finds directories where the competitor is listed but you are not — a different framing with higher commercial intent.
-
-**Target keywords:**
-- "competitor backlink gap"
-- "link building for saas companies" (informational → tool CTA)
-- "saas link building strategy" (informational → tool CTA)
-- "how to get backlinks for startup"
-- "where to find backlinks" (directional, same intent)
-
-**How it works with current stack:**
-- User pastes their URL + a competitor URL
-- Apify actor scrapes the competitor's known directory listings (crawl the competitor domain, look for directory footprints, or check directories table rows for the competitor domain)
-- Directories table: query rows where competitor is listed → subtract rows where user is listed → return the gap list
-- Result: "Competitor is listed on 12 directories you're not on" + the list
-
-**Upsell hook:** Full competitor backlink analysis, not just directories.
-
-**Build complexity:** Medium-low if directory listing detection is already in place for the gap scan. Adding a second URL field and a comparison query is the main delta.
-
----
-
-### Tool 4 — Startup Directory Browser (Static / SSG)
+### Tool 7 — Startup Directory Browser (Static / ISR)
 **Route:** `/free-tools/startup-directories` or `/startup-directories`
 
-**Not a scanner — a browsable index.** Render the full Supabase directories table as a static or ISR page. Filter by category, free/paid, DA. No user input required.
+Browsable index of the Supabase directories table. No user input. Pure read.
 
-**Target keywords:**
-- "startup directory"
-- "startup directory free"
-- "startup business listing"
-- "free startup directories"
-- "directory listing for saas"
+**Target keywords:** "startup directory", "startup directory free", "free startup directories", "directory listing for saas"
 
-**How it works with current stack:**
-- SSG/ISR page that reads all active directories from Supabase
-- Filter sidebar: category, free only, sorted by DA
-- Each row: name, domain, category, free/paid badge, submit link
-- Link to the gap scanner tool from every row
+**How it works:** SSG/ISR page reads all active directories. Filter by category, free/paid, DA. Each row links to the gap scanner.
 
-**Upsell hook:** "Want to know which ones you're missing? Run the gap scan."
+**Build complexity:** Low — no Apify, pure Supabase read from existing table.
 
-**Build complexity:** Low — pure read from existing table, no Apify needed.
+---
+
+### Page (not tool) — Free Social Listening
+**Route:** `/free-social-listening-tools` or `/free-tools/social-listening`
+
+720/mo, KD 16. SERP is listicles — a curated list page wins, not a full interactive tool. Feature `subreddit-finder` as the free community monitoring option for founders. Include 4-5 other legit free tools to give the page list-credibility.
+
+**Target keywords:** "free social listening tool", "free social media monitoring tool", "reddit monitoring free"
+
+**Build complexity:** Content page. No engineering required.
 
 ---
 
 ## Build Order
 
-| Priority | Tool | Reason |
-|---|---|---|
-| 1 | Startup Directory Browser | Lowest effort, indexes existing data, feeds traffic to the gap tool, captures "startup directory" cluster |
-| 2 | Competitor Directory Gap | Highest signup intent, small delta from existing gap scan logic |
-| 3 | Free Backlink Checker | Highest traffic ceiling, needs Apify actor selection first |
+| Priority | Item | Effort | Reason |
+|---|---|---|---|
+| 1 | Startup Directory Browser | Low | Indexes existing data, no Apify, feeds gap tool traffic |
+| 2 | Free Social Listening page | None (content) | 720/mo KD 16, promotes `subreddit-finder` |
+| 3 | Free Backlink Checker | Medium | Highest traffic ceiling, needs Apify actor — revisit when authority grows |
 
 ---
 
 ## Notes
 
-- Tool 2 (backlink checker) competes with Ahrefs/Semrush brand searches. Go after the generic "free backlink checker online" angle, not "free backlink checker ahrefs alternative."
-- Tools 3 and 4 share internal links back to the gap scanner — they extend the cluster, not dilute it.
-- All three feed the same upsell: a recurring backlink opportunity queue inside Mentiohunt.
-- "saas link building strategy" and "how to get backlinks for startup" are better served by a blog post with tool CTAs than a dedicated tool page.
+- `free link building tool` (KD 42, 390/mo) becomes worth targeting once domain has 100+ referring domains. Park it.
+- All tools feed the same upsell: recurring opportunity queue + community monitoring inside Mentiohunt.
+- Do not target "free backlink checker" head-on — go after the long-tail ("free backlink checker for startups", "free backlink checker small business") only after the directory browser and social listening page are live.

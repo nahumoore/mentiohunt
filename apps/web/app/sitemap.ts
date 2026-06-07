@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 
 import { features } from "@/consts/features"
+import { FREE_TOOL_NAMES } from "@/consts/free-tools"
 import { getResourceSlugs } from "@/lib/mdx"
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -77,7 +78,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: "https://mentiohunt.com/free-tools/directory-backlink-opportunity-finder",
+      url: `https://mentiohunt.com/free-tools/${FREE_TOOL_NAMES.directoryBacklinkOpportunityFinder}`,
       lastModified: new Date("2026-05-15"),
       priority: 0.75,
     },
@@ -87,8 +88,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.75,
     },
     {
-      url: "https://mentiohunt.com/free-tools/backlink-price-calculator",
+      url: `https://mentiohunt.com/free-tools/${FREE_TOOL_NAMES.backlinkPriceCalculator}`,
       lastModified: new Date("2026-05-21"),
+      priority: 0.75,
+    },
+    {
+      url: `https://mentiohunt.com/free-tools/${FREE_TOOL_NAMES.backlinkOpportunityFinder}`,
+      lastModified: new Date("2026-05-28"),
+      priority: 0.75,
+    },
+    {
+      url: `https://mentiohunt.com/free-tools/${FREE_TOOL_NAMES.competitorBacklinkGap}`,
+      lastModified: new Date("2026-05-28"),
+      priority: 0.75,
+    },
+    {
+      url: `https://mentiohunt.com/free-tools/${FREE_TOOL_NAMES.subredditFinder}`,
+      lastModified: new Date("2026-05-28"),
       priority: 0.75,
     },
     {

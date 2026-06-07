@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Directory Backlink Opportunity Finder - Free Tool",
   description:
     "Find startup directories where your product could submit for relevant backlink opportunities. Enter your product URL and review directory opportunities to apply for next.",
+  alternates: {
+    canonical: "/free-tools/directory-backlink-opportunity-finder",
+  },
   openGraph: {
     title: "Directory Backlink Opportunity Finder - Free Tool",
     description:

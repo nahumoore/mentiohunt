@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     typeof body === "object" &&
     "username" in body &&
     typeof (body as Record<string, unknown>).username === "string"
-      ? ((body as { username: string }).username).trim().replace(/^u\//, "")
+      ? (body as { username: string }).username.trim()
       : ""
 
   if (!rawUsername) {

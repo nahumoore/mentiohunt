@@ -2,8 +2,8 @@ import { createLogger } from "../../helpers/logger.js"
 
 const log = createLogger("reddit-fetch-user")
 
-const REDDIT_USER_AGENT = "mentiohunt-free-tool/1.0"
-const FETCH_TIMEOUT_MS = 10_000
+const REDDIT_USER_AGENT = "mentiohunt-free-tool/1.0 (by /u/mentiohunt)"
+const FETCH_TIMEOUT_MS = 12_000
 
 export type RedditProfile = {
   username: string
@@ -25,6 +25,52 @@ export type RedditUserData = {
   subreddits: RawSubredditEntry[]
 }
 
+// In-memory token cache — single instance, resets on restart
+let cachedToken: { value: string; expiresAt: number } | null = null
+
+async function getAccessToken(): Promise<string> {
+  const now = Date.now()
+  if (cachedToken && cachedToken.expiresAt > now + 60_000) {
+    return cachedToken.value
+  }
+
+  const clientId = process.env.REDDIT_CLIENT_KEY
+  const clientSecret = process.env.REDDIT_SECRET_KEY
+
+  if (!clientId || !clientSecret) {
+    throw new Error("Missing REDDIT_CLIENT_KEY or REDDIT_SECRET_KEY")
+  }
+
+  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64")
+
+  const res = await fetch("https://www.reddit.com/api/v1/access_token", {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${credentials}`,
+      "User-Agent": REDDIT_USER_AGENT,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Reddit OAuth failed: ${res.status}`)
+  }
+
+  const data = (await res.json()) as { access_token?: string; expires_in?: number }
+
+  if (!data.access_token) throw new Error("Reddit OAuth returned no token")
+
+  cachedToken = {
+    value: data.access_token,
+    expiresAt: now + (data.expires_in ?? 3600) * 1000,
+  }
+
+  log.info("obtained new Reddit access token")
+  return cachedToken.value
+}
+
 type RedditAboutData = {
   data?: {
     name?: string
@@ -42,7 +88,6 @@ type RedditListingChild = {
   data?: {
     subreddit?: string
     score?: number
-    is_self?: boolean
   }
 }
 
@@ -54,9 +99,12 @@ type RedditListingData = {
   message?: string
 }
 
-async function redditFetch<T>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    headers: { "User-Agent": REDDIT_USER_AGENT },
+async function redditFetch<T>(path: string, token: string): Promise<T> {
+  const res = await fetch(`https://oauth.reddit.com${path}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "User-Agent": REDDIT_USER_AGENT,
+    },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })
 
@@ -67,13 +115,49 @@ async function redditFetch<T>(url: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
+async function safeListingFetch(path: string, token: string): Promise<RedditListingData> {
+  try {
+    return await redditFetch<RedditListingData>(path, token)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    // If listings fail (private history, forbidden), treat as empty rather than erroring
+    if (msg !== "reddit_user_not_found") {
+      log.warn("listing fetch failed, treating as empty", { path, error: msg })
+      return {}
+    }
+    throw err
+  }
+}
+
+export function extractUsername(input: string): string {
+  const trimmed = input.trim()
+
+  // Full URL: https://www.reddit.com/user/foo or https://reddit.com/u/foo
+  try {
+    const url = new URL(trimmed.startsWith("http") ? trimmed : `https://${trimmed}`)
+    if (url.hostname.includes("reddit.com")) {
+      const match = url.pathname.match(/^\/(user|u)\/([a-zA-Z0-9_-]+)/i)
+      if (match?.[2]) return match[2]
+    }
+  } catch {
+    // not a URL — fall through
+  }
+
+  // u/username or /u/username
+  const uPrefix = trimmed.match(/^\/?u\/([a-zA-Z0-9_-]+)/i)
+  if (uPrefix?.[1]) return uPrefix[1]
+
+  return trimmed
+}
+
 export async function fetchRedditUserData(username: string): Promise<RedditUserData> {
-  const base = `https://www.reddit.com/user/${encodeURIComponent(username)}`
+  const token = await getAccessToken()
+  const encoded = encodeURIComponent(username)
 
   const [about, comments, submitted] = await Promise.all([
-    redditFetch<RedditAboutData>(`${base}/about.json`),
-    redditFetch<RedditListingData>(`${base}/comments.json?limit=100&raw_json=1`),
-    redditFetch<RedditListingData>(`${base}/submitted.json?limit=100&raw_json=1`),
+    redditFetch<RedditAboutData>(`/user/${encoded}/about`, token),
+    safeListingFetch(`/user/${encoded}/comments?limit=100&raw_json=1`, token),
+    safeListingFetch(`/user/${encoded}/submitted?limit=100&raw_json=1`, token),
   ])
 
   if (about.error === 404 || !about.data) throw new Error("reddit_user_not_found")
@@ -91,17 +175,11 @@ export async function fetchRedditUserData(username: string): Promise<RedditUserD
     accountAgeDays,
   }
 
-  // Aggregate subreddit activity
   const map = new Map<string, RawSubredditEntry>()
 
   function upsert(subreddit: string, isPost: boolean, score: number) {
     const key = subreddit.toLowerCase()
-    const existing = map.get(key) ?? {
-      subreddit,
-      postsCount: 0,
-      commentsCount: 0,
-      totalScore: 0,
-    }
+    const existing = map.get(key) ?? { subreddit, postsCount: 0, commentsCount: 0, totalScore: 0 }
     if (isPost) existing.postsCount++
     else existing.commentsCount++
     existing.totalScore += score
@@ -118,7 +196,6 @@ export async function fetchRedditUserData(username: string): Promise<RedditUserD
     if (d?.subreddit) upsert(d.subreddit, false, d.score ?? 0)
   }
 
-  // Sort by total activity, keep top 12
   const subreddits = [...map.values()]
     .sort((a, b) => (b.postsCount + b.commentsCount) - (a.postsCount + a.commentsCount))
     .slice(0, 12)

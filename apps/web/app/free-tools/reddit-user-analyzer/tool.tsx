@@ -9,6 +9,8 @@ import {
   IconBulb,
   IconCalendar,
   IconCheck,
+  IconCopy,
+  IconCopyCheck,
   IconFlame,
   IconLoader2,
   IconLock,
@@ -178,6 +180,51 @@ export function RedditUserAnalyzer() {
   }
 
   const hasResults = phase === "results"
+  const [copied, setCopied] = useState(false)
+
+  function formatAnalysisAsText(a: UserAnalysis): string {
+    const lines: string[] = []
+
+    lines.push(`Reddit User Analysis: u/${a.profile.username}`)
+    lines.push(`${"─".repeat(40)}`)
+    lines.push(`Total karma: ${formatKarma(a.profile.totalKarma)}  |  Comment: ${formatKarma(a.profile.commentKarma)}  |  Post: ${formatKarma(a.profile.postKarma)}  |  Age: ${formatAccountAge(a.profile.accountAgeDays)}`)
+    lines.push(`Style: ${a.contentType}`)
+    lines.push("")
+
+    lines.push("SUMMARY")
+    lines.push(a.summary)
+    lines.push("")
+
+    if (a.activeSubreddits.length > 0) {
+      lines.push("ACTIVE COMMUNITIES")
+      for (const sub of a.activeSubreddits) {
+        lines.push(`${sub.name} (${sub.category}) — ${sub.activityType} — ${sub.postsCount} posts, ${sub.commentsCount} comments, avg score ${sub.avgScore}`)
+      }
+      lines.push("")
+    }
+
+    if (a.interests.length > 0) {
+      lines.push("INTERESTS")
+      lines.push(a.interests.map((t) => `${t.label} [${t.confidence}]`).join(", "))
+      lines.push("")
+    }
+
+    if (a.behaviorInsights.length > 0) {
+      lines.push("BEHAVIOR INSIGHTS")
+      for (const insight of a.behaviorInsights) {
+        lines.push(`${insight.title}: ${insight.description}`)
+      }
+    }
+
+    return lines.join("\n")
+  }
+
+  async function handleCopy() {
+    if (!analysis) return
+    await navigator.clipboard.writeText(formatAnalysisAsText(analysis))
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <>
@@ -422,6 +469,27 @@ export function RedditUserAnalyzer() {
                   </div>
                 ))}
               </div>
+
+              {hasResults && analysis ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopy}
+                  className="mt-6 h-9 rounded-full border-[var(--color-blaze-orange)]/25 bg-background/70 px-4 text-xs font-semibold hover:bg-[var(--color-blaze-orange)]/8"
+                >
+                  {copied ? (
+                    <>
+                      <IconCopyCheck size={14} stroke={2.4} className="text-[var(--color-princeton-orange)]" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <IconCopy size={14} stroke={2.2} />
+                      Copy as text
+                    </>
+                  )}
+                </Button>
+              ) : null}
             </div>
 
             <div className="space-y-4">

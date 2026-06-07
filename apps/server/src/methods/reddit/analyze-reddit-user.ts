@@ -157,7 +157,6 @@ Be direct and specific. Avoid vague claims.`
   })
 
   // Merge AI classifications back with raw activity counts
-  const aiSubByName = new Map(parsed.subreddits.map((s) => [s.name.toLowerCase().replace(/^r\//, ""), s]))
   const rawByName = new Map(subreddits.map((s) => [s.subreddit.toLowerCase(), s]))
 
   const activeSubreddits: SubredditActivity[] = parsed.subreddits.map((s, i) => {

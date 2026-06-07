@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto"
 import { Router, type IRouter } from "express"
 import { withRouteLog } from "../helpers/logger.js"
 import { checkRateLimit } from "../helpers/rate-limit.js"
-import { fetchRedditUserData } from "../methods/reddit/fetch-user-data.js"
+import { extractUsername, fetchRedditUserData } from "../methods/reddit/fetch-user-data.js"
 import { analyzeRedditUser } from "../methods/reddit/analyze-reddit-user.js"
 
 export const redditUserAnalyzerRouter: IRouter = Router()
@@ -33,13 +33,15 @@ redditUserAnalyzerRouter.post("/reddit-user-analyzer", async (req, res) => {
     return
   }
 
-  const rawUsername =
-    typeof req.body.username === "string" ? req.body.username.trim().replace(/^u\//, "") : ""
+  const rawInput =
+    typeof req.body.username === "string" ? req.body.username.trim() : ""
 
-  if (!rawUsername) {
+  if (!rawInput) {
     res.status(400).json({ error: "username is required" })
     return
   }
+
+  const rawUsername = extractUsername(rawInput)
 
   if (!/^[a-zA-Z0-9_-]{3,20}$/.test(rawUsername)) {
     res.status(400).json({ error: "Invalid Reddit username." })

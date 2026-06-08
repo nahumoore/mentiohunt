@@ -2,17 +2,18 @@
 
 ## New Tools to Build
 
-| Tool | Route | Keyword | Vol/mo | KD | Avg RDs to rank |
-|---|---|---|---|---|---|
-| Reddit User Analyzer | `/free-tools/reddit-user-analyzer` | `reddit user analyzer` + `reddit profile analyzer` | ~980 | <5 | ~35 |
-| Reddit Trending Topics | `/free-tools/reddit-trending` | `reddit trending topics` | 70 | 5 | ~27 |
-| Startup Directory Browser | `/free-tools/startup-directories` | `startup directory free` | — | LOW | low |
+| Tool                      | Route                              | Keyword                                            | Vol/mo | KD  | Avg RDs to rank |
+| ------------------------- | ---------------------------------- | -------------------------------------------------- | ------ | --- | --------------- |
+| Reddit User Analyzer      | `/free-tools/reddit-user-analyzer` | `reddit user analyzer` + `reddit profile analyzer` | ~980   | <5  | ~35             |
+| Reddit Trending Topics    | `/free-tools/reddit-trending`      | `reddit trending topics`                           | 70     | 5   | ~27             |
+| Startup Directory Browser | `/free-tools/startup-directories`  | `startup directory free`                           | —      | LOW | low             |
+| Email finder              | `/free-tools/email-finder`         | `email finder`                                     | —      | -   | -               |
 
 ## Optimize (no build needed)
 
-| Tool | Route | Keyword | Vol/mo | KD | Action |
-|---|---|---|---|---|---|
-| Subreddit Finder (built) | `/free-tools/subreddit-finder` | `reddit search tool` | 720 | 13 | Update page copy + meta to target this keyword cluster |
+| Tool                     | Route                          | Keyword              | Vol/mo | KD  | Action                                                 |
+| ------------------------ | ------------------------------ | -------------------- | ------ | --- | ------------------------------------------------------ |
+| Subreddit Finder (built) | `/free-tools/subreddit-finder` | `reddit search tool` | 720    | 13  | Update page copy + meta to target this keyword cluster |
 
 ## Skipped
 

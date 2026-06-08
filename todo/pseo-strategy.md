@@ -48,11 +48,11 @@ Direct product tie-in — Mentiohunt generates email drafts. Each page: template
 
 Single product landing pages for the community monitoring engine. Not a template. Ordered by priority.
 
-- [ ] `/twitter-monitoring` — 880/mo, competition index 2. Captures both "twitter monitoring" and much of "x monitoring" (1,300/mo, index 1) since the brand split means two active queries. Build one page, target both.
-- [ ] `/reddit-monitoring` — 40/mo, LOW competition, ~0.9 backlinks to rank, +50% YoY trend. Easiest ranking on site.
-- [ ] `/facebook-monitoring` — 170/mo, competition index 8. "facebook group monitoring" (20/mo) folds in as an H2.
-- [ ] `/youtube-monitoring` — 70/mo, competition index 23.
-- [ ] `/linkedin-monitoring` — 30/mo, competition index 33. Low volume but high CPC ($79) signals commercial intent worth owning.
+- [x] `/twitter-monitoring` — 880/mo, competition index 2. Captures both "twitter monitoring" and much of "x monitoring" (1,300/mo, index 1) since the brand split means two active queries. Build one page, target both.
+- [x] `/reddit-monitoring` — 40/mo, LOW competition, ~0.9 backlinks to rank, +50% YoY trend. Easiest ranking on site.
+- [x] `/facebook-monitoring` — 170/mo, competition index 8. "facebook group monitoring" (20/mo) folds in as an H2.
+- [x] `/youtube-monitoring` — 70/mo, competition index 23.
+- [x] `/linkedin-monitoring` — 30/mo, competition index 33. Low volume but high CPC ($79) signals commercial intent worth owning.
 
 > Skip `/quora-monitoring` and `/hacker-news-monitoring` — no measurable search volume.
 

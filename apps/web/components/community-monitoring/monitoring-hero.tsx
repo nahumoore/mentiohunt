@@ -17,17 +17,19 @@ const fadeUp = {
 
 export function MonitoringHero({ config }: { config: MonitoringConfig }) {
   return (
-    <section className="relative overflow-hidden bg-background pb-16 pt-16 sm:pb-20 sm:pt-20 lg:pb-24 lg:pt-28">
-      {/* Ambient blobs */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 left-1/4 h-[40rem] w-[40rem] rounded-full bg-[var(--color-princeton-orange)]/7 blur-[130px]" />
-        <div className="absolute bottom-0 right-0 h-[28rem] w-[28rem] translate-x-1/3 translate-y-1/4 rounded-full bg-[var(--color-amber-flame)]/8 blur-[100px]" />
+    <section id="hero" className="relative overflow-hidden bg-background">
+      {/* Atmosphere */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="absolute left-1/2 top-0 h-[700px] w-[1000px] -translate-x-1/2 rounded-full bg-[var(--color-princeton-orange)]/8 blur-[150px]" />
+        <div className="absolute right-0 top-1/3 h-[280px] w-[280px] rounded-full bg-[var(--color-amber-flame)]/5 blur-[90px]" />
+        <div className="absolute left-0 top-2/3 h-[240px] w-[240px] rounded-full bg-[var(--color-blaze-orange)]/5 blur-[90px]" />
       </div>
 
-      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16 xl:gap-20">
-          {/* Left: copy */}
-          <div>
+      {/* Centered copy */}
+      <div className="relative flex min-h-[80vh] items-center">
+        <div className="container mx-auto w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center text-center">
+            {/* Eyebrow badge */}
             <motion.div
               className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-4 py-2 backdrop-blur-sm"
               variants={fadeUp}
@@ -40,8 +42,9 @@ export function MonitoringHero({ config }: { config: MonitoringConfig }) {
               </span>
             </motion.div>
 
+            {/* Heading */}
             <motion.h1
-              className="mt-6 font-heading text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-[3.15rem] xl:text-[3.6rem]"
+              className="mt-8 max-w-4xl font-heading text-5xl font-semibold tracking-[-0.04em] text-balance sm:text-6xl lg:text-[5rem] xl:text-[5.5rem]"
               variants={fadeUp}
               initial="initial"
               animate="animate"
@@ -50,8 +53,9 @@ export function MonitoringHero({ config }: { config: MonitoringConfig }) {
               {config.hero.heading}
             </motion.h1>
 
+            {/* Sub */}
             <motion.p
-              className="mt-5 max-w-xl text-base font-medium leading-7 text-muted-foreground sm:text-lg sm:leading-8"
+              className="mx-auto mt-5 max-w-2xl text-base font-medium leading-7 text-muted-foreground sm:text-lg sm:leading-8"
               variants={fadeUp}
               initial="initial"
               animate="animate"
@@ -60,8 +64,9 @@ export function MonitoringHero({ config }: { config: MonitoringConfig }) {
               {config.hero.sub}
             </motion.p>
 
+            {/* CTA */}
             <motion.div
-              className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center"
+              className="mt-10 flex flex-col items-center gap-3 sm:flex-row"
               variants={fadeUp}
               initial="initial"
               animate="animate"
@@ -70,30 +75,21 @@ export function MonitoringHero({ config }: { config: MonitoringConfig }) {
               <Button
                 asChild
                 size="lg"
-                className="group rounded-full px-8 text-base font-bold shadow-xl shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-primary/35 active:scale-[0.99]"
+                className="group h-16 rounded-full px-10 text-lg font-bold shadow-xl shadow-primary/30 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/40 active:scale-[0.99]"
               >
                 <Link href="/signup">
                   {config.hero.primaryCta}
-                  <IconArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  <IconArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </Button>
-              <p className="text-sm text-muted-foreground">
-                No credit card required
-              </p>
+              <p className="text-sm text-muted-foreground">No credit card required</p>
             </motion.div>
           </div>
-
-          {/* Right: feed preview */}
-          <motion.div
-            initial={{ opacity: 0, y: 36, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.18, ease }}
-            className="relative"
-          >
-            <MonitoringFeedPreview config={config} />
-          </motion.div>
         </div>
       </div>
+
+      {/* Ticker */}
+      <MonitoringFeedPreview config={config} />
     </section>
   )
 }

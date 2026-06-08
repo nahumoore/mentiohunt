@@ -45,6 +45,14 @@ const resourceLinks = [
   { href: "/compare", label: "Tool Comparisons" },
 ]
 
+const monitoringLinks = [
+  { href: "/twitter-monitoring", label: "Twitter / X Monitoring" },
+  { href: "/reddit-monitoring", label: "Reddit Monitoring" },
+  { href: "/facebook-monitoring", label: "Facebook Monitoring" },
+  { href: "/youtube-monitoring", label: "YouTube Monitoring" },
+  { href: "/linkedin-monitoring", label: "LinkedIn Monitoring" },
+]
+
 const legalLinks = [
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/tos", label: "Terms of Service" },
@@ -254,7 +262,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-10 border-t border-border/60 pt-10 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto] lg:items-start">
+        <div className="mt-10 grid gap-10 border-t border-border/60 pt-10 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto_auto] lg:items-start">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <IconBrandMentiohunt className="size-5 rotate-12 text-primary" />
@@ -305,6 +313,24 @@ export function Footer() {
             </p>
             <ul className="space-y-2">
               {resourceLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground transition-colors hover:text-[var(--color-princeton-orange)]"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground/60 uppercase">
+              Monitoring
+            </p>
+            <ul className="space-y-2">
+              {monitoringLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

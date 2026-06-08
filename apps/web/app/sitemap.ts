@@ -7,10 +7,10 @@ import { getResourceSlugs } from "@/lib/mdx"
 // Community monitoring standalone pages — add slugs here as new platforms are built
 const COMMUNITY_MONITORING_SLUGS = [
   "twitter-monitoring",
-  // "reddit-monitoring",
-  // "facebook-monitoring",
-  // "youtube-monitoring",
-  // "linkedin-monitoring",
+  "reddit-monitoring",
+  "facebook-monitoring",
+  "youtube-monitoring",
+  "linkedin-monitoring",
 ]
 
 export default function sitemap(): MetadataRoute.Sitemap {

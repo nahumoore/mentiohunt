@@ -1,186 +1,186 @@
 "use client"
 
-import { IconCircleCheckFilled, IconMessageCircle, IconSparkles, IconThumbUp } from "@tabler/icons-react"
+import type { ComponentType } from "react"
+import {
+  IconBrandLinkedin,
+  IconBrandYoutube,
+  IconMessageCircle,
+  IconSparkles,
+  IconThumbUp,
+} from "@tabler/icons-react"
 import { motion } from "framer-motion"
 
 import { cn } from "@workspace/ui/lib/utils"
-import type { MonitoringConfig, SampleMention } from "@/consts/community-monitoring"
-import { PLATFORM_CONFIG } from "@/consts/platform-config"
+import type { MonitoringConfig, PlatformIconKey, SampleMention } from "@/consts/community-monitoring"
+import { IconBrandFacebookCustom } from "@/components/custom-icons/brand-facebook"
+import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
+import { IconBrandXCustom } from "@/components/custom-icons/brand-x"
+
+const PLATFORM_ICONS: Record<PlatformIconKey, ComponentType<{ className?: string }>> = {
+  x: IconBrandXCustom,
+  reddit: IconBrandRedditNew,
+  facebook: IconBrandFacebookCustom,
+  youtube: IconBrandYoutube,
+  linkedin: IconBrandLinkedin,
+}
 
 const ease = [0.21, 0.47, 0.32, 0.98] as const
 
-function FitScoreBar({ score }: { score: number }) {
-  const { barColor, textClass } =
+function FitScore({ score }: { score: number }) {
+  const textClass =
     score >= 85
-      ? { barColor: "#22c55e", textClass: "text-green-600" }
+      ? "text-green-600"
       : score >= 70
-        ? { barColor: "#f59e0b", textClass: "text-amber-600" }
-        : { barColor: "#f97316", textClass: "text-orange-600" }
-
+        ? "text-amber-600"
+        : "text-orange-600"
   return (
-    <div className="flex shrink-0 flex-col items-end gap-1">
-      <span className={cn("text-[9px] font-bold uppercase tracking-wider", textClass)}>
-        Fit Score
+    <div className="flex shrink-0 flex-col items-end">
+      <span className={cn("text-base font-black tabular-nums", textClass)}>{score}</span>
+      <span className="text-[0.44rem] font-bold tracking-widest text-muted-foreground/40 uppercase">
+        fit
       </span>
-      <div className="flex items-center gap-1.5">
-        <div className="h-1 w-16 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full transition-all"
-            style={{ width: `${score}%`, backgroundColor: barColor }}
-          />
-        </div>
-        <span className={cn("text-xs font-bold tabular-nums", textClass)}>{score}</span>
-      </div>
     </div>
   )
 }
 
-function SampleCard({
+function TickerCard({
   mention,
   accentColor,
-  platformLabel,
   platformColorClass,
   PlatformIcon,
-  index,
+  platformLabel,
 }: {
   mention: SampleMention
   accentColor: string
-  platformLabel: string
   platformColorClass: string
-  PlatformIcon: React.ComponentType<{ className?: string }>
-  index: number
+  PlatformIcon: ComponentType<{ className?: string }>
+  platformLabel: string
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, delay: 0.35 + index * 0.12, ease }}
-      className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-[0_4px_20px_-6px_rgba(0,0,0,0.08)]"
-    >
+    <div className="relative flex h-[210px] w-[300px] shrink-0 flex-col overflow-hidden rounded-xl border border-border/70 bg-card px-4 py-3.5 shadow-sm">
       {/* Left accent */}
-      <div className="absolute left-0 top-0 h-full w-0.5" style={{ backgroundColor: accentColor }} />
+      <div
+        className="absolute left-0 top-0 h-full w-0.5"
+        style={{ backgroundColor: accentColor }}
+      />
 
-      <div className="p-4 pl-5">
-        {/* Header */}
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div
-              className="flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-              style={{ backgroundColor: accentColor === "#000000" ? "#27272a" : accentColor }}
-            >
-              {mention.authorName.replace(/^[@]/, "").slice(0, 1).toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <p className="text-xs font-bold text-foreground">{mention.authorName}</p>
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                    platformColorClass
-                  )}
-                >
-                  <PlatformIcon className="size-2.5" />
-                  {platformLabel}
-                </span>
-                <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                  {mention.intent}
-                </span>
-              </div>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">
-                {mention.handle} · {mention.postedAt}
-              </p>
-            </div>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2 pl-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <div
+            className="flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+            style={{ backgroundColor: accentColor }}
+          >
+            {mention.authorName.replace(/^[@u/]/, "").slice(0, 1).toUpperCase()}
           </div>
-          <div className="shrink-0">
-            <FitScoreBar score={mention.fitScore} />
+          <div className="min-w-0">
+            <p className="truncate text-[0.62rem] font-bold text-foreground">
+              {mention.authorName}
+            </p>
+            <div className="flex items-center gap-1">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-medium",
+                  platformColorClass
+                )}
+              >
+                <PlatformIcon className="size-2" />
+                {platformLabel}
+              </span>
+              <span className="inline-flex max-w-[80px] items-center truncate rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
+                {mention.intent}
+              </span>
+            </div>
           </div>
         </div>
+        <FitScore score={mention.fitScore} />
+      </div>
 
-        {/* Post text */}
-        <p className="mb-3 line-clamp-2 text-xs leading-5 text-foreground/90">
-          {mention.text}
-        </p>
+      {/* Post text */}
+      <p className="mt-2 line-clamp-2 pl-1 text-[0.72rem] leading-5 text-foreground/80">
+        &ldquo;{mention.text}&rdquo;
+      </p>
 
-        {/* Engagement */}
-        <div className="mb-3 flex items-center gap-4 text-[10px] font-medium text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <IconThumbUp className="size-3" />
-            {mention.reactions}
-          </span>
-          <span className="flex items-center gap-1">
-            <IconMessageCircle className="size-3" />
-            {mention.comments} comments
-          </span>
-        </div>
+      {/* Engagement */}
+      <div className="mt-1.5 flex items-center gap-3 pl-1 text-[10px] text-muted-foreground/60">
+        <span className="flex items-center gap-1">
+          <IconThumbUp className="size-2.5" />
+          {mention.reactions}
+        </span>
+        <span className="flex items-center gap-1">
+          <IconMessageCircle className="size-2.5" />
+          {mention.comments}
+        </span>
+      </div>
 
-        {/* Reply draft */}
-        <div className="rounded-xl border border-border bg-muted/40 p-3">
-          <div className="mb-1.5 flex items-center gap-1.5">
-            <IconSparkles className="size-3 text-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
-              Suggested Reply
-            </span>
-          </div>
-          <p className="line-clamp-2 text-[11px] leading-5 text-foreground/80">
+      {/* Reply draft */}
+      <div className="mt-auto border-t border-border/60 pt-2 pl-1">
+        <div className="flex items-start gap-1.5">
+          <IconSparkles className="mt-0.5 size-3 shrink-0 text-primary" />
+          <p className="line-clamp-2 text-[0.65rem] leading-4 text-muted-foreground">
             {mention.replyDraft}
           </p>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
 export function MonitoringFeedPreview({ config }: { config: MonitoringConfig }) {
-  const platformCfg = PLATFORM_CONFIG[config.platform]
-  const PlatformIcon = platformCfg.icon as React.ComponentType<{ className?: string }>
+  const platformCfg = config.platformDisplay
+  const PlatformIcon = PLATFORM_ICONS[platformCfg.iconKey]
+
+  // 4 copies per half → 8 copies total, animate -50%
+  // each half = 12 cards × 316px ≈ 3792px — wider than any viewport
+  const half = [
+    ...config.sample,
+    ...config.sample,
+    ...config.sample,
+    ...config.sample,
+  ]
+  const items = [...half, ...half]
 
   return (
-    <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-[0_24px_80px_-32px_rgba(0,0,0,0.18)]">
-      {/* Top gradient line */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-blaze-orange)]/50 to-transparent" />
+    <motion.div
+      className="pb-20 pt-2"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, delay: 0.44, ease }}
+    >
+      <div className="relative overflow-hidden">
+        {/* Edge fades */}
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-background to-transparent"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-background to-transparent"
+          aria-hidden="true"
+        />
 
-      {/* Header chrome */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5">
-            <div className="size-2.5 rounded-full bg-muted-foreground/20" />
-            <div className="size-2.5 rounded-full bg-muted-foreground/20" />
-            <div className="size-2.5 rounded-full bg-muted-foreground/20" />
-          </div>
-          <span className="text-xs font-semibold text-muted-foreground">
-            {platformCfg.label} Monitoring — Reply Queue
-          </span>
-        </div>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.4 }}
-          className="flex items-center gap-1.5 text-[10px] font-semibold text-green-600"
+        <div
+          className="flex w-max gap-4 py-2"
+          style={{ animation: "monitoring-ticker 38s linear infinite" }}
         >
-          <IconCircleCheckFilled className="size-3" />
-          Live
-        </motion.div>
-      </div>
-
-      {/* Cards area */}
-      <div className="relative p-4">
-        <div className="space-y-3">
-          {config.sample.map((mention, i) => (
-            <SampleCard
-              key={mention.authorName}
+          {items.map((mention, i) => (
+            <TickerCard
+              key={i}
               mention={mention}
               accentColor={platformCfg.accentColor}
-              platformLabel={platformCfg.label}
               platformColorClass={platformCfg.color}
               PlatformIcon={PlatformIcon}
-              index={i}
+              platformLabel={platformCfg.label}
             />
           ))}
         </div>
 
-        {/* Bottom fade */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card to-transparent" />
+        <style>{`
+          @keyframes monitoring-ticker {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+          }
+        `}</style>
       </div>
-    </div>
+    </motion.div>
   )
 }

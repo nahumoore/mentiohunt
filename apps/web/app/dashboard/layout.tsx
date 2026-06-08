@@ -86,7 +86,12 @@ function mapOutreachSettings(
 }
 
 function mapMentionPlatform(platform: string): MentionPlatform {
-  return platform === "bluesky" ? "bluesky" : "reddit"
+  switch (platform) {
+    case "bluesky": return "bluesky"
+    case "facebook": return "facebook"
+    case "twitter": return "twitter"
+    default: return "reddit"
+  }
 }
 
 function mapMentionIntent(fitCategory: string): MentionIntent {
@@ -124,8 +129,13 @@ function mapCommunityMention(row: ReplyQueueItemRow): CommunityMention {
   const status = mapMentionStatus(row.user_status)
   const platform = mapMentionPlatform(row.platform)
   const postedAt = row.post_created_at ?? row.created_at
-  const sourceName =
-    row.community ?? (platform === "bluesky" ? "Bluesky" : "Reddit")
+  const platformFallback: Record<string, string> = {
+    reddit: "Reddit",
+    bluesky: "Bluesky",
+    facebook: "Facebook",
+    twitter: "X / Twitter",
+  }
+  const sourceName = row.community ?? (platformFallback[platform] ?? "Reddit")
 
   return {
     id: row.id,

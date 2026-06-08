@@ -109,7 +109,7 @@ export async function gatherPosts(options: {
   if (platforms.includes("facebook")) {
     for (const keyword of keywords) {
       tasks.push(
-        searchFacebook(keyword, 35)
+        searchFacebook(keyword, 50, sinceISO)
           .then((posts) => {
             posts.forEach((p) => addPost(mapFacebookPost(p)))
             log.info("facebook search", { keyword, found: posts.length })
@@ -125,8 +125,12 @@ export async function gatherPosts(options: {
     tasks.push(
       searchTwitter(keywords, { maxItems: 35 * keywords.length })
         .then(({ posts }) => {
-          posts.forEach((p) => addPost(mapTwitterPost(p)))
-          log.info("twitter search", { found: posts.length })
+          const dateCapped = posts.filter((p) => {
+            if (!p.created_at) return true
+            return new Date(p.created_at) >= since
+          })
+          dateCapped.forEach((p) => addPost(mapTwitterPost(p)))
+          log.info("twitter search", { fetched: posts.length, after_date_filter: dateCapped.length })
         })
         .catch((err) =>
           log.warn("twitter search failed", { error: String(err) })
@@ -213,7 +217,7 @@ function mapFacebookPost(p: FacebookPost): GatheredPost {
     title: p.title,
     body,
     url: p.url,
-    community: null,
+    community: p.community,
     author: null,
     engagement: 0,
     comment_count: 0,

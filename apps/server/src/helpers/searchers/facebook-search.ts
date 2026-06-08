@@ -13,6 +13,12 @@ export interface FacebookPost {
   title: string | null
   text: string
   url: string
+  community: string | null
+}
+
+function extractFacebookGroup(url: string): string | null {
+  const match = url.match(/facebook\.com\/groups\/([^/?#]+)/i)
+  return match ? match[1] : null
 }
 
 function urlToId(url: string): string {
@@ -29,9 +35,11 @@ function urlToId(url: string): string {
 
 export async function searchFacebook(
   keyword: string,
-  limit = 20
+  limit = 20,
+  since?: string
 ): Promise<FacebookPost[]> {
-  const query = `"${keyword}" site:facebook.com`
+  const dateFilter = since ? ` after:${since.slice(0, 10)}` : ""
+  const query = `"${keyword}" site:facebook.com/groups inurl:posts${dateFilter}`
 
   let items: GoogleSerpItem[]
   try {
@@ -59,5 +67,6 @@ export async function searchFacebook(
       title: r.title ?? null,
       text: r.description ?? "",
       url: r.url!,
+      community: extractFacebookGroup(r.url!),
     }))
 }

@@ -65,8 +65,10 @@ export async function runReplyQueue({
     const communities =
       (config.communities as unknown as ConfigCommunity[]) ?? []
 
+    const platforms: string[] = config.platforms ?? []
+
     const gathered = filterDuplicates(await gatherPosts({
-      platforms: config.platforms,
+      platforms,
       communities,
       keywords: config.keywords,
       dateWindowDays,

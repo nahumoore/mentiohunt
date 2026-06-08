@@ -4,6 +4,15 @@ import { features } from "@/consts/features"
 import { FREE_TOOL_NAMES } from "@/consts/free-tools"
 import { getResourceSlugs } from "@/lib/mdx"
 
+// Community monitoring standalone pages — add slugs here as new platforms are built
+const COMMUNITY_MONITORING_SLUGS = [
+  "twitter-monitoring",
+  // "reddit-monitoring",
+  // "facebook-monitoring",
+  // "youtube-monitoring",
+  // "linkedin-monitoring",
+]
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const altSlugs = getResourceSlugs("alternatives")
   const articleSlugs = getResourceSlugs("articles")
@@ -112,6 +121,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-05-15"),
       priority: 0.7,
     },
+    ...COMMUNITY_MONITORING_SLUGS.map((slug) => ({
+      url: `https://mentiohunt.com/${slug}`,
+      lastModified: new Date("2026-06-08"),
+      priority: 0.8 as const,
+    })),
     { url: "https://mentiohunt.com/privacy", priority: 0.3 as const },
     { url: "https://mentiohunt.com/tos", priority: 0.3 as const },
   ]

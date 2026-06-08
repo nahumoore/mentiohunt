@@ -15,6 +15,7 @@ import { toast } from "sonner"
 
 import type { CommunityMention, MentionSortKey } from "@/app/dashboard/community-mentions/reply-queue/_data"
 import { SORT_OPTIONS } from "@/app/dashboard/community-mentions/reply-queue/_data"
+import type { MentionPlatform } from "@/consts/platform-config"
 import { useCommunityMentionStore } from "@/stores/community-mention-store"
 import { MentionCard } from "./mention-card"
 import { MentionSidebar } from "./mention-sidebar"
@@ -31,6 +32,7 @@ export function MentionFeed() {
   )
   const [currentPage, setCurrentPage] = useState(1)
   const [sortKey, setSortKey] = useState<MentionSortKey>("relevance")
+  const [platformFilter, setPlatformFilter] = useState<MentionPlatform | null>(null)
   const [exitDirections, setExitDirections] = useState<Record<string, "left" | "right">>({})
   const [showScrollTop, setShowScrollTop] = useState(false)
 
@@ -43,6 +45,7 @@ export function MentionFeed() {
   function filtered(): CommunityMention[] {
     return allMentions
       .filter((m) => m.status === "new")
+      .filter((m) => platformFilter === null || m.platform === platformFilter)
       .sort((a, b) => {
         switch (sortKey) {
           case "date":
@@ -234,7 +237,11 @@ export function MentionFeed() {
         </AnimatePresence>
       </div>
 
-      <MentionSidebar mentions={allMentions} />
+      <MentionSidebar
+        mentions={allMentions}
+        selectedPlatform={platformFilter}
+        onSelectPlatform={(p) => { setPlatformFilter(p); setCurrentPage(1) }}
+      />
     </div>
   )
 }

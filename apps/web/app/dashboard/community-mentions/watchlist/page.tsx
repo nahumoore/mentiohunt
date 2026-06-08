@@ -14,6 +14,7 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Switch } from "@workspace/ui/components/switch"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Tabs,
   TabsContent,
@@ -562,6 +563,43 @@ function NotificationsTab({
   )
 }
 
+// ─── Loading skeleton ─────────────────────────────────────────────────────────
+
+function WatchlistSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex gap-1 rounded-xl bg-muted p-1 w-fit">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-8 w-24 rounded-lg" />
+        ))}
+      </div>
+      <div className="overflow-hidden rounded-3xl border border-border/70 bg-card">
+        <div className="border-b border-border/70 px-5 py-4 flex flex-col gap-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-3 w-72" />
+        </div>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-4 border-b border-border/70 px-5 py-4 last:border-b-0"
+          >
+            <Skeleton className="size-9 shrink-0 rounded-2xl" />
+            <div className="flex-1 flex flex-col gap-2">
+              <Skeleton className="h-3.5 w-32" />
+              <Skeleton className="h-3 w-64" />
+            </div>
+            <Skeleton className="h-5 w-9 rounded-full" />
+          </div>
+        ))}
+        <div className="flex items-center justify-between border-t border-border/70 px-5 py-4">
+          <Skeleton className="h-3 w-52" />
+          <Skeleton className="h-9 w-32 rounded-full" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CommunityDiscoverySetupPage() {
@@ -610,6 +648,8 @@ export default function CommunityDiscoverySetupPage() {
       cancelled = true
     }
   }, [])
+
+  if (isLoading) return <WatchlistSkeleton />
 
   const hasUnsavedChanges =
     JSON.stringify(config) !== JSON.stringify(lastSaved)

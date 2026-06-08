@@ -114,9 +114,17 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
 
   const accentColor = PLATFORM_CONFIG[mention.platform].accentColor
 
-  function copyReply(text: string, e: React.MouseEvent) {
+  function copyOnly(text: string, e: React.MouseEvent) {
     e.stopPropagation()
     navigator.clipboard.writeText(text)
+    captureEvent("reply_copied", { mention_id: mention.id })
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  function copyAndOpenPost(e: React.MouseEvent) {
+    e.stopPropagation()
+    navigator.clipboard.writeText(mention.replyDraft)
     captureEvent("reply_copied", { mention_id: mention.id })
     if (mention.postUrl) window.open(mention.postUrl, "_blank", "noopener,noreferrer")
     setCopied(true)
@@ -232,12 +240,12 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
               <span className="text-xs font-bold uppercase tracking-wider text-primary">Suggested Reply</span>
             </div>
             <button
-              onClick={(e) => copyReply(mention.replyDraft, e)}
+              onClick={(e) => copyOnly(mention.replyDraft, e)}
               disabled={isActioned}
               className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
             >
               {copied ? <IconCopyCheck className="size-3.5" /> : <IconCopy className="size-3.5" />}
-              {copied ? "Copied!" : "Copy & Open Post"}
+              {copied ? "Copied!" : "Copy"}
             </button>
           </div>
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">{mention.replyDraft}</p>
@@ -292,28 +300,30 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
             )}
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
                 captureEvent("mention_marked_replied", { mention_id: mention.id, source: "card" })
-                onMarkReplied(mention.id)
+                copyAndOpenPost(e)
               }}
               disabled={isActioned}
               className={cn(
-                "rounded-lg px-5 py-2 text-xs font-bold shadow-sm transition-all",
+                "flex items-center gap-1.5 rounded-lg px-5 py-2 text-xs font-bold shadow-sm transition-all",
                 isActioned
                   ? "cursor-not-allowed bg-muted text-muted-foreground"
                   : "bg-primary text-white hover:opacity-90 hover:shadow-md"
               )}
             >
               {isReplied ? (
-                <span className="flex items-center gap-1.5">
+                <>
                   <IconCheck className="size-3.5" /> Replied
-                </span>
+                </>
               ) : isDismissed ? (
-                <span className="flex items-center gap-1.5">
+                <>
                   <IconBan className="size-3.5" /> Dismissed
-                </span>
+                </>
               ) : (
-                "Mark Replied"
+                <>
+                  <IconCopy className="size-3.5" /> Copy & Open Post
+                </>
               )}
             </button>
           </div>

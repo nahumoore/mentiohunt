@@ -51,6 +51,7 @@ const monitoringLinks = [
   { href: "/facebook-monitoring", label: "Facebook Monitoring" },
   { href: "/youtube-monitoring", label: "YouTube Monitoring" },
   { href: "/linkedin-monitoring", label: "LinkedIn Monitoring" },
+  { href: "/google-monitoring", label: "Google Monitoring" },
 ]
 
 const legalLinks = [

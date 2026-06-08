@@ -1,4 +1,4 @@
-export type PlatformIconKey = "x" | "reddit" | "facebook" | "youtube" | "linkedin"
+export type PlatformIconKey = "x" | "reddit" | "facebook" | "youtube" | "linkedin" | "google"
 
 export interface MonitoringPlatformDisplay {
   label: string
@@ -790,3 +790,162 @@ export const LINKEDIN_MONITORING: MonitoringConfig = {
     },
   ],
 }
+
+// ─── Google ──────────────────────────────────────────────────────────────────
+
+export const GOOGLE_MONITORING: MonitoringConfig = {
+  slug: "google-monitoring",
+  platformDisplay: {
+    label: "Google",
+    iconKey: "google" as const,
+    color: "text-blue-600 bg-blue-500/10",
+    accentColor: "#4285f4",
+  },
+  name: "Google",
+
+  seo: {
+    title: "Google Mentions Monitoring for Founders — Mentiohunt",
+    description:
+      "Monitor Google search results and forums for posts where your product fits. Surface high-intent conversations indexed by Google with a suggested reply draft so you engage while the thread is active.",
+    keywords: [
+      "google monitoring",
+      "monitor google mentions",
+      "google brand monitoring",
+      "google alerts alternative",
+      "monitor google search results",
+      "google keyword monitoring",
+      "brand mention monitoring google",
+    ],
+  },
+
+  hero: {
+    eyebrow: "Google Monitoring",
+    heading: "Monitor Google-indexed conversations where your product fits",
+    sub: "Mentiohunt surfaces forum posts, Q&A threads, and discussions indexed by Google that match your product keywords. Get scored matches with a suggested reply draft before the conversation loses momentum.",
+    primaryCta: "Start monitoring Google",
+  },
+
+  steps: [
+    {
+      title: "Set your keyword queue",
+      desc: "Add your product name, the problem you solve, and core use-case phrases. Mentiohunt builds a search strategy targeting Google-indexed forums, communities, and Q&A platforms.",
+    },
+    {
+      title: "We scan Google-indexed results daily",
+      desc: "Daily sweeps surface new threads and posts matching your keyword set across Google-indexed communities. Each result is scored for product fit before entering your queue.",
+    },
+    {
+      title: "Reply while the thread is active",
+      desc: "Your queue shows the matched post, a plain-language fit rationale, and a suggested reply draft. Engage from the original platform yourself while the thread still has momentum.",
+    },
+  ],
+
+  why: [
+    {
+      title: "Google indexes the highest-intent conversations",
+      desc: "Forum threads, Q&A posts, and community discussions that rank in Google are read by large audiences over time. A single reply in one of these threads can drive ongoing discovery.",
+    },
+    {
+      title: "Covers forums, Q&A, and community sites",
+      desc: "Google-indexed results span Quora, Stack Exchange, niche forums, and product communities. One Mentiohunt setup captures relevant posts across all of them without separate configurations.",
+    },
+    {
+      title: "Fit-scored, not a firehose",
+      desc: "Every match is scored for product relevance before it reaches your queue. Only threads where your product is a credible, helpful answer make the cut.",
+    },
+    {
+      title: "Reply draft included",
+      desc: "Each opportunity surfaces with a suggested reply already written. Review it, adjust the tone, and post from the original platform yourself.",
+    },
+  ],
+
+  useCases: [
+    {
+      title: "Founders building in public",
+      desc: "Catch Q&A posts and forum threads where your product is the answer. Replies in Google-ranked threads compound over time — one helpful comment drives discovery for months.",
+    },
+    {
+      title: "Small marketing teams",
+      desc: "Monitor Google-indexed conversations as a one-person effort. The daily queue surfaces what matters without manual searching or Google Alerts noise.",
+    },
+    {
+      title: "Product launches",
+      desc: "During launch week, surface every relevant Google-indexed thread asking about your use case. Participate while intent is highest and the content is fresh.",
+    },
+  ],
+
+  faqs: [
+    {
+      q: "How is this different from Google Alerts?",
+      a: "Google Alerts sends raw notifications with no filtering or prioritization. Mentiohunt scores each match for product fit, surfaces only the relevant threads, and includes a suggested reply draft — so you spend time engaging, not filtering.",
+    },
+    {
+      q: "What platforms does Google monitoring cover?",
+      a: "Results span any platform Google indexes: Quora, Stack Exchange, Reddit, niche forums, product communities, and more. The queue consolidates them all without separate setups.",
+    },
+    {
+      q: "How often are results scanned?",
+      a: "Daily sweeps surface new matches. Posts enter your queue with a fit score and plain-language rationale so you can prioritize quickly.",
+    },
+    {
+      q: "Will Mentiohunt post replies automatically?",
+      a: "No. Mentiohunt generates a suggested reply and shows the original post URL. You review the draft and post it from the original platform yourself. The decision to publish stays with you.",
+    },
+    {
+      q: "What keywords should I track?",
+      a: "Start with your product name, the core problem you solve, and names of close alternatives. Question-style phrases your ICP searches — 'best tool for X' or 'how do I Y' — tend to surface the highest-fit Google-indexed threads.",
+    },
+    {
+      q: "Does Mentiohunt only monitor Google?",
+      a: "No. Mentiohunt also monitors Reddit, X (Twitter), Facebook, YouTube, and LinkedIn. Google monitoring is one engine inside a broader community monitoring product.",
+    },
+  ],
+
+  sample: [
+    {
+      authorName: "user_alex_builds",
+      handle: "Quora · Top Writer",
+      postedAt: "1h ago",
+      text: "What are the best tools to monitor where your SaaS product is mentioned online? Google Alerts is too noisy and I keep missing the threads that actually matter.",
+      fitScore: 93,
+      intent: "Asking for tool",
+      replyDraft:
+        "Worth trying Mentiohunt — it monitors Google-indexed forums and communities for keyword matches, scores each for product fit, and surfaces a suggested reply draft. Much less noise than Google Alerts.",
+      reactions: 44,
+      comments: 21,
+    },
+    {
+      authorName: "priya_founder_q",
+      handle: "Stack Exchange · 1.4k rep",
+      postedAt: "3h ago",
+      text: "How do founders track forum conversations where their product would be a helpful answer? I know these threads exist in Google but I have no system to find them reliably.",
+      fitScore: 89,
+      intent: "Strategy question",
+      replyDraft:
+        "Mentiohunt does this — scans Google-indexed forums and Q&A threads for keyword matches, scores them for product fit, and queues them with a suggested reply. Daily queue so you stop missing relevant threads.",
+      reactions: 31,
+      comments: 14,
+    },
+    {
+      authorName: "marcus_ih",
+      handle: "Indie Hackers forum",
+      postedAt: "6h ago",
+      text: "Found a Quora thread ranking for my target keyword where someone was asking for exactly what I built. Replied and it now drives 20 signups a month. I need a system to find more of these.",
+      fitScore: 96,
+      intent: "Pain point",
+      replyDraft:
+        "That is exactly the use case Mentiohunt is built for. It surfaces Google-indexed threads daily with a suggested reply so you replicate those wins at scale without manual searching.",
+      reactions: 87,
+      comments: 43,
+    },
+  ],
+}
+
+export const ALL_MONITORING_CONFIGS: MonitoringConfig[] = [
+  TWITTER_MONITORING,
+  REDDIT_MONITORING,
+  FACEBOOK_MONITORING,
+  YOUTUBE_MONITORING,
+  LINKEDIN_MONITORING,
+  GOOGLE_MONITORING,
+]

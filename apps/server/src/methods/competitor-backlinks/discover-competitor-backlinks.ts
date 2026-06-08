@@ -30,8 +30,33 @@ async function runBackgroundEnrichment(
     const contact = await enrichContact(item.urlFrom, item.pageType, domain)
 
     if (!contact.email) {
-      log.info("no email found — dropping prospect", { rowId, domain })
-      await supabaseAdmin.from("backlink_prospects").delete().eq("id", rowId)
+      const { error: updateError } = await supabaseAdmin
+        .from("backlink_prospects")
+        .update({
+          contact_name: contact.name,
+          contact_email: null,
+          contact_social_links: Object.keys(contact.social_links).length > 0 ? contact.social_links : null,
+          email_subject: null,
+          email_body: null,
+          raw_post_text: null,
+        })
+        .eq("id", rowId)
+
+      if (updateError) {
+        log.warn("failed to save contact without email", {
+          rowId,
+          domain,
+          error: updateError.message,
+        })
+        return
+      }
+
+      log.info("saved contact name without email", {
+        rowId,
+        domain,
+        contactName: contact.name,
+        socialCount: Object.keys(contact.social_links).length,
+      })
       return
     }
 
@@ -201,16 +226,43 @@ async function processCompetitor(
 
     const filtered = filterBacklinks(tagged, settings)
     if (filtered.length === 0) {
+      log.info("competitor digest", {
+        competitorDomain,
+        extracted: items.length,
+        passedFilters: 0,
+        discardedByFilters: items.length,
+        scoredTotal: 0,
+        discardedByScore: 0,
+        kept: 0,
+        inserted: 0,
+      })
       return { prospectsCreated: 0, costUsd: 0, nextCursor }
     }
 
     const { results: scored, totalCost } = await scoreBacklinkRelevance(filtered, product)
+    const belowThreshold = scored.filter((r) => r.relevanceScore < MIN_RELEVANCE_SCORE)
     const passing = scored
       .filter((r) => r.relevanceScore >= MIN_RELEVANCE_SCORE)
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .slice(0, MAX_PROSPECTS_PER_RUN)
 
     if (passing.length === 0) {
+      log.info("competitor digest", {
+        competitorDomain,
+        extracted: items.length,
+        passedFilters: filtered.length,
+        discardedByFilters: items.length - filtered.length,
+        scoredTotal: scored.length,
+        discardedByScore: belowThreshold.length,
+        discardedItems: belowThreshold.map((r) => ({
+          url: r.urlFrom,
+          score: r.relevanceScore,
+          pageType: r.pageType,
+          reason: r.relevanceReason,
+        })),
+        kept: 0,
+        inserted: 0,
+      })
       return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
     }
 
@@ -237,6 +289,30 @@ async function processCompetitor(
 
     const insertedRows = inserted ?? []
     log.info("rows upserted", { productId: product.id, competitorDomain, count: insertedRows.length })
+
+    log.info("competitor digest", {
+      competitorDomain,
+      extracted: items.length,
+      passedFilters: filtered.length,
+      discardedByFilters: items.length - filtered.length,
+      scoredTotal: scored.length,
+      discardedByScore: belowThreshold.length,
+      discardedItems: belowThreshold.map((r) => ({
+        url: r.urlFrom,
+        score: r.relevanceScore,
+        pageType: r.pageType,
+        reason: r.relevanceReason,
+      })),
+      kept: passing.length,
+      keptItems: passing.map((r) => ({
+        url: r.urlFrom,
+        score: r.relevanceScore,
+        pageType: r.pageType,
+        reason: r.relevanceReason,
+      })),
+      newlyInserted: insertedRows.length,
+      duplicatesSkipped: passing.length - insertedRows.length,
+    })
 
     const scoredByFoundUrl = new Map(passing.map((item) => [item.urlFrom, item]))
     const enrichLimit = pLimit(1)
@@ -317,10 +393,13 @@ export async function discoverCompetitorBacklinks(
     if (runId) await failProspectRun(runId, msg)
   }
 
-  log.info("discovery complete", {
+  log.info("run digest", {
     productId: product.id,
-    prospectsCreated: totalProspectsCreated,
-    totalCostUsd,
+    competitorsProcessed: competitorsToProcess.length,
+    competitorsSkipped: allDomains.length - competitorsToProcess.length,
+    totalProspectsCreated,
+    totalCostUsd: totalCostUsd.toFixed(4),
+    nextCursors: mozCursorsByDomain,
   })
 
   return { prospectsCreated: totalProspectsCreated, totalCostUsd }

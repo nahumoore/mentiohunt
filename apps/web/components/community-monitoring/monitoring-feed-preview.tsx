@@ -13,6 +13,7 @@ import { motion } from "framer-motion"
 import { cn } from "@workspace/ui/lib/utils"
 import type { MonitoringConfig, PlatformIconKey, SampleMention } from "@/consts/community-monitoring"
 import { IconBrandFacebookCustom } from "@/components/custom-icons/brand-facebook"
+import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
 import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
 import { IconBrandXCustom } from "@/components/custom-icons/brand-x"
 
@@ -22,6 +23,7 @@ const PLATFORM_ICONS: Record<PlatformIconKey, ComponentType<{ className?: string
   facebook: IconBrandFacebookCustom,
   youtube: IconBrandYoutube,
   linkedin: IconBrandLinkedin,
+  google: IconBrandGoogle,
 }
 
 const ease = [0.21, 0.47, 0.32, 0.98] as const

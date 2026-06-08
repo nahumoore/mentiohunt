@@ -8,10 +8,22 @@ export const FREE_TOOL_NAMES = {
   competitorBacklinkGap: "competitor-backlink-gap",
   subredditFinder: "subreddit-finder",
   redditUserAnalyzer: "reddit-user-analyzer",
+  startupDirectories: "startup-directories",
 } as const
 
 export type FreeToolName =
   (typeof FREE_TOOL_NAMES)[keyof typeof FREE_TOOL_NAMES]
+
+// All slugs with actual frontend pages — used for sitemap and discovery
+export const ALL_FREE_TOOL_SLUGS: FreeToolName[] = [
+  FREE_TOOL_NAMES.directoryBacklinkOpportunityFinder,
+  FREE_TOOL_NAMES.startupDirectories,
+  FREE_TOOL_NAMES.backlinkPriceCalculator,
+  FREE_TOOL_NAMES.backlinkOpportunityFinder,
+  FREE_TOOL_NAMES.competitorBacklinkGap,
+  FREE_TOOL_NAMES.subredditFinder,
+  FREE_TOOL_NAMES.redditUserAnalyzer,
+]
 
 // In-memory rate limiter — resets on deploy/restart, breaks with multiple instances
 type RateLimitEntry = { count: number; date: string }

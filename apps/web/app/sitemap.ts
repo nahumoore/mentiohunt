@@ -1,17 +1,9 @@
 import type { MetadataRoute } from "next"
 
 import { features } from "@/consts/features"
-import { FREE_TOOL_NAMES } from "@/consts/free-tools"
+import { ALL_FREE_TOOL_SLUGS } from "@/consts/free-tools"
 import { getResourceSlugs } from "@/lib/mdx"
-
-// Community monitoring standalone pages — add slugs here as new platforms are built
-const COMMUNITY_MONITORING_SLUGS = [
-  "twitter-monitoring",
-  "reddit-monitoring",
-  "facebook-monitoring",
-  "youtube-monitoring",
-  "linkedin-monitoring",
-]
+import { ALL_MONITORING_CONFIGS } from "@/consts/community-monitoring"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const altSlugs = getResourceSlugs("alternatives")
@@ -86,43 +78,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-05-15"),
       priority: 0.8,
     },
-    {
-      url: `https://mentiohunt.com/free-tools/${FREE_TOOL_NAMES.directoryBacklinkOpportunityFinder}`,
-      lastModified: new Date("2026-05-15"),
-      priority: 0.75,
-    },
-    {
-      url: "https://mentiohunt.com/free-tools/startup-directories",
-      lastModified: new Date("2026-05-15"),
-      priority: 0.75,
-    },
-    {
-      url: `https://mentiohunt.com/free-tools/${FREE_TOOL_NAMES.backlinkPriceCalculator}`,
-      lastModified: new Date("2026-05-21"),
-      priority: 0.75,
-    },
-    {
-      url: `https://mentiohunt.com/free-tools/${FREE_TOOL_NAMES.backlinkOpportunityFinder}`,
-      lastModified: new Date("2026-05-28"),
-      priority: 0.75,
-    },
-    {
-      url: `https://mentiohunt.com/free-tools/${FREE_TOOL_NAMES.competitorBacklinkGap}`,
-      lastModified: new Date("2026-05-28"),
-      priority: 0.75,
-    },
-    {
-      url: `https://mentiohunt.com/free-tools/${FREE_TOOL_NAMES.subredditFinder}`,
-      lastModified: new Date("2026-05-28"),
-      priority: 0.75,
-    },
+    ...ALL_FREE_TOOL_SLUGS.map((slug) => ({
+      url: `https://mentiohunt.com/free-tools/${slug}`,
+      lastModified: new Date("2026-06-08"),
+      priority: 0.75 as const,
+    })),
     {
       url: "https://mentiohunt.com/directory-submission",
       lastModified: new Date("2026-05-15"),
       priority: 0.7,
     },
-    ...COMMUNITY_MONITORING_SLUGS.map((slug) => ({
-      url: `https://mentiohunt.com/${slug}`,
+    ...ALL_MONITORING_CONFIGS.map((config) => ({
+      url: `https://mentiohunt.com/${config.slug}`,
       lastModified: new Date("2026-06-08"),
       priority: 0.8 as const,
     })),

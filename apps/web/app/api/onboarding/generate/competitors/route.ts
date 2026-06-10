@@ -7,7 +7,7 @@ import { z } from "zod"
 export const runtime = "nodejs"
 
 const competitorsSchema = z.object({
-  competitors: z.array(z.string().url()).min(8).max(10),
+  competitors: z.array(z.string().min(3)).min(8).max(10),
 })
 
 const requestSchema = z.object({
@@ -20,10 +20,11 @@ const requestSchema = z.object({
 const systemInstructions = [
   "Given a product's name, description, and homepage signals, identify real products that compete directly with it.",
   "Return JSON only with this exact shape:",
-  '{"competitors":["https://example.com"]}',
+  '{"competitors":["example.com"]}',
   "Rules:",
-  "- competitors must contain 8 to 10 unique homepage URLs of real products that serve the same audience and solve the same problem.",
-  "- Use absolute HTTPS URLs only.",
+  "- competitors must contain 8 to 10 unique root domains of real products that serve the same audience and solve the same problem.",
+  "- Return root domains only (e.g. 'example.com'), never full URLs, paths, or subpages.",
+  "- Do not include 'https://', 'http://', 'www.', or any trailing slashes.",
   "- Do not include the input site itself.",
   "- If the homepage is ambiguous, infer the most plausible competitor set from the available signals.",
 ].join("\n")

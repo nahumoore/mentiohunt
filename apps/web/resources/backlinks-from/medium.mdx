@@ -3,6 +3,9 @@ title: "How to Get Backlinks from Medium"
 description: "A practical guide to how to get backlinks from Medium by using it as a distribution channel, placing links naturally, and earning secondary backlinks from readers who discover your content."
 slug: "medium"
 image: "/resources/backlinks-from-medium/header.webp"
+author:
+  name: "Nicolas More"
+  twitter: "https://twitter.com/nicolasmore_"
 date: "2026-05-15"
 dateModified: "2026-06-05"
 faqs:
@@ -24,6 +27,8 @@ Most founders hear "publish on [Medium](https://medium.com/)" and assume it is a
 
 If you want to learn how to get backlinks from Medium, the first thing to understand is that Medium is better as a distribution channel than a direct link-equity play. The link itself usually will not do much heavy SEO lifting. The upside is the visibility around the article: readers, shares, mentions, and the occasional secondary backlink from someone who finds your piece and cites it elsewhere.
 
+> **Quick answer:** Medium links are `nofollow` — direct SEO value is minimal. The real play is referral traffic and secondary backlinks when readers cite your work elsewhere. Publish on your site first, wait for indexing, then import to Medium with canonical handling. Keep links to one or two per article, placed only where they genuinely help the reader.
+
 ---
 
 ## Why Medium backlinks work differently
@@ -38,6 +43,8 @@ That does not make them useless. A good Medium article can still:
 - Give you a shot at ranking on Medium's domain for long-tail searches
 
 The mistake is expecting the Medium URL itself to act like a powerful dofollow backlink. In most cases, the real value comes later if the article gets picked up, shared, or cited somewhere else.
+
+Medium's domain authority is among the highest of any publishing platform. That means a well-written Medium post can surface in Google results faster than the same article would on a new domain. That is the actual SEO angle worth pursuing: not the outbound link, but the chance the Medium post itself ranks and funnels readers back to you.
 
 ---
 
@@ -65,7 +72,9 @@ If the article is really part of your main content strategy, publish it on your 
 
 Then wait for Google to index the original page before reposting it on Medium. When you do repost, use [Medium's Import Tool](https://medium.com/p/import) or canonical settings so your site stays the source of truth.
 
-This matters because copy-pasting the same article without canonical handling can create duplicate-content confusion. The cleaner workflow is:
+This matters because copy-pasting the same article without canonical handling can create duplicate-content confusion. When you skip this step, Google may index the Medium version as the original — especially if it crawls Medium before your site. That means Medium's domain, not yours, gets the ranking credit. Medium's Import Tool handles this automatically by injecting a `rel="canonical"` tag pointing back to your original URL. If you paste manually, you need to set it yourself in Medium's story settings. Google's [canonical URL documentation](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls) covers how duplicate signals are resolved if you want to go deeper on the mechanics.
+
+The cleaner workflow is:
 
 1. Publish on your site first.
 2. Wait for the original to get indexed.
@@ -114,11 +123,11 @@ That is also why Medium works best for amplification, not as your whole backlink
 
 ## What to avoid
 
-- Republishing blog posts without canonical planning
-- Stuffing multiple links into one article
-- Using exact-match anchors unnaturally
-- Expecting guaranteed rankings or direct SEO gains from the Medium link itself
-- Posting thin content just to "get a backlink"
+- **Republishing without canonical planning.** Google may index the Medium version as the original, demoting your own page in rankings and splitting engagement signals across two URLs.
+- **Stuffing multiple links into one article.** Medium's curation algorithm deprioritizes self-promotional content, so over-linked posts get less distribution — the opposite of what you want.
+- **Exact-match commercial anchors.** "Best link building tool" reads as spam to Medium moderators and sends a manipulative anchor pattern signal if Google evaluates it across a domain.
+- **Expecting direct SEO gains from the link.** The `nofollow` attribute means no PageRank flows. Treat Medium as a traffic and visibility play, not a link-equity source.
+- **Thin content written to hold a link.** Medium's curation system actively surfaces quality. A thin post gets zero distribution, zero secondary backlinks, and zero return on the time spent.
 
 If your article would be weak without the link, it is probably the wrong article.
 
@@ -138,3 +147,7 @@ If you want a repeatable way to get backlinks from Medium, use this process:
 That is the real play. Medium can help distribute a good idea, but it is rarely the best place to build an entire backlink strategy from scratch.
 
 If you want a steadier flow of qualified outreach opportunities, Mentiohunt helps you find websites and communities where your content is a better fit, then gives you the rationale and outreach prep so you know what to do next.
+
+---
+
+*This guide was written by the Mentiohunt team. We build tools for founders doing their own link building and community outreach.*

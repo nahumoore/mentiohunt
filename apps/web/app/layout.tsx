@@ -2,11 +2,11 @@ import { GoogleAnalytics } from "@next/third-parties/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Metadata } from "next"
-import { Inter, Outfit } from "next/font/google"
+import { Google_Sans, Outfit } from "next/font/google"
 import { Toaster } from "sonner"
 
-import { PostHogInitializer } from "../components/posthog-initializer"
 import { PostHogIdentify } from "../components/posthog-identify"
+import { PostHogInitializer } from "../components/posthog-initializer"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s — Mentiohunt",
   },
   description:
-    "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details, email drafts, and real-time alerts.",
+    "Build backlinks from your articles and monitor communities for posts where your product fits — with outreach-ready contact details, email drafts, and real-time alerts.",
 }
 
 const outfitHeading = Outfit({
@@ -25,7 +25,7 @@ const outfitHeading = Outfit({
   weight: ["400", "500", "600", "700"],
 })
 
-const inter = Inter({
+const inter = Google_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
 })

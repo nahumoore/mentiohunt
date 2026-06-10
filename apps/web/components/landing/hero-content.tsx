@@ -30,7 +30,7 @@ export function HeroContent() {
         animate="animate"
         transition={{ duration: 0.5, delay: 0, ease }}
       >
-        <span className="text-sm font-bold tracking-[0.18em] text-(--color-blaze-orange) uppercase">
+        <span className="text-sm font-bold text-(--color-blaze-orange) uppercase">
           Daily Monitoring
         </span>
         <span className="h-4 w-px bg-border/60" />

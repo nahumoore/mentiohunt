@@ -1,6 +1,6 @@
 import { cn } from "@workspace/ui/lib/utils"
 
-import { STATUS_CONFIG, type DirectorySubmissionStatus } from "@/app/dashboard/link-building/directories/_data"
+import { STATUS_CONFIG, type DirectorySubmissionStatus } from "@/app/dashboard/directories/_data"
 
 export function StatusBadge({ status }: { status: DirectorySubmissionStatus }) {
   const cfg = STATUS_CONFIG[status]

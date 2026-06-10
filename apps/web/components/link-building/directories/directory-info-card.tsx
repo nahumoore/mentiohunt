@@ -54,7 +54,7 @@ export function DirectoryInfoCard({ directory }: DirectoryInfoCardProps) {
 function MetricCell({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+      <span className="text-[11px] font-medium uppercase text-muted-foreground">
         {label}
       </span>
       <div>{children}</div>

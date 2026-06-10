@@ -17,8 +17,8 @@ import { useProspectStore } from "@/stores/prospect-store"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
-const prospectHref = "/dashboard/link-building/opportunities"
-const directorySubmissionHref = "/dashboard/link-building/directories"
+const outreachHref = "/dashboard/outreach"
+const directoriesHref = "/dashboard/directories"
 
 type PageConfig = {
   title: string
@@ -26,44 +26,39 @@ type PageConfig = {
   icon: React.ElementType
 }
 
-const NON_CLICKABLE_HREFS = new Set([
-  "/dashboard/link-building",
-  "/dashboard/community-mentions",
-])
-
 const PAGE_CONFIG: Record<string, PageConfig> = {
-  "/dashboard/link-building/opportunities": {
-    title: "Opportunity Queue",
+  "/dashboard/outreach": {
+    title: "Outreach",
     description:
       "Prioritized sites and outreach paths where there is a realistic next action toward a backlink.",
     icon: IconSearch,
   },
-  "/dashboard/link-building/sources": {
-    title: "Sources",
+  "/dashboard/outreach/settings": {
+    title: "Outreach Settings",
     description:
-      "Choose which sources should feed your backlink queue. Start broad, then pause anything that feels noisy.",
+      "Choose which sources should feed your outreach queue. Start broad, then pause anything that feels noisy.",
     icon: IconAdjustments,
   },
-  "/dashboard/link-building/directories": {
+  "/dashboard/directories": {
     title: "Directories",
     description:
       "Track which directories your product is listed in and whether those listings are indexed by Google.",
     icon: IconLayoutGrid,
   },
-  "/dashboard/community-mentions/reply-queue": {
-    title: "Reply Queue",
+  "/dashboard/mentions": {
+    title: "Mentions",
     description:
       "Community mentions matched to your product. Review the fit, refine the reply, and post it yourself from the original thread.",
     icon: IconMessage2Share,
   },
-  "/dashboard/community-mentions/watchlist": {
-    title: "Watchlist",
+  "/dashboard/mentions/setup": {
+    title: "Monitoring Setup",
     description:
-      "Configure which platforms and keywords feed your community reply queue. Start broad, then tighten keywords to improve match quality.",
+      "Configure which platforms and keywords feed your mentions queue. Start broad, then tighten keywords to improve match quality.",
     icon: IconEye,
   },
-  "/dashboard/link-building/backlink-network": {
-    title: "Backlink Network",
+  "/dashboard/network": {
+    title: "Link Exchange",
     description:
       "A private opt-in list for founders open to direct backlink collaboration. Coming soon — reserve your spot now.",
     icon: IconNetwork,
@@ -116,7 +111,7 @@ export function DashboardHeader() {
         />
         <nav
           aria-label="Dashboard breadcrumb"
-          className="flex min-w-0 items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-[0.16em]"
+          className="flex min-w-0 items-center gap-1.5 text-[0.65rem] font-bold uppercase"
         >
           {breadcrumbs.map((breadcrumb, index) => {
             const isLast = index === breadcrumbs.length - 1
@@ -126,23 +121,17 @@ export function DashboardHeader() {
                 {index > 0 ? (
                   <span className="text-muted-foreground/50">/</span>
                 ) : null}
-                {NON_CLICKABLE_HREFS.has(breadcrumb.href) ? (
-                  <span className="truncate text-muted-foreground">
-                    {breadcrumb.label}
-                  </span>
-                ) : (
-                  <Link
-                    href={breadcrumb.href}
-                    aria-current={isLast ? "page" : undefined}
-                    className={
-                      isLast
-                        ? "truncate text-(--color-blaze-orange)"
-                        : "truncate text-muted-foreground transition-colors hover:text-foreground"
-                    }
-                  >
-                    {breadcrumb.label}
-                  </Link>
-                )}
+                <Link
+                  href={breadcrumb.href}
+                  aria-current={isLast ? "page" : undefined}
+                  className={
+                    isLast
+                      ? "truncate text-(--color-blaze-orange)"
+                      : "truncate text-muted-foreground transition-colors hover:text-foreground"
+                  }
+                >
+                  {breadcrumb.label}
+                </Link>
               </React.Fragment>
             )
           })}
@@ -184,11 +173,9 @@ function getBreadcrumbs(
     const hrefSegments = segments.slice(0, dashboardIndex + 2 + index)
     const isCurrentProspect =
       segment === currentProspectId &&
-      visibleSegments[index - 2] === "link-building" &&
-      visibleSegments[index - 1] === "opportunities"
+      visibleSegments[index - 1] === "outreach"
     const isCurrentDirectorySubmission =
       segment === currentDirectorySubmissionId &&
-      visibleSegments[index - 2] === "link-building" &&
       visibleSegments[index - 1] === "directories"
 
     return {
@@ -203,17 +190,21 @@ function getBreadcrumbs(
 }
 
 function getCurrentProspectId(pathname: string) {
-  const prospectPath = `${prospectHref}/`
+  const prospectPath = `${outreachHref}/`
 
   if (!pathname.startsWith(prospectPath)) return null
 
-  const [prospectId] = pathname.slice(prospectPath.length).split("/")
+  const afterBase = pathname.slice(prospectPath.length)
+
+  if (afterBase === "settings" || afterBase.startsWith("settings/")) return null
+
+  const [prospectId] = afterBase.split("/")
 
   return prospectId || null
 }
 
 function getCurrentDirectorySubmissionId(pathname: string) {
-  const directorySubmissionPath = `${directorySubmissionHref}/`
+  const directorySubmissionPath = `${directoriesHref}/`
 
   if (!pathname.startsWith(directorySubmissionPath)) return null
 

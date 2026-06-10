@@ -44,7 +44,7 @@ export function StepLaunch({ data }: { data: OnboardingData }) {
               index < rows.length - 1 && "border-b border-border"
             )}
           >
-            <span className="text-[0.7rem] leading-5 font-bold tracking-[0.24em] text-muted-foreground uppercase">
+            <span className="text-[0.7rem] leading-5 font-bold text-muted-foreground uppercase">
               {label}
             </span>
             <span className="flex items-center gap-1.5 text-right text-sm text-foreground">

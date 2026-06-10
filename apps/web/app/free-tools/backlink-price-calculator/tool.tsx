@@ -211,7 +211,7 @@ export function BacklinkPriceCalculator() {
             <div className="max-w-3xl">
               <Link
                 href="/free-tools"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-[var(--color-princeton-orange)] transition-colors hover:bg-[var(--color-blaze-orange)]/12"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase text-[var(--color-princeton-orange)] transition-colors hover:bg-[var(--color-blaze-orange)]/12"
               >
                 <IconBolt size={13} stroke={2.6} />
                 Free backlink tool
@@ -259,7 +259,7 @@ export function BacklinkPriceCalculator() {
                 <div className="rounded-[1.75rem] border border-border/80 bg-background/80 p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+                      <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                         Estimate a price
                       </p>
                       <h2 className="mt-2 font-heading text-3xl font-semibold tracking-[-0.05em]">
@@ -471,7 +471,7 @@ export function BacklinkPriceCalculator() {
               {/* Left: metrics */}
               <div className="lg:sticky lg:top-28 space-y-4">
                 <div>
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+                  <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                     Site metrics
                   </p>
                   <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">
@@ -521,7 +521,7 @@ export function BacklinkPriceCalculator() {
                         <Icon size={18} stroke={2.2} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+                        <p className="text-xs font-semibold uppercase text-muted-foreground/60">
                           {label}
                         </p>
                         <p className="font-heading text-xl font-semibold tracking-[-0.04em]">
@@ -565,7 +565,7 @@ export function BacklinkPriceCalculator() {
                         <IconCurrencyDollar size={24} stroke={2.4} />
                       </div>
                       <div>
-                        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+                        <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                           Estimated price range
                         </p>
                         <p className="mt-1 font-heading text-5xl font-semibold tracking-[-0.06em] text-[var(--color-princeton-orange)] sm:text-6xl">
@@ -583,7 +583,7 @@ export function BacklinkPriceCalculator() {
 
                 {/* Factor breakdown */}
                 <div className="rounded-[1.75rem] border border-border bg-card p-5 shadow-sm sm:p-6">
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+                  <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                     Price factors
                   </p>
                   <div className="mt-4 space-y-3">
@@ -625,7 +625,7 @@ export function BacklinkPriceCalculator() {
                 {/* Reasoning */}
                 {reasoning ? (
                   <div className="rounded-[1.75rem] border border-border bg-card p-5 shadow-sm sm:p-6">
-                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+                    <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                       Plain-language read
                     </p>
                     <p className="mt-3 text-sm leading-7 text-muted-foreground">{reasoning}</p>
@@ -649,7 +649,7 @@ export function BacklinkPriceCalculator() {
                     <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)] text-white shadow-lg shadow-primary/20">
                       <IconLock size={23} stroke={2.5} />
                     </div>
-                    <p className="mt-5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-[var(--color-princeton-orange)]">
+                    <p className="mt-5 text-[0.65rem] font-semibold uppercase text-[var(--color-princeton-orange)]">
                       Beyond price estimates
                     </p>
                     <h3 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.055em] text-balance">
@@ -684,7 +684,7 @@ export function BacklinkPriceCalculator() {
             <div className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-[var(--color-blaze-orange)]/12 blur-3xl" />
             <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+                <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                   More than an estimate
                 </p>
                 <h2 className="mt-4 max-w-2xl font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">

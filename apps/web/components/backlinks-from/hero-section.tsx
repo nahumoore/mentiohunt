@@ -19,7 +19,7 @@ export function BacklinksFromHeroSection() {
 
       <div className="container relative mx-auto max-w-6xl">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+          <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
             Platform Playbooks
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
@@ -35,7 +35,7 @@ export function BacklinksFromHeroSection() {
         </div>
 
         <div className="mx-auto mt-14 max-w-5xl overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/18 bg-card/75 px-5 py-6 shadow-[0_28px_80px_-52px_rgba(255,133,0,0.42)] backdrop-blur-sm sm:px-8 sm:py-7">
-          <p className="text-center font-heading text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase sm:text-sm">
+          <p className="text-center font-heading text-xs font-semibold text-muted-foreground uppercase sm:text-sm">
             Platform surfaces founders can realistically target
           </p>
           <div className="mx-auto mt-3 h-px w-10 bg-[var(--color-princeton-orange)]/70" />

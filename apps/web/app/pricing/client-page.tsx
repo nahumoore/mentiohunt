@@ -32,7 +32,7 @@ export function PricingClientPage({
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 pt-20 pb-24 sm:px-6 lg:px-8 lg:pt-24">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-xs font-bold tracking-[0.12em] text-[var(--color-blaze-orange)] uppercase">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-xs font-bold text-[var(--color-blaze-orange)] uppercase">
             <IconSparkles className="h-3.5 w-3.5" />
             7-day free trial
           </span>
@@ -81,7 +81,7 @@ export function PricingClientPage({
 
                 <div className="flex-1">
                   <div className="max-w-[17rem]">
-                    <p className="text-[0.7rem] font-bold tracking-[0.18em] text-[var(--color-blaze-orange)] uppercase">
+                    <p className="text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase">
                       {plan.name}
                     </p>
                     <h2 className="mt-4 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">

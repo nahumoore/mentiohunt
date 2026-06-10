@@ -1,7 +1,7 @@
 import type {
   MentionIntent,
   MentionStatus,
-} from "@/app/dashboard/community-mentions/reply-queue/_data"
+} from "@/app/dashboard/mentions/_data"
 import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardStoreHydrator } from "@/components/dashboard/dashboard-store-hydrator"
@@ -86,12 +86,8 @@ function mapOutreachSettings(
 }
 
 function mapMentionPlatform(platform: string): MentionPlatform {
-  switch (platform) {
-    case "bluesky": return "bluesky"
-    case "facebook": return "facebook"
-    case "twitter": return "twitter"
-    default: return "reddit"
-  }
+  if (platform === "quora") return "quora"
+  return "reddit"
 }
 
 function mapMentionIntent(fitCategory: string): MentionIntent {
@@ -131,9 +127,7 @@ function mapCommunityMention(row: ReplyQueueItemRow): CommunityMention {
   const postedAt = row.post_created_at ?? row.created_at
   const platformFallback: Record<string, string> = {
     reddit: "Reddit",
-    bluesky: "Bluesky",
-    facebook: "Facebook",
-    twitter: "X / Twitter",
+    quora: "Quora",
   }
   const sourceName = row.community ?? (platformFallback[platform] ?? "Reddit")
 
@@ -243,7 +237,7 @@ export default async function DashboardLayout({
       supabase
         .from("backlink_prospects")
         .select(
-          "id, product_id, domain, target_url, tier, action_type, status, discovered_at, contact_email, contact_name, notes"
+          "id, product_id, domain, target_url, tier, action_type, status, discovered_at, contact_email, contact_name, notes, domain_rating"
         )
         .eq("product_id", product.id)
         .order("discovered_at", { ascending: false }),

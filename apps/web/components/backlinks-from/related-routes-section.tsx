@@ -13,7 +13,7 @@ export function BacklinksFromRelatedRoutesSection() {
 
       <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+          <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
             Related Routes
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
@@ -32,7 +32,7 @@ export function BacklinksFromRelatedRoutesSection() {
               key={resource.href}
               className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-7 shadow-sm"
             >
-              <p className="text-[0.65rem] font-semibold tracking-[0.16em] text-[var(--color-princeton-orange)] uppercase">
+              <p className="text-[0.65rem] font-semibold text-[var(--color-princeton-orange)] uppercase">
                 {resource.label}
               </p>
               <h3 className="mt-3 max-w-md font-heading text-[2rem] font-semibold tracking-[-0.045em] text-balance">

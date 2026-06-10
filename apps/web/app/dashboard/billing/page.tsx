@@ -138,7 +138,7 @@ export default function BillingPage() {
       )}
 
       <div>
-        <p className="mb-5 text-[0.7rem] font-bold tracking-[0.18em] text-(--color-blaze-orange) uppercase">
+        <p className="mb-5 text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
           Available plans
         </p>
 
@@ -174,7 +174,7 @@ export default function BillingPage() {
 
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-[0.68rem] font-bold tracking-[0.18em] text-(--color-blaze-orange) uppercase">
+                    <p className="text-[0.68rem] font-bold text-(--color-blaze-orange) uppercase">
                       {plan.name}
                     </p>
                     <h2 className="mt-3 font-heading text-4xl font-semibold tracking-tight text-foreground">

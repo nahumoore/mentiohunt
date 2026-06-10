@@ -98,7 +98,7 @@ export function SocialPostCard({
           <div className="flex items-start gap-3">
             <IconSparkles className="mt-0.5 size-4 shrink-0 text-primary" />
             <div className="flex flex-col gap-1">
-              <p className="text-[0.7rem] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+              <p className="text-[0.7rem] font-bold text-muted-foreground uppercase">
                 Why this fits
               </p>
               <p className="text-sm leading-6 text-foreground">{fitReason}</p>

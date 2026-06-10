@@ -21,7 +21,7 @@ export function Pricing() {
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-blaze-orange/20 bg-blaze-orange/8 px-3 py-1 text-xs font-bold tracking-[0.12em] text-blaze-orange uppercase">
+          <span className="inline-flex items-center gap-2 rounded-full border border-blaze-orange/20 bg-blaze-orange/8 px-3 py-1 text-xs font-bold text-blaze-orange uppercase">
             <IconSparkles className="h-3.5 w-3.5" />
             {FREE_TRIAL_DAYS}-day free trial
           </span>
@@ -62,7 +62,7 @@ export function Pricing() {
 
                 <div className="flex-1">
                   <div className="max-w-[17rem]">
-                    <p className="text-[0.7rem] font-bold tracking-[0.18em] text-blaze-orange uppercase">
+                    <p className="text-[0.7rem] font-bold text-blaze-orange uppercase">
                       {plan.name}
                     </p>
                     <h3 className="mt-4 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">

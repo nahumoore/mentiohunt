@@ -110,7 +110,7 @@ export function Comparisons() {
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-[var(--color-blaze-orange)] uppercase">
+          <span className="text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase">
             Why Mentiohunt
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />
@@ -156,7 +156,7 @@ export function Comparisons() {
               <div className="px-2">
                 <div className="rounded-t-2xl border border-b-0 border-[var(--color-blaze-orange)]/25 px-3 py-3 text-center">
                   <IconBrandMentiohunt className="mx-auto mb-1 h-5 w-5 text-[var(--color-blaze-orange)]" />
-                  <span className="text-[0.7rem] font-bold tracking-[0.18em] text-[var(--color-blaze-orange)] uppercase">
+                  <span className="text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase">
                     Mentiohunt
                   </span>
                 </div>

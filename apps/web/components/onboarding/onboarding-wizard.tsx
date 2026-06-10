@@ -4,16 +4,23 @@ import { captureEvent } from "@/lib/analytics"
 import { supabaseClient } from "@/lib/supabase/client"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import {
+  IconAntenna,
   IconArrowLeft,
   IconArrowRight,
+  IconBuilding,
   IconCheck,
   IconLoader2,
+  IconPackage,
+  IconRocket,
+  IconSwords,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
+import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 import { StepAudience } from "@/components/onboarding/step-audience"
+import { StepCompany } from "@/components/onboarding/step-company"
 import { StepCompetitors } from "@/components/onboarding/step-competitors"
 import { StepLaunch } from "@/components/onboarding/step-launch"
 import { StepProduct } from "@/components/onboarding/step-product"
@@ -24,6 +31,7 @@ import {
   INITIAL_ONBOARDING_DATA,
   ONBOARDING_STEPS,
   competitorsStepSchema,
+  companyStepSchema,
   monitoringStepSchema,
   normalizeUrl,
   onboardingSchema,
@@ -275,6 +283,15 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     const nextErrors: OnboardingFieldErrors = {}
 
     if (step === 1) {
+      const companyResult = companyStepSchema.safeParse(normalizedData)
+      if (!companyResult.success) {
+        const issue = companyResult.error.issues[0]
+        const field = issue?.path[0] as OnboardingField | undefined
+        if (field && issue) nextErrors[field] = issue.message
+      }
+    }
+
+    if (step === 2) {
       const productResult = productDescriptionStepSchema.safeParse(normalizedData)
       if (!productResult.success) {
         const issue = productResult.error.issues[0]
@@ -283,7 +300,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
       }
     }
 
-    if (step === 2) {
+    if (step === 3) {
       const competitorsResult = competitorsStepSchema.safeParse(normalizedData)
       if (!competitorsResult.success) {
         const issue = competitorsResult.error.issues[0]
@@ -292,7 +309,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
       }
     }
 
-    if (step === 3) {
+    if (step === 4) {
       const monitoringResult = monitoringStepSchema.safeParse(normalizedData)
       if (!monitoringResult.success) {
         const issue = monitoringResult.error.issues[0]
@@ -313,11 +330,18 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
 
   const nextStep = () => {
     if (!validateStep(currentStep)) return
-    const stepNames = ["url", "product", "competitors", "audience", "launch"] as const
+    const stepNames = ["url", "company", "product", "competitors", "audience", "launch"] as const
     captureEvent("onboarding_step_completed", {
       step: stepNames[currentStep] ?? String(currentStep),
       step_index: currentStep,
     })
+    if (currentStep === 1) {
+      captureEvent("onboarding_company_submitted", {
+        primary_use: safeData.primaryUse,
+        company_size: safeData.companySize,
+        role: safeData.role,
+      })
+    }
     setCurrentStep(Math.min(currentStep + 1, ONBOARDING_STEPS.length - 1))
     setSubmitMessage("")
   }
@@ -338,7 +362,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
       const firstIssue = result.error.issues[0]
       const field = firstIssue?.path[0] as OnboardingField | undefined
       if (field && firstIssue) setFieldErrors({ [field]: firstIssue.message })
-      setCurrentStep(1)
+      setCurrentStep(2)
       setSubmitMessage("Review the highlighted setup before launching.")
       return
     }
@@ -368,7 +392,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
         competitors_count: result.data.competitors?.length ?? 0,
       })
       setIsCompleted(true)
-      router.replace("/dashboard/link-building/opportunities")
+      router.replace("/dashboard/outreach")
       router.refresh()
     } catch {
       setSubmitMessage("Failed to reach the server. Check your connection.")
@@ -413,6 +437,9 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
   const lastStepIndex = ONBOARDING_STEPS.length - 1
   const isLastStep = currentStep === lastStepIndex
 
+  const stepIcons = [null, IconBuilding, IconPackage, IconSwords, IconAntenna, IconRocket]
+  const StepIcon = stepIcons[currentStep] ?? null
+
   return (
     <div className="flex min-h-screen w-full flex-col items-center px-4 py-16 sm:px-6">
       <button
@@ -439,15 +466,29 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
           key={currentStep}
           className="animate-in duration-200 fade-in slide-in-from-bottom-2"
         >
-          <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {ONBOARDING_STEPS[currentStep]!.title}
-          </h2>
+          <div className="flex items-center gap-3 pt-2">
+            {StepIcon && (
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <StepIcon className="h-5 w-5" strokeWidth={1.75} />
+              </div>
+            )}
+            <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              {ONBOARDING_STEPS[currentStep]!.title}
+            </h2>
+          </div>
           <p className="mt-2 text-base leading-7 text-muted-foreground">
             {ONBOARDING_STEPS[currentStep]!.description}
           </p>
 
           <div className="mt-8 space-y-6">
             {currentStep === 1 && (
+              <StepCompany
+                data={safeData}
+                errors={fieldErrors}
+                updateField={updateField}
+              />
+            )}
+            {currentStep === 2 && (
               <StepProduct
                 data={safeData}
                 errors={fieldErrors}
@@ -455,7 +496,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
                 updateField={updateField}
               />
             )}
-            {currentStep === 2 && (
+            {currentStep === 3 && (
               <StepCompetitors
                 data={safeData}
                 errors={fieldErrors}
@@ -463,7 +504,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
                 updateField={updateField}
               />
             )}
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <StepAudience
                 data={safeData}
                 errors={fieldErrors}
@@ -471,7 +512,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
                 updateField={updateField}
               />
             )}
-            {currentStep === 4 && <StepLaunch data={safeData} />}
+            {currentStep === 5 && <StepLaunch data={safeData} />}
           </div>
         </div>
 
@@ -508,7 +549,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
                 </>
               ) : (
                 <>
-                  Start Distributing
+                  Find Opportunities
                   <IconCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
                 </>
               )}

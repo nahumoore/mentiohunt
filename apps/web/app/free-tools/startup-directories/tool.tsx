@@ -158,7 +158,7 @@ export function StartupDirectoriesBrowser({
           <div className="mx-auto max-w-2xl text-center">
             <Link
               href="/free-tools"
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.7rem] font-bold tracking-[0.24em] text-[var(--color-blaze-orange)] uppercase transition-colors hover:bg-[var(--color-blaze-orange)]/12"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase transition-colors hover:bg-[var(--color-blaze-orange)]/12"
             >
               <IconBolt size={13} stroke={2.6} />
               Free directory tool
@@ -382,7 +382,7 @@ export function StartupDirectoriesBrowser({
                   <IconSpeakerphone size={22} stroke={2.4} />
                 </div>
                 <div>
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+                  <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                     Directory owners
                   </p>
                   <h2 className="mt-2 font-heading text-2xl font-semibold tracking-[-0.045em] text-balance">
@@ -420,7 +420,7 @@ export function StartupDirectoriesBrowser({
             <div className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-[var(--color-blaze-orange)]/12 blur-3xl" />
             <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+                <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                   From table to queue
                 </p>
                 <h2 className="mt-4 max-w-2xl font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">

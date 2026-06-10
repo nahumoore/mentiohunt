@@ -11,7 +11,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import type { ElementType } from "react"
 
-import { ALL_FILTER_CONFIG } from "@/app/dashboard/link-building/directories/_data"
+import { ALL_FILTER_CONFIG } from "@/app/dashboard/directories/_data"
 
 export type FilterOption<TValue extends string> = {
   value: TValue

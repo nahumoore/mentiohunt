@@ -1,6 +1,8 @@
 "use client"
 
 import { EditableList } from "@/components/onboarding/editable-list"
+import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
+import { IconHash } from "@tabler/icons-react"
 import type {
   OnboardingData,
   OnboardingField,
@@ -30,6 +32,7 @@ export function StepAudience({
         error={errors.monitoringKeywords}
         maxItems={10}
         isLoading={loadingFields.has("monitoringKeywords")}
+        badgeIcon={<IconHash className="h-3.5 w-3.5" />}
         onChange={(items) => updateField("monitoringKeywords", items)}
       />
       <EditableList
@@ -40,6 +43,7 @@ export function StepAudience({
         error={errors.monitoringCommunities}
         maxItems={10}
         isLoading={loadingFields.has("monitoringCommunities")}
+        badgeIcon={<IconBrandRedditNew size={14} />}
         normalizeItem={(value) =>
           value
             .replace(/^\/?r\//i, "")

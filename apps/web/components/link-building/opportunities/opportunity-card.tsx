@@ -15,7 +15,7 @@ import {
   TYPE_CONFIG,
   formatDate,
   type ProspectTier,
-} from "@/app/dashboard/link-building/opportunities/_data"
+} from "@/app/dashboard/outreach/_data"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
 const TIER_BORDER: Record<ProspectTier, string> = {
@@ -23,6 +23,7 @@ const TIER_BORDER: Record<ProspectTier, string> = {
   unlinked_mention: "border-l-violet-500",
   media_mention: "border-l-sky-500",
 }
+
 
 function extractHostname(url: string | null): string | null {
   if (!url) return null
@@ -50,11 +51,11 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
       role="button"
       tabIndex={0}
       onClick={() =>
-        router.push(`/dashboard/link-building/opportunities/${prospect.id}`)
+        router.push(`/dashboard/outreach/${prospect.id}`)
       }
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ")
-          router.push(`/dashboard/link-building/opportunities/${prospect.id}`)
+          router.push(`/dashboard/outreach/${prospect.id}`)
       }}
       className={cn(
         "group cursor-pointer rounded-lg border border-l-4 border-border/60 bg-card",
@@ -83,18 +84,20 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
             <ActionIcon className="size-3" />
             {actionCfg.label}
           </span>
-          <div className="ml-auto">
-            <span className="inline-flex items-center rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-red-600">
-              New
+          {prospect.domain_rating != null && (
+            <span className="ml-auto inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-sm font-semibold tabular-nums text-muted-foreground">
+              DR {prospect.domain_rating}
             </span>
-          </div>
+          )}
         </div>
 
         {/* domain / fallback title */}
         <div className="flex flex-col gap-1">
-          <p className="text-base font-semibold text-foreground">
-            {prospect.domain ?? prospect.contact_name ?? actionCfg.label}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-base font-semibold text-foreground">
+              {prospect.domain ?? prospect.contact_name ?? actionCfg.label}
+            </p>
+          </div>
           {competitorHostname && (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <IconSwords className="size-3 shrink-0 text-amber-500/70" />

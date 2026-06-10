@@ -192,7 +192,7 @@ export default async function BacklinksFromArticlePage({ params }: Props) {
 
             <div className="mt-9 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(460px,560px)] lg:items-end lg:gap-16">
               <div>
-                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-princeton-orange)] uppercase">
                   <IconLink size={14} stroke={2.5} />
                   <span>{meta.category ?? "Platform Guide"}</span>
                 </div>
@@ -315,7 +315,7 @@ export default async function BacklinksFromArticlePage({ params }: Props) {
             <section className="mt-20 border-t border-border/60 pt-14 sm:pt-16">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div className="max-w-2xl">
-                  <div className="inline-flex items-center gap-2 text-[0.68rem] font-bold tracking-[0.22em] text-[var(--color-princeton-orange)] uppercase">
+                  <div className="inline-flex items-center gap-2 text-[0.68rem] font-bold text-[var(--color-princeton-orange)] uppercase">
                     <IconLink size={13} stroke={2.4} />
                     Keep the queue moving
                   </div>
@@ -366,7 +366,7 @@ export default async function BacklinksFromArticlePage({ params }: Props) {
 
                       <div className="relative p-6">
                         <div className="flex items-start justify-between gap-4">
-                          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/18 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.68rem] font-bold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+                          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/18 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.68rem] font-bold text-[var(--color-princeton-orange)] uppercase">
                             <Icon className="h-4 w-4 fill-current" />
                             {guide.category ?? "Platform Guide"}
                           </div>

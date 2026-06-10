@@ -18,7 +18,7 @@ export function AllReviewedEmpty() {
         </p>
       </div>
       <Link
-        href="/dashboard/community-mentions/reply-queue"
+        href="/dashboard/mentions"
         className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         Did you check the community queue yet?

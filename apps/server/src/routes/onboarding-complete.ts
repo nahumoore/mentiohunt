@@ -40,11 +40,15 @@ async function sendOnboardingSummaryEmail({
   productId,
   replyQueueResult,
   directoryResult,
+  backlinkDiscoveryResult,
+  mediaMentionsResult,
 }: {
   userId: string
   productId: string
   replyQueueResult: PromiseSettledResult<ReplyQueueOnboardingResult>
   directoryResult: PromiseSettledResult<DirectoryOnboardingResult>
+  backlinkDiscoveryResult: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }>
+  mediaMentionsResult: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }>
 }) {
   const [
     { data: profile, error: profileError },
@@ -86,6 +90,8 @@ async function sendOnboardingSummaryEmail({
     productName: product.product_name,
     replyQueueResult,
     directoryResult,
+    backlinkResult: backlinkDiscoveryResult,
+    mediaMentionsResult,
   })
 }
 
@@ -219,6 +225,8 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
       productId,
       replyQueueResult,
       directoryResult,
+      backlinkDiscoveryResult,
+      mediaMentionsResult,
     })
 
     res.json({

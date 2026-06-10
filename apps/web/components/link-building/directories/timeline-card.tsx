@@ -1,7 +1,7 @@
 import { IconExternalLink } from "@tabler/icons-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 
-import { formatDate } from "@/app/dashboard/link-building/directories/_data"
+import { formatDate } from "@/app/dashboard/directories/_data"
 
 function MetaRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (

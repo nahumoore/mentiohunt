@@ -3,23 +3,15 @@ import {
   type RedditPost,
 } from "../../helpers/searchers/reddit-search.js"
 import {
-  searchBluesky,
-  type BlueskyPost,
-} from "../../helpers/searchers/bluesky-search.js"
-import {
-  searchFacebook,
-  type FacebookPost,
-} from "../../helpers/searchers/facebook-search.js"
-import {
-  searchTwitter,
-  type TwitterPost,
-} from "../../helpers/searchers/twitter-search.js"
+  searchQuora,
+  type QuoraPost,
+} from "../../helpers/searchers/quora-search.js"
 import { createLogger } from "../../helpers/logger.js"
 
 const log = createLogger("reply-queue-gather")
 
 export interface GatheredPost {
-  platform: "reddit" | "bluesky" | "facebook" | "twitter"
+  platform: "reddit" | "quora"
   post_id: string
   title: string | null
   body: string
@@ -54,7 +46,6 @@ export async function gatherPosts(options: {
   const now = new Date()
   const since = new Date(now.getTime() - dateWindowDays * 24 * 60 * 60 * 1000)
   const sinceISO = since.toISOString()
-  const untilISO = now.toISOString()
 
   const tasks: Promise<void>[] = []
 
@@ -91,51 +82,19 @@ export async function gatherPosts(options: {
     }
   }
 
-  if (platforms.includes("bluesky")) {
+  if (platforms.includes("quora")) {
     for (const keyword of keywords) {
       tasks.push(
-        searchBluesky(keyword, 35, { sort: "top", since: sinceISO, until: untilISO })
+        searchQuora(keyword, 50, sinceISO)
           .then((posts) => {
-            posts.forEach((p) => addPost(mapBlueskyPost(p)))
-            log.info("bluesky search", { keyword, found: posts.length })
+            posts.forEach((p) => addPost(mapQuoraPost(p)))
+            log.info("quora search", { keyword, found: posts.length })
           })
           .catch((err) =>
-            log.warn("bluesky search failed", { keyword, error: String(err) })
+            log.warn("quora search failed", { keyword, error: String(err) })
           )
       )
     }
-  }
-
-  if (platforms.includes("facebook")) {
-    for (const keyword of keywords) {
-      tasks.push(
-        searchFacebook(keyword, 50, sinceISO)
-          .then((posts) => {
-            posts.forEach((p) => addPost(mapFacebookPost(p)))
-            log.info("facebook search", { keyword, found: posts.length })
-          })
-          .catch((err) =>
-            log.warn("facebook search failed", { keyword, error: String(err) })
-          )
-      )
-    }
-  }
-
-  if (platforms.includes("twitter") && keywords.length > 0) {
-    tasks.push(
-      searchTwitter(keywords, { maxItems: 35 * keywords.length })
-        .then(({ posts }) => {
-          const dateCapped = posts.filter((p) => {
-            if (!p.created_at) return true
-            return new Date(p.created_at) >= since
-          })
-          dateCapped.forEach((p) => addPost(mapTwitterPost(p)))
-          log.info("twitter search", { fetched: posts.length, after_date_filter: dateCapped.length })
-        })
-        .catch((err) =>
-          log.warn("twitter search failed", { error: String(err) })
-        )
-    )
   }
 
   await Promise.all(tasks)
@@ -187,59 +146,20 @@ function mapRedditPost(p: RedditPost): GatheredPost {
   }
 }
 
-function mapBlueskyPost(p: BlueskyPost): GatheredPost {
-  const body = p.parent_post
-    ? `[replying to: ${truncateBody(p.parent_post.text, 60)}]\n\n${p.text}`
-    : p.text
-
-  return {
-    platform: "bluesky",
-    post_id: p.id,
-    title: null,
-    body,
-    display_body: p.text,
-    url: p.url,
-    community: null,
-    author: p.author_handle,
-    engagement: p.like_count,
-    comment_count: p.reply_count,
-    post_created_at: p.created_at,
-    is_crosspost: false,
-    has_text_body: body.trim().length >= 20,
-  }
-}
-
-function mapFacebookPost(p: FacebookPost): GatheredPost {
+function mapQuoraPost(p: QuoraPost): GatheredPost {
   const body = p.text || p.title || ""
   return {
-    platform: "facebook",
+    platform: "quora",
     post_id: p.id,
     title: p.title,
     body,
     url: p.url,
-    community: p.community,
+    community: null,
     author: null,
     engagement: 0,
     comment_count: 0,
     post_created_at: null,
     is_crosspost: false,
     has_text_body: body.trim().length >= 20,
-  }
-}
-
-function mapTwitterPost(p: TwitterPost): GatheredPost {
-  return {
-    platform: "twitter",
-    post_id: p.id,
-    title: null,
-    body: p.text,
-    url: p.url,
-    community: null,
-    author: p.author_handle,
-    engagement: 0,
-    comment_count: 0,
-    post_created_at: p.created_at,
-    is_crosspost: false,
-    has_text_body: p.text.trim().length >= 20,
   }
 }

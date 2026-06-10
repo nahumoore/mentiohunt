@@ -88,7 +88,7 @@ export default function DirectorySubmissionPage() {
 
         <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+            <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
               Directory Submission
             </span>
             <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
@@ -133,7 +133,7 @@ export default function DirectorySubmissionPage() {
         </div>
 
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+          <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
             Submit Your Directory
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
@@ -153,7 +153,7 @@ export default function DirectorySubmissionPage() {
         </div>
 
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+          <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
             Review Notes
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />

@@ -81,7 +81,7 @@ export default function FeaturesPage() {
 
           <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+              <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
                 Product features
               </span>
               <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
@@ -111,13 +111,13 @@ export default function FeaturesPage() {
                       <div className="flex size-12 items-center justify-center rounded-[1.25rem] bg-[var(--color-blaze-orange)] text-white shadow-lg shadow-[var(--color-blaze-orange)]/20">
                         <Icon size={24} stroke={2.4} />
                       </div>
-                      <span className="rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.62rem] font-semibold tracking-[0.16em] text-[var(--color-princeton-orange)] uppercase">
+                      <span className="rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.62rem] font-semibold text-[var(--color-princeton-orange)] uppercase">
                         {feature.category}
                       </span>
                     </div>
 
                     <div className="mt-8">
-                      <p className="text-[0.68rem] font-bold tracking-[0.2em] text-muted-foreground/60 uppercase">
+                      <p className="text-[0.68rem] font-bold text-muted-foreground/60 uppercase">
                         {feature.keyword}
                       </p>
                       <h2 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.05em] text-balance sm:text-4xl">
@@ -171,7 +171,7 @@ export default function FeaturesPage() {
           </div>
           <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+              <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
                 One operating loop
               </span>
               <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />

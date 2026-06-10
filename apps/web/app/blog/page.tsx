@@ -75,7 +75,7 @@ export default function BlogPage() {
           <div className="pointer-events-none absolute bottom-0 -left-24 h-72 w-72 rounded-full bg-[var(--color-amber-glow)]/7 blur-3xl" />
 
           <div className="relative container mx-auto max-w-5xl">
-            <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-princeton-orange)] uppercase">
               <IconBook2 size={14} stroke={2.5} />
               <span>Backlink Field Notes</span>
             </div>
@@ -111,7 +111,7 @@ export default function BlogPage() {
 
                   <div className="p-6">
                     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span className="font-semibold tracking-[0.14em] text-[var(--color-princeton-orange)] uppercase">
+                      <span className="font-semibold text-[var(--color-princeton-orange)] uppercase">
                         {article.category ?? "Article"}
                       </span>
                       <span className="inline-flex items-center gap-1.5">

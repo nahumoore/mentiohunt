@@ -89,7 +89,7 @@ export function AuthSocialProof() {
 
       {/* Trusted by */}
       <div className="relative flex flex-col gap-4">
-        <p className="text-xs tracking-widest text-primary-foreground/60 uppercase">
+        <p className="text-xs text-primary-foreground/60 uppercase">
           Trusted by teams at
         </p>
         <div className="flex flex-wrap items-center gap-7">

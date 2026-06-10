@@ -142,7 +142,7 @@ export default function FreeToolsPage() {
         <div className="container mx-auto max-w-7xl">
           <div className="grid gap-10 lg:grid-cols-[1.04fr_0.96fr] lg:items-end">
             <div className="relative z-10 max-w-4xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-blaze-orange/25 bg-blaze-orange/8 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-(--color-princeton-orange)">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blaze-orange/25 bg-blaze-orange/8 px-3 py-1 text-[0.65rem] font-semibold uppercase text-(--color-princeton-orange)">
                 <IconBolt size={13} stroke={2.6} />
                 Free outreach tools
               </div>
@@ -193,21 +193,21 @@ export default function FreeToolsPage() {
                   <div className="flex items-center gap-3 rounded-xl border border-blaze-orange/15 bg-blaze-orange/6 px-3.5 py-3">
                     <IconSparkles size={13} stroke={2.3} className="shrink-0 text-(--color-princeton-orange)" />
                     <span className="flex-1 truncate text-sm font-medium">techcrunch.com</span>
-                    <span className="rounded-md border border-blaze-orange/20 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-(--color-princeton-orange)">
+                    <span className="rounded-md border border-blaze-orange/20 px-2 py-0.5 text-[0.6rem] font-semibold uppercase text-(--color-princeton-orange)">
                       Strong fit
                     </span>
                   </div>
                   <div className="flex items-center gap-3 rounded-xl border border-border/40 px-3.5 py-3">
                     <IconExternalLink size={13} stroke={2.2} className="shrink-0 text-muted-foreground/35" />
                     <span className="flex-1 truncate text-sm text-muted-foreground/70">indiehackers.com</span>
-                    <span className="rounded-md border border-border/60 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-muted-foreground/50">
+                    <span className="rounded-md border border-border/60 px-2 py-0.5 text-[0.6rem] font-semibold uppercase text-muted-foreground/50">
                       Good fit
                     </span>
                   </div>
                   <div className="flex items-center gap-3 rounded-xl border border-border/40 px-3.5 py-3">
                     <IconExternalLink size={13} stroke={2.2} className="shrink-0 text-muted-foreground/35" />
                     <span className="flex-1 truncate text-sm text-muted-foreground/70">producthunt.com</span>
-                    <span className="rounded-md border border-border/60 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-muted-foreground/50">
+                    <span className="rounded-md border border-border/60 px-2 py-0.5 text-[0.6rem] font-semibold uppercase text-muted-foreground/50">
                       Good fit
                     </span>
                   </div>
@@ -232,7 +232,7 @@ export default function FreeToolsPage() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-amber-flame/70 to-transparent" />
         <div className="container mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+            <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
               Free tools
             </p>
             <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl lg:text-6xl">
@@ -261,13 +261,13 @@ export default function FreeToolsPage() {
                     <div className="flex size-12 items-center justify-center rounded-[1.15rem] border border-blaze-orange/20 bg-blaze-orange/9 text-(--color-princeton-orange) shadow-inner shadow-(--color-amber-flame)/10 transition-colors group-hover:border-princeton-orange/35 group-hover:bg-blaze-orange/12">
                       <Icon size={23} stroke={2.35} />
                     </div>
-                    <span className="rounded-full border border-border/80 bg-background/80 px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground backdrop-blur">
+                    <span className="rounded-full border border-border/80 bg-background/80 px-3 py-1 text-[0.62rem] font-semibold uppercase text-muted-foreground backdrop-blur">
                       {tool.status}
                     </span>
                   </div>
 
                   <div className="mt-7">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground/60">
                       {tool.eyebrow}
                     </p>
                     <h3 className="mt-2 font-heading text-[1.55rem] font-semibold leading-[1.05] tracking-[-0.045em] text-balance sm:text-[1.65rem]">
@@ -311,7 +311,7 @@ export default function FreeToolsPage() {
               <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-blaze-orange/30 blur-3xl" />
               <div className="absolute bottom-0 left-0 h-28 w-28 translate-y-1/3 rounded-full bg-amber-flame/25 blur-2xl" />
               <div className="relative">
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-background/55">
+                <p className="text-[0.65rem] font-semibold uppercase text-background/55">
                   Operating notes
                 </p>
                 <h2 className="mt-4 max-w-md font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">

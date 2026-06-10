@@ -16,7 +16,7 @@ export function TextareaField({ label, value, error, isLoading, onChange }: Text
   return (
     <Field>
       <div className="flex items-center justify-between gap-3">
-        <FieldLabel className="text-[0.7rem] font-bold tracking-[0.24em] text-muted-foreground uppercase">
+        <FieldLabel className="text-[0.7rem] font-bold text-muted-foreground uppercase">
           {label}
         </FieldLabel>
         {!isLoading && <span className="text-xs text-muted-foreground">{value.trim().length} / 280</span>}

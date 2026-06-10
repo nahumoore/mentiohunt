@@ -76,7 +76,7 @@ export default function AlternativesPage() {
           <div className="pointer-events-none absolute bottom-0 -left-20 h-56 w-56 rounded-full bg-[var(--color-amber-glow)]/6 blur-3xl" />
 
           <div className="relative container mx-auto max-w-5xl">
-            <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-princeton-orange)] uppercase">
               <IconScale size={13} stroke={2.5} />
               <span>Honest Comparisons</span>
             </div>
@@ -102,7 +102,7 @@ export default function AlternativesPage() {
                 className="h-14 w-14 rounded-xl object-cover ring-2 ring-[var(--color-blaze-orange)]/25"
               />
               <div className="flex flex-col gap-0.5">
-                <span className="text-[0.6rem] font-semibold tracking-[0.16em] text-muted-foreground/60 uppercase">
+                <span className="text-[0.6rem] font-semibold text-muted-foreground/60 uppercase">
                   Written by
                 </span>
                 <span className="font-heading text-base leading-tight font-semibold text-foreground">
@@ -145,7 +145,7 @@ export default function AlternativesPage() {
                   )}
                   <div className="p-6">
                   <div>
-                    <span className="text-[0.65rem] font-semibold tracking-[0.14em] text-muted-foreground/60 uppercase">
+                    <span className="text-[0.65rem] font-semibold text-muted-foreground/60 uppercase">
                       {alternative.category ?? "Alternative"}
                     </span>
                     <h2 className="mt-2 font-heading text-xl font-semibold tracking-[-0.02em] text-foreground transition-colors group-hover:text-[var(--color-princeton-orange)]">

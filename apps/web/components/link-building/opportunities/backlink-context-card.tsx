@@ -48,7 +48,7 @@ function UrlPanel({
 
   return (
     <div className={`flex min-w-0 flex-1 flex-col gap-1.5 rounded-md border px-3 py-2.5 ${styles.wrap}`}>
-      <p className={`text-[0.6rem] font-bold tracking-[0.16em] uppercase ${styles.label}`}>
+      <p className={`text-[0.6rem] font-bold uppercase ${styles.label}`}>
         {label}
       </p>
       {url ? (
@@ -82,7 +82,7 @@ export function BacklinkContextCard({
 }: BacklinkContextCardProps) {
   return (
     <div className="rounded-lg border border-border/60 bg-card px-5 py-4">
-      <p className="mb-3 text-[0.7rem] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+      <p className="mb-3 text-[0.7rem] font-bold text-muted-foreground uppercase">
         Backlink context
       </p>
       <div className="flex items-center gap-2">

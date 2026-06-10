@@ -37,7 +37,7 @@ export function MonitoringHero({ config }: { config: MonitoringConfig }) {
               animate="animate"
               transition={{ duration: 0.5, delay: 0, ease }}
             >
-              <span className="text-[0.65rem] font-bold tracking-[0.22em] text-(--color-blaze-orange) uppercase">
+              <span className="text-[0.65rem] font-bold text-(--color-blaze-orange) uppercase">
                 {config.hero.eyebrow}
               </span>
             </motion.div>

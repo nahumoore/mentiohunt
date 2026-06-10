@@ -19,6 +19,7 @@ export type ProspectListItem = Pick<
   | "contact_email"
   | "contact_name"
   | "notes"
+  | "domain_rating"
 >
 
 export type ProspectDetail = ProspectListItem &
@@ -30,6 +31,8 @@ export type ProspectDetail = ProspectListItem &
     | "found_url"
     | "contact_social_links"
     | "raw_post_text"
+    | "raw_metadata"
+    | "domain_rating"
   >
 
 type ProspectStore = {
@@ -59,6 +62,7 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
     contact_email: prospect.contact_email,
     contact_name: prospect.contact_name,
     notes: prospect.notes,
+    domain_rating: prospect.domain_rating,
   }
 }
 

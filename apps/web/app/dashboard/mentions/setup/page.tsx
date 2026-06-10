@@ -47,7 +47,7 @@ interface MonitoringCommunity {
 }
 
 const DEFAULT_CONFIG: MonitoringConfig = {
-  platforms: ["reddit", "bluesky"],
+  platforms: ["reddit", "quora"],
   communities: [
     { platform: "reddit", community: "SaaS" },
     { platform: "reddit", community: "SEO" },
@@ -477,7 +477,7 @@ function VoiceTab({
         <div className="border-b border-border/70 px-5 py-5">
           <label
             htmlFor="voice-instructions"
-            className="mb-2 block text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+            className="mb-2 block text-xs font-semibold uppercase text-muted-foreground"
           >
             Voice instructions
           </label>

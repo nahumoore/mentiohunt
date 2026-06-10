@@ -28,7 +28,7 @@ export function QuickVerdict({ toolA, toolB, ifA, ifB }: QuickVerdictProps) {
   return (
     <div className="my-8 grid grid-cols-1 overflow-hidden rounded-xl border border-border sm:grid-cols-2">
       <div className={side}>
-        <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+        <p className="mb-0.5 text-[10px] font-bold uppercase text-muted-foreground">
           Choose
         </p>
         <p className="mb-4 font-semibold text-foreground">{toolA}</p>
@@ -42,7 +42,7 @@ export function QuickVerdict({ toolA, toolB, ifA, ifB }: QuickVerdictProps) {
         </ul>
       </div>
       <div className="bg-muted/40 p-6">
-        <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+        <p className="mb-0.5 text-[10px] font-bold uppercase text-muted-foreground">
           Choose
         </p>
         <p className="mb-4 font-semibold text-foreground">{toolB}</p>
@@ -72,7 +72,7 @@ export function ToolStrengths({ tool, items }: ToolStrengthsProps) {
 
   return (
     <div className="my-6 rounded-xl border border-border bg-muted/30 p-5">
-      <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+      <p className="mb-3 text-[10px] font-bold uppercase text-muted-foreground">
         {tool}
       </p>
       <ul className="space-y-2">
@@ -104,7 +104,7 @@ export function WhenToChoose({ tool, items }: WhenToChooseProps) {
 
   return (
     <div className="my-6 rounded-xl border border-border bg-muted/30 p-5">
-      <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+      <p className="mb-3 text-[10px] font-bold uppercase text-muted-foreground">
         Choose {tool} if:
       </p>
       <ul className="space-y-2.5">
@@ -136,7 +136,7 @@ export function PricingNote({ tool, plans, note }: PricingNoteProps) {
 
   return (
     <div className="my-6 rounded-xl border border-border bg-muted/30 p-5">
-      <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+      <p className="mb-3 text-[10px] font-bold uppercase text-muted-foreground">
         {tool} — plans
       </p>
       <div className="flex flex-wrap gap-2">
@@ -145,7 +145,7 @@ export function PricingNote({ tool, plans, note }: PricingNoteProps) {
             key={i}
             className="rounded-lg border border-border bg-background px-3 py-2"
           >
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            <p className="text-[10px] uppercase text-muted-foreground">
               {plan.name}
             </p>
             <p className="mt-0.5 text-sm font-semibold text-foreground">
@@ -175,33 +175,33 @@ function SourceBadge({ source }: { source: string }) {
   const s = source.toLowerCase()
   if (s === "reddit")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase">
         <IconBrandReddit size={11} stroke={2} className="text-orange-500" />
         Reddit
       </span>
     )
   if (s === "x" || s === "twitter")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase">
         <IconBrandX size={11} stroke={2} />X
       </span>
     )
   if (s === "g2")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase">
         <IconStar size={11} stroke={2} className="text-yellow-500" />
         G2
       </span>
     )
   if (s === "producthunt")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase">
         <IconTargetArrow size={11} stroke={2} className="text-orange-500" />
         Product Hunt
       </span>
     )
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase">
       {source}
     </span>
   )
@@ -277,8 +277,8 @@ export function ScoreCard({ toolA, toolB, scores }: ScoreCardProps) {
   return (
     <div className="my-6 overflow-hidden rounded-xl border border-border">
       {/* Header */}
-      <div className="grid grid-cols-[minmax(100px,160px)_1fr_1fr] border-b border-border bg-muted/40 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em]">
-        <span className="text-muted-foreground">Category</span>
+      <div className="grid grid-cols-[minmax(100px,160px)_1fr_1fr] border-b border-border bg-muted/40 px-5 py-3 text-[10px] font-bold uppercase">
+          <span className="text-muted-foreground">Category</span>
         <span className="px-3 text-muted-foreground">{toolA}</span>
         <span className="px-3 text-muted-foreground">{toolB}</span>
       </div>
@@ -377,7 +377,7 @@ export function PricingComparison({ toolA, toolB, plansA, plansB, noteA, noteB }
       {/* Tool A */}
       <div className="rounded-xl border border-[var(--color-blaze-orange)]/25 bg-muted/20 p-5">
         <p
-          className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em]"
+          className="mb-3 text-[10px] font-bold uppercase"
           style={{ color: "var(--pumpkin-spice)" }}
         >
           {toolA}
@@ -385,7 +385,7 @@ export function PricingComparison({ toolA, toolB, plansA, plansB, noteA, noteB }
         <div className="flex flex-wrap gap-2">
           {listA.map((plan, i) => (
             <div key={i} className="rounded-lg border border-border bg-background px-3 py-2">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{plan.name}</p>
+              <p className="text-[10px] uppercase text-muted-foreground">{plan.name}</p>
               <p className="mt-0.5 text-sm font-semibold text-foreground">{plan.price}</p>
               {plan.note && <p className="mt-0.5 text-[10px] text-muted-foreground">{plan.note}</p>}
             </div>
@@ -396,13 +396,13 @@ export function PricingComparison({ toolA, toolB, plansA, plansB, noteA, noteB }
 
       {/* Tool B */}
       <div className="rounded-xl border border-border bg-muted/20 p-5">
-        <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+        <p className="mb-3 text-[10px] font-bold uppercase text-muted-foreground">
           {toolB}
         </p>
         <div className="flex flex-wrap gap-2">
           {listB.map((plan, i) => (
             <div key={i} className="rounded-lg border border-border bg-background px-3 py-2">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{plan.name}</p>
+              <p className="text-[10px] uppercase text-muted-foreground">{plan.name}</p>
               <p className="mt-0.5 text-sm font-semibold text-foreground">{plan.price}</p>
               {plan.note && <p className="mt-0.5 text-[10px] text-muted-foreground">{plan.note}</p>}
             </div>

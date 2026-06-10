@@ -7,6 +7,11 @@ export const ONBOARDING_STEPS = [
       "Enter your URL and we'll help you discover opportunities for your product.",
   },
   {
+    title: "Tell us about your company",
+    description:
+      "This helps us tailor your opportunities and reply suggestions.",
+  },
+  {
     title: "Your product",
     description:
       "Review your product name and description. Edit anything that looks off.",
@@ -27,6 +32,27 @@ export const ONBOARDING_STEPS = [
       "Backlink discovery and community monitoring will both activate immediately.",
   },
 ] as const
+
+export const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-1000", "1000+"] as const
+export const USER_ROLES = ["Founder", "Marketing", "Growth", "Engineering", "Other"] as const
+export const REFERRAL_SOURCES = [
+  "X/Twitter",
+  "Google Search",
+  "Reddit",
+  "Referral",
+  "LinkedIn",
+  "Other",
+] as const
+export const PRIMARY_USES = [
+  { id: "backlinks", label: "Backlink building" },
+  { id: "mentions", label: "Community mentions" },
+  { id: "both", label: "Both" },
+] as const
+
+export type CompanySize = (typeof COMPANY_SIZES)[number]
+export type UserRole = (typeof USER_ROLES)[number]
+export type ReferralSource = (typeof REFERRAL_SOURCES)[number]
+export type PrimaryUse = "backlinks" | "mentions" | "both"
 
 export const OPPORTUNITY_TYPE_IDS = [
   "competitor_backlinks",
@@ -55,7 +81,7 @@ export const DEFAULT_OPPORTUNITY_TYPES = [
   "media_mentions",
 ] satisfies OpportunityTypeId[]
 
-export const DEFAULT_MONITORING_PLATFORMS = ["reddit", "bluesky", "facebook", "twitter"] as const
+export const DEFAULT_MONITORING_PLATFORMS = ["reddit", "quora"] as const
 
 export type OpportunityTypeId = (typeof OPPORTUNITY_TYPE_IDS)[number]
 export type MonitoringPlatform = (typeof DEFAULT_MONITORING_PLATFORMS)[number]
@@ -76,6 +102,10 @@ export type OnboardingData = {
   monitoringCommunities: MonitoringCommunity[]
   emailAlertsEnabled: boolean
   userName: string
+  companySize: string
+  role: string
+  referralSource: string
+  primaryUse: PrimaryUse
 }
 
 export type OnboardingField = keyof OnboardingData
@@ -92,6 +122,10 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   monitoringCommunities: [],
   emailAlertsEnabled: true,
   userName: "",
+  companySize: "",
+  role: "",
+  referralSource: "",
+  primaryUse: "both",
 }
 
 const URL_PROTOCOL_PATTERN = /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//
@@ -166,7 +200,7 @@ const monitoringCommunitySchema = z.object({
 
 export const monitoringStepSchema = z.object({
   monitoringPlatforms: z
-    .array(z.enum(["reddit", "bluesky", "facebook", "twitter"]))
+    .array(z.enum(["reddit", "quora"]))
     .min(1, "Keep at least one monitoring platform active."),
   monitoringKeywords: z
     .array(z.string().trim().min(2).max(120))
@@ -189,9 +223,17 @@ export const userNameStepSchema = z.object({
   userName: z.string().trim().max(80).optional().default(""),
 })
 
+export const companyStepSchema = z.object({
+  companySize: z.string().trim().min(1, "Select your company size."),
+  role: z.string().trim().min(1, "Select your role."),
+  referralSource: z.string().trim().optional().default(""),
+  primaryUse: z.enum(["backlinks", "mentions", "both"]).default("both"),
+})
+
 export const onboardingSchema = websiteUrlStepSchema
   .merge(productDescriptionStepSchema)
   .merge(competitorsStepSchema)
   .merge(opportunityTypesStepSchema)
   .merge(monitoringStepSchema)
   .merge(userNameStepSchema)
+  .merge(companyStepSchema)

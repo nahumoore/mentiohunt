@@ -44,7 +44,7 @@ export function TargetPersonas() {
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-[var(--color-blaze-orange)] uppercase">
+          <span className="text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase">
             Who it is for
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />
@@ -79,7 +79,7 @@ export function TargetPersonas() {
 
                 <div className="relative z-10 -mt-px bg-card p-6 before:absolute before:inset-x-0 before:-top-16 before:h-16 before:bg-gradient-to-t before:from-card before:via-card/85 before:to-transparent before:content-['']">
                   <div className="mb-5 flex items-center justify-between gap-4">
-                    <p className="text-[0.65rem] font-bold tracking-[0.2em] text-[var(--color-blaze-orange)] uppercase">
+                    <p className="text-[0.65rem] font-bold text-[var(--color-blaze-orange)] uppercase">
                       {persona.eyebrow}
                     </p>
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-blaze-orange)]/10 text-[var(--color-blaze-orange)]">

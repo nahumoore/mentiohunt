@@ -140,7 +140,7 @@ export default async function FeaturePage({ params }: Props) {
 
             <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_0.86fr] lg:items-center lg:gap-16">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold tracking-[0.2em] text-[var(--color-princeton-orange)] uppercase">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold text-[var(--color-princeton-orange)] uppercase">
                   <FeatureIcon size={13} stroke={2.6} />
                   {feature.eyebrow}
                 </div>
@@ -187,7 +187,7 @@ export default async function FeaturePage({ params }: Props) {
                   <div className="relative rounded-[1.55rem] border border-background/10 bg-background/[0.06] p-5 backdrop-blur">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-background/55">
+                        <p className="text-[0.62rem] font-semibold uppercase text-background/55">
                           Opportunity preview
                         </p>
                         <h2 className="mt-2 font-heading text-2xl font-semibold tracking-[-0.045em]">
@@ -209,7 +209,7 @@ export default async function FeaturePage({ params }: Props) {
                           <IconMailSpark size={20} stroke={2.4} />
                         </div>
                         <div>
-                          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-background/50">
+                          <p className="text-[0.62rem] font-semibold uppercase text-background/50">
                             {feature.sampleLabel}
                           </p>
                           <p className="mt-1 font-heading text-base font-semibold tracking-[-0.025em]">
@@ -235,7 +235,7 @@ export default async function FeaturePage({ params }: Props) {
 
           <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+              <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
                 How it works
               </span>
               <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
@@ -318,7 +318,7 @@ export default async function FeaturePage({ params }: Props) {
 
           <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+              <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
                 Why founders use it
               </span>
               <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />

@@ -191,7 +191,7 @@ export function Footer() {
 
           <div className="relative grid gap-10 px-6 py-10 sm:px-8 sm:py-12 lg:grid-cols-[1fr_auto] lg:items-center lg:px-12 lg:py-14">
             <div className="max-w-xl">
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold text-[var(--color-princeton-orange)] uppercase">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-princeton-orange)]" />
                 Your next backlink opportunities, ready
               </div>
@@ -210,7 +210,7 @@ export function Footer() {
               </p>
 
               <div className="mt-5 flex flex-wrap items-center gap-2">
-                <span className="text-[0.65rem] font-medium tracking-[0.1em] text-muted-foreground/50 uppercase">
+                <span className="text-[0.65rem] font-medium text-muted-foreground/50 uppercase">
                   Get discovered across
                 </span>
                 <div className="flex items-center gap-1.5">
@@ -291,7 +291,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground/60 uppercase">
+            <p className="text-xs font-semibold text-muted-foreground/60 uppercase">
               Product
             </p>
             <ul className="space-y-2">
@@ -309,7 +309,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground/60 uppercase">
+            <p className="text-xs font-semibold text-muted-foreground/60 uppercase">
               Resources
             </p>
             <ul className="space-y-2">
@@ -327,7 +327,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground/60 uppercase">
+            <p className="text-xs font-semibold text-muted-foreground/60 uppercase">
               Monitoring
             </p>
             <ul className="space-y-2">
@@ -345,7 +345,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground/60 uppercase">
+            <p className="text-xs font-semibold text-muted-foreground/60 uppercase">
               Legal
             </p>
             <ul className="space-y-2">

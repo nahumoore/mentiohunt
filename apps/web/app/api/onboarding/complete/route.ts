@@ -185,6 +185,12 @@ export async function POST(request: Request) {
   const profileUpdate: TablesUpdate<"profiles"> = {
     onboarding_completed: true,
     ...(parsedRequest.data.userName ? { name: parsedRequest.data.userName } : {}),
+    ...(parsedRequest.data.companySize ? { company_size: parsedRequest.data.companySize } : {}),
+    ...(parsedRequest.data.role ? { role: parsedRequest.data.role } : {}),
+    ...(parsedRequest.data.referralSource
+      ? { referral_source: parsedRequest.data.referralSource }
+      : {}),
+    ...(parsedRequest.data.primaryUse ? { primary_use: parsedRequest.data.primaryUse } : {}),
   }
 
   const { error: updateProfileError } = await supabase

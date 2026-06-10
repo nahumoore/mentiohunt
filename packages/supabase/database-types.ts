@@ -118,12 +118,14 @@ export type Database = {
           created_at: string
           discovered_at: string
           domain: string | null
+          domain_rating: number | null
           email_body: string | null
           email_subject: string | null
           found_url: string | null
           id: string
           notes: string | null
           product_id: string
+          raw_metadata: Json | null
           raw_post_text: string | null
           status: Database["public"]["Enums"]["prospect_status"]
           target_url: string | null
@@ -137,12 +139,14 @@ export type Database = {
           created_at?: string
           discovered_at?: string
           domain?: string | null
+          domain_rating?: number | null
           email_body?: string | null
           email_subject?: string | null
           found_url?: string | null
           id?: string
           notes?: string | null
           product_id: string
+          raw_metadata?: Json | null
           raw_post_text?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
@@ -156,12 +160,14 @@ export type Database = {
           created_at?: string
           discovered_at?: string
           domain?: string | null
+          domain_rating?: number | null
           email_body?: string | null
           email_subject?: string | null
           found_url?: string | null
           id?: string
           notes?: string | null
           product_id?: string
+          raw_metadata?: Json | null
           raw_post_text?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
@@ -420,12 +426,16 @@ export type Database = {
           active_trial: boolean
           billing_period_end_at: string
           billing_period_start_at: string
+          company_size: string | null
           created_at: string
           email: string
           email_settings: Json | null
           id: string
           name: string | null
           onboarding_completed: boolean
+          primary_use: string | null
+          referral_source: string | null
+          role: string | null
           stripe_customer_id: string | null
           tier: Database["public"]["Enums"]["billing_tier"]
           updated_at: string
@@ -434,12 +444,16 @@ export type Database = {
           active_trial?: boolean
           billing_period_end_at: string
           billing_period_start_at: string
+          company_size?: string | null
           created_at?: string
           email: string
           email_settings?: Json | null
           id: string
           name?: string | null
           onboarding_completed?: boolean
+          primary_use?: string | null
+          referral_source?: string | null
+          role?: string | null
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string
@@ -448,12 +462,16 @@ export type Database = {
           active_trial?: boolean
           billing_period_end_at?: string
           billing_period_start_at?: string
+          company_size?: string | null
           created_at?: string
           email?: string
           email_settings?: Json | null
           id?: string
           name?: string | null
           onboarding_completed?: boolean
+          primary_use?: string | null
+          referral_source?: string | null
+          role?: string | null
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string
@@ -470,7 +488,7 @@ export type Database = {
           keywords: string[]
           last_run_at: string | null
           last_run_status: string | null
-          platforms: string[]
+          platforms: Database["public"]["Enums"]["reply_queue_platform"][]
           product_id: string
           status: string
           total_mentions_found: number
@@ -485,7 +503,7 @@ export type Database = {
           keywords?: string[]
           last_run_at?: string | null
           last_run_status?: string | null
-          platforms?: string[]
+          platforms?: Database["public"]["Enums"]["reply_queue_platform"][]
           product_id: string
           status?: string
           total_mentions_found?: number
@@ -500,7 +518,7 @@ export type Database = {
           keywords?: string[]
           last_run_at?: string | null
           last_run_status?: string | null
-          platforms?: string[]
+          platforms?: Database["public"]["Enums"]["reply_queue_platform"][]
           product_id?: string
           status?: string
           total_mentions_found?: number
@@ -528,7 +546,7 @@ export type Database = {
           fit_category: string
           fit_score: number
           id: string
-          platform: string
+          platform: Database["public"]["Enums"]["reply_queue_platform"]
           post_created_at: string | null
           post_id: string
           run_id: string
@@ -550,7 +568,7 @@ export type Database = {
           fit_category: string
           fit_score: number
           id?: string
-          platform: string
+          platform: Database["public"]["Enums"]["reply_queue_platform"]
           post_created_at?: string | null
           post_id: string
           run_id: string
@@ -572,7 +590,7 @@ export type Database = {
           fit_category?: string
           fit_score?: number
           id?: string
-          platform?: string
+          platform?: Database["public"]["Enums"]["reply_queue_platform"]
           post_created_at?: string | null
           post_id?: string
           run_id?: string
@@ -647,6 +665,61 @@ export type Database = {
           },
         ]
       }
+      reported_issues: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          product_id: string
+          prospect_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          product_id: string
+          prospect_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          product_id?: string
+          prospect_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reported_issues_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reported_issues_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "backlink_prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reported_issues_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -671,6 +744,7 @@ export type Database = {
         | "competitor_backlink"
         | "unlinked_mention"
         | "media_mention"
+      reply_queue_platform: "reddit" | "quora"
       run_status: "pending" | "running" | "completed" | "failed"
     }
     CompositeTypes: {
@@ -817,6 +891,7 @@ export const Constants = {
         "unlinked_mention",
         "media_mention",
       ],
+      reply_queue_platform: ["reddit", "quora"],
       run_status: ["pending", "running", "completed", "failed"],
     },
   },

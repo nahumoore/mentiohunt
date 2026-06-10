@@ -530,7 +530,7 @@ export default function DirectoriesPage() {
                             is_free: submission.directory?.is_free ?? null,
                           })
                           router.push(
-                            `/dashboard/link-building/directories/${submission.id}`
+                            `/dashboard/directories/${submission.id}`
                           )
                         }}
                         className={cn(

@@ -1,5 +1,3 @@
-import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
-import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import {
   EMAIL_VERIFIER,
   type EmailVerificationResult,
@@ -10,23 +8,22 @@ import type { PageType } from "./score-backlink-relevance.js"
 
 const log = createLogger("enrich-contact")
 
-type ScrapeResponse = {
+type AgentScrapeResponse = {
   name: string | null
-  email: string | null
+  emails: { value: string; type: string }[]
+  social_links: Record<string, string>
+  bio: string | null
   contact_form_url: string | null
   confidence: string
-  source: string | null
-  social_links: Record<string, string>
-  raw_snippets: {
-    header: string
-    footer: string
-    article_header: string
-  } | null
+  visited_urls: string[]
 }
 
-type CleanedContact = {
-  name: string | null
-  social_links: Record<string, string>
+export type RawContactMetadata = {
+  bio: string | null
+  emails: { value: string; type: string }[]
+  contact_form_url: string | null
+  visited_urls: string[]
+  confidence: string
 }
 
 export type ContactResult = {
@@ -34,9 +31,10 @@ export type ContactResult = {
   email: string | null
   social_links: Record<string, string>
   confidence: "personalized" | "email-only" | "generic" | "none"
+  rawMetadata: RawContactMetadata | null
 }
 
-async function callScraper(url: string): Promise<ScrapeResponse | null> {
+async function callScraper(url: string): Promise<AgentScrapeResponse | null> {
   const scraperUrl = process.env.SCRAPER_URL
   if (!scraperUrl) {
     log.warn("SCRAPER_URL not set, skipping scrape")
@@ -44,17 +42,21 @@ async function callScraper(url: string): Promise<ScrapeResponse | null> {
   }
 
   try {
-    const res = await fetch(`${scraperUrl}/scrape`, {
+    const scraperApiKey = process.env.SCRAPER_API_KEY
+    const res = await fetch(`${scraperUrl}/agent-scrape`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
+      },
       body: JSON.stringify({ url }),
-      signal: AbortSignal.timeout(60_000),
+      signal: AbortSignal.timeout(120_000),
     })
     if (!res.ok) {
       log.warn("scraper returned error", { url, status: res.status })
       return null
     }
-    return res.json() as Promise<ScrapeResponse>
+    return res.json() as Promise<AgentScrapeResponse>
   } catch (err) {
     log.warn("scraper call failed", { url, error: String(err) })
     return null
@@ -82,7 +84,9 @@ const GENERIC_PATTERNS = ["contact", "hello", "info", "hi"]
 
 async function verifyPatterns(
   patterns: string[],
-  domain: string
+  domain: string,
+  scrapedEmail?: string | null,
+  allowRiskyFallback?: boolean
 ): Promise<string | null> {
   if (patterns.length === 0) return null
 
@@ -99,75 +103,25 @@ async function verifyPatterns(
       120
     )
     const good = results.find((r) => r.status === "good")
+    const riskyScraped = scrapedEmail
+      ? results.find((r) => r.email === scrapedEmail && r.status === "risky")
+      : null
+    const riskyAny = allowRiskyFallback
+      ? results.find((r) => r.status === "risky")
+      : null
 
     log.info("verification result", {
       domain,
       good: good?.email ?? null,
+      riskyScrapedFallback: riskyScraped?.email ?? null,
+      riskyGenericFallback: riskyAny?.email ?? null,
       statuses: results.map((r) => ({ email: r.email, status: r.status })),
     })
 
-    return good?.email ?? null
+    return good?.email ?? riskyScraped?.email ?? riskyAny?.email ?? null
   } catch (err) {
     log.warn("email verification failed", { domain, error: String(err) })
     return null
-  }
-}
-
-async function cleanScraperResult(
-  scraped: ScrapeResponse,
-  domain: string
-): Promise<CleanedContact> {
-  const input = JSON.stringify({
-    scraped_name: scraped.name,
-    article_header: scraped.raw_snippets?.article_header ?? "",
-    header: scraped.raw_snippets?.header?.slice(0, 500) ?? "",
-    social_links: scraped.social_links,
-  })
-
-  try {
-    const { text } = await generateTextWithUsage({
-      model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
-      fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
-      input,
-      systemInstructions: `Extract the article author's personal contact info from scraped web page data.
-
-Return JSON with:
-- "name": the real person who authored the article. Check article_header for "Written by", "By", or author byline patterns. Use scraped_name if it looks like a real person (two capitalised words). Reject nav items (e.g. "Articles"), brand names, or company names. Return null if uncertain.
-- "social_links": only personal social links (e.g. linkedin.com/in/<username> for an individual). Remove company accounts (linkedin.com/company/, brand Twitter handles, official brand pages). Return {} if none found.`,
-      responseFormat: {
-        type: "json_schema",
-        json_schema: {
-          name: "cleaned_contact",
-          strict: true,
-          schema: {
-            type: "object",
-            properties: {
-              name: { type: ["string", "null"] },
-              social_links: {
-                type: "object",
-                additionalProperties: { type: "string" },
-              },
-            },
-            required: ["name", "social_links"],
-            additionalProperties: false,
-          },
-        },
-      },
-    })
-
-    const parsed = JSON.parse(text) as CleanedContact
-    log.info("llm clean result", {
-      domain,
-      name: parsed.name,
-      socialCount: Object.keys(parsed.social_links).length,
-    })
-    return parsed
-  } catch (err) {
-    log.warn("llm clean failed, using raw scraper result", {
-      domain,
-      error: String(err),
-    })
-    return { name: scraped.name, social_links: scraped.social_links }
   }
 }
 
@@ -195,65 +149,108 @@ export async function enrichContact(
       target: urlFrom,
       hasName: !!scraped?.name,
       name: scraped?.name ?? null,
-      hasEmail: !!scraped?.email,
+      emailCount: scraped?.emails.length ?? 0,
       confidence: scraped?.confidence ?? null,
-      source: scraped?.source ?? null,
     })
 
     if (scraped) {
-      const cleaned = await cleanScraperResult(scraped, domain)
+      const rawMetadata: RawContactMetadata = {
+        bio: scraped.bio,
+        emails: scraped.emails,
+        contact_form_url: scraped.contact_form_url,
+        visited_urls: scraped.visited_urls,
+        confidence: scraped.confidence,
+      }
 
-      if (cleaned.name) {
-        const patterns = generatePersonalizedPatterns(cleaned.name, domain)
-        const verified = await verifyPatterns(patterns, domain)
-        log.info("contact enriched via name", {
-          domain,
-          name: cleaned.name,
-          email: verified,
-        })
-        return {
-          name: cleaned.name,
-          email: verified,
-          social_links: cleaned.social_links,
-          confidence: "personalized",
+      if (scraped.emails.length > 0) {
+        // Personal emails first, then general
+        const ordered = [...scraped.emails].sort((a, b) =>
+          a.type === "personal" ? -1 : b.type === "personal" ? 1 : 0
+        )
+        const personalEmail = ordered.find((e) => e.type === "personal")?.value ?? null
+        const candidates = ordered.map((e) => e.value)
+
+        const verified = await verifyPatterns(candidates, domain, personalEmail)
+
+        if (verified) {
+          log.info("contact enriched via agent emails", {
+            domain,
+            name: scraped.name,
+            email: verified,
+          })
+          return {
+            name: scraped.name,
+            email: verified,
+            social_links: scraped.social_links,
+            confidence: scraped.name ? "personalized" : "email-only",
+            rawMetadata,
+          }
         }
       }
 
-      if (scraped.email) {
-        log.info("contact enriched via direct email", {
-          domain,
-          email: scraped.email,
-        })
-        return {
-          name: null,
-          email: scraped.email,
-          social_links: cleaned.social_links,
-          confidence: "email-only",
+      // Agent found a name but no verifiable email — try pattern generation
+      if (scraped.name) {
+        const generated = generatePersonalizedPatterns(scraped.name, domain)
+        const verified = await verifyPatterns(generated, domain)
+        if (verified) {
+          log.info("contact enriched via name patterns", {
+            domain,
+            name: scraped.name,
+            email: verified,
+          })
+          return {
+            name: scraped.name,
+            email: verified,
+            social_links: scraped.social_links,
+            confidence: "personalized",
+            rawMetadata,
+          }
         }
+      }
+
+      // Agent ran but no verifiable email — try generic patterns, preserve rawMetadata
+      log.info("agent found no verifiable email, falling back to generic patterns", { domain })
+      const genericPatterns = GENERIC_PATTERNS.map((prefix) => `${prefix}@${domain}`)
+      const verified = await verifyPatterns(genericPatterns, domain, undefined, true)
+
+      if (verified) {
+        log.info("contact enriched via generic pattern", { domain, email: verified })
+        return {
+          name: scraped.name,
+          email: verified,
+          social_links: scraped.social_links,
+          confidence: "generic",
+          rawMetadata,
+        }
+      }
+
+      log.info("no contact found", { domain })
+      return {
+        name: scraped.name,
+        email: null,
+        social_links: scraped.social_links,
+        confidence: "none",
+        rawMetadata,
       }
     }
   }
 
-  // Fallback: generic patterns
+  // Fallback: generic patterns (no agent result or media site)
   log.info("falling back to generic patterns", { domain })
-  const genericPatterns = GENERIC_PATTERNS.map(
-    (prefix) => `${prefix}@${domain}`
-  )
-  const verified = await verifyPatterns(genericPatterns, domain)
+  const genericPatterns = GENERIC_PATTERNS.map((prefix) => `${prefix}@${domain}`)
+  const verified = await verifyPatterns(genericPatterns, domain, undefined, true)
 
   if (verified) {
-    log.info("contact enriched via generic pattern", {
-      domain,
-      email: verified,
-    })
+    log.info("contact enriched via generic pattern", { domain, email: verified })
     return {
       name: null,
       email: verified,
       social_links: {},
       confidence: "generic",
+      rawMetadata: null,
     }
   }
 
   log.info("no contact found", { domain })
-  return { name: null, email: null, social_links: {}, confidence: "none" }
+  return { name: null, email: null, social_links: {}, confidence: "none", rawMetadata: null }
 }

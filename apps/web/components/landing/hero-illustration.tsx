@@ -38,7 +38,7 @@ const cards: Card[] = [
     detail: (
       <div className="flex flex-1 flex-col gap-5">
         <div>
-          <p className="mb-1.5 text-[0.58rem] font-semibold tracking-[0.14em] text-muted-foreground/50 uppercase">
+          <p className="mb-1.5 text-[0.58rem] font-semibold text-muted-foreground/50 uppercase">
             Thread
           </p>
           <p className="text-sm leading-5 text-muted-foreground italic">
@@ -48,7 +48,7 @@ const cards: Card[] = [
         </div>
         <div className="h-px bg-border" />
         <div>
-          <p className="mb-1.5 text-[0.58rem] font-semibold tracking-[0.14em] text-[var(--color-blaze-orange)] uppercase">
+          <p className="mb-1.5 text-[0.58rem] font-semibold text-[var(--color-blaze-orange)] uppercase">
             Suggested reply
           </p>
           <p className="text-sm leading-5 text-foreground">
@@ -79,7 +79,7 @@ const cards: Card[] = [
           ] as [string, string][]
         ).map(([label, value]) => (
           <div key={label}>
-            <p className="text-[0.58rem] font-semibold tracking-[0.14em] text-muted-foreground/50 uppercase">
+            <p className="text-[0.58rem] font-semibold text-muted-foreground/50 uppercase">
               {label}
             </p>
             <p className="mt-1 truncate text-sm font-semibold text-foreground">
@@ -110,7 +110,7 @@ const cards: Card[] = [
           ] as [string, string][]
         ).map(([label, value]) => (
           <div key={label}>
-            <p className="text-[0.58rem] font-semibold tracking-[0.14em] text-muted-foreground/50 uppercase">
+            <p className="text-[0.58rem] font-semibold text-muted-foreground/50 uppercase">
               {label}
             </p>
             <p className="mt-1 truncate text-sm font-semibold text-foreground">
@@ -207,7 +207,7 @@ function OpportunityCard({
               <Icon className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-[0.6rem] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+              <p className="text-[0.6rem] font-bold text-muted-foreground uppercase">
                 {eyebrow}
               </p>
               <p className="text-[0.65rem] text-muted-foreground/55">
@@ -220,7 +220,7 @@ function OpportunityCard({
             <span className="text-2xl font-black tabular-nums text-[var(--color-blaze-orange)]">
               {score}
             </span>
-            <p className="text-[0.5rem] font-bold tracking-widest text-muted-foreground/40 uppercase">
+            <p className="text-[0.5rem] font-bold text-muted-foreground/40 uppercase">
               fit score
             </p>
           </div>

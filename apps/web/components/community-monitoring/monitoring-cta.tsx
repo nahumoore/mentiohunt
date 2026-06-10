@@ -35,7 +35,7 @@ export function MonitoringCta({ config }: { config: MonitoringConfig }) {
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.5, ease }}
         >
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+          <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
             Start for free
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />

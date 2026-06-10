@@ -83,7 +83,7 @@ export default function ComparePage() {
           <div className="pointer-events-none absolute bottom-0 -left-20 h-56 w-56 rounded-full bg-[var(--color-amber-glow)]/6 blur-3xl" />
 
           <div className="relative container mx-auto max-w-5xl">
-            <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-princeton-orange)] uppercase">
               <IconScale size={13} stroke={2.5} />
               <span>Tool vs Tool</span>
             </div>
@@ -108,7 +108,7 @@ export default function ComparePage() {
                 className="h-14 w-14 rounded-xl object-cover ring-2 ring-[var(--color-blaze-orange)]/25"
               />
               <div className="flex flex-col gap-0.5">
-                <span className="text-[0.6rem] font-semibold tracking-[0.16em] text-muted-foreground/60 uppercase">
+                <span className="text-[0.6rem] font-semibold text-muted-foreground/60 uppercase">
                   Written by
                 </span>
                 <span className="font-heading text-base leading-tight font-semibold text-foreground">
@@ -160,7 +160,7 @@ export default function ComparePage() {
                         </span>
                       </div>
 
-                      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-[var(--color-blaze-orange)]/30 bg-[var(--color-blaze-orange)]/8 text-[0.6rem] font-bold tracking-[0.1em] text-[var(--color-princeton-orange)] uppercase">
+                      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-[var(--color-blaze-orange)]/30 bg-[var(--color-blaze-orange)]/8 text-[0.6rem] font-bold text-[var(--color-princeton-orange)] uppercase">
                         vs
                       </span>
 

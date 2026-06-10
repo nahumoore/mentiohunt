@@ -10,11 +10,15 @@ async function callScraper(url: string): Promise<unknown | null> {
     return null
   }
   try {
-    const res = await fetch(`${scraperUrl}/scrape`, {
+    const scraperApiKey = process.env.SCRAPER_API_KEY
+    const res = await fetch(`${scraperUrl}/agent-scrape`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
+      },
       body: JSON.stringify({ url }),
-      signal: AbortSignal.timeout(60_000),
+      signal: AbortSignal.timeout(120_000),
     })
     if (!res.ok) {
       const body = await res.text().catch(() => "(unreadable)")

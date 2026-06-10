@@ -161,31 +161,31 @@ I'm building Mentiohunt around that exact flow for founders and small agencies. 
   },
   {
     id: "cm-2",
-    platform: "bluesky",
-    sourceName: "bsky.app",
-    postUrl: "https://bsky.app/profile/founderops.bsky.social/post/1",
-    postTitle: "Ahrefs is overkill for what I need",
+    platform: "quora",
+    sourceName: "Quora",
+    postUrl: "https://www.quora.com/What-are-the-best-backlink-building-tools-for-small-SaaS",
+    postTitle: "What are the best backlink building tools for small SaaS companies?",
     postExcerpt:
-      "I don't need another giant SEO suite. I need something that tells me which relevant sites to contact this week and why.",
-    authorName: "founderops.bsky.social",
-    authorProfileUrl: "https://bsky.app/profile/founderops.bsky.social",
+      "I run a bootstrapped SaaS and I don't need an enterprise SEO suite. Looking for something that tells me which relevant sites to contact and why.",
+    authorName: "founderops",
+    authorProfileUrl: null,
     postedAt: "2026-05-06T17:40:00Z",
     discoveredAt: "2026-05-06T18:10:00Z",
     intent: "competitor_alternative",
     relevanceScore: 91,
     fitReason:
-      "The author is actively contrasting a broad SEO suite with a smaller workflow for weekly outreach decisions, which maps directly to Mentiohunt's positioning.",
-    matchedSignals: ["Ahrefs", "SEO suite", "contact this week", "why"],
+      "The question contrasts enterprise SEO with lightweight outreach workflows — maps directly to Mentiohunt's positioning.",
+    matchedSignals: ["backlink building", "small SaaS", "relevant sites to contact"],
     productAngle:
       "Emphasize focused opportunity discovery and plain-language rationale.",
-    replyDraft: `This is exactly the split I keep seeing: analytics tools are great for investigation, but they don't always answer "what should I do next?"
+    replyDraft: `For bootstrapped teams, the common issue is that big SEO suites give you data but not a clear next action.
 
-I'm building Mentiohunt for the narrower job: scan for relevant backlink/mention opportunities, score the fit, and queue each one with the outreach angle already explained.
+What works better is a workflow that starts with fit: competitor mentions, resource pages in your category, and listicles that already cover similar tools. Then score each one on how strong the case is before you write a word of outreach.
 
-Not a replacement for every Ahrefs workflow, but useful if your weekly goal is "who should I contact and why?"`,
+I'm building Mentiohunt around exactly that — turns discovery into a prioritized queue with the fit reason already written. Happy to share more if useful.`,
     safetyNotes: [
-      "Keep the tone conversational and avoid dunking on Ahrefs.",
-      "Bluesky threads move fast — reply within the hour for best visibility.",
+      "Quora answers have long shelf lives — write for future readers, not just the asker.",
+      "Disclose affiliation before naming Mentiohunt.",
     ],
     engagement: {
       comments: 9,
@@ -193,7 +193,7 @@ Not a replacement for every Ahrefs workflow, but useful if your weekly goal is "
       views: 8200,
     },
     status: "saved",
-    nextAction: "Trim reply for thread length",
+    nextAction: "Review and post answer",
   },
   {
     id: "cm-3",
@@ -233,20 +233,20 @@ I'm working on Mentiohunt to turn that into a daily queue, but the important par
   },
   {
     id: "cm-4",
-    platform: "bluesky",
-    sourceName: "bsky.app",
-    postUrl: "https://bsky.app/profile/indie.hacker/post/2",
+    platform: "quora",
+    sourceName: "Quora",
+    postUrl: "https://www.quora.com/How-do-you-get-the-first-credible-mentions-for-a-new-B2B-tool",
     postTitle: "How do you get the first credible mentions for a new B2B tool?",
     postExcerpt:
       "Paid acquisition is noisy in our niche. I'm trying to find credible places where our tool can be mentioned naturally without spamming communities.",
     authorName: "indie.hacker",
-    authorProfileUrl: "https://bsky.app/profile/indie.hacker",
+    authorProfileUrl: null,
     postedAt: "2026-05-05T20:25:00Z",
     discoveredAt: "2026-05-05T21:00:00Z",
     intent: "how_to",
     relevanceScore: 79,
     fitReason:
-      "The post is about finding legitimate mention opportunities and explicitly worries about spam, which is a good opening for a careful, workflow-based answer.",
+      "The question is about finding legitimate mention opportunities without being spammy — a good opening for a workflow-based answer.",
     matchedSignals: ["credible mentions", "B2B tool", "naturally", "without spamming"],
     productAngle:
       "Recommend high-fit opportunity categories and keep the product mention secondary.",
@@ -265,7 +265,7 @@ I'm building a tool called Mentiohunt around this kind of discovery queue, but y
       views: null,
     },
     status: "new",
-    nextAction: "Reply with manual workflow first",
+    nextAction: "Post answer on Quora",
   },
   {
     id: "cm-5",
@@ -305,20 +305,20 @@ I'm building Mentiohunt to automate that discovery/scoring step for founders, bu
   },
   {
     id: "cm-6",
-    platform: "bluesky",
-    sourceName: "bsky.app",
-    postUrl: "https://bsky.app/profile/tiredfounder.bsky.social/post/3",
-    postTitle: "Tried backlink outreach for 2 weeks and got nothing",
+    platform: "quora",
+    sourceName: "Quora",
+    postUrl: "https://www.quora.com/Is-link-building-dead-for-small-SaaS",
+    postTitle: "Tried backlink outreach for 2 weeks and got nothing — is link building dead?",
     postExcerpt:
       "I sent 80 emails from scraped lists and didn't get a single reply. Is link building just dead for small SaaS now?",
-    authorName: "tiredfounder.bsky.social",
-    authorProfileUrl: "https://bsky.app/profile/tiredfounder.bsky.social",
+    authorName: "tiredfounder",
+    authorProfileUrl: null,
     postedAt: "2026-05-03T10:45:00Z",
     discoveredAt: "2026-05-03T11:20:00Z",
     intent: "complaint",
     relevanceScore: 52,
     fitReason:
-      "The topic is related, but the author is frustrated and may react poorly to a tool recommendation. A helpful critique of scraped-list outreach is safer than a product pitch.",
+      "The topic is related, but the author is frustrated. A helpful critique of scraped-list outreach is safer than a product pitch.",
     matchedSignals: ["backlink outreach", "scraped lists", "small SaaS"],
     productAngle:
       "Offer a better qualification framework without naming Mentiohunt unless asked.",

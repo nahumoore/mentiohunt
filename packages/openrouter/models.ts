@@ -28,6 +28,13 @@ export const OPENROUTER_MODELS = {
   // Pricing: $0.039 / 1M input tokens, $0.18 / 1M output tokens.
   // Context window: 131,072 tokens.
   OPENAI_GPT_OSS_120B: "openai/gpt-oss-120b",
+
+  // DeepSeek V4 Pro.
+  // OpenRouter page: https://openrouter.ai/deepseek/deepseek-v4-pro
+  // Description: DeepSeek reasoning model for capable production chat and extraction use cases.
+  // Pricing: see OpenRouter model page.
+  // Context window: see OpenRouter model page.
+  DEEPSEEK_DEEPSEEK_V4_PRO: "deepseek/deepseek-v4-pro",
 } as const
 
 export type OpenRouterModel =

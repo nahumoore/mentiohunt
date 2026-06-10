@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 
 import { BacklinkContextCard } from "@/components/link-building/opportunities/backlink-context-card"
+import { ContactInsightsCard } from "@/components/link-building/opportunities/contact-insights-card"
 import { MediaMentionPanel } from "@/components/link-building/opportunities/media-mention-panel"
 import { OpportunityActions } from "@/components/link-building/opportunities/opportunity-actions"
 import { OpportunityContactCard } from "@/components/link-building/opportunities/opportunity-contact-card"
@@ -52,6 +53,7 @@ export function ProspectClientPage({
         actionType={current.action_type}
         status={current.status}
         discoveredAt={current.discovered_at}
+        domainRating={current.domain_rating ?? null}
       />
 
       <div className="h-px bg-border" />
@@ -105,6 +107,8 @@ export function ProspectClientPage({
             />
           )}
 
+          <ContactInsightsCard rawMetadata={current.raw_metadata ?? null} />
+
           <OpportunityMetaCard
             tier={current.tier}
             actionType={current.action_type}
@@ -117,6 +121,7 @@ export function ProspectClientPage({
       <OpportunityActions
         prospectId={current.id}
         actionType={current.action_type}
+        domain={current.domain}
       />
     </div>
   )

@@ -16,7 +16,7 @@ type TextFieldProps = {
 export function TextField({ label, value, error, placeholder, isLoading, onChange }: TextFieldProps) {
   return (
     <Field>
-      <FieldLabel className="text-[0.7rem] font-bold tracking-[0.24em] text-muted-foreground uppercase">
+      <FieldLabel className="text-[0.7rem] font-bold text-muted-foreground uppercase">
         {label}
       </FieldLabel>
       {isLoading ? (

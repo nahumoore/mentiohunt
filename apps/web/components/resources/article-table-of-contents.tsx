@@ -75,7 +75,7 @@ export function ArticleTableOfContents({
       <div className="sticky top-24 overflow-hidden rounded-2xl border border-border/80 bg-card/80 shadow-[0_24px_90px_-42px_rgba(255,133,0,0.45)] backdrop-blur">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top_right,var(--color-amber-glow)_0%,transparent_62%)] opacity-15" />
         <div className="relative border-b border-border/70 px-5 py-4">
-          <div className="flex items-center gap-2 text-[0.68rem] font-bold tracking-[0.2em] text-[var(--color-princeton-orange)] uppercase">
+          <div className="flex items-center gap-2 text-[0.68rem] font-bold text-[var(--color-princeton-orange)] uppercase">
             <IconListDetails size={14} stroke={2.4} />
             Contents
           </div>

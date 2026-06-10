@@ -4,7 +4,7 @@ import {
   formatDate,
   type ProspectActionType,
   type ProspectTier,
-} from "@/app/dashboard/link-building/opportunities/_data"
+} from "@/app/dashboard/outreach/_data"
 
 interface OpportunityMetaCardProps {
   tier: ProspectTier
@@ -16,7 +16,7 @@ interface OpportunityMetaCardProps {
 function MetaTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md bg-muted/40 px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+      <p className="text-[10px] font-medium uppercase text-muted-foreground">
         {label}
       </p>
       <p className="mt-0.5 text-sm font-medium">{value}</p>
@@ -32,7 +32,7 @@ export function OpportunityMetaCard({
 }: OpportunityMetaCardProps) {
   return (
     <div className="rounded-lg border border-border/60 bg-card p-4">
-      <p className="text-[0.7rem] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+      <p className="text-[0.7rem] font-bold text-muted-foreground uppercase">
         Queue data
       </p>
       <div className="mt-3 grid grid-cols-2 gap-2">

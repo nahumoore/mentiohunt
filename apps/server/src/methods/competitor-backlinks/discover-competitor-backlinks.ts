@@ -39,6 +39,7 @@ async function runBackgroundEnrichment(
           email_subject: null,
           email_body: null,
           raw_post_text: null,
+          raw_metadata: contact.rawMetadata,
         })
         .eq("id", rowId)
 
@@ -85,6 +86,7 @@ async function runBackgroundEnrichment(
         email_subject: emailResult?.subject ?? null,
         email_body: emailResult?.body ?? null,
         raw_post_text: null,
+        raw_metadata: contact.rawMetadata,
       })
       .eq("id", rowId)
 
@@ -214,23 +216,24 @@ async function processCompetitor(
   },
   settings: FilterSettings,
   senderName: string | null,
-  emailSettings: EmailSettings
+  emailSettings: EmailSettings,
+  enrichLimit: (fn: () => Promise<void>) => Promise<void>
 ): Promise<{ prospectsCreated: number; costUsd: number; nextCursor: string | null }> {
   const mozCursor = await getLastMozCursor(product.id, competitorDomain)
 
   log.info("processing competitor", { productId: product.id, competitorDomain, hasCursor: !!mozCursor })
 
   try {
-    const { items, nextCursor } = await extractBacklinks(competitorDomain, { ...settings, mozCursor })
-    const tagged: TaggedBacklinkItem[] = items.map((item) => ({ ...item, competitorDomain }))
+    const { items: rawItems, nextCursor } = await extractBacklinks(competitorDomain, { ...settings, mozCursor })
+    const tagged: TaggedBacklinkItem[] = rawItems.map((item) => ({ ...item, competitorDomain }))
 
     const filtered = filterBacklinks(tagged, settings)
     if (filtered.length === 0) {
       log.info("competitor digest", {
         competitorDomain,
-        extracted: items.length,
+        extracted: rawItems.length,
         passedFilters: 0,
-        discardedByFilters: items.length,
+        discardedByFilters: rawItems.length,
         scoredTotal: 0,
         discardedByScore: 0,
         kept: 0,
@@ -249,9 +252,9 @@ async function processCompetitor(
     if (passing.length === 0) {
       log.info("competitor digest", {
         competitorDomain,
-        extracted: items.length,
+        extracted: rawItems.length,
         passedFilters: filtered.length,
-        discardedByFilters: items.length - filtered.length,
+        discardedByFilters: rawItems.length - filtered.length,
         scoredTotal: scored.length,
         discardedByScore: belowThreshold.length,
         discardedItems: belowThreshold.map((r) => ({
@@ -269,6 +272,7 @@ async function processCompetitor(
     const rows = passing.map((item) => ({
       product_id: product.id,
       domain: extractDomainFromUrl(item.urlFrom),
+      domain_rating: item.domainRating,
       found_url: item.urlFrom,
       target_url: item.urlTo,
       tier: "competitor_backlink" as const,
@@ -292,9 +296,9 @@ async function processCompetitor(
 
     log.info("competitor digest", {
       competitorDomain,
-      extracted: items.length,
+      extracted: rawItems.length,
       passedFilters: filtered.length,
-      discardedByFilters: items.length - filtered.length,
+      discardedByFilters: rawItems.length - filtered.length,
       scoredTotal: scored.length,
       discardedByScore: belowThreshold.length,
       discardedItems: belowThreshold.map((r) => ({
@@ -315,7 +319,6 @@ async function processCompetitor(
     })
 
     const scoredByFoundUrl = new Map(passing.map((item) => [item.urlFrom, item]))
-    const enrichLimit = pLimit(1)
 
     void Promise.allSettled(
       insertedRows.map((row) =>
@@ -365,6 +368,7 @@ export async function discoverCompetitorBacklinks(
 
   const allDomains = product.competitors.map(extractCompetitorDomain)
   const competitorsToProcess = await selectCompetitorsForRun(product.id, allDomains)
+  const enrichLimit = pLimit(1)
 
   log.info("competitors selected", {
     productId: product.id,
@@ -380,7 +384,7 @@ export async function discoverCompetitorBacklinks(
 
   try {
     for (const competitorDomain of competitorsToProcess) {
-      const result = await processCompetitor(competitorDomain, product, settings, senderName, emailSettings)
+      const result = await processCompetitor(competitorDomain, product, settings, senderName, emailSettings, enrichLimit)
       totalProspectsCreated += result.prospectsCreated
       totalCostUsd += result.costUsd
       mozCursorsByDomain[competitorDomain] = result.nextCursor

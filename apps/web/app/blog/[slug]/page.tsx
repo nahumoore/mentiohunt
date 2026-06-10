@@ -170,7 +170,7 @@ export default async function BlogArticlePage({ params }: Props) {
 
             <div className="mt-9 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(460px,560px)] lg:items-end lg:gap-16">
               <div>
-                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-princeton-orange)] uppercase">
                   <IconNotebook size={14} stroke={2.5} />
                   <span>{meta.category ?? "Article"}</span>
                 </div>

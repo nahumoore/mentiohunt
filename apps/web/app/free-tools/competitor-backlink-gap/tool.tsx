@@ -191,7 +191,7 @@ export function CompetitorBacklinkGap() {
             <div className="max-w-3xl">
               <Link
                 href="/free-tools"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-[var(--color-princeton-orange)] transition-colors hover:bg-[var(--color-blaze-orange)]/12"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase text-[var(--color-princeton-orange)] transition-colors hover:bg-[var(--color-blaze-orange)]/12"
               >
                 <IconBolt size={13} stroke={2.6} />
                 Free backlink tool
@@ -238,7 +238,7 @@ export function CompetitorBacklinkGap() {
                 <div className="rounded-[1.75rem] border border-border/80 bg-background/80 p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+                      <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                         Run a gap analysis
                       </p>
                       <h2 className="mt-2 font-heading text-3xl font-semibold tracking-[-0.05em]">
@@ -390,7 +390,7 @@ export function CompetitorBacklinkGap() {
         <div className="container mx-auto max-w-7xl">
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
             <div className="lg:sticky lg:top-28">
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+              <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                 Results
               </p>
               <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">
@@ -444,7 +444,7 @@ export function CompetitorBacklinkGap() {
                         <p className="font-heading text-3xl font-semibold tracking-[-0.05em] text-[var(--color-princeton-orange)]">
                           {value}
                         </p>
-                        <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground/60">
+                        <p className="mt-1 text-xs font-medium uppercase text-muted-foreground/60">
                           {label}
                         </p>
                       </div>
@@ -508,7 +508,7 @@ export function CompetitorBacklinkGap() {
                           >
                             <div className="overflow-hidden">
                               <div className="flex items-center justify-between border-t border-border/70 pt-3">
-                                <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase text-muted-foreground">
                                   DA {competitor.da}
                                 </span>
                                 <div className="text-right">
@@ -559,7 +559,7 @@ export function CompetitorBacklinkGap() {
                                 <h4 className="font-heading text-2xl font-semibold tracking-[-0.045em]">
                                   {gap.name ?? gap.domain}
                                 </h4>
-                                <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase text-muted-foreground">
                                   {String(index + 1).padStart(2, "0")}
                                 </span>
                               </div>
@@ -617,7 +617,7 @@ export function CompetitorBacklinkGap() {
                       <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)] text-white shadow-lg shadow-primary/20">
                         <IconLock size={23} stroke={2.5} />
                       </div>
-                      <p className="mt-5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-[var(--color-princeton-orange)]">
+                      <p className="mt-5 text-[0.65rem] font-semibold uppercase text-[var(--color-princeton-orange)]">
                         Unlock the full gap list
                       </p>
                       <h3 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.055em] text-balance">
@@ -654,7 +654,7 @@ export function CompetitorBacklinkGap() {
             <div className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-[var(--color-blaze-orange)]/12 blur-3xl" />
             <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+                <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                   More than a one-off check
                 </p>
                 <h2 className="mt-4 max-w-2xl font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">

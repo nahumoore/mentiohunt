@@ -52,6 +52,13 @@ const steps: Step[] = [
     Illustration: DiscoveryIllustration,
   },
   {
+    eyebrow: "Enrichment",
+    title: "We enrich each opportunity",
+    description:
+      "Once we find a fit, Mentiohunt adds useful context like verified emails, outreach angles, and supporting notes so you can move faster.",
+    Illustration: EnrichmentIllustration,
+  },
+  {
     eyebrow: "Action",
     title: "Review the next best action",
     description:
@@ -147,7 +154,7 @@ function SetupOptionColumn({
         >
           <Icon className="h-5 w-5" />
         </div>
-        <p className="text-[0.62rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
+        <p className="text-[0.62rem] font-bold text-muted-foreground uppercase">
           {label}
         </p>
       </div>
@@ -243,7 +250,7 @@ function MiniOpportunity({
           <Icon className="h-3.5 w-3.5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[0.55rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+          <p className="text-[0.55rem] font-bold text-muted-foreground uppercase">
             {label}
           </p>
           <p className="truncate text-[0.72rem] font-semibold text-foreground">
@@ -253,6 +260,108 @@ function MiniOpportunity({
         <span className="rounded-full bg-[var(--color-blaze-orange)]/10 px-2 py-1 text-[0.68rem] font-bold text-[var(--color-blaze-orange)] tabular-nums">
           {score}
         </span>
+      </div>
+    </div>
+  )
+}
+
+function EnrichmentIllustration() {
+  return (
+    <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-card p-5 shadow-[0_18px_60px_-32px_rgba(0,0,0,0.45)] sm:p-6">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-blaze-orange)]/60 to-transparent" />
+      <div className="pointer-events-none absolute -top-14 right-4 h-32 w-32 rounded-full bg-[var(--color-princeton-orange)]/10 blur-3xl" />
+
+      <div className="relative rounded-3xl border border-border bg-background/75 p-4 sm:p-5">
+        <div className="flex items-start gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-blaze-orange)]">
+            <IconWorldSearch className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.58rem] font-bold text-muted-foreground uppercase">
+              Opportunity found
+            </p>
+            <h4 className="mt-1 text-base font-semibold text-foreground">
+              Founder tools resource page
+            </h4>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Good fit for backlink outreach
+            </p>
+          </div>
+          <span className="rounded-full bg-[var(--color-blaze-orange)]/10 px-2.5 py-1 text-[0.68rem] font-bold text-[var(--color-blaze-orange)]">
+            92
+          </span>
+        </div>
+
+        <div className="mt-4 grid gap-2.5 sm:grid-cols-[minmax(0,1.25fr)_minmax(0,0.95fr)]">
+          <div className="rounded-[1.35rem] border border-[var(--color-blaze-orange)]/15 bg-card p-3.5 sm:p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-blaze-orange)]">
+                  <IconMailFast className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <p className="text-[0.55rem] font-bold text-muted-foreground uppercase">
+                    Verified email
+                  </p>
+                  <p className="mt-0.5 text-xs font-semibold text-foreground">
+                    Contact ready for outreach
+                  </p>
+                </div>
+              </div>
+
+              <span className="rounded-full bg-[var(--color-blaze-orange)]/10 px-2 py-1 text-[0.58rem] font-bold text-[var(--color-blaze-orange)] uppercase">
+                Verified
+              </span>
+            </div>
+
+            <div className="mt-3 rounded-2xl border border-border bg-background/80 px-3 py-3">
+              <p className="break-all text-sm font-semibold text-foreground">
+                editor@growthhub.com
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            <EnrichmentField
+              icon={IconLink}
+              label="Angle"
+              value="Useful for founder distribution lists"
+            />
+            <EnrichmentField
+              icon={IconMessageCircle}
+              label="Context"
+              value="Recently updated resource page"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EnrichmentField({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: ComponentType<{ className?: string }>
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-3">
+      <div className="flex items-start gap-2.5">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-blaze-orange)]">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[0.55rem] font-bold text-muted-foreground uppercase">
+            {label}
+          </p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-foreground">
+            {value}
+          </p>
+        </div>
       </div>
     </div>
   )
@@ -314,7 +423,7 @@ function ActionDraftCard({ draft }: { draft: ActionDraft }) {
           <Icon className="h-6 w-6" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[0.6rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
+          <p className="text-[0.6rem] font-bold text-muted-foreground uppercase">
             {draft.label}
           </p>
           <h4 className="mt-1 font-heading text-xl font-semibold tracking-tight text-foreground">
@@ -329,7 +438,7 @@ function ActionDraftCard({ draft }: { draft: ActionDraft }) {
       <div className="mt-5 space-y-2 rounded-2xl border border-border bg-card p-3">
         {draft.fields.map((field) => (
           <div key={field.label} className="grid grid-cols-[4.5rem_1fr] gap-2">
-            <span className="text-[0.58rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+            <span className="text-[0.58rem] font-bold text-muted-foreground uppercase">
               {field.label}
             </span>
             <span className="truncate text-xs font-semibold text-foreground">
@@ -359,7 +468,7 @@ function StepRow({ step }: { step: Step }) {
   return (
     <article className="grid gap-8 border-t border-border/70 py-10 first:border-t-0 first:pt-0 last:pb-0 lg:grid-cols-2 lg:items-center lg:gap-20">
       <div>
-        <p className="mb-4 text-[0.7rem] font-bold tracking-[0.18em] text-[var(--color-blaze-orange)] uppercase">
+        <p className="mb-4 text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase">
           {step.eyebrow}
         </p>
         <h3 className="font-heading text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
@@ -390,7 +499,7 @@ export function HowItWorks() {
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-[var(--color-blaze-orange)] uppercase">
+          <span className="text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase">
             How it works
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />

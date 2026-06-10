@@ -35,7 +35,7 @@ export function OpportunityContactCard({
 
   return (
     <div className="rounded-lg border border-border/60 bg-card p-4">
-      <p className="text-[0.7rem] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+      <p className="text-[0.7rem] font-bold text-muted-foreground uppercase">
         Contact
       </p>
       {hasContact ? (

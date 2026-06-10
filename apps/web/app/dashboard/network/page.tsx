@@ -4,6 +4,7 @@ import {
   IconCheck,
   IconLoader2,
   IconMail,
+  IconUsers,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -170,39 +171,43 @@ export default function BacklinkNetworkPage() {
 
 function NotJoinedState({ onJoin }: { onJoin: () => void }) {
   return (
-    <div className="max-w-lg">
-      <div className="flex flex-col gap-5 rounded-2xl border border-border/70 bg-card p-6">
-        <div className="space-y-1">
-          <p className="text-sm font-medium">How it works</p>
-          <p className="text-sm leading-6 text-muted-foreground">
-            Opt in with your email. When the network opens, opted-in founders
-            can reach each other directly for backlink collaboration — no
-            middleman, no automated spam.
+    <div className="rounded-[2rem] border border-border/70 bg-card p-6 sm:p-8">
+      <div className="max-w-2xl space-y-5">
+        <div className="space-y-3">
+          <h2 className="font-heading text-3xl font-semibold tracking-tight text-balance text-foreground sm:text-4xl">
+            Meet founders already open to backlink collaboration.
+          </h2>
+          <p className="text-sm leading-7 text-muted-foreground sm:text-base">
+            Join the network to reserve your spot for direct, opt-in backlink exchanges when matching goes live.
           </p>
         </div>
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          <li className="flex gap-2">
-            <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-muted-foreground/50 translate-y-1.5" />
-            Manual opt-in only — you choose when to join.
-          </li>
-          <li className="flex gap-2">
-            <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-muted-foreground/50 translate-y-1.5" />
-            One contact email shared with other founders.
-          </li>
-          <li className="flex gap-2">
-            <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-muted-foreground/50 translate-y-1.5" />
-            Network is not live yet — we notify you at launch.
-          </li>
-        </ul>
-        <div>
-          <Button
-            type="button"
-            onClick={onJoin}
-            className="rounded-full bg-foreground px-5 text-background hover:bg-foreground/90"
-          >
-            Reserve my spot
-          </Button>
+
+        <div className="w-fit rounded-2xl border border-border/70 bg-muted/30 p-4">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex size-9 items-center justify-center rounded-xl bg-blaze-orange/10 text-(--color-blaze-orange)">
+              <IconUsers className="size-4" />
+            </span>
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                <span className="text-sm font-semibold text-foreground">84 users joined</span>
+                <span className="text-sm font-semibold text-(--color-blaze-orange)">
+                  26 in your niche
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Founders already interested in exchanging relevant backlinks.
+              </p>
+            </div>
+          </div>
         </div>
+
+        <Button
+          type="button"
+          onClick={onJoin}
+          className="rounded-full bg-foreground px-5 text-background hover:bg-foreground/90"
+        >
+          Join the backlink network
+        </Button>
       </div>
     </div>
   )
@@ -210,22 +215,53 @@ function NotJoinedState({ onJoin }: { onJoin: () => void }) {
 
 function JoinedState({ email }: { email: string }) {
   return (
-    <div className="max-w-lg">
-      <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card p-6">
-        <div className="flex items-center gap-3">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blaze-orange/10 text-(--color-blaze-orange)">
-            <IconCheck className="size-4" />
-          </div>
-          <div>
-            <p className="text-sm font-medium">You're on the list</p>
-            <p className="text-xs text-muted-foreground">Coming soon</p>
+    <div className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-card p-6 sm:p-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-10 right-0 h-56 w-56 rounded-full bg-princeton-orange/10 blur-[100px]" />
+      </div>
+
+      <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,22rem)] lg:items-start">
+        <div className="space-y-5">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[0.7rem] font-bold text-emerald-700 uppercase">
+            <IconCheck className="size-3.5" />
+            You&apos;re in the network waitlist
+          </span>
+
+          <div className="space-y-3">
+            <h2 className="font-heading text-3xl font-semibold tracking-tight text-balance text-foreground sm:text-4xl">
+              Your spot is saved for launch.
+            </h2>
+            <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+              When the backlink network opens, other opted-in founders will be
+              able to contact you at <span className="font-medium text-foreground">{email}</span>
+              {" "}for relevant collaboration opportunities. We&apos;ll send you a heads-up as soon as matching starts.
+            </p>
           </div>
         </div>
-        <p className="text-sm leading-6 text-muted-foreground">
-          The network isn't live yet. When it opens, founders can reach you at{" "}
-          <span className="font-medium text-foreground">{email}</span>.
-          We'll send you a notification as soon as it launches.
-        </p>
+
+        <div className="rounded-[1.75rem] border border-border/70 bg-background/80 p-5 shadow-sm backdrop-blur-sm">
+          <p className="text-sm font-semibold text-foreground">What happens next</p>
+          <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+            <li className="flex gap-3">
+              <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-blaze-orange/10 text-(--color-blaze-orange)">
+                <IconCheck className="size-3" />
+              </span>
+              We keep your waitlist spot active.
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-blaze-orange/10 text-(--color-blaze-orange)">
+                <IconCheck className="size-3" />
+              </span>
+              We notify you when niche-based exchanges open.
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-blaze-orange/10 text-(--color-blaze-orange)">
+                <IconCheck className="size-3" />
+              </span>
+              You decide which collaboration requests to respond to.
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   )

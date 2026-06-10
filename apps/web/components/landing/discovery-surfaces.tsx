@@ -64,7 +64,7 @@ export function DiscoverySurfaces() {
         <div className="mx-auto max-w-6xl px-2 text-center sm:px-4">
           <h2
             id="discovery-surfaces-title"
-            className="font-heading text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase sm:text-sm"
+            className="font-heading text-xs font-semibold text-muted-foreground uppercase sm:text-sm"
           >
             Get discovered across
           </h2>

@@ -32,7 +32,7 @@ export function LegalPage({
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-glow)]/70 to-transparent" />
 
           <div className="max-w-3xl">
-            <p className="inline-flex rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+            <p className="inline-flex rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.68rem] font-semibold text-[var(--color-princeton-orange)] uppercase">
               {eyebrow}
             </p>
             <h1 className="mt-5 font-heading text-4xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl">

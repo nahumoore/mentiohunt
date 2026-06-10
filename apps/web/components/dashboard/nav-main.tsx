@@ -24,9 +24,6 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { cn } from "@workspace/ui/lib/utils"
 
-const linkBuildingHref = "/dashboard/link-building"
-const communityMentionsHref = "/dashboard/community-mentions"
-
 type SubItem = {
   title: string
   url: string
@@ -53,44 +50,44 @@ type FeatureModule = {
 const FEATURES: FeatureModule[] = [
   {
     title: "Link Building",
-    baseHref: linkBuildingHref,
+    baseHref: "/dashboard/outreach",
     pages: [
       {
-        title: "Opportunities",
-        url: `${linkBuildingHref}/opportunities`,
+        title: "Outreach",
+        url: "/dashboard/outreach",
         icon: <IconTarget />,
         items: [
           {
-            title: "Sources",
-            url: `${linkBuildingHref}/sources`,
+            title: "Settings",
+            url: "/dashboard/outreach/settings",
             icon: <IconAdjustments />,
           },
         ],
       },
       {
-        title: "Backlink Network",
-        url: `${linkBuildingHref}/backlink-network`,
-        icon: <IconNetwork />,
+        title: "Directories",
+        url: "/dashboard/directories",
+        icon: <IconLayoutGrid />,
       },
       {
-        title: "Directories",
-        url: `${linkBuildingHref}/directories`,
-        icon: <IconLayoutGrid />,
+        title: "Link Exchange",
+        url: "/dashboard/network",
+        icon: <IconNetwork />,
       },
     ],
   },
   {
     title: "Community",
-    baseHref: communityMentionsHref,
+    baseHref: "/dashboard/mentions",
     pages: [
       {
-        title: "Reply Queue",
-        url: `${communityMentionsHref}/reply-queue`,
+        title: "Mentions",
+        url: "/dashboard/mentions",
         icon: <IconMessage2Share />,
         items: [
           {
-            title: "Watchlist",
-            url: `${communityMentionsHref}/watchlist`,
+            title: "Setup",
+            url: "/dashboard/mentions/setup",
             icon: <IconEye />,
           },
         ],
@@ -104,7 +101,7 @@ export function NavMain() {
 
   return (
     <>
-      {FEATURES.map((feature, i) => {
+      {FEATURES.map((feature) => {
         const isFeatureActive = pathname.startsWith(feature.baseHref)
 
         return (
@@ -112,9 +109,8 @@ export function NavMain() {
             key={feature.baseHref}
             className="py-0 not-first:mt-4 first:pt-2"
           >
-            {/* Feature module header */}
             <div className="mb-2 flex items-center gap-2 px-2 group-data-[collapsible=icon]:hidden">
-              <p className="shrink-0 text-[10px] font-bold tracking-[0.18em] text-sidebar-foreground/40 uppercase">
+              <p className="shrink-0 text-[10px] font-bold text-sidebar-foreground/40 uppercase">
                 {feature.title}
               </p>
               <div
@@ -129,7 +125,8 @@ export function NavMain() {
 
             <SidebarMenu>
               {feature.pages.map((page) => {
-                const isActive = isRouteActive(pathname, page.url)
+                const isSubActive = page.items?.some((sub) => isRouteActive(pathname, sub.url)) ?? false
+                const isActive = !isSubActive && isRouteActive(pathname, page.url)
 
                 return (
                   <SidebarMenuItem key={page.url}>
@@ -163,7 +160,7 @@ export function NavMain() {
                       </SidebarMenuButton>
                     )}
                     {page.badge ? (
-                      <SidebarMenuBadge className="right-2 bg-orange/10 px-1.5 text-[10px] font-semibold tracking-wide text-primary uppercase ring-1 ring-orange/20">
+                      <SidebarMenuBadge className="right-2 bg-orange/10 px-1.5 text-[10px] font-semibold text-primary uppercase ring-1 ring-orange/20">
                         {page.badge}
                       </SidebarMenuBadge>
                     ) : null}
@@ -203,7 +200,7 @@ export function NavMain() {
                                 </SidebarMenuSubButton>
                               )}
                               {subItem.badge ? (
-                                <span className="pointer-events-none absolute top-1 right-1 rounded-full bg-orange/10 px-1.5 py-0.5 text-[10px] leading-4 font-semibold tracking-wide text-primary uppercase ring-1 ring-orange/20">
+                                <span className="pointer-events-none absolute top-1 right-1 rounded-full bg-orange/10 px-1.5 py-0.5 text-[10px] leading-4 font-semibold text-primary uppercase ring-1 ring-orange/20">
                                   {subItem.badge}
                                 </span>
                               ) : null}

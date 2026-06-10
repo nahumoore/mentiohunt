@@ -79,7 +79,7 @@ export default function AboutPage() {
           <div className="container relative mx-auto max-w-6xl">
             <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
               <div className="max-w-3xl">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[var(--color-princeton-orange)]">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase text-[var(--color-princeton-orange)]">
                   <IconBolt size={13} stroke={2.5} />
                   Founder note
                 </div>
@@ -164,7 +164,7 @@ export default function AboutPage() {
           <div className="container mx-auto max-w-6xl">
             <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16">
               <div>
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
+                <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
                   Why it exists
                 </p>
                 <h2 className="mt-4 font-heading text-3xl font-semibold tracking-[-0.04em] text-balance sm:text-4xl">
@@ -233,7 +233,7 @@ export default function AboutPage() {
 
               <div className="relative grid gap-9 lg:grid-cols-[1fr_0.9fr] lg:items-center">
                 <div>
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[var(--color-princeton-orange)]">
+                  <p className="text-[0.65rem] font-semibold uppercase text-[var(--color-princeton-orange)]">
                     Current direction
                   </p>
                   <h2 className="mt-4 max-w-2xl font-heading text-3xl font-semibold tracking-[-0.04em] text-balance sm:text-4xl">

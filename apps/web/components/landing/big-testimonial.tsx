@@ -33,7 +33,7 @@ export function BigTestimonial() {
               <div>
                 <div className="mb-4 flex items-center gap-3">
                   <IconQuote className="h-8 w-8 shrink-0 text-[var(--color-blaze-orange)]/45" />
-                  <p className="text-[0.65rem] font-bold tracking-[0.2em] text-[var(--color-blaze-orange)] uppercase">
+                  <p className="text-[0.65rem] font-bold text-[var(--color-blaze-orange)] uppercase">
                     Testimonial
                   </p>
                 </div>

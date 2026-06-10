@@ -19,7 +19,7 @@ export default function ProspectNotFound() {
 
       <div className="relative grid min-h-[calc(100vh-12rem)] items-center gap-10 lg:grid-cols-[minmax(0,0.96fr)_minmax(320px,0.7fr)]">
         <section className="max-w-2xl">
-          <div className="mb-5 flex flex-wrap items-center gap-3 text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+          <div className="mb-5 flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground uppercase">
             <span>Prospect lookup</span>
             <span className="h-px w-9 bg-orange" />
             <span className="tabular-nums">404</span>
@@ -40,9 +40,9 @@ export default function ProspectNotFound() {
               size="lg"
               className="justify-start sm:justify-center"
             >
-              <Link href="/dashboard/link-building/opportunities">
+              <Link href="/dashboard/outreach">
                 <IconArrowLeft className="size-4" />
-                Back to opportunities
+                Back to outreach
               </Link>
             </Button>
             <Button
@@ -51,7 +51,7 @@ export default function ProspectNotFound() {
               size="lg"
               className="justify-start sm:justify-center"
             >
-              <Link href="/dashboard/link-building/sources">
+              <Link href="/dashboard/outreach/settings">
                 Tune discovery inputs
                 <IconExternalLink className="size-4" />
               </Link>
@@ -64,7 +64,7 @@ export default function ProspectNotFound() {
             <div className="rounded-[1.5rem] border border-border/70 bg-card p-4">
               <div className="flex items-center justify-between gap-3 border-b border-border/70 pb-4">
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">
                     Queue signal
                   </p>
                   <p className="mt-1 font-heading text-xl font-semibold tracking-tight">
@@ -111,7 +111,7 @@ export default function ProspectNotFound() {
                 <div className="absolute top-0 right-0 h-full w-1/2 bg-orange/80 [clip-path:polygon(35%_0,100%_0,100%_100%,0_100%)]" />
                 <div className="relative flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-xs font-semibold tracking-[0.18em] uppercase opacity-70">
+                    <p className="text-xs font-semibold uppercase opacity-70">
                       Status
                     </p>
                     <p className="mt-4 font-heading text-5xl font-semibold tracking-[-0.08em]">

@@ -182,7 +182,7 @@ export default async function ComparePage({ params }: Props) {
             <div className="mt-9 grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
               {/* Left: text */}
               <div>
-                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-princeton-orange)] uppercase">
                   <IconScale size={13} stroke={2.5} />
                   <span>Tool Comparison</span>
                 </div>
@@ -252,7 +252,7 @@ export default async function ComparePage({ params }: Props) {
                 {/* VS badge */}
                 <div className="flex flex-col items-center justify-center gap-2 px-1">
                   <div className="h-px w-px flex-1 bg-border/60" />
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-[var(--color-blaze-orange)]/35 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--color-background)_80%,var(--color-amber-glow)_20%),var(--color-background))] text-[0.65rem] font-bold tracking-[0.14em] text-[var(--color-princeton-orange)] shadow-[0_0_16px_-4px_rgba(255,133,0,0.3)] uppercase">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-[var(--color-blaze-orange)]/35 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--color-background)_80%,var(--color-amber-glow)_20%),var(--color-background))] text-[0.65rem] font-bold text-[var(--color-princeton-orange)] shadow-[0_0_16px_-4px_rgba(255,133,0,0.3)] uppercase">
                     vs
                   </div>
                   <div className="h-px w-px flex-1 bg-border/60" />
@@ -383,7 +383,7 @@ export default async function ComparePage({ params }: Props) {
                           </span>
                         </div>
 
-                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-[var(--color-blaze-orange)]/30 bg-[var(--color-blaze-orange)]/8 text-[0.5rem] font-bold tracking-[0.1em] text-[var(--color-princeton-orange)] uppercase">
+                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-[var(--color-blaze-orange)]/30 bg-[var(--color-blaze-orange)]/8 text-[0.5rem] font-bold text-[var(--color-princeton-orange)] uppercase">
                           vs
                         </span>
 

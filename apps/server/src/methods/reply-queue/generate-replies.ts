@@ -102,11 +102,6 @@ async function generateReply(
   product: { product_name: string; product_description: string },
   customVoiceInstructions: string | null
 ): Promise<{ post: PostWithReply; cost: number; structure: string } | null> {
-  const blueskyNote =
-    post.platform === "bluesky"
-      ? "\n\nIMPORTANT: This is a Bluesky post. Reply must be under 300 characters."
-      : ""
-
   const useDefaultVoice = !customVoiceInstructions?.trim()
   const replyStructure = pickReplyStructure()
 
@@ -157,7 +152,7 @@ ${replyStructure.instruction}
 
 ### Output
 
-Just return the comment text, no additional text or formatting.${blueskyNote}`
+Just return the comment text, no additional text or formatting.`
     : `You write helpful, genuine replies to social media posts on behalf of a product.
 
 Product: ${product.product_name}
@@ -174,7 +169,7 @@ Reply rules:
 - Reference specific details from the post
 - Don't use AI-sounding phrases like "certainly", "absolutely", "great question"
 - Sound like a real person who knows the product well
-- Mention the product naturally where relevant${blueskyNote}`
+- Mention the product naturally where relevant`
 
   const model = useDefaultVoice
     ? OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5

@@ -73,7 +73,7 @@ export function StepUrl({
         <div className="mt-8 space-y-4">
           {showNameInput && (
             <div className="space-y-2">
-              <label className="text-[0.7rem] font-bold tracking-[0.24em] text-muted-foreground uppercase">
+              <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
                 What should we call you?
               </label>
               <Input
@@ -89,7 +89,7 @@ export function StepUrl({
           )}
 
           <div className="space-y-2">
-            <label className="text-[0.7rem] font-bold tracking-[0.24em] text-muted-foreground uppercase">
+            <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
               Website URL
             </label>
             <Input

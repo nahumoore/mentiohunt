@@ -13,7 +13,7 @@ const audienceSchema = z.object({
         { message: "Keyword must be 2–3 words" }
       )
     )
-    .min(4)
+    .min(10)
     .max(10),
   monitoringCommunities: z
     .array(
@@ -31,7 +31,7 @@ const systemInstructions = [
   "Return JSON only with this exact shape:",
   '{"monitoringKeywords":["keyword"],"monitoringCommunities":[{"platform":"reddit","community":"SaaS"}]}',
   "Rules:",
-  "- monitoringKeywords must contain 4 to 10 short-tail phrases, each exactly 2 to 3 words long.",
+  "- monitoringKeywords must contain exactly 10 short-tail phrases, each exactly 2 to 3 words long.",
   "- Keywords must be phrases people actually write in organic social media posts (Reddit, Twitter/X, Bluesky) when talking about the problem, struggle, or goal this product addresses — NOT tool-category jargon.",
   "- WRONG (tool-category jargon): 'link building software', 'backlink acquisition service', 'community monitoring tool'.",
   "- RIGHT (conversational problem language): 'link building', 'build backlinks', 'brand mentions', 'outreach strategy', 'reddit marketing'.",
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
       ).values()
     ).slice(0, 10)
 
-    if (monitoringKeywords.length < 4 || monitoringCommunities.length < 3) {
+    if (monitoringKeywords.length < 10 || monitoringCommunities.length < 3) {
       return NextResponse.json(
         { error: "Failed to generate enough community monitoring details." },
         { status: 502 }

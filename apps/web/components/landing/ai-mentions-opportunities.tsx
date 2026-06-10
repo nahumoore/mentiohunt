@@ -33,7 +33,7 @@ function BlogCard() {
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <p className="text-[0.6rem] font-bold uppercase tracking-[0.18em] text-muted-foreground/50">
+        <p className="text-[0.6rem] font-bold uppercase text-muted-foreground/50">
           Quorage · 7 min read
         </p>
         <h3 className="mt-1.5 font-heading text-base font-bold leading-snug text-foreground">
@@ -216,7 +216,7 @@ export function AIMentionsOpportunities() {
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-[var(--color-blaze-orange)] uppercase">
+          <span className="text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase">
             AI Citation Engine
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />

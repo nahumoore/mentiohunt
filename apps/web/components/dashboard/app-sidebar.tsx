@@ -95,7 +95,7 @@ export function AppSidebar({
               <IconAlertTriangle className="size-4" stroke={2} />
             </span>
             <span className="min-w-0 group-data-[collapsible=icon]:hidden">
-              <span className="block text-[0.68rem] leading-4 font-semibold tracking-[0.14em] text-blaze-orange uppercase">
+              <span className="block text-[0.68rem] leading-4 font-semibold text-blaze-orange uppercase">
                 Free trial
               </span>
               <span className="block text-xs leading-4 text-muted-foreground">

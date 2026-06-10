@@ -154,7 +154,7 @@ function CopyField({
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+      <span className="text-[11px] font-medium uppercase text-muted-foreground">
         {label}
       </span>
       <div className="flex items-start gap-2 rounded-md border bg-muted/40 px-3 py-2">

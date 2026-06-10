@@ -3,8 +3,8 @@ import { cn } from "@workspace/ui/lib/utils"
 import type {
   CommunityMention,
   MentionIntent,
-} from "@/app/dashboard/community-mentions/reply-queue/_data"
-import { INTENT_CONFIG } from "@/app/dashboard/community-mentions/reply-queue/_data"
+} from "@/app/dashboard/mentions/_data"
+import { INTENT_CONFIG } from "@/app/dashboard/mentions/_data"
 import { PLATFORM_CONFIG, type MentionPlatform } from "@/consts/platform-config"
 
 interface MentionSidebarProps {
@@ -53,7 +53,7 @@ export function MentionSidebar({ mentions, selectedPlatform, onSelectPlatform }:
   return (
     <aside className="sticky top-6 h-fit space-y-6 lg:col-span-4">
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h5 className="mb-4 text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+        <h5 className="mb-4 text-[10px] font-black text-muted-foreground uppercase">
           Pending
         </h5>
         <div className="flex items-end gap-3">
@@ -66,7 +66,7 @@ export function MentionSidebar({ mentions, selectedPlatform, onSelectPlatform }:
         </div>
       </div>
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h5 className="mb-5 text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+        <h5 className="mb-5 text-[10px] font-black text-muted-foreground uppercase">
           Active Platforms
         </h5>
         <div className="space-y-2">
@@ -111,7 +111,7 @@ export function MentionSidebar({ mentions, selectedPlatform, onSelectPlatform }:
       </div>
 
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h5 className="mb-5 text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+        <h5 className="mb-5 text-[10px] font-black text-muted-foreground uppercase">
           Intent Breakdown
         </h5>
         {intents.length === 0 ? (

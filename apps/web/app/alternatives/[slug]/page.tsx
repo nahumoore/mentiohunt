@@ -166,7 +166,7 @@ export default async function AlternativePage({ params }: Props) {
 
             <div className="mt-9 grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
               <div>
-                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-princeton-orange)] uppercase">
                   <IconScale size={13} stroke={2.5} />
                   <span>Honest Comparison</span>
                 </div>

@@ -88,7 +88,7 @@ export function Testimonials() {
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+          <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
             Founder feedback
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
@@ -108,7 +108,7 @@ export function Testimonials() {
 
         <div className="mx-auto mt-16 max-w-6xl rounded-[2rem] border border-border bg-card/70 px-8 py-9 shadow-[0_24px_80px_-64px_rgba(255,84,0,0.7)] backdrop-blur-sm sm:px-10 lg:px-14">
           <div className="text-center">
-            <p className="text-[0.7rem] font-bold tracking-[0.22em] text-muted-foreground uppercase">
+            <p className="text-[0.7rem] font-bold text-muted-foreground uppercase">
               Trusted by Brands like
             </p>
           </div>

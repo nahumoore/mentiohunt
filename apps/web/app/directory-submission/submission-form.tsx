@@ -92,7 +92,7 @@ export function DirectorySubmissionForm() {
           <IconCircleCheck size={28} stroke={2.2} />
         </div>
 
-        <p className="mt-6 text-[0.72rem] font-bold tracking-[0.22em] text-[var(--color-princeton-orange)] uppercase">
+        <p className="mt-6 text-[0.72rem] font-bold text-[var(--color-princeton-orange)] uppercase">
           Submission received
         </p>
         <h3 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.05em] text-balance sm:text-4xl">
@@ -105,7 +105,7 @@ export function DirectorySubmissionForm() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           <div className="rounded-[1.4rem] border border-border/70 bg-background/82 p-5">
-            <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground/70 uppercase">
+            <p className="text-xs font-semibold text-muted-foreground/70 uppercase">
               Directory URL
             </p>
             <p className="mt-2 text-sm font-medium break-all text-foreground">
@@ -113,7 +113,7 @@ export function DirectorySubmissionForm() {
             </p>
           </div>
           <div className="rounded-[1.4rem] border border-border/70 bg-background/82 p-5">
-            <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground/70 uppercase">
+            <p className="text-xs font-semibold text-muted-foreground/70 uppercase">
               Contact email
             </p>
             <p className="mt-2 text-sm font-medium break-all text-foreground">

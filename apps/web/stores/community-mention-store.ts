@@ -5,7 +5,7 @@ import { create } from "zustand"
 import type {
   CommunityMention,
   MentionStatus,
-} from "@/app/dashboard/community-mentions/reply-queue/_data"
+} from "@/app/dashboard/mentions/_data"
 
 type CommunityMentionStore = {
   mentions: CommunityMention[]

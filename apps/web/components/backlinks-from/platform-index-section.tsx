@@ -42,7 +42,7 @@ export function BacklinksFromPlatformIndexSection({
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+          <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
             Platform Index
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
@@ -85,7 +85,7 @@ export function BacklinksFromPlatformIndexSection({
 
                   <div className="relative p-6">
                     <div className="flex items-start justify-between gap-4">
-                      <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/18 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.68rem] font-bold tracking-[0.18em] text-[var(--color-princeton-orange)] uppercase">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/18 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.68rem] font-bold text-[var(--color-princeton-orange)] uppercase">
                         <Icon className="h-4 w-4 fill-current" />
                         {guide.category ?? "Platform Guide"}
                       </div>

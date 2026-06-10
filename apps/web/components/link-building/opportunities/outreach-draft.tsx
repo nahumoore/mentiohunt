@@ -42,7 +42,7 @@ export function OutreachDraft({
     <div className="rounded-lg border border-border/60 bg-card">
       {/* card header */}
       <div className="flex items-center justify-between gap-3 px-5 py-4">
-        <p className="text-[0.7rem] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+        <p className="text-[0.7rem] font-bold text-muted-foreground uppercase">
           Email draft
         </p>
         {hasDraft && hasRecipient && (

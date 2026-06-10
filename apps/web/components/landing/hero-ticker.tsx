@@ -3,16 +3,14 @@
 import { IconLink } from "@tabler/icons-react"
 import { motion } from "framer-motion"
 
-import { IconBrandBluskyCustom } from "@/components/custom-icons/brand-blusky"
-import { IconBrandFacebookCustom } from "@/components/custom-icons/brand-facebook"
+import { IconBrandQuora } from "@/components/custom-icons/brand-quora"
 import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
-import { IconBrandXCustom } from "@/components/custom-icons/brand-x"
 
 const ease = [0.21, 0.47, 0.32, 0.98] as const
 
 type CommunityItem = {
   kind: "community"
-  platform: "reddit" | "x" | "bluesky" | "facebook"
+  platform: "reddit" | "quora"
   quote: string
   source: string
   time: string
@@ -51,9 +49,9 @@ const opportunities: OpportunityItem[] = [
   },
   {
     kind: "community",
-    platform: "x",
-    quote: "Looking for backlink building software — any recommendations?",
-    source: "X / Twitter",
+    platform: "quora",
+    quote: "What are the best backlink building tools for small SaaS companies?",
+    source: "Quora",
     time: "7m ago",
     score: 87,
   },
@@ -68,9 +66,9 @@ const opportunities: OpportunityItem[] = [
   },
   {
     kind: "community",
-    platform: "bluesky",
+    platform: "reddit",
     quote: "Anyone using automated link building for their SaaS?",
-    source: "Bluesky",
+    source: "r/Entrepreneur",
     time: "14m ago",
     score: 84,
   },
@@ -85,9 +83,9 @@ const opportunities: OpportunityItem[] = [
   },
   {
     kind: "community",
-    platform: "facebook",
-    quote: "My startup needs more organic traffic — where do I even start?",
-    source: "FB: SaaS Founders",
+    platform: "quora",
+    quote: "How do you get the first credible mentions for a new B2B tool?",
+    source: "Quora",
     time: "22m ago",
     score: 91,
   },
@@ -127,20 +125,10 @@ const platformMeta: Record<
     label: "Reddit",
     renderIcon: (cls) => <IconBrandRedditNew className={cls} size={20} />,
   },
-  x: {
-    label: "X",
-    renderIcon: (cls) => <IconBrandXCustom className={`${cls} rounded-sm`} />,
-  },
-  bluesky: {
-    label: "Bluesky",
+  quora: {
+    label: "Quora",
     renderIcon: (cls) => (
-      <IconBrandBluskyCustom className={`${cls} rounded-full`} />
-    ),
-  },
-  facebook: {
-    label: "Facebook",
-    renderIcon: (cls) => (
-      <IconBrandFacebookCustom className={`${cls} rounded-full`} />
+      <IconBrandQuora className={`${cls} rounded-sm`} style={{ width: 20, height: 20 }} />
     ),
   },
 }
@@ -204,7 +192,7 @@ function OpportunityCard({ item }: { item: OpportunityItem }) {
             )}
           </div>
           <div className="min-w-0">
-            <p className="truncate text-[0.58rem] font-bold tracking-[0.14em] text-foreground uppercase">
+            <p className="truncate text-[0.58rem] font-bold text-foreground uppercase">
               {isCommunity ? meta!.label : item.domain}
             </p>
             <p className="truncate text-[0.56rem] text-muted-foreground/50">
@@ -218,7 +206,7 @@ function OpportunityCard({ item }: { item: OpportunityItem }) {
           <span className="text-base font-black tabular-nums text-[var(--color-blaze-orange)]">
             {item.score}
           </span>
-          <span className="text-[0.44rem] font-bold tracking-widest text-muted-foreground/40 uppercase">
+          <span className="text-[0.44rem] font-bold text-muted-foreground/40 uppercase">
             fit
           </span>
         </div>
@@ -234,7 +222,7 @@ function OpportunityCard({ item }: { item: OpportunityItem }) {
       {/* Footer */}
       <div className="flex items-center justify-between border-t border-border/60 pt-2.5">
         <span
-          className={`text-[0.56rem] font-bold tracking-[0.1em] uppercase ${
+          className={`text-[0.56rem] font-bold uppercase ${
             isCommunity
               ? "text-sky-500"
               : "text-[var(--color-blaze-orange)]"

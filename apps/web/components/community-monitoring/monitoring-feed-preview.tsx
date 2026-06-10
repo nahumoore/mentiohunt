@@ -38,7 +38,7 @@ function FitScore({ score }: { score: number }) {
   return (
     <div className="flex shrink-0 flex-col items-end">
       <span className={cn("text-base font-black tabular-nums", textClass)}>{score}</span>
-      <span className="text-[0.44rem] font-bold tracking-widest text-muted-foreground/40 uppercase">
+      <span className="text-[0.44rem] font-bold text-muted-foreground/40 uppercase">
         fit
       </span>
     </div>

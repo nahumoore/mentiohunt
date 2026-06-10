@@ -26,8 +26,8 @@ import { useState } from "react"
 import type {
   CommunityMention,
   MentionIntent,
-} from "@/app/dashboard/community-mentions/reply-queue/_data"
-import { INTENT_CONFIG } from "@/app/dashboard/community-mentions/reply-queue/_data"
+} from "@/app/dashboard/mentions/_data"
+import { INTENT_CONFIG } from "@/app/dashboard/mentions/_data"
 import {
   PLATFORM_CONFIG,
   type MentionPlatform,
@@ -67,7 +67,7 @@ function ScoreBar({ score }: { score: number }) {
 
   return (
     <div className="flex shrink-0 flex-col items-end gap-1.5">
-      <span className={cn("text-[10px] font-bold uppercase tracking-wider", text)}>
+      <span className={cn("text-[10px] font-bold uppercase", text)}>
         Fit Score
       </span>
       <div className="flex items-center gap-2">
@@ -237,7 +237,7 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
               <div className="flex size-5 items-center justify-center rounded-md bg-primary/15">
                 <IconMessageCircle className="size-3 text-primary" />
               </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-primary">Suggested Reply</span>
+              <span className="text-xs font-bold uppercase text-primary">Suggested Reply</span>
             </div>
             <button
               onClick={(e) => copyOnly(mention.replyDraft, e)}
@@ -351,13 +351,13 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
 
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-6">
             <div>
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Excerpt</p>
+              <p className="mb-2 text-[11px] font-semibold uppercase text-muted-foreground">Excerpt</p>
               <p className="text-sm leading-relaxed text-muted-foreground">{mention.postExcerpt}</p>
             </div>
 
             {mention.fitReason && (
               <div>
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Why this fits</p>
+                <p className="mb-2 text-[11px] font-semibold uppercase text-muted-foreground">Why this fits</p>
                 <blockquote className="border-l-[3px] border-primary pl-4 text-sm leading-relaxed">
                   {mention.fitReason}
                 </blockquote>
@@ -366,7 +366,7 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
 
             {mention.safetyNotes.length > 0 && (
               <div>
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Safety notes</p>
+                <p className="mb-2 text-[11px] font-semibold uppercase text-muted-foreground">Safety notes</p>
                 <div className="space-y-2">
                   {mention.safetyNotes.map((note) => (
                     <div key={note} className="flex items-start gap-2 rounded-xl bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
@@ -386,7 +386,7 @@ export function MentionCard({ mention, exitDirection, onMarkReplied, onMarkDismi
                   <div className="flex size-5 items-center justify-center rounded-md bg-primary/15">
                     <IconSparkles className="size-3 text-primary" />
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Prepared Reply</span>
+                  <span className="text-xs font-bold uppercase text-primary">Prepared Reply</span>
                 </div>
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">{mention.replyDraft}</p>
               </div>

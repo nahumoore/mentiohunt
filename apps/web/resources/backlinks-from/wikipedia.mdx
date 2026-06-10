@@ -18,6 +18,9 @@ faqs:
   - question: "How do I find Wikipedia pages where my content could be a citation?"
     answer: "Use Google search operators such as site:wikipedia.org citation needed followed by your keyword, or site:wikipedia.org dead link followed by your keyword. WikiGrabber also lets you enter a keyword and get a filtered list of pages tagged with citation needed or dead link markers."
 image: "/resources/backlinks-from-wikipedia/header.webp"
+author:
+  name: "Nicolas More"
+  twitter: "https://twitter.com/nicolasmore_"
 ---
 
 Most founders approach Wikipedia like a directory submission. They create an account, add a link to a relevant article, and wonder why it disappears within the hour.
@@ -25,6 +28,8 @@ Most founders approach Wikipedia like a directory submission. They create an acc
 Wikipedia is not a directory. It is an editorial system run by thousands of volunteer editors who are specifically trained to catch promotional intent. Getting a link that sticks requires acting like a researcher, not a marketer.
 
 The reward is worth the effort. Wikipedia links are nofollow, but their value runs deeper than link juice — they influence how Google models your brand's authority, how AI systems cite your content, and how much high-intent referral traffic lands on your site.
+
+> **Quick answer:** Wikipedia links are `nofollow` but influence Google's `pagerankNS` authority model, feed the Knowledge Graph, and appear in LLM training data. The only approach that works: warm a real account with 10–20 unrelated edits first, find dead links or `[citation needed]` tags in your niche, supply a credible research page as the replacement, and use the `{{Cite web}}` template correctly.
 
 ---
 
@@ -34,7 +39,7 @@ Most link-building targets give you a placement. Wikipedia gives you a citation 
 
 A few specifics:
 
-- **All Wikipedia links are `nofollow`**, which means they don't pass direct ranking credit in the traditional sense. But Google's 2024 search algorithm leak surfaced a metric called `pagerankNS` — a signal that uses highly trusted domains like Wikipedia as seed sites to calibrate the authority of everything else in the index. A Wikipedia citation shapes how Google weighs your domain, even without passing explicit link juice.
+- **All Wikipedia links are `nofollow`**, which means they don't pass direct ranking credit in the traditional sense. But [Google's 2024 search algorithm leak](https://ipullrank.com/google-algo-leak) surfaced a metric called `pagerankNS` — a signal that uses highly trusted domains like Wikipedia as seed sites to calibrate the authority of everything else in the index. A Wikipedia citation shapes how Google weighs your domain, even without passing explicit link juice.
 - **Wikipedia feeds the Knowledge Graph.** Entries and citations on Wikipedia map directly to Google's entity system, which powers Knowledge Panels and AI Overview answers. Being cited in the right article increases the chance your brand appears as a recognized entity — not just a URL.
 - **Wikipedia is a core training dataset for LLMs.** As AI-driven search grows, a presence in Wikipedia signals to search systems that your content is factually grounded and editorially vetted.
 - **Referral traffic is real.** High-traffic Wikipedia articles on commercial topics send meaningful clicks to cited sources. These visitors are in research mode — some of the highest-intent readers you'll get.
@@ -86,7 +91,7 @@ An account with 50+ edits and a diverse history is treated very differently than
 - `site:wikipedia.org "citation needed" [your keyword]`
 - `site:wikipedia.org "this article requires additional references" [your keyword]`
 
-**WikiGrabber** lets you enter a keyword and get a filtered list of Wikipedia pages tagged with citation needed or dead link markers — faster than manual searching.
+**[WikiGrabber](https://wikigrabber.com)** lets you enter a keyword and get a filtered list of Wikipedia pages tagged with citation needed or dead link markers — faster than manual searching.
 
 **Ahrefs or SEMrush** can scan the wikipedia.org domain for broken outbound links. This surfaces broken citations at scale across high-traffic articles.
 
@@ -134,10 +139,10 @@ If you have a **[conflict of interest](https://en.wikipedia.org/wiki/Conflict-of
 
 ## What to avoid
 
-- **Editing directly with a new account.** Bots and editors catch it within minutes.
-- **Commercial-looking target pages.** If the page you're linking to has a CTA above the fold, it won't survive review.
-- **Edit wars.** If a link is removed, diagnose why before re-adding. Open a Talk page discussion. If community consensus is against your citation, accept it — repeated reversions get accounts banned.
-- **Exact-match anchor text.** Wikipedia's formatting templates handle display text. Focus on accurate metadata, not keyword placement.
+- **Editing directly with a new account.** Bots like ClueBot NG and XLinkBot pattern-match on account age, edit count, and domain novelty. A new account linking to a commercial domain gets flagged within minutes and the domain logged for future scrutiny.
+- **Commercial-looking target pages.** If the cited URL has a CTA above the fold, a lead-gen form, or product pricing, it fails Wikipedia's Reliable Sources standard. Editors check the linked page, not just the edit diff.
+- **Edit wars.** If your link is removed, diagnose why before re-adding. Reverting a removal without Talk page discussion is treated as disruptive editing — three reverts in 24 hours triggers an automatic block under the three-revert rule.
+- **Exact-match anchor text.** Wikipedia's `{{Cite web}}` template controls display text. Forcing keywords into the `title=` field looks manipulative and gets flagged. Accurate, descriptive metadata is all that matters.
 
 ---
 
@@ -161,3 +166,7 @@ The bottleneck is not writing the edit. It's finding the right Wikipedia article
 [Mentiohunt's backlink building](/dashboard) surfaces citation-worthy opportunities for your existing content. Add your article URLs, and the system finds relevant placements across the web — including Wikipedia pages where your research fits a documented gap.
 
 Wikipedia is one piece of a broader backlink strategy. For the full picture — finding opportunities across multiple platforms — see [how to find backlink opportunities](/blog/how-to-find-backlink-opportunities).
+
+---
+
+*This guide was written by the Mentiohunt team. We build tools for founders doing their own link building and community outreach.*

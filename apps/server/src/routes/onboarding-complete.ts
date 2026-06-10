@@ -113,84 +113,151 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
     return
   }
 
+  async function setEngineStatus(engine: string, status: "running" | "done" | "failed") {
+    await supabaseAdmin.rpc("merge_discovery_status" as string, {
+      p_product_id: productId,
+      p_updates: { [engine]: status },
+    })
+  }
+
   try {
     const t0 = Date.now()
-    console.log("[onboarding] jobs START", { userId, productId, replyQueueConfigId })
+    log.info("jobs START", { userId, productId, replyQueueConfigId })
+
+    const { error: statusUpdateError } = await supabaseAdmin
+      .from("backlink_prospects_settings")
+      .update({
+        discovery_status: {
+          community: "running",
+          directories: "running",
+          backlinks: "running",
+          media_mentions: "running",
+          started_at: new Date().toISOString(),
+          total: 4,
+        },
+      })
+      .eq("product_id", productId)
+
+    if (statusUpdateError) {
+      log.error("failed to set initial discovery_status", { productId, error: statusUpdateError.message })
+    }
 
     const [replyQueueResult, directoryResult, backlinkDiscoveryResult, mediaMentionsResult] = await Promise.allSettled([
       (async () => {
         const t = Date.now()
-        console.log("[onboarding] runReplyQueueForConfig START")
+        log.info("runReplyQueueForConfig START", { configId: replyQueueConfigId })
+        let failed = false
         try {
-          return await runReplyQueueForConfig({
+          const result = await runReplyQueueForConfig({
             configId: replyQueueConfigId,
             userId,
             sendEmailAlerts: SEND_INDIVIDUAL_ONBOARDING_EMAILS,
             maxPosts: 50,
           })
+          log.success("runReplyQueueForConfig done", { durationMs: Date.now() - t, result })
+          return result
+        } catch (err) {
+          failed = true
+          log.error("runReplyQueueForConfig FAILED", { durationMs: Date.now() - t, error: String(err) })
+          await setEngineStatus("community", "failed")
+          throw err
         } finally {
-          console.log(`[onboarding] runReplyQueueForConfig END ${Date.now() - t}ms`)
+          if (!failed) await setEngineStatus("community", "done")
         }
       })(),
       (async () => {
         const t = Date.now()
-        console.log("[onboarding] findDirectoryOpportunities START")
+        log.info("findDirectoryOpportunities START", { productId })
+        let failed = false
         try {
-          return await findDirectoryOpportunitiesForProduct(productId)
+          const result = await findDirectoryOpportunitiesForProduct(productId)
+          log.success("findDirectoryOpportunities done", { durationMs: Date.now() - t, result })
+          return result
+        } catch (err) {
+          failed = true
+          log.error("findDirectoryOpportunities FAILED", { durationMs: Date.now() - t, error: String(err) })
+          await setEngineStatus("directories", "failed")
+          throw err
         } finally {
-          console.log(`[onboarding] findDirectoryOpportunities END ${Date.now() - t}ms`)
+          if (!failed) await setEngineStatus("directories", "done")
         }
       })(),
       (async () => {
         const t = Date.now()
-        console.log("[onboarding] discoverCompetitorBacklinks START")
+        log.info("discoverCompetitorBacklinks START", { productId })
+        let failed = false
         try {
-          const { data: product } = await supabaseAdmin
+          const { data: product, error: productError } = await supabaseAdmin
             .from("products")
             .select("id, user_id, product_name, product_description, website_url, competitors")
             .eq("id", productId)
             .single()
 
-          if (!product) return { prospectsCreated: 0, totalCostUsd: 0 }
+          if (productError) log.warn("discoverCompetitorBacklinks: product fetch error", { error: productError.message })
+          if (!product) {
+            log.warn("discoverCompetitorBacklinks: product not found, skipping", { productId })
+            return { prospectsCreated: 0, totalCostUsd: 0 }
+          }
 
-          const { data: settings } = await supabaseAdmin
+          const { data: settings, error: settingsError } = await supabaseAdmin
             .from("backlink_prospects_settings")
             .select("dr_min, dr_max, voice_tone, offering")
             .eq("product_id", productId)
             .single()
 
-          return await discoverCompetitorBacklinks(
+          if (settingsError) log.warn("discoverCompetitorBacklinks: settings fetch error", { error: settingsError.message })
+
+          const result = await discoverCompetitorBacklinks(
             { ...product, competitors: (product.competitors as string[]) ?? [] },
             { dr_min: settings?.dr_min ?? 0, dr_max: settings?.dr_max ?? null },
             { voice_tone: settings?.voice_tone ?? null, offering: settings?.offering ?? null }
           )
+          log.success("discoverCompetitorBacklinks done", { durationMs: Date.now() - t, prospectsCreated: result.prospectsCreated, totalCostUsd: result.totalCostUsd })
+          return result
+        } catch (err) {
+          failed = true
+          log.error("discoverCompetitorBacklinks FAILED", { durationMs: Date.now() - t, error: String(err) })
+          await setEngineStatus("backlinks", "failed")
+          throw err
         } finally {
-          console.log(`[onboarding] discoverCompetitorBacklinks END ${Date.now() - t}ms`)
+          if (!failed) await setEngineStatus("backlinks", "done")
         }
       })(),
       (async () => {
         const t = Date.now()
-        console.log("[onboarding] discoverMentionsForProduct START")
+        log.info("discoverMentionsForProduct START", { productId })
+        let failed = false
         try {
-          const { data: product } = await supabaseAdmin
+          const { data: product, error: productError } = await supabaseAdmin
             .from("products")
             .select("id, product_name, product_description, website_url, competitors")
             .eq("id", productId)
             .single()
 
-          if (!product) return { prospectsCreated: 0, totalCostUsd: 0 }
+          if (productError) log.warn("discoverMentionsForProduct: product fetch error", { error: productError.message })
+          if (!product) {
+            log.warn("discoverMentionsForProduct: product not found, skipping", { productId })
+            return { prospectsCreated: 0, totalCostUsd: 0 }
+          }
 
-          return await discoverMentionsForProduct({
+          const result = await discoverMentionsForProduct({
             ...product,
             competitors: (product.competitors as string[]) ?? [],
           })
+          log.success("discoverMentionsForProduct done", { durationMs: Date.now() - t, prospectsCreated: result.prospectsCreated, totalCostUsd: result.totalCostUsd })
+          return result
+        } catch (err) {
+          failed = true
+          log.error("discoverMentionsForProduct FAILED", { durationMs: Date.now() - t, error: String(err) })
+          await setEngineStatus("media_mentions", "failed")
+          throw err
         } finally {
-          console.log(`[onboarding] discoverMentionsForProduct END ${Date.now() - t}ms`)
+          if (!failed) await setEngineStatus("media_mentions", "done")
         }
       })(),
     ])
 
-    console.log(`[onboarding] all jobs END ${Date.now() - t0}ms`)
+    log.info("all jobs END", { durationMs: Date.now() - t0 })
 
     if (replyQueueResult.status === "rejected") {
       log.error("onboarding reply queue run failed", {

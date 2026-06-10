@@ -185,6 +185,7 @@ export type Database = {
       }
       backlink_prospects_settings: {
         Row: {
+          discovery_status: Json | null
           dr_max: number | null
           dr_min: number
           offering: string | null
@@ -194,6 +195,7 @@ export type Database = {
           voice_tone: string | null
         }
         Insert: {
+          discovery_status?: Json | null
           dr_max?: number | null
           dr_min?: number
           offering?: string | null
@@ -203,6 +205,7 @@ export type Database = {
           voice_tone?: string | null
         }
         Update: {
+          discovery_status?: Json | null
           dr_max?: number | null
           dr_min?: number
           offering?: string | null

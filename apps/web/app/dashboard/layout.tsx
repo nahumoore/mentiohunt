@@ -5,6 +5,7 @@ import type {
 import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardStoreHydrator } from "@/components/dashboard/dashboard-store-hydrator"
+import { DiscoveryProgressIsland } from "@/components/discovery/discovery-progress-island"
 import type { MentionPlatform } from "@/consts/platform-config"
 import { supabaseServer } from "@/lib/supabase/server"
 import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
@@ -13,6 +14,7 @@ import type { DirectorySubmissionListItem } from "@/stores/directory-submission-
 import type { DiscoverySettings } from "@/stores/discovery-settings-store"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import type { ProspectListItem } from "@/stores/prospect-store"
+import type { DiscoveryStatus } from "@/hooks/use-discovery-progress"
 import type { Tables } from "@workspace/supabase/database-types"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { redirect } from "next/navigation"
@@ -224,6 +226,7 @@ export default async function DashboardLayout({
   let backlinkNetworkMembership: BacklinkNetworkMembership | null = null
   let hasRunningCommunityRun = false
   let hasReplyQueueConfig = false
+  let initialDiscoveryStatus: DiscoveryStatus | null = null
 
   if (product) {
     const [
@@ -250,7 +253,7 @@ export default async function DashboardLayout({
         .order("discovered_at", { ascending: false }),
       supabase
         .from("backlink_prospects_settings")
-        .select("opportunity_types, dr_min, dr_max, voice_tone, offering")
+        .select("opportunity_types, dr_min, dr_max, voice_tone, offering, discovery_status")
         .eq("product_id", product.id)
         .maybeSingle(),
       supabase
@@ -312,6 +315,11 @@ export default async function DashboardLayout({
       discoverySettings = mapDiscoverySettings(discoverySettingsResult.data)
       outreachSettings = mapOutreachSettings(discoverySettingsResult.data)
     }
+
+    const rawDiscoveryStatus = discoverySettingsResult.data?.discovery_status
+    initialDiscoveryStatus = rawDiscoveryStatus && typeof rawDiscoveryStatus === "object"
+      ? (rawDiscoveryStatus as DiscoveryStatus)
+      : null
 
     hasRunningCommunityRun =
       !replyQueueConfigsResult.error &&
@@ -401,6 +409,13 @@ export default async function DashboardLayout({
           <div className="p-6">{children}</div>
         </SidebarInset>
       </SidebarProvider>
+      {product && (
+        <DiscoveryProgressIsland
+          productId={product.id}
+          userId={user.id}
+          initialStatus={initialDiscoveryStatus}
+        />
+      )}
     </DashboardStoreHydrator>
   )
 }

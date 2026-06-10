@@ -153,139 +153,130 @@ export async function discoverMentionsForProduct(product: {
   }
 
   const processLimit = pLimit(5)
+  let created = 0
 
-  const rows = (
-    await Promise.all(
-      passing.map(({ mentionId, reason }) =>
-        processLimit(async () => {
-          const entry = entryByPostId.get(mentionId)
-          if (!entry) return null
-          const { post, llm } = entry
+  await Promise.all(
+    passing.map(({ mentionId, reason }) =>
+      processLimit(async () => {
+        const entry = entryByPostId.get(mentionId)
+        if (!entry) return
+        const { post, llm } = entry
 
-          const rawText = post.text
-          const email = llm.contact_email ?? extractEmail(rawText)
-          let domain = llm.publication_domain ?? extractDomain(rawText)
-          if (!domain && email) {
-            const atIdx = email.lastIndexOf("@")
-            if (atIdx > 0) {
-              const emailDomain = email.slice(atIdx + 1)
-              if (!JUNK_DOMAINS.has(emailDomain)) domain = emailDomain
-            }
+        const rawText = post.text
+        const email = llm.contact_email ?? extractEmail(rawText)
+        let domain = llm.publication_domain ?? extractDomain(rawText)
+        if (!domain && email) {
+          const atIdx = email.lastIndexOf("@")
+          if (atIdx > 0) {
+            const emailDomain = email.slice(atIdx + 1)
+            if (!JUNK_DOMAINS.has(emailDomain)) domain = emailDomain
           }
-          if (domain && JUNK_DOMAINS.has(domain)) domain = null
+        }
+        if (domain && JUNK_DOMAINS.has(domain)) domain = null
 
-          const actionType = email ? ("email_outreach" as const) : ("social_media" as const)
+        const actionType = email ? ("email_outreach" as const) : ("social_media" as const)
 
-          log.info("extracted prospect fields", {
-            postId: post.id,
-            email_source: llm.contact_email ? "llm" : email ? "extracted" : "none",
-            domain_source: llm.publication_domain ? "llm" : domain ? "extracted" : "none",
-            domain,
-            has_email: !!email,
-            action_type: actionType,
-          })
-
-          const validation = await validateProspect({
-            mentionId: post.id,
-            rawText,
-            domain,
-            email,
-            actionType,
-            authorName: post.author_name ?? null,
-          })
-
-          if (!validation || !validation.valid) {
-            log.warn("prospect dropped", {
-              postId: post.id,
-              reason: validation?.reason ?? "validation call failed",
-            })
-            return null
-          }
-
-          const cleanDomain =
-            validation.domain && JUNK_DOMAINS.has(validation.domain)
-              ? null
-              : validation.domain
-
-          log.info("prospect validated", {
-            postId: post.id,
-            valid: true,
-            action_type: validation.actionType,
-            domain: cleanDomain,
-            has_email: !!validation.email,
-          })
-
-          let emailSubject: string | null = null
-          let emailBody: string | null = null
-          if (validation.actionType === "email_outreach") {
-            const result = await generateOutreachEmail(product, {
-              id: post.id,
-              topic_summary: llm.topic_summary,
-              publication_domain: cleanDomain,
-              author_name: post.author_name,
-              url: post.url,
-            })
-            if (!result) {
-              log.warn("email generation failed, dropping prospect", { postId: post.id })
-              return null
-            }
-            emailSubject = result.email.subject
-            emailBody = result.email.body
-            log.info("outreach email generated", { postId: post.id, subject: emailSubject })
-          }
-
-          const targetUrl = cleanDomain ? `https://${cleanDomain}` : null
-
-          const row = {
-            product_id: product.id,
-            domain: cleanDomain,
-            found_url: post.url,
-            target_url: targetUrl,
-            tier: "media_mention" as const,
-            action_type: validation.actionType,
-            contact_email: validation.email,
-            contact_name: llm.contact_name ?? null,
-            email_subject: emailSubject,
-            email_body: emailBody,
-            notes: reason,
-            raw_post_text: rawText,
-          }
-
-          log.info("prospect ready", {
-            postId: post.id,
-            domain: row.domain,
-            action_type: row.action_type,
-            contact_email: row.contact_email,
-            found_url: row.found_url,
-            target_url: row.target_url,
-          })
-
-          return row
+        log.info("extracted prospect fields", {
+          postId: post.id,
+          email_source: llm.contact_email ? "llm" : email ? "extracted" : "none",
+          domain_source: llm.publication_domain ? "llm" : domain ? "extracted" : "none",
+          domain,
+          has_email: !!email,
+          action_type: actionType,
         })
-      )
+
+        const validation = await validateProspect({
+          mentionId: post.id,
+          rawText,
+          domain,
+          email,
+          actionType,
+          authorName: post.author_name ?? null,
+        })
+
+        if (!validation || !validation.valid) {
+          log.warn("prospect dropped", {
+            postId: post.id,
+            reason: validation?.reason ?? "validation call failed",
+          })
+          return
+        }
+
+        const cleanDomain =
+          validation.domain && JUNK_DOMAINS.has(validation.domain)
+            ? null
+            : validation.domain
+
+        log.info("prospect validated", {
+          postId: post.id,
+          valid: true,
+          action_type: validation.actionType,
+          domain: cleanDomain,
+          has_email: !!validation.email,
+        })
+
+        let emailSubject: string | null = null
+        let emailBody: string | null = null
+        if (validation.actionType === "email_outreach") {
+          const result = await generateOutreachEmail(product, {
+            id: post.id,
+            topic_summary: llm.topic_summary,
+            publication_domain: cleanDomain,
+            author_name: post.author_name,
+            url: post.url,
+          })
+          if (!result) {
+            log.warn("email generation failed, dropping prospect", { postId: post.id })
+            return
+          }
+          emailSubject = result.email.subject
+          emailBody = result.email.body
+          log.info("outreach email generated", { postId: post.id, subject: emailSubject })
+        }
+
+        const targetUrl = cleanDomain ? `https://${cleanDomain}` : null
+
+        const row = {
+          product_id: product.id,
+          domain: cleanDomain,
+          found_url: post.url,
+          target_url: targetUrl,
+          tier: "media_mention" as const,
+          action_type: validation.actionType,
+          contact_email: validation.email,
+          contact_name: llm.contact_name ?? null,
+          email_subject: emailSubject,
+          email_body: emailBody,
+          notes: reason,
+          raw_post_text: rawText,
+        }
+
+        log.info("prospect ready", {
+          postId: post.id,
+          domain: row.domain,
+          action_type: row.action_type,
+          contact_email: row.contact_email,
+          found_url: row.found_url,
+          target_url: row.target_url,
+        })
+
+        const { error: insertError } = await supabaseAdmin
+          .from("backlink_prospects")
+          .insert(row)
+
+        if (insertError) {
+          log.error("failed to insert prospect", {
+            postId: post.id,
+            productId: product.id,
+            error: insertError.message,
+          })
+          return
+        }
+
+        created++
+      })
     )
-  ).filter((r): r is NonNullable<typeof r> => r !== null)
-
-  if (rows.length === 0) {
-    log.info("no prospects to insert", { productId: product.id })
-    if (runId) await completeRun(runId, 0, apifyCostUsd + classifyCost + scoreCost)
-    return { prospectsCreated: 0, totalCostUsd: apifyCostUsd + classifyCost + scoreCost }
-  }
-
-  const { count: insertCount, error: insertError } = await supabaseAdmin
-    .from("backlink_prospects")
-    .insert(rows, { count: "exact" })
-
-  if (insertError) {
-    log.error("failed to insert backlink_prospects", {
-      productId: product.id,
-      error: insertError.message,
-    })
-    if (runId) await completeRun(runId, 0, apifyCostUsd + classifyCost + scoreCost)
-    return { prospectsCreated: 0, totalCostUsd: apifyCostUsd + classifyCost + scoreCost }
-  }
-
-  const created = insertCount ?? rows.length
+  )
   const totalCostUsd = apifyCostUsd + classifyCost + scoreCost
 
   log.info("discovery complete", {

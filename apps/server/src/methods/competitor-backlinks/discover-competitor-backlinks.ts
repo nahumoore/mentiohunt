@@ -218,7 +218,7 @@ async function processCompetitor(
   senderName: string | null,
   emailSettings: EmailSettings,
   enrichLimit: (fn: () => Promise<void>) => Promise<void>
-): Promise<{ prospectsCreated: number; costUsd: number; nextCursor: string | null }> {
+): Promise<{ prospectsCreated: number; costUsd: number; nextCursor: string | null; enrichment: Promise<unknown> }> {
   const mozCursor = await getLastMozCursor(product.id, competitorDomain)
 
   log.info("processing competitor", { productId: product.id, competitorDomain, hasCursor: !!mozCursor })
@@ -239,7 +239,7 @@ async function processCompetitor(
         kept: 0,
         inserted: 0,
       })
-      return { prospectsCreated: 0, costUsd: 0, nextCursor }
+      return { prospectsCreated: 0, costUsd: 0, nextCursor, enrichment: Promise.resolve() }
     }
 
     const { results: scored, totalCost } = await scoreBacklinkRelevance(filtered, product)
@@ -266,7 +266,7 @@ async function processCompetitor(
         kept: 0,
         inserted: 0,
       })
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
+      return { prospectsCreated: 0, costUsd: totalCost, nextCursor, enrichment: Promise.resolve() }
     }
 
     const rows = passing.map((item) => ({
@@ -288,7 +288,7 @@ async function processCompetitor(
 
     if (upsertError) {
       log.error("upsert failed", { productId: product.id, competitorDomain, error: upsertError.message })
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
+      return { prospectsCreated: 0, costUsd: totalCost, nextCursor, enrichment: Promise.resolve() }
     }
 
     const insertedRows = inserted ?? []
@@ -320,7 +320,7 @@ async function processCompetitor(
 
     const scoredByFoundUrl = new Map(passing.map((item) => [item.urlFrom, item]))
 
-    void Promise.allSettled(
+    const enrichment = Promise.allSettled(
       insertedRows.map((row) =>
         enrichLimit(async () => {
           const item = scoredByFoundUrl.get(row.found_url ?? "")
@@ -331,11 +331,11 @@ async function processCompetitor(
       )
     )
 
-    return { prospectsCreated: insertedRows.length, costUsd: totalCost, nextCursor }
+    return { prospectsCreated: insertedRows.length, costUsd: totalCost, nextCursor, enrichment }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     log.error("competitor processing failed", { productId: product.id, competitorDomain, error: msg })
-    return { prospectsCreated: 0, costUsd: 0, nextCursor: null }
+    return { prospectsCreated: 0, costUsd: 0, nextCursor: null, enrichment: Promise.resolve() }
   }
 }
 
@@ -381,6 +381,7 @@ export async function discoverCompetitorBacklinks(
   let totalProspectsCreated = 0
   let totalCostUsd = 0
   const mozCursorsByDomain: Record<string, string | null> = {}
+  const enrichments: Promise<unknown>[] = []
 
   try {
     for (const competitorDomain of competitorsToProcess) {
@@ -388,7 +389,10 @@ export async function discoverCompetitorBacklinks(
       totalProspectsCreated += result.prospectsCreated
       totalCostUsd += result.costUsd
       mozCursorsByDomain[competitorDomain] = result.nextCursor
+      enrichments.push(result.enrichment)
     }
+
+    await Promise.allSettled(enrichments)
 
     if (runId) await completeProspectRun(runId, totalProspectsCreated, totalCostUsd, mozCursorsByDomain)
   } catch (err) {

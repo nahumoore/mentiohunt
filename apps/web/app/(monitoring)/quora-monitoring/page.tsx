@@ -10,41 +10,41 @@ import {
   MonitoringUseCases,
   MonitoringWhy,
 } from "@/components/community-monitoring"
-import { REDDIT_MONITORING } from "@/consts/community-monitoring"
+import { QUORA_MONITORING } from "@/consts/community-monitoring"
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Reddit Monitoring for Founders — Mentiohunt",
+    absolute: "Quora Monitoring for Founders — Mentiohunt",
   },
-  description: REDDIT_MONITORING.seo.description,
-  keywords: REDDIT_MONITORING.seo.keywords,
+  description: QUORA_MONITORING.seo.description,
+  keywords: QUORA_MONITORING.seo.keywords,
   alternates: {
-    canonical: "https://mentiohunt.com/reddit-monitoring",
+    canonical: "https://mentiohunt.com/quora-monitoring",
   },
   openGraph: {
-    title: "Reddit Monitoring for Founders — Mentiohunt",
-    description: REDDIT_MONITORING.seo.description,
-    url: "https://mentiohunt.com/reddit-monitoring",
+    title: "Quora Monitoring for Founders — Mentiohunt",
+    description: QUORA_MONITORING.seo.description,
+    url: "https://mentiohunt.com/quora-monitoring",
     siteName: "Mentiohunt",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Reddit Monitoring for Founders — Mentiohunt",
-    description: REDDIT_MONITORING.seo.description,
+    title: "Quora Monitoring for Founders — Mentiohunt",
+    description: QUORA_MONITORING.seo.description,
   },
 }
 
-function RedditMonitoringSchema() {
+function QuoraMonitoringSchema() {
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "WebPage",
-        "@id": "https://mentiohunt.com/reddit-monitoring",
-        url: "https://mentiohunt.com/reddit-monitoring",
-        name: "Reddit Monitoring for Founders — Mentiohunt",
-        description: REDDIT_MONITORING.seo.description,
+        "@id": "https://mentiohunt.com/quora-monitoring",
+        url: "https://mentiohunt.com/quora-monitoring",
+        name: "Quora Monitoring for Founders — Mentiohunt",
+        description: QUORA_MONITORING.seo.description,
         isPartOf: {
           "@type": "WebSite",
           url: "https://mentiohunt.com",
@@ -52,7 +52,7 @@ function RedditMonitoringSchema() {
       },
       {
         "@type": "FAQPage",
-        mainEntity: REDDIT_MONITORING.faqs.map((faq) => ({
+        mainEntity: QUORA_MONITORING.faqs.map((faq) => ({
           "@type": "Question",
           name: faq.q,
           acceptedAnswer: {
@@ -67,7 +67,7 @@ function RedditMonitoringSchema() {
         url: "https://mentiohunt.com",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
-        description: REDDIT_MONITORING.seo.description,
+        description: QUORA_MONITORING.seo.description,
         offers: {
           "@type": "Offer",
           price: "49",
@@ -92,7 +92,7 @@ function RedditMonitoringSchema() {
         url: "https://mentiohunt.com",
         logo: "https://mentiohunt.com/logo.png",
         description:
-          "Distribution tool for founders and small marketing teams. Monitor Reddit and other communities for posts where your product fits, with fit-scored matches and ready-to-send reply drafts.",
+          "Distribution tool for founders and small marketing teams. Monitor Quora and other communities for posts where your product fits, with fit-scored matches and ready-to-send reply drafts.",
         address: {
           "@type": "PostalAddress",
           addressCountry: "US",
@@ -104,26 +104,26 @@ function RedditMonitoringSchema() {
 
   return (
     <Script
-      id="reddit-monitoring-schema"
+      id="quora-monitoring-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
     />
   )
 }
 
-export default function RedditMonitoringPage() {
+export default function QuoraMonitoringPage() {
   return (
     <>
-      <RedditMonitoringSchema />
+      <QuoraMonitoringSchema />
       <main className="min-h-screen bg-background text-foreground">
         <Navbar />
-        <MonitoringHero config={REDDIT_MONITORING} />
-        <MonitoringHowItWorks config={REDDIT_MONITORING} />
-        <MonitoringWhy config={REDDIT_MONITORING} />
-        <MonitoringUseCases config={REDDIT_MONITORING} />
+        <MonitoringHero config={QUORA_MONITORING} />
+        <MonitoringHowItWorks config={QUORA_MONITORING} />
+        <MonitoringWhy config={QUORA_MONITORING} />
+        <MonitoringUseCases config={QUORA_MONITORING} />
         <Pricing />
-        <MonitoringFaq config={REDDIT_MONITORING} />
-        <MonitoringCta config={REDDIT_MONITORING} />
+        <MonitoringFaq config={QUORA_MONITORING} />
+        <MonitoringCta config={QUORA_MONITORING} />
         <Footer />
       </main>
     </>

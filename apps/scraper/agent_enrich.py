@@ -209,7 +209,8 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 "- If you only found a generic email: visit the author's profile page and /contact before calling finish\n"
                 "- When calling finish(), set type='personal' for personal emails and type='general' for generic inbox emails\n"
                 "- Stop early ONLY if you have a personal email\n"
-                "- Call finish() with the best data found"
+                "- Call finish() with the best data found\n"
+                "- ALWAYS return name and bio fields in English, regardless of the site's language"
             ),
         },
         {

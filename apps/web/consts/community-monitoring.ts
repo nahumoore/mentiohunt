@@ -1,4 +1,4 @@
-export type PlatformIconKey = "x" | "reddit" | "facebook" | "youtube" | "linkedin" | "google"
+export type PlatformIconKey = "reddit" | "quora"
 
 export interface MonitoringPlatformDisplay {
   label: string
@@ -39,156 +39,6 @@ export interface MonitoringConfig {
   useCases: { title: string; desc: string }[]
   faqs: { q: string; a: string }[]
   sample: SampleMention[]
-}
-
-// ─── Twitter / X ────────────────────────────────────────────────────────────
-
-export const TWITTER_MONITORING: MonitoringConfig = {
-  slug: "twitter-monitoring",
-  platformDisplay: {
-    label: "X (Twitter)",
-    iconKey: "x" as const,
-    color: "text-zinc-900 bg-zinc-500/10",
-    accentColor: "#27272a",
-  },
-  name: "X (Twitter)",
-
-  seo: {
-    title: "Twitter Monitoring for Founders — Mentiohunt",
-    description:
-      "Monitor Twitter and X for posts where your product is the answer. Get daily scored matches with a suggested reply draft so you engage while the thread is still active.",
-    keywords: [
-      "twitter monitoring",
-      "x monitoring",
-      "twitter brand monitoring",
-      "monitor twitter mentions",
-      "x post monitoring",
-      "social media monitoring founders",
-      "twitter keyword monitoring",
-    ],
-  },
-
-  hero: {
-    eyebrow: "Twitter / X Monitoring",
-    heading: "Monitor Twitter and X for posts where your product fits",
-    sub: "Mentiohunt scans public X and Twitter posts daily, scores each match for product fit, and prepares a ready-to-review reply draft. Engage while the thread is still active.",
-    primaryCta: "Start monitoring X",
-  },
-
-  steps: [
-    {
-      title: "Set your keyword queue",
-      desc: "Add your product name, the problem you solve, and core use-case phrases. Mentiohunt builds a search strategy from your inputs.",
-    },
-    {
-      title: "We scan X daily",
-      desc: "Daily sweeps across public X and Twitter posts. Every match is scored for product fit and relevance before it enters your queue.",
-    },
-    {
-      title: "Reply while the thread is live",
-      desc: "Open your queue to see matched posts, a plain-language fit rationale, and a suggested reply draft. Post from X yourself while the conversation is still active.",
-    },
-  ],
-
-  why: [
-    {
-      title: "X conversations move fast",
-      desc: "A relevant thread can lose momentum within hours. Daily scans surface matches early so you engage before the conversation goes cold.",
-    },
-    {
-      title: "Works for both 'Twitter' and 'X' queries",
-      desc: "Twitter was rebranded to X, but both terms stay in active use. One Mentiohunt setup captures relevant posts regardless of which name appears in the search.",
-    },
-    {
-      title: "Fit-scored, not a firehose",
-      desc: "Every match is scored for product relevance before it reaches your queue. No noise to cut through — only posts where your product is a credible answer.",
-    },
-    {
-      title: "Reply draft included",
-      desc: "Each opportunity surfaces with a suggested reply already written. Review it, adjust the tone, and post from the original thread yourself.",
-    },
-  ],
-
-  useCases: [
-    {
-      title: "Founders building in public",
-      desc: "Stay plugged into X conversations where your product is the answer. Turn one helpful reply into signups without spending hours scrolling.",
-    },
-    {
-      title: "Small marketing teams",
-      desc: "Cover relevant X conversations as a one-person effort. No manual monitoring needed — the daily queue surfaces what matters.",
-    },
-    {
-      title: "Product launches",
-      desc: "During launch week, catch every comparison question and tool request on X so you can participate while momentum is high.",
-    },
-  ],
-
-  faqs: [
-    {
-      q: "Does this cover both Twitter and X?",
-      a: "Yes. Twitter was rebranded to X in 2023, but both names remain in active use. Mentiohunt monitors the same platform regardless of which term you search. One setup covers both.",
-    },
-    {
-      q: "How often are X posts scanned?",
-      a: "Daily sweeps surface new matches each day. Matched posts enter your queue with a fit score and a plain-language rationale so you can prioritize quickly.",
-    },
-    {
-      q: "Will Mentiohunt post replies automatically?",
-      a: "No. Mentiohunt generates a suggested reply and shows the original post URL. You review the draft and post it from X yourself. The decision to publish stays with you.",
-    },
-    {
-      q: "What keywords should I track?",
-      a: "Start with your product name, the core problem you solve, and names of close alternatives. Specific, problem-focused keywords produce the highest fit scores in your queue.",
-    },
-    {
-      q: "Can I monitor specific X accounts?",
-      a: "The current engine monitors keyword matches across public posts. Account-level monitoring is on the roadmap.",
-    },
-    {
-      q: "Does Mentiohunt only monitor X?",
-      a: "No. Mentiohunt also monitors Reddit, Facebook, and Bluesky. X monitoring is one engine inside a broader community monitoring product.",
-    },
-  ],
-
-  sample: [
-    {
-      authorName: "@buildingwithmike",
-      handle: "SaaS founder · 1.2k followers",
-      postedAt: "14m ago",
-      text: "Does anyone have a good way to track mentions of their product on Twitter/X without spending hours scrolling? Looking for something automated that actually filters noise.",
-      fitScore: 92,
-      intent: "Asking for tool",
-      replyDraft:
-        "Worth trying Mentiohunt — it monitors X for posts matching your product and scores each one for fit before surfacing it. You get a suggested reply draft so you can engage fast without the firehose.",
-      reactions: 47,
-      comments: 23,
-    },
-    {
-      authorName: "@larabuilds",
-      handle: "Indie hacker",
-      postedAt: "2h ago",
-      text: "Best X monitoring tools for founders? I want to know when people are asking for something my product solves, not just when they tag my brand name.",
-      fitScore: 88,
-      intent: "Comparison shopping",
-      replyDraft:
-        "Mentiohunt does exactly this — monitors X for keyword and problem matches, not just brand mentions. Each match comes with a fit score and a ready-to-review reply draft.",
-      reactions: 31,
-      comments: 18,
-    },
-    {
-      authorName: "@nikhilventure",
-      handle: "Building in public",
-      postedAt: "5h ago",
-      text: "Missing so many conversations on X where my product would have been a perfect fit. Replied to one thread last week and got 3 new signups. Need a system for this.",
-      fitScore: 95,
-      intent: "Pain point",
-      replyDraft:
-        "That's the problem Mentiohunt is built around. It queues matched X posts daily with a suggested reply so you catch every relevant thread while it is still active.",
-      reactions: 89,
-      comments: 41,
-    },
-  ],
 }
 
 // ─── Reddit ─────────────────────────────────────────────────────────────────
@@ -251,7 +101,7 @@ export const REDDIT_MONITORING: MonitoringConfig = {
     },
     {
       title: "50% YoY growth in Reddit search volume",
-      desc: "More founders and buyers are searching Reddit for peer recommendations. The channel is growing faster than most alternatives.",
+      desc: "Searches for Reddit content grew roughly 50% year-over-year per Semrush's 2023 search trend data. More founders and buyers now go directly to Reddit for peer recommendations than most other channels.",
     },
     {
       title: "Reply draft included",
@@ -293,11 +143,11 @@ export const REDDIT_MONITORING: MonitoringConfig = {
     },
     {
       q: "What about subreddit rules on promotion?",
-      a: "Mentiohunt provides a suggested reply, not a guarantee of acceptance. You should review community rules before posting. The drafts are written to be helpful first, not promotional.",
+      a: "Review each subreddit's rules before posting — Mentiohunt doesn't do this automatically. Reply drafts are written to be genuinely helpful first and promotional second, which reduces rule-violation risk, but the final judgment is yours.",
     },
     {
       q: "Does Mentiohunt only monitor Reddit?",
-      a: "No. Mentiohunt also monitors X (Twitter), Facebook, and Bluesky. Reddit monitoring is one engine inside a broader community monitoring product.",
+      a: "No. Mentiohunt also monitors Quora and other communities. Reddit monitoring is one engine inside a broader community monitoring product.",
     },
   ],
 
@@ -341,611 +191,157 @@ export const REDDIT_MONITORING: MonitoringConfig = {
   ],
 }
 
-// ─── Facebook ────────────────────────────────────────────────────────────────
+// ─── Quora ───────────────────────────────────────────────────────────────────
 
-export const FACEBOOK_MONITORING: MonitoringConfig = {
-  slug: "facebook-monitoring",
+export const QUORA_MONITORING: MonitoringConfig = {
+  slug: "quora-monitoring",
   platformDisplay: {
-    label: "Facebook",
-    iconKey: "facebook" as const,
-    color: "text-blue-700 bg-blue-500/10",
-    accentColor: "#3c5a9a",
+    label: "Quora",
+    iconKey: "quora" as const,
+    color: "text-red-700 bg-red-500/10",
+    accentColor: "#b92b27",
   },
-  name: "Facebook",
+  name: "Quora",
 
   seo: {
-    title: "Facebook & Group Monitoring for Founders — Mentiohunt",
+    title: "Quora Monitoring for Founders — Mentiohunt",
     description:
-      "Monitor Facebook and Facebook Groups for posts where your product fits. Surface public conversations and group discussions matching your keywords with a suggested reply draft.",
+      "Monitor Quora for questions where your product is the answer. Get daily scored matches with a suggested reply draft so you engage while the question is active and ranking in Google.",
     keywords: [
-      "facebook monitoring",
-      "facebook group monitoring",
-      "monitor facebook mentions",
-      "facebook brand monitoring",
-      "monitor facebook groups",
-      "facebook keyword monitoring",
-      "facebook community monitoring",
+      "quora monitoring",
+      "monitor quora mentions",
+      "quora brand monitoring",
+      "quora question monitoring",
+      "quora keyword monitoring",
+      "monitor quora answers",
+      "quora mention tracking",
     ],
   },
 
   hero: {
-    eyebrow: "Facebook & Group Monitoring",
-    heading: "Monitor Facebook and Facebook Groups for product-fit conversations",
-    sub: "Mentiohunt surfaces public Facebook posts and Group discussions matching your keyword set. Get scored matches with a suggested reply draft before the conversation moves on.",
-    primaryCta: "Start monitoring Facebook",
+    eyebrow: "Quora Monitoring",
+    heading: "Monitor Quora for questions where your product is the answer",
+    sub: "Mentiohunt scans Quora daily for questions matching your keyword set, scores each for product fit, and prepares a ready-to-review answer draft. Engage while the question is active and ranking in Google.",
+    primaryCta: "Start monitoring Quora",
   },
 
   steps: [
     {
       title: "Set your keyword queue",
-      desc: "Add your product name, the problem you solve, and core use-case phrases. Mentiohunt scans public Facebook posts and Groups for matching conversations.",
+      desc: "Add your product name, the problem you solve, and use-case phrases. Mentiohunt builds a search strategy targeting Quora questions where your product is a credible answer.",
     },
     {
-      title: "We surface matching posts",
-      desc: "Public Facebook content matching your keyword set is discovered daily. Each result is scored for product fit before it enters your queue.",
+      title: "We scan Quora daily",
+      desc: "Daily sweeps surface new questions and active threads matching your keyword set. Each result is scored for product fit before it enters your queue.",
     },
     {
-      title: "Reply while the conversation is active",
-      desc: "Your queue shows the matched post, Group context, a fit rationale, and a suggested reply draft. Post from Facebook yourself before the discussion closes.",
-    },
-  ],
-
-  why: [
-    {
-      title: "Facebook Groups are high-intent communities",
-      desc: "Niche Facebook Groups attract buyers actively seeking solutions. A keyword match inside a relevant Group carries strong purchase-intent signal.",
-    },
-    {
-      title: "Covers Groups and public posts in one queue",
-      desc: "'Facebook Group monitoring' and general Facebook monitoring point to the same opportunity. Mentiohunt surfaces both in a single feed — no separate setup.",
-    },
-    {
-      title: "Fit-scored, not a firehose",
-      desc: "Every match is scored for product relevance before it reaches your queue. No noise to cut through — only conversations where your product is a credible answer.",
-    },
-    {
-      title: "Reply draft included",
-      desc: "Each opportunity surfaces with a suggested reply already written. Review it, adjust the tone, and post from the original Group or post yourself.",
-    },
-  ],
-
-  useCases: [
-    {
-      title: "B2C and community-led products",
-      desc: "If your buyers congregate in Facebook Groups — niche communities, local networks, interest groups — this is where they ask for recommendations.",
-    },
-    {
-      title: "Small marketing teams",
-      desc: "Monitor multiple Facebook Groups and public posts from a single queue. No manual scrolling — relevant conversations surface automatically.",
-    },
-    {
-      title: "Product launches",
-      desc: "During launch, catch every relevant Facebook conversation asking about your use case while your product is fresh and momentum is high.",
-    },
-  ],
-
-  faqs: [
-    {
-      q: "Does this cover Facebook Groups specifically?",
-      a: "Yes. Mentiohunt surfaces public Facebook Group discussions alongside general public posts. Both appear in your queue with fit scores and reply drafts.",
-    },
-    {
-      q: "How does Facebook monitoring work technically?",
-      a: "Mentiohunt surfaces public Facebook content via keyword discovery. Results cover publicly visible posts and Group discussions. Private or members-only content is not accessible.",
-    },
-    {
-      q: "Are engagement signals available for Facebook posts?",
-      a: "Facebook public post discovery has limited engagement and date signals compared to Reddit or X. Results are best used for broad keyword discovery and conversation monitoring.",
-    },
-    {
-      q: "Will Mentiohunt post replies automatically?",
-      a: "No. Mentiohunt generates a suggested reply and shows the original post URL. You review the draft and post it from Facebook yourself. The decision to publish stays with you.",
-    },
-    {
-      q: "What keywords should I track?",
-      a: "Start with your product name, the core problem you solve, and names of close alternatives. Group-specific terminology your ICP uses tends to surface the highest-fit results.",
-    },
-    {
-      q: "Does Mentiohunt only monitor Facebook?",
-      a: "No. Mentiohunt also monitors Reddit, X (Twitter), and Bluesky. Facebook monitoring is one engine inside a broader community monitoring product.",
-    },
-  ],
-
-  sample: [
-    {
-      authorName: "Sarah K.",
-      handle: "Indie Hackers FB Group · 3.2k members",
-      postedAt: "35m ago",
-      text: "Best tools for monitoring Facebook groups for mentions of your product category? I keep finding out about relevant conversations too late. Tired of manually checking every group.",
-      fitScore: 90,
-      intent: "Asking for tool",
-      replyDraft:
-        "Worth trying Mentiohunt — it monitors Facebook public posts and Groups for keyword matches, scores each one for fit, and gives you a suggested reply draft. Daily queue so you stop missing relevant conversations.",
-      reactions: 38,
-      comments: 24,
-    },
-    {
-      authorName: "Diego M.",
-      handle: "SaaS Founders Group · 8.7k members",
-      postedAt: "2h ago",
-      text: "Anyone have a way to track when people in Facebook groups are asking for something your product does? I know the conversations are happening but I only see them days later.",
-      fitScore: 85,
-      intent: "Pain point",
-      replyDraft:
-        "Mentiohunt does this — surfaces Facebook Group posts matching your product keywords daily, with a fit score and a ready-to-review reply draft. You engage while the thread is still active.",
-      reactions: 29,
-      comments: 17,
-    },
-    {
-      authorName: "Priya T.",
-      handle: "Startup Marketing Community",
-      postedAt: "4h ago",
-      text: "We get mentioned in Facebook groups but only find out about it days later when someone screenshots it. Looking for something that alerts us when it happens in real time.",
-      fitScore: 92,
-      intent: "Pain point",
-      replyDraft:
-        "Mentiohunt sends daily alerts for keyword matches across Facebook public posts and Groups. You see the conversation with a suggested reply while it is still worth engaging.",
-      reactions: 54,
-      comments: 33,
-    },
-  ],
-}
-
-// ─── YouTube ─────────────────────────────────────────────────────────────────
-
-export const YOUTUBE_MONITORING: MonitoringConfig = {
-  slug: "youtube-monitoring",
-  platformDisplay: {
-    label: "YouTube",
-    iconKey: "youtube" as const,
-    color: "text-red-600 bg-red-500/10",
-    accentColor: "#ff0000",
-  },
-  name: "YouTube",
-
-  seo: {
-    title: "YouTube Monitoring for Founders — Mentiohunt",
-    description:
-      "Monitor YouTube for videos and comments where your product fits. Surface relevant creator content and comment threads matching your keywords with a suggested outreach or reply draft.",
-    keywords: [
-      "youtube monitoring",
-      "monitor youtube mentions",
-      "youtube brand monitoring",
-      "youtube comment monitoring",
-      "youtube keyword monitoring",
-      "monitor youtube comments",
-      "youtube mention tracking",
-    ],
-  },
-
-  hero: {
-    eyebrow: "YouTube Monitoring",
-    heading: "Monitor YouTube for videos and comments where your product fits",
-    sub: "Mentiohunt scans YouTube for relevant videos and comment threads matching your keyword set. Surface opportunities to engage with creators and viewers before the moment passes.",
-    primaryCta: "Start monitoring YouTube",
-  },
-
-  steps: [
-    {
-      title: "Set your keyword queue",
-      desc: "Add your product name, the problem you solve, and use-case phrases. Mentiohunt builds a YouTube search strategy targeting both video titles and comment threads.",
-    },
-    {
-      title: "We scan YouTube daily",
-      desc: "Daily sweeps surface videos and comments matching your keyword set. Each result is scored for product fit before it enters your queue.",
-    },
-    {
-      title: "Engage while the content is active",
-      desc: "Your queue shows the matched video or comment, a fit rationale, and a suggested reply or outreach draft. Engage while the content is generating views.",
+      title: "Answer while the question ranks",
+      desc: "Your queue shows the matched question, a plain-language fit rationale, and a suggested answer draft. Post from Quora yourself while the thread is still generating views.",
     },
   ],
 
   why: [
     {
-      title: "YouTube is the second largest search engine",
-      desc: "Buyers search YouTube for product reviews, tutorials, and comparisons. Being present in relevant videos and comments puts your product in front of high-intent viewers.",
+      title: "Quora answers rank in Google for months",
+      desc: "High-quality Quora answers stay visible in Google search results long after the question is posted. One well-placed answer can drive discovery continuously.",
     },
     {
-      title: "Comments have a long shelf life",
-      desc: "YouTube videos and their comment threads stay discoverable for months. One well-placed reply can drive discovery long after you posted it.",
+      title: "Questions signal exact buyer intent",
+      desc: "Quora questions are explicit statements of need. A keyword match on Quora is one of the clearest signals that a potential buyer is actively looking for a solution.",
     },
     {
       title: "Fit-scored, not a firehose",
-      desc: "Every match is scored for product relevance before it reaches your queue. Only videos and comments where your product is a credible answer make the cut.",
+      desc: "Every match is scored for product relevance before it reaches your queue. Only questions where your product is a credible answer make the cut.",
     },
     {
-      title: "Reply and outreach drafts included",
-      desc: "Each opportunity surfaces with a suggested reply or creator outreach draft already written. Review it and engage from YouTube yourself.",
+      title: "Answer draft included",
+      desc: "Each opportunity surfaces with a suggested answer already written. Review it, adjust the depth, and post from the original Quora question yourself.",
     },
   ],
 
   useCases: [
     {
       title: "Founders building in public",
-      desc: "Catch viewers asking for recommendations under competitor or category videos. A single comment in the right place can surface your product to thousands.",
+      desc: "Quora questions about your problem space are asked every day. Surface the ones that match and answer them while the question is fresh and accumulating views.",
     },
     {
-      title: "Creator outreach",
-      desc: "Surface YouTube creators covering your product category. Each match comes with context for why their audience is relevant and a draft outreach message.",
+      title: "Long-tail content strategy",
+      desc: "Quora answers that rank in Google compound over time. Each quality answer is a durable distribution asset, not just a one-time reply.",
     },
     {
       title: "Product launches",
-      desc: "During launch, monitor YouTube for every review, comparison, and how-to video in your space. Engage while the content is fresh and generating views.",
+      desc: "During launch, surface every Quora question asking about your use case. Answer while intent is high and your product is new.",
     },
   ],
 
   faqs: [
     {
-      q: "Does this monitor YouTube comments specifically?",
-      a: "Yes. Mentiohunt surfaces both video-level matches (titles, descriptions) and comment-level matches where your keywords appear in active discussions.",
+      q: "Why is Quora valuable for founders?",
+      a: "Quora questions rank in Google for months and attract readers who are actively researching a topic. One helpful answer in the right thread can drive steady discovery long after you posted it.",
     },
     {
-      q: "How often is YouTube scanned?",
-      a: "Daily sweeps surface new matches. Videos and comments enter your queue with a fit score and rationale so you can prioritize quickly.",
+      q: "How often are Quora questions scanned?",
+      a: "Daily sweeps surface new questions and active threads. Matches enter your queue with a fit score and plain-language rationale so you can prioritize quickly.",
     },
     {
-      q: "Will Mentiohunt post comments automatically?",
-      a: "No. Mentiohunt generates a suggested reply or outreach draft and shows the original video or comment URL. You review it and post from YouTube yourself.",
+      q: "Will Mentiohunt post answers automatically?",
+      a: "No. Mentiohunt generates a suggested answer and shows the original question URL. You review the draft and post it from Quora yourself. The decision to publish stays with you.",
     },
     {
       q: "What keywords should I track?",
-      a: "Start with your product name, the core problem you solve, and names of close alternatives. Category terms like 'best [tool type]' and 'how to [use case]' also surface high-intent video content.",
+      a: "Start with your product name, the core problem you solve, and names of close alternatives. Question-style phrases — 'best tool for X' or 'how do I Y' — surface the highest-fit Quora threads.",
     },
     {
-      q: "Can I find YouTube creators to collaborate with?",
-      a: "Yes. Video-level matches surface creators covering your product space, which makes them natural candidates for outreach. Each match includes a suggested first message.",
+      q: "Are older Quora questions worth answering?",
+      a: "Yes. Quora threads that rank in Google continue receiving traffic regardless of age. Mentiohunt surfaces both new and established questions so you can prioritize by fit score and traffic potential.",
     },
     {
-      q: "Does Mentiohunt only monitor YouTube?",
-      a: "No. Mentiohunt also monitors Reddit, X (Twitter), Facebook, and Bluesky. YouTube monitoring is one engine inside a broader community monitoring product.",
+      q: "Does Mentiohunt only monitor Quora?",
+      a: "No. Mentiohunt also monitors Reddit and other communities. Quora monitoring is one engine inside a broader community monitoring product.",
     },
   ],
 
   sample: [
     {
-      authorName: "@techfounder_tv",
-      handle: "YouTube creator · 4.8k subscribers",
+      authorName: "alex_builds_saas",
+      handle: "Quora · 847 followers",
       postedAt: "1h ago",
-      text: "Looking for a tool that monitors YouTube comments for product mentions. There are conversations happening under competitor videos that I am completely missing.",
-      fitScore: 88,
+      text: "What is the best tool to monitor Quora for questions where my SaaS product would be a helpful answer? I keep finding relevant threads days after they were posted.",
+      fitScore: 94,
       intent: "Asking for tool",
       replyDraft:
-        "Mentiohunt monitors YouTube for keyword matches in videos and comment threads, scores each for product fit, and surfaces a suggested reply or outreach draft. Daily queue so you stop missing relevant content.",
+        "Worth trying Mentiohunt — it monitors Quora for questions matching your product keywords, scores each for fit, and surfaces a suggested answer draft. Daily queue so you stop missing relevant questions.",
+      reactions: 38,
+      comments: 19,
+    },
+    {
+      authorName: "priya_founder_q",
+      handle: "Quora · Top Writer",
+      postedAt: "3h ago",
+      text: "How do founders systematically find Quora questions where their product is the answer? Manual searches don't scale and I miss most of the relevant threads.",
+      fitScore: 91,
+      intent: "Strategy question",
+      replyDraft:
+        "Mentiohunt does this — scans Quora daily for keyword and problem matches, scores them for product fit, and queues them with a suggested answer draft. No manual searching needed.",
       reactions: 52,
       comments: 27,
     },
     {
-      authorName: "@marketingbuilder",
-      handle: "YouTube · 12k subscribers",
-      postedAt: "3h ago",
-      text: "How do you track when YouTubers or commenters are asking for a tool like yours? I know these conversations are happening but I have no system for finding them.",
-      fitScore: 83,
-      intent: "Strategy question",
-      replyDraft:
-        "Mentiohunt does this — scans YouTube for keyword matches in videos and comment threads, scores them for fit, and queues them with a suggested response. Worth checking out.",
-      reactions: 34,
-      comments: 15,
-    },
-    {
-      authorName: "@solobuilder_dev",
-      handle: "YouTube · 2.1k subscribers",
-      postedAt: "7h ago",
-      text: "Found a comment on a YouTube video asking for exactly what I built. Replied and got a customer. Now I need a system to find more of these moments before they disappear.",
-      fitScore: 95,
-      intent: "Pain point",
-      replyDraft:
-        "That is exactly the use case Mentiohunt is built for. It surfaces YouTube comment matches daily with a suggested reply so you catch every relevant moment while the video is still active.",
-      reactions: 78,
-      comments: 39,
-    },
-  ],
-}
-
-// ─── LinkedIn ────────────────────────────────────────────────────────────────
-
-export const LINKEDIN_MONITORING: MonitoringConfig = {
-  slug: "linkedin-monitoring",
-  platformDisplay: {
-    label: "LinkedIn",
-    iconKey: "linkedin" as const,
-    color: "text-blue-700 bg-blue-600/10",
-    accentColor: "#0a66c2",
-  },
-  name: "LinkedIn",
-
-  seo: {
-    title: "LinkedIn Monitoring for Founders — Mentiohunt",
-    description:
-      "Monitor LinkedIn for posts where your product fits. Surface high-intent professional conversations matching your keywords with a suggested reply draft so you engage while the post is active.",
-    keywords: [
-      "linkedin monitoring",
-      "monitor linkedin mentions",
-      "linkedin brand monitoring",
-      "linkedin post monitoring",
-      "linkedin keyword monitoring",
-      "monitor linkedin posts",
-      "linkedin mention tracking",
-    ],
-  },
-
-  hero: {
-    eyebrow: "LinkedIn Monitoring",
-    heading: "Monitor LinkedIn for posts where your product fits",
-    sub: "Mentiohunt scans LinkedIn daily for professional conversations matching your keyword set. Surface high-intent posts with a suggested reply draft so you engage while the thread is active.",
-    primaryCta: "Start monitoring LinkedIn",
-  },
-
-  steps: [
-    {
-      title: "Set your keyword queue",
-      desc: "Add your product name, the business problem you solve, and professional use-case phrases. Mentiohunt targets LinkedIn posts where buyers are actively looking.",
-    },
-    {
-      title: "We scan LinkedIn daily",
-      desc: "Daily sweeps across public LinkedIn posts matching your keyword set. Every match is scored for product fit before it enters your queue.",
-    },
-    {
-      title: "Reply while the post is active",
-      desc: "Your queue shows the matched post, the fit rationale, and a professional reply draft. Engage from LinkedIn yourself while the post is still generating comments.",
-    },
-  ],
-
-  why: [
-    {
-      title: "High commercial intent — $79 avg CPC",
-      desc: "LinkedIn's average CPC for buyer keywords signals that the audience has real purchase intent. Organic engagement in these conversations is genuinely valuable.",
-    },
-    {
-      title: "B2B buyers ask for recommendations openly",
-      desc: "LinkedIn users regularly post asking for tool recommendations, vendor comparisons, and workflow advice. These posts are high-fit opportunities for most B2B products.",
-    },
-    {
-      title: "Fit-scored, not a firehose",
-      desc: "Every match is scored for product relevance before it reaches your queue. Only posts where your product is a credible, professional answer make the cut.",
-    },
-    {
-      title: "Professional reply draft included",
-      desc: "Each opportunity surfaces with a suggested reply already written in a tone appropriate for LinkedIn. Review it, adjust, and post from the original thread yourself.",
-    },
-  ],
-
-  useCases: [
-    {
-      title: "B2B SaaS founders",
-      desc: "Your ICP is on LinkedIn posting about their problems every day. Surface those posts before your competitors and reply with a helpful, credible answer.",
-    },
-    {
-      title: "Consulting and service businesses",
-      desc: "LinkedIn is where buyers announce they are looking for expertise. Catch those posts while they are still gathering replies.",
-    },
-    {
-      title: "Product launches",
-      desc: "During launch, monitor LinkedIn for every relevant professional conversation asking about your use case. Participate while intent is highest.",
-    },
-  ],
-
-  faqs: [
-    {
-      q: "Does this monitor LinkedIn company pages too?",
-      a: "The current engine monitors keyword matches across public LinkedIn posts from individuals. Company page monitoring is on the roadmap.",
-    },
-    {
-      q: "How often is LinkedIn scanned?",
-      a: "Daily sweeps surface new matches each day. Posts enter your queue with a fit score and plain-language rationale so you can prioritize quickly.",
-    },
-    {
-      q: "Will Mentiohunt post replies automatically?",
-      a: "No. Mentiohunt generates a suggested reply and shows the original post URL. You review the draft and reply from LinkedIn yourself. The decision to publish stays with you.",
-    },
-    {
-      q: "What keywords should I track?",
-      a: "Start with your product name, the business problem you solve, and job-title-specific language your ICP uses. LinkedIn language tends to be more formal — your keywords should reflect that.",
-    },
-    {
-      q: "Is LinkedIn useful for early-stage startups?",
-      a: "Yes, especially for B2B products. LinkedIn posts asking for tool recommendations or vendor comparisons are high-intent signals worth engaging early. The $79 average CPC for LinkedIn keywords reflects strong buyer intent.",
-    },
-    {
-      q: "Does Mentiohunt only monitor LinkedIn?",
-      a: "No. Mentiohunt also monitors Reddit, X (Twitter), Facebook, and Bluesky. LinkedIn monitoring is one engine inside a broader community monitoring product.",
-    },
-  ],
-
-  sample: [
-    {
-      authorName: "Alex Chen",
-      handle: "SaaS Founder · 2nd degree",
-      postedAt: "48m ago",
-      text: "Anyone using a tool to monitor LinkedIn posts for conversations relevant to your product? I know my ICP posts about their problems here but I am missing most of it.",
-      fitScore: 91,
-      intent: "Asking for tool",
-      replyDraft:
-        "Mentiohunt does this — monitors LinkedIn for keyword matches in public posts, scores each for product fit, and surfaces a suggested reply draft. Worth checking out if your buyers are active on LinkedIn.",
-      reactions: 67,
-      comments: 29,
-    },
-    {
-      authorName: "Priya Nair",
-      handle: "Head of Marketing · B2B SaaS",
-      postedAt: "2h ago",
-      text: "Our ICP posts about their problems on LinkedIn all the time. We just don't see it until days later when the opportunity to reply is gone. Looking for a monitoring solution.",
-      fitScore: 89,
-      intent: "Pain point",
-      replyDraft:
-        "Mentiohunt surfaces matching LinkedIn posts daily so you catch them while they are still active. Each match comes with a fit score and a suggested reply — no manual scanning needed.",
-      reactions: 84,
-      comments: 38,
-    },
-    {
-      authorName: "Marcus Webb",
-      handle: "Founder · Bootstrapped",
-      postedAt: "5h ago",
-      text: "Converted 3 LinkedIn conversations into demos last month by being early to relevant threads. I need to scale this. Any tools that monitor LinkedIn for specific keywords?",
-      fitScore: 93,
-      intent: "Pain point + intent",
-      replyDraft:
-        "That is exactly what Mentiohunt is built for. It queues relevant LinkedIn posts daily with a suggested reply so you replicate those wins systematically without spending hours on the feed.",
-      reactions: 112,
-      comments: 53,
-    },
-  ],
-}
-
-// ─── Google ──────────────────────────────────────────────────────────────────
-
-export const GOOGLE_MONITORING: MonitoringConfig = {
-  slug: "google-monitoring",
-  platformDisplay: {
-    label: "Google",
-    iconKey: "google" as const,
-    color: "text-blue-600 bg-blue-500/10",
-    accentColor: "#4285f4",
-  },
-  name: "Google",
-
-  seo: {
-    title: "Google Mentions Monitoring for Founders — Mentiohunt",
-    description:
-      "Monitor Google search results and forums for posts where your product fits. Surface high-intent conversations indexed by Google with a suggested reply draft so you engage while the thread is active.",
-    keywords: [
-      "google monitoring",
-      "monitor google mentions",
-      "google brand monitoring",
-      "google alerts alternative",
-      "monitor google search results",
-      "google keyword monitoring",
-      "brand mention monitoring google",
-    ],
-  },
-
-  hero: {
-    eyebrow: "Google Monitoring",
-    heading: "Monitor Google-indexed conversations where your product fits",
-    sub: "Mentiohunt surfaces forum posts, Q&A threads, and discussions indexed by Google that match your product keywords. Get scored matches with a suggested reply draft before the conversation loses momentum.",
-    primaryCta: "Start monitoring Google",
-  },
-
-  steps: [
-    {
-      title: "Set your keyword queue",
-      desc: "Add your product name, the problem you solve, and core use-case phrases. Mentiohunt builds a search strategy targeting Google-indexed forums, communities, and Q&A platforms.",
-    },
-    {
-      title: "We scan Google-indexed results daily",
-      desc: "Daily sweeps surface new threads and posts matching your keyword set across Google-indexed communities. Each result is scored for product fit before entering your queue.",
-    },
-    {
-      title: "Reply while the thread is active",
-      desc: "Your queue shows the matched post, a plain-language fit rationale, and a suggested reply draft. Engage from the original platform yourself while the thread still has momentum.",
-    },
-  ],
-
-  why: [
-    {
-      title: "Google indexes the highest-intent conversations",
-      desc: "Forum threads, Q&A posts, and community discussions that rank in Google are read by large audiences over time. A single reply in one of these threads can drive ongoing discovery.",
-    },
-    {
-      title: "Covers forums, Q&A, and community sites",
-      desc: "Google-indexed results span Quora, Stack Exchange, niche forums, and product communities. One Mentiohunt setup captures relevant posts across all of them without separate configurations.",
-    },
-    {
-      title: "Fit-scored, not a firehose",
-      desc: "Every match is scored for product relevance before it reaches your queue. Only threads where your product is a credible, helpful answer make the cut.",
-    },
-    {
-      title: "Reply draft included",
-      desc: "Each opportunity surfaces with a suggested reply already written. Review it, adjust the tone, and post from the original platform yourself.",
-    },
-  ],
-
-  useCases: [
-    {
-      title: "Founders building in public",
-      desc: "Catch Q&A posts and forum threads where your product is the answer. Replies in Google-ranked threads compound over time — one helpful comment drives discovery for months.",
-    },
-    {
-      title: "Small marketing teams",
-      desc: "Monitor Google-indexed conversations as a one-person effort. The daily queue surfaces what matters without manual searching or Google Alerts noise.",
-    },
-    {
-      title: "Product launches",
-      desc: "During launch week, surface every relevant Google-indexed thread asking about your use case. Participate while intent is highest and the content is fresh.",
-    },
-  ],
-
-  faqs: [
-    {
-      q: "How is this different from Google Alerts?",
-      a: "Google Alerts sends raw notifications with no filtering or prioritization. Mentiohunt scores each match for product fit, surfaces only the relevant threads, and includes a suggested reply draft — so you spend time engaging, not filtering.",
-    },
-    {
-      q: "What platforms does Google monitoring cover?",
-      a: "Results span any platform Google indexes: Quora, Stack Exchange, Reddit, niche forums, product communities, and more. The queue consolidates them all without separate setups.",
-    },
-    {
-      q: "How often are results scanned?",
-      a: "Daily sweeps surface new matches. Posts enter your queue with a fit score and plain-language rationale so you can prioritize quickly.",
-    },
-    {
-      q: "Will Mentiohunt post replies automatically?",
-      a: "No. Mentiohunt generates a suggested reply and shows the original post URL. You review the draft and post it from the original platform yourself. The decision to publish stays with you.",
-    },
-    {
-      q: "What keywords should I track?",
-      a: "Start with your product name, the core problem you solve, and names of close alternatives. Question-style phrases your ICP searches — 'best tool for X' or 'how do I Y' — tend to surface the highest-fit Google-indexed threads.",
-    },
-    {
-      q: "Does Mentiohunt only monitor Google?",
-      a: "No. Mentiohunt also monitors Reddit, X (Twitter), Facebook, YouTube, and LinkedIn. Google monitoring is one engine inside a broader community monitoring product.",
-    },
-  ],
-
-  sample: [
-    {
-      authorName: "user_alex_builds",
-      handle: "Quora · Top Writer",
-      postedAt: "1h ago",
-      text: "What are the best tools to monitor where your SaaS product is mentioned online? Google Alerts is too noisy and I keep missing the threads that actually matter.",
-      fitScore: 93,
-      intent: "Asking for tool",
-      replyDraft:
-        "Worth trying Mentiohunt — it monitors Google-indexed forums and communities for keyword matches, scores each for product fit, and surfaces a suggested reply draft. Much less noise than Google Alerts.",
-      reactions: 44,
-      comments: 21,
-    },
-    {
-      authorName: "priya_founder_q",
-      handle: "Stack Exchange · 1.4k rep",
-      postedAt: "3h ago",
-      text: "How do founders track forum conversations where their product would be a helpful answer? I know these threads exist in Google but I have no system to find them reliably.",
-      fitScore: 89,
-      intent: "Strategy question",
-      replyDraft:
-        "Mentiohunt does this — scans Google-indexed forums and Q&A threads for keyword matches, scores them for product fit, and queues them with a suggested reply. Daily queue so you stop missing relevant threads.",
-      reactions: 31,
-      comments: 14,
-    },
-    {
       authorName: "marcus_ih",
-      handle: "Indie Hackers forum",
+      handle: "Quora · 2.1k followers",
       postedAt: "6h ago",
-      text: "Found a Quora thread ranking for my target keyword where someone was asking for exactly what I built. Replied and it now drives 20 signups a month. I need a system to find more of these.",
-      fitScore: 96,
+      text: "I answered one Quora question about my product category six months ago. It now ranks in Google and drives about 15 signups a month. I need a system to find more of these opportunities.",
+      fitScore: 97,
       intent: "Pain point",
       replyDraft:
-        "That is exactly the use case Mentiohunt is built for. It surfaces Google-indexed threads daily with a suggested reply so you replicate those wins at scale without manual searching.",
-      reactions: 87,
-      comments: 43,
+        "That is exactly the use case Mentiohunt is built for. It surfaces Quora questions matching your keywords daily with a suggested answer so you replicate those wins at scale without manual searching.",
+      reactions: 94,
+      comments: 48,
     },
   ],
 }
 
 export const ALL_MONITORING_CONFIGS: MonitoringConfig[] = [
-  TWITTER_MONITORING,
   REDDIT_MONITORING,
-  FACEBOOK_MONITORING,
-  YOUTUBE_MONITORING,
-  LINKEDIN_MONITORING,
-  GOOGLE_MONITORING,
+  QUORA_MONITORING,
 ]

@@ -46,12 +46,8 @@ const resourceLinks = [
 ]
 
 const monitoringLinks = [
-  { href: "/twitter-monitoring", label: "Twitter / X Monitoring" },
   { href: "/reddit-monitoring", label: "Reddit Monitoring" },
-  { href: "/facebook-monitoring", label: "Facebook Monitoring" },
-  { href: "/youtube-monitoring", label: "YouTube Monitoring" },
-  { href: "/linkedin-monitoring", label: "LinkedIn Monitoring" },
-  { href: "/google-monitoring", label: "Google Monitoring" },
+  { href: "/quora-monitoring", label: "Quora Monitoring" },
 ]
 
 const legalLinks = [

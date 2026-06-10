@@ -6,11 +6,9 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { Button } from "@workspace/ui/components/button"
-import { IconBrandBluskyCustom } from "@/components/custom-icons/brand-blusky"
-import { IconBrandFacebookCustom } from "@/components/custom-icons/brand-facebook"
 import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
+import { IconBrandQuora } from "@/components/custom-icons/brand-quora"
 import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
-import { IconBrandXCustom } from "@/components/custom-icons/brand-x"
 
 const ease = [0.21, 0.47, 0.32, 0.98] as const
 
@@ -35,11 +33,9 @@ export function HeroContent() {
         </span>
         <span className="h-4 w-px bg-border/60" />
         <div className="flex items-center gap-2">
-          <IconBrandRedditNew size={22} />
-          <IconBrandXCustom className="h-[22px] w-[22px] rounded-sm" />
-          <IconBrandBluskyCustom className="h-[22px] w-[22px] rounded-full" />
-          <IconBrandFacebookCustom className="h-[22px] w-[22px] rounded-full" />
           <IconBrandGoogle className="h-[22px] w-[22px]" />
+          <IconBrandRedditNew size={22} />
+          <IconBrandQuora className="h-[22px] w-[22px]" />
         </div>
       </motion.div>
 

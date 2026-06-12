@@ -41,7 +41,7 @@ export const features: FeaturePage[] = [
     title: "Find backlink opportunities from the content you already publish",
     shortTitle: "Backlink opportunity queue",
     description:
-      "Mentiohunt turns your articles, sitemap, keywords, and competitors into a daily backlink opportunity queue — relevant prospects scored by topical fit, with outreach prep included.",
+      "Mentiohunt turns your articles and sitemap into a daily backlink opportunity queue — relevant prospects scored by topical fit, with outreach prep included.",
     keyword: "backlink opportunity queue",
     h2: "Stop guessing which sites are worth emailing.",
     category: "Backlink building",
@@ -129,7 +129,7 @@ export const features: FeaturePage[] = [
     title: "Get alerted when a community thread is ready for a useful reply",
     shortTitle: "Community reply alerts",
     description:
-      "Mentiohunt community reply alerts watch relevant communities for posts where your product fits, then send a suggested reply so you can join while the thread is still active.",
+      "Community reply alerts watch relevant communities for posts where your product fits, then send a suggested reply so you can join while the thread is active.",
     keyword: "community reply alerts",
     h2: "Reply before the thread goes cold.",
     category: "Community monitoring",

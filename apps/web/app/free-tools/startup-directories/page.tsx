@@ -28,7 +28,7 @@ async function getDirectories(): Promise<Tables<"directories">[]> {
 export const metadata: Metadata = {
   title: "Startup Directory Browser - Free Tool",
   description:
-    "Browse a free startup directory table with category, pricing, authority, backlink, and submission signals. Find SaaS directory listing opportunities before running a gap scan.",
+    "Browse a startup directory table with category, pricing, authority, and submission signals. Find SaaS directory listing opportunities before running a gap scan.",
   alternates: {
     canonical: "/free-tools/startup-directories",
   },

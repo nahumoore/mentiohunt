@@ -19,11 +19,11 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
   description:
-    "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details, email drafts, and real-time alerts.",
+    "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details and email drafts.",
   openGraph: {
     title: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
     description:
-      "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details, email drafts, and real-time alerts.",
+      "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details and email drafts.",
     url: "https://mentiohunt.com",
     siteName: "Mentiohunt",
     type: "website",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
     description:
-      "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details, email drafts, and real-time alerts.",
+      "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details and email drafts.",
   },
 }
 

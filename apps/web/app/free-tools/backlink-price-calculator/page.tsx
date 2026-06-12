@@ -12,14 +12,14 @@ import { BacklinkPriceCalculator } from "./tool"
 export const metadata: Metadata = {
   title: "Backlink Price Calculator - Free Tool",
   description:
-    "Estimate the fair market price of a backlink from any website. Enter a URL to pull live Domain Rating, backlinks, and traffic data from Ahrefs, then adjust link type, placement, and content type to refine your estimate.",
+    "Estimate the fair market price of a backlink from any website. Pull Domain Rating and traffic data from Ahrefs, then adjust link type and placement.",
   alternates: {
     canonical: "/free-tools/backlink-price-calculator",
   },
   openGraph: {
     title: "Backlink Price Calculator - Free Tool",
     description:
-      "Estimate the fair market price of a backlink from any website. Enter a URL to pull live Domain Rating, backlinks, and traffic data from Ahrefs, then adjust link type, placement, and content type to refine your estimate.",
+      "Estimate the fair market price of a backlink from any website. Pull Domain Rating and traffic data from Ahrefs, then adjust link type and placement.",
     url: "https://mentiohunt.com/free-tools/backlink-price-calculator",
     siteName: "Mentiohunt",
     type: "website",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Backlink Price Calculator - Free Tool",
     description:
-      "Estimate the fair market price of a backlink from any website. Enter a URL to pull live Domain Rating, backlinks, and traffic data from Ahrefs, then adjust link type, placement, and content type to refine your estimate.",
+      "Estimate the fair market price of a backlink from any website. Pull Domain Rating and traffic data from Ahrefs, then adjust link type and placement.",
   },
 }
 

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s — Mentiohunt",
   },
   description:
-    "Build backlinks from your articles and monitor communities for posts where your product fits — with outreach-ready contact details, email drafts, and real-time alerts.",
+    "Build backlinks from your articles and monitor communities for posts where your product fits — with outreach-ready contact details and email drafts.",
 }
 
 const outfitHeading = Outfit({

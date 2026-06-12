@@ -12,14 +12,14 @@ import { RedditUserAnalyzer } from "./tool"
 export const metadata: Metadata = {
   title: "Reddit User Analyzer - Free Tool",
   description:
-    "Enter a Reddit username and get a full breakdown of their activity — top subreddits, karma split, interest profile, and behavior patterns. Free, no login required.",
+    "Enter a Reddit username and get a breakdown of their activity — top subreddits, karma split, interest profile, and behavior patterns. Free, no login required.",
   alternates: {
     canonical: "/free-tools/reddit-user-analyzer",
   },
   openGraph: {
     title: "Reddit User Analyzer - Free Tool",
     description:
-      "Enter a Reddit username and get a full breakdown of their activity — top subreddits, karma split, interest profile, and behavior patterns. Free, no login required.",
+      "Enter a Reddit username and get a breakdown of their activity — top subreddits, karma split, interest profile, and behavior patterns. Free, no login required.",
     url: "https://mentiohunt.com/free-tools/reddit-user-analyzer",
     siteName: "Mentiohunt",
     type: "website",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Reddit User Analyzer - Free Tool",
     description:
-      "Enter a Reddit username and get a full breakdown of their activity — top subreddits, karma split, interest profile, and behavior patterns. Free, no login required.",
+      "Enter a Reddit username and get a breakdown of their activity — top subreddits, karma split, interest profile, and behavior patterns. Free, no login required.",
   },
 }
 

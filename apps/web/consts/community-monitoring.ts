@@ -56,7 +56,7 @@ export const REDDIT_MONITORING: MonitoringConfig = {
   seo: {
     title: "Reddit Monitoring for Founders — Mentiohunt",
     description:
-      "Monitor Reddit and subreddits for posts where your product fits. Get daily scored matches across relevant communities with a suggested reply draft so you engage while the thread is active.",
+      "Monitor Reddit for posts where your product fits. Daily scored matches with a suggested reply draft so you engage while the thread is active.",
     keywords: [
       "reddit monitoring",
       "monitor reddit mentions",
@@ -206,7 +206,7 @@ export const QUORA_MONITORING: MonitoringConfig = {
   seo: {
     title: "Quora Monitoring for Founders — Mentiohunt",
     description:
-      "Monitor Quora for questions where your product is the answer. Get daily scored matches with a suggested reply draft so you engage while the question is active and ranking in Google.",
+      "Monitor Quora for questions where your product is the answer. Daily scored matches with a reply draft so you engage while the question still ranks in Google.",
     keywords: [
       "quora monitoring",
       "monitor quora mentions",
@@ -356,7 +356,7 @@ export const TWITTER_MONITORING: MonitoringConfig = {
   seo: {
     title: "Twitter / X Monitoring for Founders — Mentiohunt",
     description:
-      "Monitor X (Twitter) for posts and threads where your product fits. Get daily scored matches with a suggested reply draft so you engage while the conversation is live.",
+      "Monitor X (Twitter) for posts where your product fits. Get daily scored matches with a suggested reply draft so you engage while the conversation is live.",
     keywords: [
       "twitter monitoring",
       "x monitoring",

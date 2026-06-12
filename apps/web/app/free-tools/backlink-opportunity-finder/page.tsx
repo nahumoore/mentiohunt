@@ -12,14 +12,14 @@ import { BacklinkOpportunityFinder } from "./tool"
 export const metadata: Metadata = {
   title: "Backlink Opportunity Finder - Free Tool",
   description:
-    "Enter your website URL and find relevant websites, blogs, and content hubs where a backlink to your product would be a strong fit. Built for founders who want real outreach targets, not a generic link list.",
+    "Find websites, blogs, and content hubs where a backlink to your product fits. For founders who want real outreach targets, not a generic link list.",
   alternates: {
     canonical: "/free-tools/backlink-opportunity-finder",
   },
   openGraph: {
     title: "Backlink Opportunity Finder - Free Tool",
     description:
-      "Enter your website URL and find relevant websites, blogs, and content hubs where a backlink to your product would be a strong fit. Built for founders who want real outreach targets, not a generic link list.",
+      "Find websites, blogs, and content hubs where a backlink to your product fits. For founders who want real outreach targets, not a generic link list.",
     url: "https://mentiohunt.com/free-tools/backlink-opportunity-finder",
     siteName: "Mentiohunt",
     type: "website",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Backlink Opportunity Finder - Free Tool",
     description:
-      "Enter your website URL and find relevant websites, blogs, and content hubs where a backlink to your product would be a strong fit. Built for founders who want real outreach targets, not a generic link list.",
+      "Find websites, blogs, and content hubs where a backlink to your product fits. For founders who want real outreach targets, not a generic link list.",
   },
 }
 

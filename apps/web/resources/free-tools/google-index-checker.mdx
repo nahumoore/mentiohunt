@@ -1,0 +1,58 @@
+---
+title: "Google Index Checker — Free Tool"
+description: "Paste your sitemap URL and instantly see which pages Google has indexed, which are missing from the index, and where keyword opportunities exist for each page."
+slug: "google-index-checker"
+date: "2026-06-12"
+dateModified: "2026-06-12"
+author: "Nicolas More"
+tags: ["google index checker", "google indexing tool", "index status", "keyword research", "seo", "free tool"]
+category: "Free Tool"
+faqs:
+  - question: "Why would some of my pages not be indexed by Google?"
+    answer: "Pages can be missing from Google's index for several reasons: they may have a noindex directive set accidentally, Googlebot may not have crawled them yet, they could be blocked in robots.txt, or they may have thin content that Google chose not to index. Once you identify unindexed pages here, use Google Search Console to request indexing and check for crawl errors."
+  - question: "What counts as a keyword opportunity?"
+    answer: "A keyword opportunity is a search term with meaningful monthly volume where your page either doesn't rank yet or ranks outside the top 10. Pages ranking on page 2 or 3 are particularly high value because small improvements — a better title, internal links, or a backlink — can move them onto page 1 and dramatically increase traffic."
+  - question: "How is keyword difficulty scored?"
+    answer: "Keyword difficulty (KD) estimates how competitive it is to rank for a term based on the authority and content quality of the pages currently ranking. KD under 30 is generally achievable for newer domains. KD 30–55 requires solid on-page content and some backlinks. KD above 55 is dominated by high-authority sites and requires significant link acquisition."
+  - question: "Should I prioritize indexed or unindexed pages for keyword work?"
+    answer: "Start with indexed pages that are ranking between positions 11 and 30 — these have the highest potential ROI because Google already sees them as relevant. Then fix unindexed pages in order of their keyword opportunity score. A page with strong keyword potential that isn't indexed is dead traffic."
+  - question: "What sitemap formats does the tool accept?"
+    answer: "Standard XML sitemaps at any URL — typically found at /sitemap.xml, /sitemap_index.xml, or linked from your robots.txt file. Sitemap index files that reference child sitemaps are also supported."
+---
+
+## How the Google Index Checker works
+
+The tool fetches your sitemap, extracts all page URLs, then checks each page against Google's index and maps it to relevant keyword opportunities.
+
+Results split into two layers:
+
+**Index status** — whether each page is indexed by Google. Unindexed pages are invisible in search regardless of how well-optimized they are. This check surfaces pages that are missing from the index so you can act before they cost you traffic.
+
+**Keyword opportunities** — search terms with real monthly volume where your page has ranking potential. Each opportunity shows the current position (if any), search volume, and keyword difficulty so you can prioritize without guessing.
+
+## How to read the results
+
+Each page in your sitemap appears as a card with its index status badge — green for indexed, red for not indexed. Click any card to expand keyword opportunities for that page.
+
+Within each keyword row:
+
+- **Volume** — monthly searches in your target region
+- **KD** — keyword difficulty on a 0–100 scale (lower = easier to rank)
+- **Current position** — where you rank today, or "not yet ranking" if absent
+- **Opportunity level** — high, medium, or low based on volume, difficulty, and gap size
+
+Start with high-opportunity keywords on indexed pages. These are the fastest wins because Google already trusts the page — you just need to strengthen the signal.
+
+## Three actions to take after the check
+
+**Fix unindexed pages first.** Open Google Search Console, paste the URL, and request indexing. While you wait, check for noindex tags, thin content, or robots.txt blocks. A page that can't be indexed cannot rank, no matter how good the keyword is.
+
+**Target page-2 keywords aggressively.** If a page ranks between #11 and #30 for a high-volume keyword, you're one good optimization away from page 1. Update the title tag and H1 to match the exact keyword, add internal links from higher-authority pages on your site, and reach out to acquire one or two relevant backlinks. Use the [Backlink Opportunity Finder](/free-tools/backlink-opportunity-finder) to find link targets for those pages.
+
+**Build content around zero-rank opportunities.** Keywords where your page doesn't rank yet but has a strong topical match are content gaps. Either expand the existing page to cover the topic more thoroughly or create a new page targeting the keyword directly.
+
+## What the tool cannot do
+
+Index status is a point-in-time snapshot. Google re-indexes pages continuously, so a page shown as unindexed may be indexed within days after you submit it. The keyword data reflects search volume estimates — actual traffic will vary based on your click-through rate and seasonal patterns.
+
+For continuous monitoring, [Mentiohunt](/signup) tracks your sitemap on a recurring schedule, alerts you when pages drop from the index, and connects keyword gaps directly to your backlink outreach queue.

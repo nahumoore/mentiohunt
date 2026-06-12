@@ -9,6 +9,7 @@ export const FREE_TOOL_NAMES = {
   subredditFinder: "subreddit-finder",
   redditUserAnalyzer: "reddit-user-analyzer",
   startupDirectories: "startup-directories",
+  googleIndexChecker: "google-index-checker",
 } as const
 
 export type FreeToolName =
@@ -23,6 +24,7 @@ export const ALL_FREE_TOOL_SLUGS: FreeToolName[] = [
   FREE_TOOL_NAMES.competitorBacklinkGap,
   FREE_TOOL_NAMES.subredditFinder,
   FREE_TOOL_NAMES.redditUserAnalyzer,
+  FREE_TOOL_NAMES.googleIndexChecker,
 ]
 
 // In-memory rate limiter — resets on deploy/restart, breaks with multiple instances

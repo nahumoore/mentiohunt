@@ -28,6 +28,10 @@ export type FeaturePage = {
     answer: string
   }[]
   updatedAt: string
+  relatedArticle?: {
+    title: string
+    href: string
+  }
 }
 
 export const features: FeaturePage[] = [
@@ -37,7 +41,7 @@ export const features: FeaturePage[] = [
     title: "Find backlink opportunities from the content you already publish",
     shortTitle: "Backlink opportunity queue",
     description:
-      "Mentiohunt turns your articles, sitemap, keywords, and competitors into a daily queue of relevant backlink prospects with fit rationale and outreach prep.",
+      "Mentiohunt turns your articles, sitemap, keywords, and competitors into a daily backlink opportunity queue — relevant prospects scored by topical fit, with outreach prep included.",
     keyword: "backlink opportunity queue",
     h2: "Stop guessing which sites are worth emailing.",
     category: "Backlink building",
@@ -97,8 +101,27 @@ export const features: FeaturePage[] = [
         answer:
           "Start with your sitemap, two or three strongest articles, a few competitors, and the keywords customers use to describe your category.",
       },
+      {
+        question: "Does this work for new sites with little content?",
+        answer:
+          "Yes. Start with two or three articles and a sitemap. The queue improves as you add more content, competitors, and keywords, but even a small content set surfaces relevant prospects.",
+      },
+      {
+        question: "How does Mentiohunt score fit?",
+        answer:
+          "The system checks topical alignment between your article and a prospect's existing content, audience, and editorial patterns. Each score comes with a plain-English reason so you can agree or skip without guessing.",
+      },
+      {
+        question: "What types of sites appear in the queue?",
+        answer:
+          "Directories, resource pages, roundup articles, and editorial sites that already reference content like yours. The queue focuses on relevant placement rather than raw domain authority lists.",
+      },
     ],
     updatedAt: "2026-05-12",
+    relatedArticle: {
+      title: "How to Find Backlink Opportunities (Practical Guide)",
+      href: "/articles/how-to-find-backlink-opportunities",
+    },
   },
   {
     slug: "community-reply-alerts",
@@ -106,7 +129,7 @@ export const features: FeaturePage[] = [
     title: "Get alerted when a community thread is ready for a useful reply",
     shortTitle: "Community reply alerts",
     description:
-      "Mentiohunt watches relevant communities for posts where your product fits, then sends a suggested reply so you can join while the thread is still active.",
+      "Mentiohunt community reply alerts watch relevant communities for posts where your product fits, then send a suggested reply so you can join while the thread is still active.",
     keyword: "community reply alerts",
     h2: "Reply before the thread goes cold.",
     category: "Community monitoring",
@@ -165,6 +188,21 @@ export const features: FeaturePage[] = [
         question: "Which communities should I monitor first?",
         answer:
           "Start with the few places where your customers already ask for help, compare tools, or describe the pain your product solves.",
+      },
+      {
+        question: "Which platforms does Mentiohunt monitor?",
+        answer:
+          "Reddit, forums, and other communities where your target audience discusses tools and problems in your category. You can specify which communities to watch when setting up your product profile.",
+      },
+      {
+        question: "How does fit scoring work for threads?",
+        answer:
+          "The system checks whether the post's context, the poster's problem, and the community's norms align with your product. Keyword matches alone don't trigger an alert — the thread has to read like a genuine opening.",
+      },
+      {
+        question: "Can I adjust what triggers an alert?",
+        answer:
+          "Yes. Adding more detail to your product positioning, customer pains, and competitor names narrows the signal and reduces noise from threads that match a keyword but not your use case.",
       },
     ],
     updatedAt: "2026-05-12",

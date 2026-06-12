@@ -8,6 +8,7 @@ import {
   IconExternalLink,
   IconFolderSearch,
   IconLink,
+  IconSitemap,
   IconSparkles,
   IconSwords,
   IconUser,
@@ -113,6 +114,16 @@ const tools = [
     icon: IconUser,
     href: `/free-tools/${FREE_TOOL_NAMES.redditUserAnalyzer}`,
     steps: ["Username in", "Map activity", "Understand them"],
+  },
+  {
+    name: "Google Index Checker",
+    eyebrow: "Sitemap to index status",
+    status: "Free",
+    description:
+      "Paste your sitemap URL and instantly see which pages Google has indexed, which are missing, and where keyword opportunities exist for each page.",
+    icon: IconSitemap,
+    href: `/free-tools/${FREE_TOOL_NAMES.googleIndexChecker}`,
+    steps: ["Paste sitemap", "Check index status", "Find keyword gaps"],
   },
 ]
 

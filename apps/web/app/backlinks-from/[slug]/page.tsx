@@ -266,9 +266,11 @@ export default async function BacklinksFromArticlePage({ params }: Props) {
                     {author}
                   </a>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Founder at Mentiohunt. Building distribution tools for
-                    founders and small marketing teams. Writes about backlink
-                    building, community monitoring, and founder-led growth.
+                    Founder of Mentiohunt. Built the company&apos;s own backlink
+                    pipeline using the same methods covered here — expert quote
+                    outreach, journalist sourcing platforms, and
+                    citation-worthy assets. Writes about link prospecting,
+                    community monitoring, and founder-led distribution.
                   </p>
                   <a
                     href="https://x.com/nicolasmore_"

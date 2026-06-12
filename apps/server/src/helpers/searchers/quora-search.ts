@@ -41,7 +41,7 @@ export async function searchQuora(
       SCRAPERLINK_GOOGLE_SERP,
       {
         keyword: query,
-        limit: String(limit),
+        limit: String(limit) as GoogleSerpInput["limit"],
         country: "US",
         include_merged: false,
       } satisfies GoogleSerpInput,

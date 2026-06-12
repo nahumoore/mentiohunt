@@ -100,6 +100,20 @@ export default async function FeaturePage({ params }: Props) {
     })),
   }
 
+  const webPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: feature.shortTitle,
+    description: feature.description,
+    url: `https://mentiohunt.com/features/${feature.slug}`,
+    dateModified: feature.updatedAt,
+    publisher: {
+      "@type": "Organization",
+      name: "Mentiohunt",
+      url: "https://mentiohunt.com",
+    },
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <Script
@@ -111,6 +125,11 @@ export default async function FeaturePage({ params }: Props) {
         id={`faq-schema-${feature.slug}`}
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <Script
+        id={`webpage-schema-${feature.slug}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
       />
 
       <Navbar />
@@ -362,6 +381,27 @@ export default async function FeaturePage({ params }: Props) {
                 </div>
               ))}
             </div>
+
+            {feature.relatedArticle && (
+              <div className="mx-auto mt-10 max-w-6xl">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Related reading
+                </p>
+                <Link
+                  href={feature.relatedArticle.href}
+                  className="group flex items-center justify-between gap-4 rounded-[1.5rem] border border-border bg-card px-6 py-4 shadow-sm transition-colors hover:border-[var(--color-princeton-orange)]/40 hover:bg-[var(--color-blaze-orange)]/5"
+                >
+                  <span className="text-sm font-medium leading-6 text-foreground group-hover:text-[var(--color-princeton-orange)]">
+                    {feature.relatedArticle.title}
+                  </span>
+                  <IconArrowRight
+                    size={16}
+                    stroke={2.5}
+                    className="shrink-0 text-muted-foreground group-hover:text-[var(--color-princeton-orange)]"
+                  />
+                </Link>
+              </div>
+            )}
 
             <div className="mx-auto mt-14 max-w-4xl overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/20 bg-[linear-gradient(135deg,var(--color-background)_0%,color-mix(in_oklab,var(--color-background)_78%,var(--color-amber-glow)_22%)_100%)] p-8 text-center shadow-[0_32px_100px_-48px_rgba(255,133,0,0.48)]">
               <p className="font-heading text-3xl font-semibold tracking-[-0.05em] text-balance sm:text-4xl">

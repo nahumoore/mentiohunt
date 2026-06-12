@@ -11,6 +11,8 @@ import {
   IconChevronUp,
   IconCircleCheck,
   IconCircleX,
+  IconClipboard,
+  IconClipboardCheck,
   IconExternalLink,
   IconLayoutList,
   IconLoader2,
@@ -235,6 +237,8 @@ export function GoogleIndexChecker() {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [error, setError] = useState<string | null>(null)
   const resultsRef = useRef<HTMLElement>(null)
+
+  const [copied, setCopied] = useState(false)
 
   const activeInput = inputMode === "sitemap" ? sitemapUrl : urlsInput
   const domain = submittedUrl
@@ -641,6 +645,29 @@ export function GoogleIndexChecker() {
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const text = pages
+                          .map((p) => `${p.indexed ? "✓" : "✗"}  ${p.url}`)
+                          .join("\n")
+                        void navigator.clipboard.writeText(text).then(() => {
+                          setCopied(true)
+                          window.setTimeout(() => setCopied(false), 2000)
+                        })
+                      }}
+                      className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground shadow-sm transition-colors hover:border-[var(--color-blaze-orange)]/30 hover:bg-[var(--color-blaze-orange)]/6 hover:text-foreground"
+                    >
+                      {copied ? (
+                        <IconClipboardCheck size={14} stroke={2.2} className="text-emerald-500" />
+                      ) : (
+                        <IconClipboard size={14} stroke={2.2} />
+                      )}
+                      {copied ? "Copied!" : "Copy all"}
+                    </button>
                   </div>
 
                   {pages.map((page, index) => (

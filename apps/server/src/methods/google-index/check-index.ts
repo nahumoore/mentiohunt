@@ -8,8 +8,7 @@ import { runApifyActor } from "../../helpers/actors/run-apify-actor.js"
 import { fetchWithRetry } from "../../helpers/http.js"
 import { createLogger } from "../../helpers/logger.js"
 
-const PAGE_LIMIT = 20
-const BATCH_SIZE = 5
+const PAGE_LIMIT = 100
 
 const log = createLogger("google-index-checker")
 
@@ -144,9 +143,9 @@ function isSitemapUrl(url: string): boolean {
   }
 }
 
-async function checkSingleUrl(url: string): Promise<{ indexed: boolean; title: string }> {
-  const query = `site:${toSiteQuery(url)}`
-  log.info("checking url", { url, query })
+async function fetchIndexedPages(domain: string): Promise<Map<string, string>> {
+  const query = `site:${domain}`
+  log.info("fetching indexed pages", { query })
 
   let items: GoogleSerpItem[]
   try {
@@ -154,38 +153,26 @@ async function checkSingleUrl(url: string): Promise<{ indexed: boolean; title: s
       SCRAPERLINK_GOOGLE_SERP,
       {
         keyword: query,
-        limit: "10",
+        limit: "100",
         country: "US",
         include_merged: false,
       } satisfies GoogleSerpInput,
-      60
+      90
     )
   } catch (err) {
-    log.error("apify call failed", { url, err: String(err) })
-    return { indexed: false, title: urlToTitle(url) }
+    log.error("apify call failed", { domain, err: String(err) })
+    throw new Error("Failed to query Google index. Please try again.")
   }
 
   const results = items.flatMap((item) => item.results ?? [])
-  const normalizedInput = normalizeUrl(url)
+  log.info("indexed pages from serp", { domain, resultCount: results.length })
 
-  log.debug("serp results", {
-    url,
-    resultCount: results.length,
-    normalizedInput,
-    firstResult: results[0]?.url,
-  })
-
-  const match = results.find((r) => r.url && normalizeUrl(r.url) === normalizedInput)
-
-  // Any results for a site:exact-url query means Google has it indexed
-  const indexed = results.length > 0
-
-  log.info("url check done", { url, indexed, matched: !!match, resultCount: results.length })
-
-  return {
-    indexed,
-    title: match?.title ?? results[0]?.title ?? urlToTitle(url),
+  // normalized URL → title
+  const indexed = new Map<string, string>()
+  for (const r of results) {
+    if (r.url) indexed.set(normalizeUrl(r.url), r.title ?? urlToTitle(r.url))
   }
+  return indexed
 }
 
 export async function checkGoogleIndex(input: string): Promise<IndexCheckResult> {
@@ -216,25 +203,15 @@ export async function checkGoogleIndex(input: string): Promise<IndexCheckResult>
   const cappedUrls = urls.slice(0, PAGE_LIMIT)
   log.info("checking pages", { total: urls.length, capped: cappedUrls.length })
 
-  const pages: IndexedPage[] = []
+  const domain = toSiteQuery(cappedUrls[0]!).split("/")[0]!
+  const indexedMap = await fetchIndexedPages(domain)
 
-  for (let i = 0; i < cappedUrls.length; i += BATCH_SIZE) {
-    const batch = cappedUrls.slice(i, i + BATCH_SIZE)
-    log.info("processing batch", { batchStart: i, batchSize: batch.length })
-    const batchResults = await Promise.all(
-      batch.map(async (url, batchIndex) => {
-        const { indexed, title } = await checkSingleUrl(url)
-        return {
-          id: String(i + batchIndex + 1),
-          url,
-          title,
-          indexed,
-          keywords: [] as never[],
-        }
-      })
-    )
-    pages.push(...batchResults)
-  }
+  const pages: IndexedPage[] = cappedUrls.map((url, i) => {
+    const normalized = normalizeUrl(url)
+    const title = indexedMap.get(normalized) ?? urlToTitle(url)
+    const indexed = indexedMap.has(normalized)
+    return { id: String(i + 1), url, title, indexed, keywords: [] as never[] }
+  })
 
   const indexed = pages.filter((p) => p.indexed).length
   const notIndexed = pages.length - indexed

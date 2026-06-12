@@ -42,7 +42,11 @@ export type ContentType =
   | "compare"
 
 function getContentDirectory(contentType: ContentType = "blog"): string {
-  return path.join(process.cwd(), "resources", contentType)
+  // In monorepo Vercel deployments process.cwd() may be the repo root, not apps/web
+  const direct = path.join(process.cwd(), "resources", contentType)
+  if (fs.existsSync(direct)) return direct
+  const monorepo = path.join(process.cwd(), "apps", "web", "resources", contentType)
+  return monorepo
 }
 
 function getDefaultCategory(contentType: ContentType): string {

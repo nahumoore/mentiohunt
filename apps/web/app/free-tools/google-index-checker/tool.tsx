@@ -26,6 +26,12 @@ import {
 } from "@tabler/icons-react"
 
 import { Button } from "@workspace/ui/components/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
@@ -648,26 +654,47 @@ export function GoogleIndexChecker() {
                   </div>
 
                   <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const text = pages
-                          .map((p) => `${p.indexed ? "✓" : "✗"}  ${p.url}`)
-                          .join("\n")
-                        void navigator.clipboard.writeText(text).then(() => {
-                          setCopied(true)
-                          window.setTimeout(() => setCopied(false), 2000)
-                        })
-                      }}
-                      className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground shadow-sm transition-colors hover:border-[var(--color-blaze-orange)]/30 hover:bg-[var(--color-blaze-orange)]/6 hover:text-foreground"
-                    >
-                      {copied ? (
-                        <IconClipboardCheck size={14} stroke={2.2} className="text-emerald-500" />
-                      ) : (
-                        <IconClipboard size={14} stroke={2.2} />
-                      )}
-                      {copied ? "Copied!" : "Copy all"}
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground shadow-sm transition-colors hover:border-[var(--color-blaze-orange)]/30 hover:bg-[var(--color-blaze-orange)]/6 hover:text-foreground"
+                        >
+                          {copied ? (
+                            <IconClipboardCheck size={14} stroke={2.2} className="text-emerald-500" />
+                          ) : (
+                            <IconClipboard size={14} stroke={2.2} />
+                          )}
+                          {copied ? "Copied!" : "Copy"}
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        {(
+                          [
+                            { label: "Copy all", filter: null },
+                            { label: "Copy indexed", filter: true },
+                            { label: "Copy not indexed", filter: false },
+                          ] as const
+                        ).map(({ label, filter }) => (
+                          <DropdownMenuItem
+                            key={label}
+                            onSelect={() => {
+                              const subset =
+                                filter === null ? pages : pages.filter((p) => p.indexed === filter)
+                              const text = subset
+                                .map((p) => `${p.indexed ? "✓" : "✗"}  ${p.url}`)
+                                .join("\n")
+                              void navigator.clipboard.writeText(text).then(() => {
+                                setCopied(true)
+                                window.setTimeout(() => setCopied(false), 2000)
+                              })
+                            }}
+                          >
+                            {label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
                   {pages.map((page, index) => (

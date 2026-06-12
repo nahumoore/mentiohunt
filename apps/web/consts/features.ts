@@ -120,7 +120,7 @@ export const features: FeaturePage[] = [
     updatedAt: "2026-05-12",
     relatedArticle: {
       title: "How to Find Backlink Opportunities (Practical Guide)",
-      href: "/articles/how-to-find-backlink-opportunities",
+      href: "/blog/how-to-find-backlink-opportunities",
     },
   },
   {

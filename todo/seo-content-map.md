@@ -38,3 +38,37 @@ Skip: facebook/instagram (parental intent), github (devops), news (KD69). `x mon
 - Every blog post links up to its pillar + across to a `/free-tools/*`, `/backlinks-from/*`, or `/[platform]-monitoring` page.
 - Extend `consts/community-monitoring` per new platform; cross-link each `[platform]-monitoring` ↔ `backlinks-from/[platform]`.
 - Re-check top-3 SERP before investing in any KD 20+ page.
+
+## Page NOT Indexed Status
+
+✗ https://mentiohunt.com/pricing
+✗ https://mentiohunt.com/about
+✗ https://mentiohunt.com/features
+✗ https://mentiohunt.com/features/backlink-opportunity-queue
+✗ https://mentiohunt.com/features/community-reply-alerts
+✗ https://mentiohunt.com/blog
+✗ https://mentiohunt.com/backlinks-from/instagram
+✗ https://mentiohunt.com/backlinks-from/linkedin
+✗ https://mentiohunt.com/backlinks-from/reddit
+✗ https://mentiohunt.com/backlinks-from/youtube
+✗ https://mentiohunt.com/alternatives/best-ahrefs-alternative-for-founders
+✗ https://mentiohunt.com/alternatives/best-buzzstream-alternative-for-founders
+✗ https://mentiohunt.com/alternatives/best-f5bot-alternative-for-founders
+✗ https://mentiohunt.com/alternatives/best-pitchbox-alternative-for-founders
+✗ https://mentiohunt.com/alternatives/best-semrush-link-building-alternative-for-founders
+✗ https://mentiohunt.com/compare
+✗ https://mentiohunt.com/compare/brand24-vs-mention
+✗ https://mentiohunt.com/compare/buzzstream-vs-pitchbox
+✗ https://mentiohunt.com/compare/respona-vs-buzzstream
+✗ https://mentiohunt.com/free-tools
+✗ https://mentiohunt.com/free-tools/directory-backlink-opportunity-finder
+✗ https://mentiohunt.com/free-tools/startup-directories
+✗ https://mentiohunt.com/free-tools/backlink-price-calculator
+✗ https://mentiohunt.com/free-tools/backlink-opportunity-finder
+✗ https://mentiohunt.com/free-tools/competitor-backlink-gap
+✗ https://mentiohunt.com/free-tools/subreddit-finder
+✗ https://mentiohunt.com/free-tools/reddit-user-analyzer
+✗ https://mentiohunt.com/free-tools/google-index-checker
+✗ https://mentiohunt.com/directory-submission
+✗ https://mentiohunt.com/reddit-monitoring
+✗ https://mentiohunt.com/quora-monitoring

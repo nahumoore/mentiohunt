@@ -1,4 +1,4 @@
-export type PlatformIconKey = "reddit" | "quora"
+export type PlatformIconKey = "reddit" | "quora" | "twitter"
 
 export interface MonitoringPlatformDisplay {
   label: string
@@ -341,7 +341,158 @@ export const QUORA_MONITORING: MonitoringConfig = {
   ],
 }
 
+// ─── Twitter / X ─────────────────────────────────────────────────────────────
+
+export const TWITTER_MONITORING: MonitoringConfig = {
+  slug: "twitter-monitoring",
+  platformDisplay: {
+    label: "X (Twitter)",
+    iconKey: "twitter" as const,
+    color: "text-foreground bg-foreground/10",
+    accentColor: "#000000",
+  },
+  name: "X (Twitter)",
+
+  seo: {
+    title: "Twitter / X Monitoring for Founders — Mentiohunt",
+    description:
+      "Monitor X (Twitter) for posts and threads where your product fits. Get daily scored matches with a suggested reply draft so you engage while the conversation is live.",
+    keywords: [
+      "twitter monitoring",
+      "x monitoring",
+      "monitor twitter mentions",
+      "twitter brand monitoring",
+      "twitter keyword monitoring",
+      "monitor x for mentions",
+      "x mention tracking",
+    ],
+  },
+
+  hero: {
+    eyebrow: "X (Twitter) Monitoring",
+    heading: "Monitor X for conversations where your product is the answer",
+    sub: "Mentiohunt scans X (Twitter) daily for posts and threads matching your keyword set, scores each for product fit, and prepares a ready-to-review reply draft. Engage while the conversation is still live.",
+    primaryCta: "Start monitoring X",
+  },
+
+  steps: [
+    {
+      title: "Set your keyword queue",
+      desc: "Add your product name, the problem you solve, and relevant hashtags or phrases. Mentiohunt builds a search strategy covering both direct mentions and problem-aware conversations on X.",
+    },
+    {
+      title: "We scan X daily",
+      desc: "Daily sweeps surface new posts and threads matching your keyword set. Each result is scored for product fit before it enters your queue so you only see high-signal opportunities.",
+    },
+    {
+      title: "Reply while the thread is live",
+      desc: "Your queue shows the matched post, a plain-language fit rationale, and a suggested reply draft. Post from X yourself while engagement is still happening.",
+    },
+  ],
+
+  why: [
+    {
+      title: "Conversations move fast on X",
+      desc: "X threads peak within hours. Catching a relevant post early — while replies are still flowing — means far more visibility than responding a day later.",
+    },
+    {
+      title: "Founders and builders are highly active",
+      desc: "X is where your ICP openly asks for tool recommendations, shares frustrations, and discusses alternatives. High-fit threads surface buying intent in real time.",
+    },
+    {
+      title: "Replies compound into credibility",
+      desc: "Consistent, helpful replies in the right conversations build brand presence over time. Each reply is also indexed and discoverable by anyone searching the same topic.",
+    },
+    {
+      title: "Reply draft included",
+      desc: "Each opportunity surfaces with a suggested reply already written. Review it, adjust the tone, and post from the original thread yourself.",
+    },
+  ],
+
+  useCases: [
+    {
+      title: "Founders building in public",
+      desc: "X is where builders and buyers talk openly about problems. Surface the conversations where your product is the credible answer and engage while momentum is high.",
+    },
+    {
+      title: "Product launches",
+      desc: "During launch, catch every X thread asking about your use case. A well-timed reply in an active thread can drive trial signups the same day.",
+    },
+    {
+      title: "Competitive displacement",
+      desc: "Track conversations where users complain about alternatives. These are the highest-intent switching moments — Mentiohunt surfaces them before they go cold.",
+    },
+  ],
+
+  faqs: [
+    {
+      q: "What kinds of posts does Mentiohunt find on X?",
+      a: "Posts and threads where someone is asking for a tool recommendation, describing a problem your product solves, or discussing a topic closely related to your use case. Each match is scored for product fit before entering your queue.",
+    },
+    {
+      q: "How often are X posts scanned?",
+      a: "Daily sweeps surface new matches each day. Posts enter your queue with a fit score and plain-language rationale so you can prioritize quickly.",
+    },
+    {
+      q: "Will Mentiohunt post replies automatically?",
+      a: "No. Mentiohunt generates a suggested reply and shows the original post URL. You review the draft and post it from X yourself. The decision to publish stays with you.",
+    },
+    {
+      q: "What keywords should I track?",
+      a: "Start with your product name, the core problem you solve, and names of close alternatives. Phrases like 'looking for a tool to X' or 'anyone using Y' tend to surface the highest-intent threads.",
+    },
+    {
+      q: "Does Mentiohunt only monitor X?",
+      a: "No. Mentiohunt also monitors Reddit, Quora, and other communities. X monitoring is one engine inside a broader community monitoring product.",
+    },
+    {
+      q: "What about posts that are already too old to reply to?",
+      a: "Mentiohunt prioritizes recency in your queue. Older posts are still surfaced because some threads stay active for days, but fit score and post age together help you decide where to spend time.",
+    },
+  ],
+
+  sample: [
+    {
+      authorName: "@sara_building",
+      handle: "X · 3.2k followers",
+      postedAt: "18m ago",
+      text: "Does anyone have a good way to track when people mention problems your SaaS solves on Twitter? I keep missing threads and replying too late. Looking for a real system.",
+      fitScore: 96,
+      intent: "Asking for tool",
+      replyDraft:
+        "Mentiohunt does exactly this — scans X daily for posts matching your product keywords, scores each for fit, and queues them with a suggested reply draft. You stop missing the window.",
+      reactions: 47,
+      comments: 22,
+    },
+    {
+      authorName: "@marc_buildlog",
+      handle: "X · 8.7k followers",
+      postedAt: "2h ago",
+      text: "Replied to 3 tweets this week where my product was the obvious answer. Two converted to trials. The hard part is finding those tweets before they go cold. Need to systematize this.",
+      fitScore: 91,
+      intent: "Pain point",
+      replyDraft:
+        "That is exactly what Mentiohunt is built for. Daily queue of X posts where your product fits, with a reply draft already written. You review and post yourself while the thread is still live.",
+      reactions: 83,
+      comments: 36,
+    },
+    {
+      authorName: "@priya_saas",
+      handle: "X · 1.9k followers",
+      postedAt: "5h ago",
+      text: "Hot take: the best distribution channel for early-stage B2B SaaS is just answering questions on Twitter, Reddit, and Quora where your product is the answer. Manual but it converts.",
+      fitScore: 88,
+      intent: "Strategy discussion",
+      replyDraft:
+        "Agreed — and Mentiohunt automates the discovery part. It surfaces the posts across X, Reddit, and Quora where your product is a credible answer, so you spend time replying instead of searching.",
+      reactions: 124,
+      comments: 61,
+    },
+  ],
+}
+
 export const ALL_MONITORING_CONFIGS: MonitoringConfig[] = [
   REDDIT_MONITORING,
   QUORA_MONITORING,
+  TWITTER_MONITORING,
 ]

@@ -12,10 +12,12 @@ import { cn } from "@workspace/ui/lib/utils"
 import type { MonitoringConfig, PlatformIconKey, SampleMention } from "@/consts/community-monitoring"
 import { IconBrandQuora } from "@/components/custom-icons/brand-quora"
 import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
+import { IconBrandXCustom } from "@/components/custom-icons/brand-x"
 
 const PLATFORM_ICONS: Record<PlatformIconKey, ComponentType<{ className?: string }>> = {
   reddit: IconBrandRedditNew,
   quora: IconBrandQuora,
+  twitter: IconBrandXCustom,
 }
 
 const ease = [0.21, 0.47, 0.32, 0.98] as const

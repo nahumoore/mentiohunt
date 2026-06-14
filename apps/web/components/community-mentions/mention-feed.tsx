@@ -26,6 +26,7 @@ export function MentionFeed() {
   const allMentions = useCommunityMentionStore((state) => state.mentions)
   const isLoading = useCommunityMentionStore((state) => state.isLoading)
   const hasRunningRun = useCommunityMentionStore((state) => state.hasRunningRun)
+  const hasCompletedRun = useCommunityMentionStore((state) => state.hasCompletedRun)
   const hasReplyQueueConfig = useCommunityMentionStore((state) => state.hasReplyQueueConfig)
   const updateMentionStatus = useCommunityMentionStore(
     (state) => state.updateMentionStatus
@@ -121,6 +122,26 @@ export function MentionFeed() {
   }
 
   if (allMentions.length === 0 && !hasRunningRun && hasReplyQueueConfig) {
+    if (hasCompletedRun) {
+      return (
+        <section className="rounded-2xl border border-border bg-card px-6 py-16 text-center">
+          <div className="mx-auto flex max-w-md flex-col items-center gap-3">
+            <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+              <IconRadar2 className="size-5 text-primary" />
+            </span>
+            <h2 className="text-base font-semibold text-foreground">
+              Scan complete — no matching threads yet
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              We didn&apos;t find posts that fit your product this time. We&apos;ll
+              keep watching your communities and surface fresh mentions as they
+              appear.
+            </p>
+          </div>
+        </section>
+      )
+    }
+
     return (
       <section className="rounded-2xl border border-border bg-card px-6 py-16 text-center">
         <div className="mx-auto flex max-w-md flex-col items-center gap-3">

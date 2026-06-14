@@ -28,7 +28,6 @@ export async function sendOnboardingCompleteEmail({
   replyQueueResult,
   directoryResult,
   backlinkResult,
-  mediaMentionsResult,
 }: {
   to: string
   userId: string
@@ -37,7 +36,6 @@ export async function sendOnboardingCompleteEmail({
   replyQueueResult: PromiseSettledResult<ReplyQueueOnboardingResult>
   directoryResult: PromiseSettledResult<DirectoryOnboardingResult>
   backlinkResult: PromiseSettledResult<ProspectOnboardingResult>
-  mediaMentionsResult: PromiseSettledResult<ProspectOnboardingResult>
 }) {
   const firstName = userName?.trim().split(/\s+/)[0]
   const greeting = firstName ? `Hi ${firstName},` : "Hi,"
@@ -80,19 +78,9 @@ export async function sendOnboardingCompleteEmail({
         )
       : ""
 
-  const mediaMentionsCard =
-    mediaMentionsResult.status === "fulfilled"
-      ? statCard(
-          "Media Mention Leads",
-          String(mediaMentionsResult.value.prospectsCreated),
-          "press and media opportunities found"
-        )
-      : ""
-
   const primaryCardsRow = replyQueueCard ? `<tr>${replyQueueCard}</tr>` : ""
   const directoryCardRow = directoryCoverageCard ? `<tr>${directoryCoverageCard}</tr>` : ""
   const backlinkCardRow = backlinkCard ? `<tr>${backlinkCard}</tr>` : ""
-  const mediaMentionsCardRow = mediaMentionsCard ? `<tr>${mediaMentionsCard}</tr>` : ""
   const statusNotes = `
     ${
       replyQueueResult.status === "rejected"
@@ -126,20 +114,13 @@ export async function sendOnboardingCompleteEmail({
           )
         : ""
     }
-    ${
-      mediaMentionsResult.status === "rejected"
-        ? statusNote(
-            "Media mentions discovery did not finish",
-            "Your product setup was saved, but the first media mentions run failed. We will keep the setup available so it can be run again."
-          )
-        : ""
-    }`
+    `
 
   await sendMentiohuntEmail({
     to,
     subject: `Your Mentiohunt onboarding results for ${productName}`,
     unsubscribeUrl: generateUnsubscribeUrl(userId, "alerts"),
-    previewText: `We found ${pluralize(replyQueueFound, "possible mention")}, ${pluralize(backlinkResult.status === "fulfilled" ? backlinkResult.value.prospectsCreated : 0, "backlink prospect")} and ${pluralize(mediaMentionsResult.status === "fulfilled" ? mediaMentionsResult.value.prospectsCreated : 0, "media lead")} for ${productName}.`,
+    previewText: `We found ${pluralize(replyQueueFound, "possible mention")} and ${pluralize(backlinkResult.status === "fulfilled" ? backlinkResult.value.prospectsCreated : 0, "backlink prospect")} for ${productName}.`,
     footerReason:
       "You received this email because you completed onboarding for Mentiohunt.",
     body: `
@@ -150,7 +131,6 @@ export async function sendOnboardingCompleteEmail({
         ${primaryCardsRow}
         ${directoryCardRow}
         ${backlinkCardRow}
-        ${mediaMentionsCardRow}
         ${statusNotes}
       </table>
       <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:15px; color:#6F625A; margin:18px 0 24px; line-height:1.7;">Next, review the queue and decide which opportunities are worth acting on first. Mentiohunt will show the fit rationale and prep work before you reach out or reply.</p>

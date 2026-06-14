@@ -8,7 +8,7 @@ import type { PageType } from "./score-backlink-relevance.js"
 
 const log = createLogger("enrich-contact")
 
-type AgentScrapeResponse = {
+export type AgentScrapeResponse = {
   name: string | null
   emails: { value: string; type: string }[]
   social_links: Record<string, string>
@@ -53,7 +53,8 @@ async function callScraper(url: string): Promise<AgentScrapeResponse | null> {
       signal: AbortSignal.timeout(120_000),
     })
     if (!res.ok) {
-      log.warn("scraper returned error", { url, status: res.status })
+      const body = await res.text().catch(() => "")
+      log.warn("scraper returned error", { url, status: res.status, body: body.slice(0, 500) })
       return null
     }
     return res.json() as Promise<AgentScrapeResponse>
@@ -154,84 +155,7 @@ export async function enrichContact(
     })
 
     if (scraped) {
-      const rawMetadata: RawContactMetadata = {
-        bio: scraped.bio,
-        emails: scraped.emails,
-        contact_form_url: scraped.contact_form_url,
-        visited_urls: scraped.visited_urls,
-        confidence: scraped.confidence,
-      }
-
-      if (scraped.emails.length > 0) {
-        // Personal emails first, then general
-        const ordered = [...scraped.emails].sort((a, b) =>
-          a.type === "personal" ? -1 : b.type === "personal" ? 1 : 0
-        )
-        const personalEmail = ordered.find((e) => e.type === "personal")?.value ?? null
-        const candidates = ordered.map((e) => e.value)
-
-        const verified = await verifyPatterns(candidates, domain, personalEmail)
-
-        if (verified) {
-          log.info("contact enriched via agent emails", {
-            domain,
-            name: scraped.name,
-            email: verified,
-          })
-          return {
-            name: scraped.name,
-            email: verified,
-            social_links: scraped.social_links,
-            confidence: scraped.name ? "personalized" : "email-only",
-            rawMetadata,
-          }
-        }
-      }
-
-      // Agent found a name but no verifiable email — try pattern generation
-      if (scraped.name) {
-        const generated = generatePersonalizedPatterns(scraped.name, domain)
-        const verified = await verifyPatterns(generated, domain)
-        if (verified) {
-          log.info("contact enriched via name patterns", {
-            domain,
-            name: scraped.name,
-            email: verified,
-          })
-          return {
-            name: scraped.name,
-            email: verified,
-            social_links: scraped.social_links,
-            confidence: "personalized",
-            rawMetadata,
-          }
-        }
-      }
-
-      // Agent ran but no verifiable email — try generic patterns, preserve rawMetadata
-      log.info("agent found no verifiable email, falling back to generic patterns", { domain })
-      const genericPatterns = GENERIC_PATTERNS.map((prefix) => `${prefix}@${domain}`)
-      const verified = await verifyPatterns(genericPatterns, domain, undefined, true)
-
-      if (verified) {
-        log.info("contact enriched via generic pattern", { domain, email: verified })
-        return {
-          name: scraped.name,
-          email: verified,
-          social_links: scraped.social_links,
-          confidence: "generic",
-          rawMetadata,
-        }
-      }
-
-      log.info("no contact found", { domain })
-      return {
-        name: scraped.name,
-        email: null,
-        social_links: scraped.social_links,
-        confidence: "none",
-        rawMetadata,
-      }
+      return resolveContactEmail(scraped, domain)
     }
   }
 
@@ -253,4 +177,86 @@ export async function enrichContact(
 
   log.info("no contact found", { domain })
   return { name: null, email: null, social_links: {}, confidence: "none", rawMetadata: null }
+}
+
+/**
+ * Resolve a verified contact email from an already-scraped agent result.
+ * Shared by the competitor flow (after callScraper) and the unlinked-mention
+ * flow (which receives the scrape inline from the scraper /check-mention call),
+ * so the same page is never scraped twice.
+ */
+export async function resolveContactEmail(
+  scraped: AgentScrapeResponse,
+  domain: string
+): Promise<ContactResult> {
+  const rawMetadata: RawContactMetadata = {
+    bio: scraped.bio,
+    emails: scraped.emails,
+    contact_form_url: scraped.contact_form_url,
+    visited_urls: scraped.visited_urls,
+    confidence: scraped.confidence,
+  }
+
+  if (scraped.emails.length > 0) {
+    // Personal emails first, then general
+    const ordered = [...scraped.emails].sort((a, b) =>
+      a.type === "personal" ? -1 : b.type === "personal" ? 1 : 0
+    )
+    const personalEmail = ordered.find((e) => e.type === "personal")?.value ?? null
+    const candidates = ordered.map((e) => e.value)
+
+    const verified = await verifyPatterns(candidates, domain, personalEmail)
+
+    if (verified) {
+      log.info("contact enriched via agent emails", { domain, name: scraped.name, email: verified })
+      return {
+        name: scraped.name,
+        email: verified,
+        social_links: scraped.social_links,
+        confidence: scraped.name ? "personalized" : "email-only",
+        rawMetadata,
+      }
+    }
+  }
+
+  // Agent found a name but no verifiable email — try pattern generation
+  if (scraped.name) {
+    const generated = generatePersonalizedPatterns(scraped.name, domain)
+    const verified = await verifyPatterns(generated, domain)
+    if (verified) {
+      log.info("contact enriched via name patterns", { domain, name: scraped.name, email: verified })
+      return {
+        name: scraped.name,
+        email: verified,
+        social_links: scraped.social_links,
+        confidence: "personalized",
+        rawMetadata,
+      }
+    }
+  }
+
+  // Agent ran but no verifiable email — try generic patterns, preserve rawMetadata
+  log.info("agent found no verifiable email, falling back to generic patterns", { domain })
+  const genericPatterns = GENERIC_PATTERNS.map((prefix) => `${prefix}@${domain}`)
+  const verified = await verifyPatterns(genericPatterns, domain, undefined, true)
+
+  if (verified) {
+    log.info("contact enriched via generic pattern", { domain, email: verified })
+    return {
+      name: scraped.name,
+      email: verified,
+      social_links: scraped.social_links,
+      confidence: "generic",
+      rawMetadata,
+    }
+  }
+
+  log.info("no contact found", { domain })
+  return {
+    name: scraped.name,
+    email: null,
+    social_links: scraped.social_links,
+    confidence: "none",
+    rawMetadata,
+  }
 }

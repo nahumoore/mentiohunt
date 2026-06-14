@@ -48,16 +48,6 @@ export function registerJobs(): void {
     "[cron] Scheduled: weekly directory submission check (Mon 03:00 UTC)"
   )
 
-  // import { runReplyQueue } from "./run-reply-queue.js"
-  // cron.schedule("0 6 * * *", async () => {
-  //   try {
-  //     await runReplyQueue()
-  //   } catch (err) {
-  //     console.error("[cron] Error running reply queue:", err)
-  //   }
-  // })
-  // console.log("[cron] Scheduled: reply queue (06:00 UTC daily)")
-
   // cron.schedule("0 4 * * *", async () => {
   //   try {
   //     await runDailyBacklinkDiscovery()

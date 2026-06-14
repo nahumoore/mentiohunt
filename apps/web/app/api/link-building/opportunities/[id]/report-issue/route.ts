@@ -39,7 +39,7 @@ export async function POST(
   const { data: prospect, error: fetchError } = await supabase
     .from("backlink_prospects")
     .select(
-      "id, product_id, tier, action_type, domain, target_url, found_url, contact_email, contact_name"
+      "id, product_id, tier, domain, target_url, found_url, contact_email, contact_name"
     )
     .eq("id", id)
     .maybeSingle()
@@ -76,7 +76,6 @@ export async function POST(
     message: parsed.data.message,
     metadata: {
       tier: prospect.tier,
-      action_type: prospect.action_type,
       domain: prospect.domain,
       target_url: prospect.target_url,
       found_url: prospect.found_url,

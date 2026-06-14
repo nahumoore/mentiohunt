@@ -5,7 +5,7 @@ const log = createLogger("filter-backlinks")
 
 const CAP_PER_COMPETITOR = 15
 
-const NOISE_DOMAINS = new Set([
+export const NOISE_DOMAINS = new Set([
   "github.com",
   "chrome.google.com",
   "apps.apple.com",
@@ -19,6 +19,17 @@ const NOISE_DOMAINS = new Set([
   "youtube.com",
   "wikipedia.org",
   "pinterest.com",
+  "instagram.com",
+  "tiktok.com",
+  "quora.com",
+  "medium.com",
+  "amazon.com",
+  "google.com",
+  "producthunt.com",
+  "crunchbase.com",
+  "yelp.com",
+  "trustpilot.com",
+  "g2.com",
 ])
 
 const NOISE_PATH_SEGMENTS = ["/user/", "/profile/", "/members/", "/author/"]
@@ -126,6 +137,11 @@ export function filterBacklinks(
   log.info("filter complete", { total: result.length })
 
   return result
+}
+
+/** True when a domain (or URL) belongs to a big aggregator/social we never pitch. */
+export function isNoiseDomain(domainOrUrl: string): boolean {
+  return NOISE_DOMAINS.has(extractDomainFromUrl(domainOrUrl))
 }
 
 export { extractDomainFromUrl }

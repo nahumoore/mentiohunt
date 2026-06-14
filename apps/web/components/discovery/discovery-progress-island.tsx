@@ -26,8 +26,7 @@ import { useEffect, useRef, useState } from "react"
 const ENGINE_LABELS: Record<EngineKey, string> = {
   community: "Community mentions",
   directories: "Directories",
-  backlinks: "Competitor backlinks",
-  media_mentions: "Media opportunities",
+  backlinks: "Backlink opportunities",
 }
 
 const ITEM_ICONS: Record<DiscoveryItemType, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -78,7 +77,7 @@ function ItemCard({ item }: { item: DiscoveryItem }) {
   )
 }
 
-const ENGINE_KEYS: EngineKey[] = ["community", "directories", "backlinks", "media_mentions"]
+const ENGINE_KEYS: EngineKey[] = ["community", "directories", "backlinks"]
 
 export function DiscoveryProgressIsland({
   productId,
@@ -96,7 +95,7 @@ export function DiscoveryProgressIsland({
     initialStatus
   )
   const [dismissed, setDismissed] = useState(false)
-  const allDone = status !== null && doneCount === (status.total ?? 4)
+  const allDone = status !== null && doneCount === (status.total ?? 3)
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const didRefresh = useRef(false)
   // Only show if discovery was still in-flight at mount (at least one engine running/pending).
@@ -139,7 +138,7 @@ export function DiscoveryProgressIsland({
             <motion.div
               className="h-1 bg-blaze-orange"
               initial={{ width: 0 }}
-              animate={{ width: `${(doneCount / (status.total ?? 4)) * 100}%` }}
+              animate={{ width: `${(doneCount / (status.total ?? 3)) * 100}%` }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             />
           </div>
@@ -155,7 +154,7 @@ export function DiscoveryProgressIsland({
                 )}
                 <span className="text-xs font-semibold text-foreground">
                   {isDiscovering
-                    ? `Discovering opportunities… ${doneCount}/${status.total ?? 4}`
+                    ? `Discovering opportunities… ${doneCount}/${status.total ?? 3}`
                     : `Discovery complete — ${items.length} found`}
                 </span>
               </div>

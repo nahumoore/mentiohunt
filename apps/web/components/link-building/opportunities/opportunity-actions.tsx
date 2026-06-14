@@ -6,19 +6,16 @@ import { useRouter } from "next/navigation"
 import { IconCircleCheck, IconCircleX, IconLoader2 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 
-import type { ProspectActionType } from "@/app/dashboard/outreach/_data"
 import { OpportunityReportIssueDialog } from "@/components/link-building/opportunities/opportunity-report-issue-dialog"
 import { useProspectStore } from "@/stores/prospect-store"
 
 interface OpportunityActionsProps {
   prospectId: string
-  actionType: ProspectActionType
   domain: string | null
 }
 
 export function OpportunityActions({
   prospectId,
-  actionType,
   domain,
 }: OpportunityActionsProps) {
   const router = useRouter()
@@ -57,9 +54,7 @@ export function OpportunityActions({
             Actions
           </p>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            {actionType === "social_media"
-              ? "Did you reply to this post?"
-              : "What do you want to do with this opportunity?"}
+            What do you want to do with this opportunity?
           </p>
         </div>
 
@@ -92,7 +87,7 @@ export function OpportunityActions({
             ) : (
               <IconCircleCheck className="size-4" />
             )}
-            {actionType === "social_media" ? "Mark as replied" : "Mark as contacted"}
+            Mark as contacted
           </Button>
         </div>
       </div>

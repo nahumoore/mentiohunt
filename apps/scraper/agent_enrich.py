@@ -9,6 +9,7 @@ from pydantic import BaseModel
 log = logging.getLogger("scraper")
 
 MODEL = "deepseek/deepseek-v4-pro"
+FALLBACK_MODEL = "google/gemini-2.5-flash"
 MAX_PAGES = 6
 
 _GENERIC_PREFIXES = {"noreply", "no-reply", "support", "team", "hello", "info", "contact", "admin", "enquiries", "enquiry", "mail", "office", "sales", "marketing", "press", "media", "billing", "accounts", "hr", "jobs", "careers", "legal", "privacy", "abuse", "postmaster", "webmaster", "newsletter", "notifications"}
@@ -229,17 +230,32 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
             f"tools={[t['function']['name'] for t in tools]}"
         )
 
-        resp = client.chat.completions.create(
-            model=MODEL,
-            messages=messages,
-            tools=tools,
-            tool_choice="required",
-            temperature=0,
-            max_tokens=8000,
-        )
+        try:
+            resp = client.chat.completions.create(
+                model=MODEL,
+                messages=messages,
+                tools=tools,
+                tool_choice="required",
+                temperature=0,
+                max_tokens=8000,
+                timeout=90,
+            )
+        except Exception as e:
+            log.warning(f"agent: primary model failed ({e}), retrying with fallback {FALLBACK_MODEL}")
+            resp = client.chat.completions.create(
+                model=FALLBACK_MODEL,
+                messages=messages,
+                tools=tools,
+                tool_choice="required",
+                temperature=0,
+                max_tokens=8000,
+                timeout=90,
+            )
 
         msg = resp.choices[0].message
         tool_names = [tc.function.name for tc in (msg.tool_calls or [])]
+        if len(tool_names) > 5:
+            log.warning(f"agent response: model returned {len(tool_names)} tool calls — likely hallucination, will use first finish only")
         log.info(f"agent response: finish_reason={resp.choices[0].finish_reason} tool_calls={tool_names}")
 
         # Append assistant turn to history
@@ -297,6 +313,7 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                     "tool_call_id": tc.id,
                     "content": "Done.",
                 })
+                break  # ignore any duplicate finish calls in same response
 
         if called_finish:
             break

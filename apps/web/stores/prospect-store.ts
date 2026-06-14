@@ -13,12 +13,10 @@ export type ProspectListItem = Pick<
   | "domain"
   | "target_url"
   | "tier"
-  | "action_type"
   | "status"
   | "discovered_at"
   | "contact_email"
   | "contact_name"
-  | "notes"
   | "domain_rating"
 >
 
@@ -30,7 +28,6 @@ export type ProspectDetail = ProspectListItem &
     | "created_at"
     | "found_url"
     | "contact_social_links"
-    | "raw_post_text"
     | "raw_metadata"
     | "domain_rating"
   >
@@ -56,12 +53,10 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
     domain: prospect.domain,
     target_url: prospect.target_url,
     tier: prospect.tier,
-    action_type: prospect.action_type,
     status: prospect.status,
     discovered_at: prospect.discovered_at,
     contact_email: prospect.contact_email,
     contact_name: prospect.contact_name,
-    notes: prospect.notes,
     domain_rating: prospect.domain_rating,
   }
 }

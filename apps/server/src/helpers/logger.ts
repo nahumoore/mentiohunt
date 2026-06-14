@@ -60,7 +60,8 @@ function appendRouteLog(line: string): void {
 }
 
 function write(level: LogLevel, scope: string, message: string, details?: LogDetails): void {
-  if (!isDev) return;
+  const isAlwaysLog = level === "error" || level === "warn";
+  if (!isDev && !isAlwaysLog) return;
 
   const config = levels[level];
   const timestamp = new Date().toISOString().slice(11, 23);

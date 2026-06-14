@@ -1,10 +1,8 @@
 import {
-  ACTION_TYPE_CONFIG,
   TYPE_CONFIG,
   formatDate,
   type ProspectStatus,
   type ProspectTier,
-  type ProspectActionType,
 } from "@/app/dashboard/outreach/_data"
 
 import { StatusPipeline } from "./status-pipeline"
@@ -12,7 +10,6 @@ import { StatusPipeline } from "./status-pipeline"
 interface OpportunityDetailHeaderProps {
   domain: string
   tier: ProspectTier
-  actionType: ProspectActionType
   status: ProspectStatus
   discoveredAt: string
   domainRating: number | null
@@ -72,22 +69,20 @@ function DomainRatingBadge({ dr }: { dr: number }) {
 export function OpportunityDetailHeader({
   domain,
   tier,
-  actionType,
   status,
   discoveredAt,
   domainRating,
 }: OpportunityDetailHeaderProps) {
   const tierCfg = TYPE_CONFIG[tier]
-  const actionCfg = ACTION_TYPE_CONFIG[actionType]
+  if (!tierCfg) return null
   const TierIcon = tierCfg.icon
-  const ActionIcon = actionCfg.icon
 
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-4">
           <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            {domain || ACTION_TYPE_CONFIG[actionType].label}
+            {domain}
           </h1>
           {domainRating !== null && <DomainRatingBadge dr={domainRating} />}
         </div>
@@ -98,12 +93,6 @@ export function OpportunityDetailHeader({
           >
             <TierIcon className="size-3" />
             {tierCfg.label}
-          </span>
-          <span
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${actionCfg.color}`}
-          >
-            <ActionIcon className="size-3" />
-            {actionCfg.label}
           </span>
           <span className="text-xs text-muted-foreground">·</span>
           <span className="text-xs text-muted-foreground">

@@ -27,6 +27,7 @@ type DashboardStoreHydratorProps = {
   directorySubmissions: DirectorySubmissionListItem[]
   communityMentions: CommunityMention[]
   hasRunningCommunityRun: boolean
+  hasCompletedCommunityRun: boolean
   hasReplyQueueConfig: boolean
   discoverySettings: DiscoverySettings | null
   outreachSettings: OutreachSettings | null
@@ -42,6 +43,7 @@ export function DashboardStoreHydrator({
   directorySubmissions,
   communityMentions,
   hasRunningCommunityRun,
+  hasCompletedCommunityRun,
   hasReplyQueueConfig,
   discoverySettings,
   outreachSettings,
@@ -56,11 +58,12 @@ export function DashboardStoreHydrator({
     useDirectorySubmissionStore.getState().setSubmissions(directorySubmissions)
     useCommunityMentionStore.getState().setMentions(communityMentions)
     useCommunityMentionStore.getState().setHasRunningRun(hasRunningCommunityRun)
+    useCommunityMentionStore.getState().setHasCompletedRun(hasCompletedCommunityRun)
     useCommunityMentionStore.getState().setHasReplyQueueConfig(hasReplyQueueConfig)
     useDiscoverySettingsStore.getState().setSettings(discoverySettings)
     useOutreachSettingsStore.getState().setSettings(outreachSettings)
     useBacklinkNetworkStore.getState().setMembership(backlinkNetworkMembership)
-  }, [profile, product, prospects, hasCompletedProspectRun, directorySubmissions, communityMentions, hasRunningCommunityRun, hasReplyQueueConfig, discoverySettings, outreachSettings, backlinkNetworkMembership])
+  }, [profile, product, prospects, hasCompletedProspectRun, directorySubmissions, communityMentions, hasRunningCommunityRun, hasCompletedCommunityRun, hasReplyQueueConfig, discoverySettings, outreachSettings, backlinkNetworkMembership])
 
   return children
 }

@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { createLogger } from "../helpers/logger.js"
 import { discoverCompetitorBacklinks } from "../methods/competitor-backlinks/discover-competitor-backlinks.js"
+import { discoverUnlinkedMentions } from "../methods/unlinked-mentions/discover-unlinked-mentions.js"
 
 const log = createLogger("daily-backlink-discovery")
 
@@ -32,7 +33,7 @@ export async function runDailyBacklinkDiscovery(): Promise<void> {
   for (const product of eligible) {
     const { data: settings } = await supabaseAdmin
       .from("backlink_prospects_settings")
-      .select("dr_min, dr_max, voice_tone, offering")
+      .select("dr_min, dr_max, voice_tone, offering, opportunity_types")
       .eq("product_id", product.id)
       .single()
 
@@ -46,15 +47,28 @@ export async function runDailyBacklinkDiscovery(): Promise<void> {
       offering: settings?.offering ?? null,
     }
 
-    try {
-      const result = await discoverCompetitorBacklinks(
-        { ...product, competitors: product.competitors as string[] },
-        filterSettings,
-        emailSettings
-      )
-      log.info("product done", { productId: product.id, ...result })
-    } catch (err) {
-      log.error("product failed", { productId: product.id, error: String(err) })
+    const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention"]
+
+    if (opportunityTypes.includes("competitor_backlink")) {
+      try {
+        const result = await discoverCompetitorBacklinks(
+          { ...product, competitors: product.competitors as string[] },
+          filterSettings,
+          emailSettings
+        )
+        log.info("competitor done", { productId: product.id, ...result })
+      } catch (err) {
+        log.error("competitor failed", { productId: product.id, error: String(err) })
+      }
+    }
+
+    if (opportunityTypes.includes("unlinked_mention")) {
+      try {
+        const result = await discoverUnlinkedMentions(product, filterSettings, emailSettings)
+        log.info("unlinked mentions done", { productId: product.id, ...result })
+      } catch (err) {
+        log.error("unlinked mentions failed", { productId: product.id, error: String(err) })
+      }
     }
   }
 

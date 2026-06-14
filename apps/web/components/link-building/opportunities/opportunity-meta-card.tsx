@@ -1,14 +1,11 @@
 import {
-  ACTION_TYPE_CONFIG,
   TYPE_CONFIG,
   formatDate,
-  type ProspectActionType,
   type ProspectTier,
 } from "@/app/dashboard/outreach/_data"
 
 interface OpportunityMetaCardProps {
   tier: ProspectTier
-  actionType: ProspectActionType
   discoveredAt: string
   createdAt: string
 }
@@ -26,7 +23,6 @@ function MetaTile({ label, value }: { label: string; value: string }) {
 
 export function OpportunityMetaCard({
   tier,
-  actionType,
   discoveredAt,
   createdAt,
 }: OpportunityMetaCardProps) {
@@ -36,8 +32,7 @@ export function OpportunityMetaCard({
         Queue data
       </p>
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <MetaTile label="Type" value={TYPE_CONFIG[tier].label} />
-        <MetaTile label="Action" value={ACTION_TYPE_CONFIG[actionType].label} />
+        <MetaTile label="Type" value={TYPE_CONFIG[tier]?.label ?? tier} />
         <MetaTile label="Discovered" value={formatDate(discoveredAt)} />
         <MetaTile label="Added" value={formatDate(createdAt)} />
       </div>

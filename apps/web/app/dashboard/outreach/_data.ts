@@ -1,8 +1,6 @@
 import {
   IconCircleX,
   IconListDetails,
-  IconMailForward,
-  IconMessageShare,
   IconSend,
   IconSparkles,
 } from "@tabler/icons-react"
@@ -13,8 +11,6 @@ import { PROSPECT_TIER_CONFIG } from "@/lib/opportunity-types"
 
 export type ProspectStatus = Database["public"]["Enums"]["prospect_status"]
 export type ProspectTier = Database["public"]["Enums"]["prospect_tier"]
-export type ProspectActionType =
-  Database["public"]["Enums"]["prospect_action_type"]
 
 export interface TierConfig {
   label: string
@@ -25,13 +21,6 @@ export interface TierConfig {
 
 export interface StatusConfig {
   label: string
-  icon: ElementType
-  color: string
-}
-
-export interface ActionTypeConfig {
-  label: string
-  description: string
   icon: ElementType
   color: string
 }
@@ -66,24 +55,6 @@ export const STATUS_CONFIG: Record<ProspectStatus, StatusConfig> = {
     color: "text-muted-foreground bg-muted",
   },
 }
-
-export const ACTION_TYPE_CONFIG: Record<ProspectActionType, ActionTypeConfig> =
-  {
-    email_outreach: {
-      label: "Email outreach",
-      description:
-        "Use the prepared outreach draft when contact details are available.",
-      icon: IconMailForward,
-      color: "text-orange-600 bg-orange-500/10",
-    },
-    social_media: {
-      label: "Social reply",
-      description:
-        "Reply to the post on the social platform where it was discovered.",
-      icon: IconMessageShare,
-      color: "text-neutral-700 bg-neutral-500/10",
-    },
-  }
 
 export const STATUS_FILTERS: ProspectFilterConfig[] = [
   {

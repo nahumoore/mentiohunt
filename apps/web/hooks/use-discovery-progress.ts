@@ -6,14 +6,13 @@ import { useEffect, useMemo, useRef, useState } from "react"
 type PgInsert = { new: Record<string, unknown>; old: Record<string, unknown> }
 type PgUpdate = { new: Record<string, unknown>; old: Record<string, unknown> }
 
-export type EngineKey = "community" | "directories" | "backlinks" | "media_mentions"
+export type EngineKey = "community" | "directories" | "backlinks"
 export type EngineStatus = "pending" | "running" | "done" | "failed"
 
 export type DiscoveryStatus = {
   community: EngineStatus
   directories: EngineStatus
   backlinks: EngineStatus
-  media_mentions: EngineStatus
   started_at: string | null
   total: number
 }
@@ -33,7 +32,7 @@ type HookState = {
   items: DiscoveryItem[]
 }
 
-const ENGINE_KEYS: EngineKey[] = ["community", "directories", "backlinks", "media_mentions"]
+const ENGINE_KEYS: EngineKey[] = ["community", "directories", "backlinks"]
 
 function isActive(status: DiscoveryStatus | null): boolean {
   if (!status) return false
@@ -48,16 +47,14 @@ function parseStatus(raw: unknown): DiscoveryStatus | null {
   if (
     validStatus(s.community) &&
     validStatus(s.directories) &&
-    validStatus(s.backlinks) &&
-    validStatus(s.media_mentions)
+    validStatus(s.backlinks)
   ) {
     return {
       community: s.community,
       directories: s.directories,
       backlinks: s.backlinks,
-      media_mentions: s.media_mentions,
       started_at: typeof s.started_at === "string" ? s.started_at : null,
-      total: typeof s.total === "number" ? s.total : 4,
+      total: typeof s.total === "number" ? s.total : 3,
     }
   }
   return null
@@ -129,7 +126,7 @@ export function useDiscoveryProgress(
                 id: String(row.id),
                 type: "backlink" as DiscoveryItemType,
                 title: (row.domain as string | null) ?? "New prospect",
-                subtitle: row.action_type === "email_outreach" ? "Email outreach ready" : "Social mention",
+                subtitle: "Email outreach ready",
                 timestamp: (row.discovered_at as string) ?? new Date().toISOString(),
               },
               ...prev.items,
@@ -196,6 +193,30 @@ export function useDiscoveryProgress(
       channelRef.current = null
     }
   }, [productId, userId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Polling fallback: realtime UPDATE events on backlink_prospects_settings
+  // require the supabase_realtime publication to include the table, which is
+  // not guaranteed. Poll discovery_status while any engine is still active so
+  // engine progress (and auto-dismiss) works regardless of realtime config.
+  useEffect(() => {
+    if (!productId) return
+    if (!isActive(state.status)) return
+
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from("backlink_prospects_settings")
+        .select("discovery_status")
+        .eq("product_id", productId)
+        .maybeSingle()
+
+      const parsed = parseStatus(data?.discovery_status)
+      if (parsed) {
+        setState((prev) => ({ ...prev, status: parsed }))
+      }
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [productId, state.status, supabase])
 
   const doneCount = state.status
     ? ENGINE_KEYS.filter((k) => state.status![k] === "done" || state.status![k] === "failed").length

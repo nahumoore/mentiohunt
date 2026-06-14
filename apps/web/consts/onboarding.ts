@@ -57,7 +57,6 @@ export type PrimaryUse = "backlinks" | "mentions" | "both"
 export const OPPORTUNITY_TYPE_IDS = [
   "competitor_backlinks",
   "unlinked_mentions",
-  "media_mentions",
 ] as const
 
 export const OPPORTUNITY_TYPES = [
@@ -78,7 +77,6 @@ export const OPPORTUNITY_TYPES = [
 export const DEFAULT_OPPORTUNITY_TYPES = [
   "competitor_backlinks",
   "unlinked_mentions",
-  "media_mentions",
 ] satisfies OpportunityTypeId[]
 
 export const DEFAULT_MONITORING_PLATFORMS = ["reddit", "quora"] as const

@@ -38,26 +38,30 @@ const factors: Factor[] = [
 ]
 
 
+function isCoveredIndex(index: number): boolean {
+  return index === 0 || index >= 3
+}
+
 function getBarClass(index: number): string {
   if (index === 0)
     return "bg-[var(--color-blaze-orange)] shadow-[0_2px_18px_-4px_rgba(255,84,0,0.55)]"
-  if (index === 1) return "bg-[var(--color-blaze-orange)]/70"
+  if (index >= 3) return "bg-[var(--color-blaze-orange)]/70"
   return "bg-muted-foreground/25"
 }
 
 function getValueClass(index: number): string {
-  if (index <= 1) return "text-[var(--color-blaze-orange)]"
+  if (isCoveredIndex(index)) return "text-[var(--color-blaze-orange)]"
   return "text-muted-foreground/60"
 }
 
 function getLabelClass(index: number): string {
-  if (index <= 1) return "text-foreground"
+  if (isCoveredIndex(index)) return "text-foreground"
   return "text-muted-foreground/70"
 }
 
 function FactorRow({ factor, index }: { factor: Factor; index: number }) {
   const pct = Math.round(factor.value * 100)
-  const isCovered = index <= 1
+  const isCovered = isCoveredIndex(index)
 
   return (
     <div className={`py-3.5 ${index > 0 ? "border-t border-border/50" : ""}`}>
@@ -127,6 +131,32 @@ export function BrandMentionSources() {
           {factors.map((factor, index) => (
             <FactorRow key={factor.label} factor={factor} index={index} />
           ))}
+
+          <div className="relative mt-8 overflow-hidden rounded-xl ring-1 ring-[var(--color-blaze-orange)]/12">
+            <div className="absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-[var(--color-blaze-orange)] via-[var(--color-pumpkin-spice)]/70 to-[var(--color-blaze-orange)]/20" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--color-blaze-orange)]/[0.07] to-transparent" />
+            <div className="relative flex flex-col gap-3 py-4 pl-6 pr-5 sm:flex-row sm:items-center sm:gap-8">
+              <p className="shrink-0 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-[var(--color-blaze-orange)]">
+                Mentiohunt covers
+              </p>
+              <div className="h-px bg-[var(--color-blaze-orange)]/15 sm:hidden" />
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "Web mentions",
+                  "Domain authority",
+                  "Backlink diversity",
+                ].map((label) => (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-blaze-orange)]/10 px-3 py-1 text-[0.72rem] font-semibold text-[var(--color-blaze-orange)] ring-1 ring-[var(--color-blaze-orange)]/25"
+                  >
+                    <IconCircleCheckFilled className="h-3 w-3 shrink-0" />
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
 
           <div className="mt-5 flex items-center border-t border-border/50 pt-4">
             <p className="text-[0.65rem] text-muted-foreground">

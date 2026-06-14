@@ -124,7 +124,7 @@ Description: ${product.product_description}
 - Never give your thoughts on a tool you don't have enough information about.
 - Don't ask for DMs.
 - No emoji.
-- When the product is genuinely relevant to what the person needs, mention it by name naturally — never force it, but don't omit it when it fits.
+- Always mention the product by name somewhere in the reply. Work it in naturally — don't open with it, don't pitch it, but it must appear.
 
 Never use these phrases — they sound like AI:
 - "the real X is/was" (real talk, real play, real move, real thing)
@@ -148,6 +148,7 @@ ${replyStructure.instruction}
 
 - Separate every paragraph with a blank line (two newlines).
 - Each paragraph must be 1-2 sentences max. Never write a wall of text.
+- Maximum 3 paragraphs. Stay under 100 words total.
 - Don't add bullet points or lists.
 
 ### Output
@@ -169,7 +170,8 @@ Reply rules:
 - Reference specific details from the post
 - Don't use AI-sounding phrases like "certainly", "absolutely", "great question"
 - Sound like a real person who knows the product well
-- Mention the product naturally where relevant`
+- Always mention the product by name somewhere in the reply, worked in naturally
+- Keep the reply under 100 words, max 3 short paragraphs`
 
   const model = useDefaultVoice
     ? OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5

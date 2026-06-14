@@ -1,12 +1,10 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
-import { sendPendingMentionsLimitEmail } from "../helpers/emails/send-pending-mentions-limit.js"
 import { createLogger } from "../helpers/logger.js"
 import { runReplyQueue } from "../methods/reply-queue/run-reply-queue.js"
 
 const log = createLogger("reply-queue-scheduler")
 
 const RUN_DUE_HOURS = 20
-const FREE_TRIAL_PENDING_LIMIT = 20
 
 function isRunDue(lastRunAt: string | null): boolean {
   if (!lastRunAt) return true
@@ -48,46 +46,6 @@ export async function runReplyQueueScheduler() {
 
       if (!profile?.active_trial) {
         log.info("subscription not active, skipping", { configId: config.id })
-        continue
-      }
-
-      const onPaidPlan = profile.tier === "pro" || profile.tier === "agency"
-
-      const { count: pendingCount } = await supabaseAdmin
-        .from("reply_queue_items")
-        .select("id", { count: "exact", head: true })
-        .eq("config_id", config.id)
-        .eq("user_status", "new")
-
-      if (!onPaidPlan && (pendingCount ?? 0) >= FREE_TRIAL_PENDING_LIMIT) {
-        log.info("pending mention limit reached, skipping", {
-          configId: config.id,
-          pendingCount,
-        })
-
-        if (profile.email) {
-          const { data: product } = await supabaseAdmin
-            .from("reply_queue_configs")
-            .select("products(product_name)")
-            .eq("id", config.id)
-            .single()
-
-          const products = product?.products as
-            | { product_name: string }
-            | { product_name: string }[]
-            | null
-          const productName =
-            (Array.isArray(products) ? products[0] : products)?.product_name ??
-            "your product"
-
-          await sendPendingMentionsLimitEmail({
-            to: profile.email,
-            userId: config.user_id,
-            productName,
-            pendingCount: pendingCount ?? FREE_TRIAL_PENDING_LIMIT,
-          })
-        }
-
         continue
       }
 

@@ -111,7 +111,6 @@ export type Database = {
       }
       backlink_prospects: {
         Row: {
-          action_type: Database["public"]["Enums"]["prospect_action_type"]
           contact_email: string | null
           contact_name: string | null
           contact_social_links: Json | null
@@ -123,16 +122,13 @@ export type Database = {
           email_subject: string | null
           found_url: string | null
           id: string
-          notes: string | null
           product_id: string
           raw_metadata: Json | null
-          raw_post_text: string | null
           status: Database["public"]["Enums"]["prospect_status"]
           target_url: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
         }
         Insert: {
-          action_type: Database["public"]["Enums"]["prospect_action_type"]
           contact_email?: string | null
           contact_name?: string | null
           contact_social_links?: Json | null
@@ -144,16 +140,13 @@ export type Database = {
           email_subject?: string | null
           found_url?: string | null
           id?: string
-          notes?: string | null
           product_id: string
           raw_metadata?: Json | null
-          raw_post_text?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
         }
         Update: {
-          action_type?: Database["public"]["Enums"]["prospect_action_type"]
           contact_email?: string | null
           contact_name?: string | null
           contact_social_links?: Json | null
@@ -165,10 +158,8 @@ export type Database = {
           email_subject?: string | null
           found_url?: string | null
           id?: string
-          notes?: string | null
           product_id?: string
           raw_metadata?: Json | null
-          raw_post_text?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
           tier?: Database["public"]["Enums"]["prospect_tier"]
@@ -728,7 +719,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      merge_discovery_status: {
+        Args: { p_product_id: string; p_updates: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       billing_tier: "free" | "pro" | "agency"
@@ -741,12 +735,8 @@ export type Database = {
         | "dismissed"
       email_sequence_status: "active" | "stopped" | "completed"
       email_sequence_type: "onboarding"
-      prospect_action_type: "email_outreach" | "social_media"
       prospect_status: "new" | "contacted" | "dismissed"
-      prospect_tier:
-        | "competitor_backlink"
-        | "unlinked_mention"
-        | "media_mention"
+      prospect_tier: "competitor_backlink" | "unlinked_mention"
       reply_queue_platform: "reddit" | "quora"
       run_status: "pending" | "running" | "completed" | "failed"
     }
@@ -887,13 +877,8 @@ export const Constants = {
       ],
       email_sequence_status: ["active", "stopped", "completed"],
       email_sequence_type: ["onboarding"],
-      prospect_action_type: ["email_outreach", "social_media"],
       prospect_status: ["new", "contacted", "dismissed"],
-      prospect_tier: [
-        "competitor_backlink",
-        "unlinked_mention",
-        "media_mention",
-      ],
+      prospect_tier: ["competitor_backlink", "unlinked_mention"],
       reply_queue_platform: ["reddit", "quora"],
       run_status: ["pending", "running", "completed", "failed"],
     },

@@ -1,8 +1,8 @@
 import type { Application } from "express"
 import { analyzeBacklinkSiteRouter } from "./analyze-backlink-site.js"
 import { devDiscoverCompetitorBacklinksRouter } from "./dev-discover-competitor-backlinks.js"
+import { devDiscoverUnlinkedMentionsRouter } from "./dev-discover-unlinked-mentions.js"
 import { devTestScraperRouter } from "./dev-test-scraper.js"
-import { devDiscoverProductMentionsRouter } from "./dev-discover-product-mentions.js"
 import { devPopulateMissingSeoMetricsRouter } from "./dev-populate-missing-seo-metrics.js"
 import { devSendOnboardingEmailRouter } from "./dev-send-onboarding-email.js"
 import { devUpdateAllSeoMetricsRouter } from "./dev-update-all-seo-metrics.js"
@@ -30,8 +30,8 @@ export function registerRoutes(app: Application, isDev: boolean): void {
     app.use(runReplyQueueRouter)
     app.use(devPopulateMissingSeoMetricsRouter)
     app.use(devSendOnboardingEmailRouter)
-    app.use(devDiscoverProductMentionsRouter)
     app.use(devDiscoverCompetitorBacklinksRouter)
+    app.use(devDiscoverUnlinkedMentionsRouter)
     app.use(devTestScraperRouter)
   }
 }

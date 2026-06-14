@@ -110,6 +110,7 @@ Return ALL posts with their scores. Be precise — a score of 72 must reflect ge
       fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
       systemInstructions,
       thinkingBudget: ANALYZE_THINKING_BUDGET,
+      timeoutMs: 90_000,
       input: `Posts:\n${JSON.stringify(payload, null, 2)}`,
       responseFormat: {
         type: "json_schema",

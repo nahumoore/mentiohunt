@@ -2,15 +2,20 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import { Router, type IRouter } from "express"
 import { timingSafeEqual } from "node:crypto"
 import { sendOnboardingCompleteEmail } from "../helpers/emails/send-onboarding-complete.js"
-import { createLogger } from "../helpers/logger.js"
+import { createLogger, withRouteLog } from "../helpers/logger.js"
 import { discoverCompetitorBacklinks } from "../methods/competitor-backlinks/discover-competitor-backlinks.js"
-import { discoverMentionsForProduct } from "../methods/media-mentions/discover-mentions-for-product.js"
+import { discoverUnlinkedMentions } from "../methods/unlinked-mentions/discover-unlinked-mentions.js"
 import { findDirectoryOpportunitiesForProduct } from "./find-directory-opportunities.js"
 import { runReplyQueueForConfig } from "./run-reply-queue.js"
 
 const log = createLogger("route-onboarding-complete")
 
 const SEND_INDIVIDUAL_ONBOARDING_EMAILS = false
+
+// Light cap for the first (onboarding) discovery run — keep it fast and cheap.
+// Daily jobs call the discovery methods without limits (full defaults).
+const ONBOARDING_BACKLINK_LIMITS = { maxCompetitors: 2, maxProspects: 10 }
+const ONBOARDING_MENTION_LIMITS = { maxCandidates: 12, maxProspects: 10 }
 
 type ReplyQueueOnboardingResult = Awaited<ReturnType<typeof runReplyQueueForConfig>>
 type DirectoryOnboardingResult = Awaited<ReturnType<typeof findDirectoryOpportunitiesForProduct>>
@@ -41,14 +46,12 @@ async function sendOnboardingSummaryEmail({
   replyQueueResult,
   directoryResult,
   backlinkDiscoveryResult,
-  mediaMentionsResult,
 }: {
   userId: string
   productId: string
   replyQueueResult: PromiseSettledResult<ReplyQueueOnboardingResult>
   directoryResult: PromiseSettledResult<DirectoryOnboardingResult>
   backlinkDiscoveryResult: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }>
-  mediaMentionsResult: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }>
 }) {
   const [
     { data: profile, error: profileError },
@@ -91,7 +94,6 @@ async function sendOnboardingSummaryEmail({
     replyQueueResult,
     directoryResult,
     backlinkResult: backlinkDiscoveryResult,
-    mediaMentionsResult,
   })
 }
 
@@ -113,6 +115,16 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
     return
   }
 
+  return withRouteLog(`onboarding-complete-${productId}`, () => runOnboardingJobs(res, userId, productId, replyQueueConfigId))
+})
+
+async function runOnboardingJobs(
+  res: import("express").Response,
+  userId: string,
+  productId: string,
+  replyQueueConfigId: string
+) {
+
   async function setEngineStatus(engine: string, status: "running" | "done" | "failed") {
     await supabaseAdmin.rpc("merge_discovery_status" as string, {
       p_product_id: productId,
@@ -131,9 +143,8 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
           community: "running",
           directories: "running",
           backlinks: "running",
-          media_mentions: "running",
           started_at: new Date().toISOString(),
-          total: 4,
+          total: 3,
         },
       })
       .eq("product_id", productId)
@@ -142,7 +153,7 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
       log.error("failed to set initial discovery_status", { productId, error: statusUpdateError.message })
     }
 
-    const [replyQueueResult, directoryResult, backlinkDiscoveryResult, mediaMentionsResult] = await Promise.allSettled([
+    const [replyQueueResult, directoryResult, backlinkDiscoveryResult] = await Promise.allSettled([
       (async () => {
         const t = Date.now()
         log.info("runReplyQueueForConfig START", { configId: replyQueueConfigId })
@@ -201,19 +212,44 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
 
           const { data: settings, error: settingsError } = await supabaseAdmin
             .from("backlink_prospects_settings")
-            .select("dr_min, dr_max, voice_tone, offering")
+            .select("dr_min, dr_max, voice_tone, offering, opportunity_types")
             .eq("product_id", productId)
             .single()
 
           if (settingsError) log.warn("discoverCompetitorBacklinks: settings fetch error", { error: settingsError.message })
 
-          const result = await discoverCompetitorBacklinks(
-            { ...product, competitors: (product.competitors as string[]) ?? [] },
-            { dr_min: settings?.dr_min ?? 0, dr_max: settings?.dr_max ?? null },
-            { voice_tone: settings?.voice_tone ?? null, offering: settings?.offering ?? null }
-          )
-          log.success("discoverCompetitorBacklinks done", { durationMs: Date.now() - t, prospectsCreated: result.prospectsCreated, totalCostUsd: result.totalCostUsd })
-          return result
+          const filterSettings = { dr_min: settings?.dr_min ?? 0, dr_max: settings?.dr_max ?? null }
+          const emailSettings = { voice_tone: settings?.voice_tone ?? null, offering: settings?.offering ?? null }
+          const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention"]
+
+          let prospectsCreated = 0
+          let totalCostUsd = 0
+
+          if (opportunityTypes.includes("competitor_backlink")) {
+            const result = await discoverCompetitorBacklinks(
+              { ...product, competitors: (product.competitors as string[]) ?? [] },
+              filterSettings,
+              emailSettings,
+              ONBOARDING_BACKLINK_LIMITS
+            )
+            prospectsCreated += result.prospectsCreated
+            totalCostUsd += result.totalCostUsd
+            log.success("discoverCompetitorBacklinks done", { durationMs: Date.now() - t, ...result })
+          }
+
+          if (opportunityTypes.includes("unlinked_mention")) {
+            const result = await discoverUnlinkedMentions(
+              product,
+              filterSettings,
+              emailSettings,
+              ONBOARDING_MENTION_LIMITS
+            )
+            prospectsCreated += result.prospectsCreated
+            totalCostUsd += result.totalCostUsd
+            log.success("discoverUnlinkedMentions done", { durationMs: Date.now() - t, ...result })
+          }
+
+          return { prospectsCreated, totalCostUsd }
         } catch (err) {
           failed = true
           log.error("discoverCompetitorBacklinks FAILED", { durationMs: Date.now() - t, error: String(err) })
@@ -221,38 +257,6 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
           throw err
         } finally {
           if (!failed) await setEngineStatus("backlinks", "done")
-        }
-      })(),
-      (async () => {
-        const t = Date.now()
-        log.info("discoverMentionsForProduct START", { productId })
-        let failed = false
-        try {
-          const { data: product, error: productError } = await supabaseAdmin
-            .from("products")
-            .select("id, product_name, product_description, website_url, competitors")
-            .eq("id", productId)
-            .single()
-
-          if (productError) log.warn("discoverMentionsForProduct: product fetch error", { error: productError.message })
-          if (!product) {
-            log.warn("discoverMentionsForProduct: product not found, skipping", { productId })
-            return { prospectsCreated: 0, totalCostUsd: 0 }
-          }
-
-          const result = await discoverMentionsForProduct({
-            ...product,
-            competitors: (product.competitors as string[]) ?? [],
-          })
-          log.success("discoverMentionsForProduct done", { durationMs: Date.now() - t, prospectsCreated: result.prospectsCreated, totalCostUsd: result.totalCostUsd })
-          return result
-        } catch (err) {
-          failed = true
-          log.error("discoverMentionsForProduct FAILED", { durationMs: Date.now() - t, error: String(err) })
-          await setEngineStatus("media_mentions", "failed")
-          throw err
-        } finally {
-          if (!failed) await setEngineStatus("media_mentions", "done")
         }
       })(),
     ])
@@ -280,20 +284,12 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
       })
     }
 
-    if (mediaMentionsResult.status === "rejected") {
-      log.error("onboarding media mentions discovery failed", {
-        productId,
-        error: String(mediaMentionsResult.reason),
-      })
-    }
-
     await sendOnboardingSummaryEmail({
       userId,
       productId,
       replyQueueResult,
       directoryResult,
       backlinkDiscoveryResult,
-      mediaMentionsResult,
     })
 
     res.json({
@@ -301,10 +297,9 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
       replyQueue: replyQueueResult.status === "fulfilled" ? replyQueueResult.value : null,
       directoryOpportunities: directoryResult.status === "fulfilled" ? directoryResult.value : null,
       backlinkDiscovery: backlinkDiscoveryResult.status === "fulfilled" ? backlinkDiscoveryResult.value : null,
-      mediaMentions: mediaMentionsResult.status === "fulfilled" ? mediaMentionsResult.value : null,
     })
   } catch (err) {
     log.error("unhandled onboarding jobs error", { error: String(err) })
     res.status(500).json({ error: "Failed to run onboarding jobs." })
   }
-})
+}

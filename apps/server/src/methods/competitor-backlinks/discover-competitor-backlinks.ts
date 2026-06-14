@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
-import pLimit from "p-limit"
+import pLimit, { type LimitFunction } from "p-limit"
 import { createLogger } from "../../helpers/logger.js"
 import { enrichContact } from "./enrich-contact.js"
 import { extractBacklinks, extractCompetitorDomain } from "./extract-backlinks.js"
@@ -18,47 +18,49 @@ export type EmailSettings = {
   offering?: string | null
 }
 
-async function runBackgroundEnrichment(
-  rowId: string,
+type EnrichedColumns = {
+  contact_name: string | null
+  contact_email: string | null
+  contact_social_links: Record<string, string> | null
+  email_subject: string | null
+  email_body: string | null
+  raw_metadata: unknown
+}
+
+const EMPTY_ENRICHMENT: EnrichedColumns = {
+  contact_name: null,
+  contact_email: null,
+  contact_social_links: null,
+  email_subject: null,
+  email_body: null,
+  raw_metadata: null,
+}
+
+/**
+ * Resolve contact + email draft for a prospect. Returns the columns to persist
+ * so the row can be inserted fully enriched (no contactless intermediate state).
+ */
+async function enrichProspect(
   item: ScoredBacklinkItem,
   product: { product_name: string; product_description: string; website_url: string },
   domain: string,
   senderName: string | null,
   emailSettings: EmailSettings
-): Promise<void> {
+): Promise<EnrichedColumns> {
   try {
     const contact = await enrichContact(item.urlFrom, item.pageType, domain)
+    const social = Object.keys(contact.social_links).length > 0 ? contact.social_links : null
 
     if (!contact.email) {
-      const { error: updateError } = await supabaseAdmin
-        .from("backlink_prospects")
-        .update({
-          contact_name: contact.name,
-          contact_email: null,
-          contact_social_links: Object.keys(contact.social_links).length > 0 ? contact.social_links : null,
-          email_subject: null,
-          email_body: null,
-          raw_post_text: null,
-          raw_metadata: contact.rawMetadata,
-        })
-        .eq("id", rowId)
-
-      if (updateError) {
-        log.warn("failed to save contact without email", {
-          rowId,
-          domain,
-          error: updateError.message,
-        })
-        return
+      log.info("contact name without email", { domain, contactName: contact.name })
+      return {
+        contact_name: contact.name,
+        contact_email: null,
+        contact_social_links: social,
+        email_subject: null,
+        email_body: null,
+        raw_metadata: contact.rawMetadata,
       }
-
-      log.info("saved contact name without email", {
-        rowId,
-        domain,
-        contactName: contact.name,
-        socialCount: Object.keys(contact.social_links).length,
-      })
-      return
     }
 
     const urlToPath = (() => {
@@ -77,33 +79,23 @@ async function runBackgroundEnrichment(
       offering: emailSettings.offering,
     })
 
-    const { error: updateError } = await supabaseAdmin
-      .from("backlink_prospects")
-      .update({
-        contact_name: contact.name,
-        contact_email: contact.email,
-        contact_social_links: Object.keys(contact.social_links).length > 0 ? contact.social_links : null,
-        email_subject: emailResult?.subject ?? null,
-        email_body: emailResult?.body ?? null,
-        raw_post_text: null,
-        raw_metadata: contact.rawMetadata,
-      })
-      .eq("id", rowId)
-
-    if (updateError) {
-      log.warn("enrichment DB update failed", { rowId, domain, error: updateError.message })
-      return
-    }
-
     log.success("enrichment complete", {
-      rowId,
       domain,
       contactConfidence: contact.confidence,
-      hasEmail: !!contact.email,
       hasEmailDraft: !!emailResult,
     })
+
+    return {
+      contact_name: contact.name,
+      contact_email: contact.email,
+      contact_social_links: social,
+      email_subject: emailResult?.subject ?? null,
+      email_body: emailResult?.body ?? null,
+      raw_metadata: contact.rawMetadata,
+    }
   } catch (err) {
-    log.warn("background enrichment failed", { rowId, domain, error: String(err) })
+    log.warn("prospect enrichment failed", { domain, error: String(err) })
+    return { ...EMPTY_ENRICHMENT }
   }
 }
 
@@ -129,7 +121,8 @@ async function getLastMozCursor(
 
 async function selectCompetitorsForRun(
   productId: string,
-  allDomains: string[]
+  allDomains: string[],
+  maxCompetitors: number
 ): Promise<string[]> {
   const { data: recentRuns } = await supabaseAdmin
     .from("backlink_prospect_runs" as string)
@@ -154,7 +147,7 @@ async function selectCompetitorsForRun(
       const bTime = lastRunByDomain.get(b) ?? ""
       return aTime < bTime ? -1 : 1
     })
-    .slice(0, MAX_COMPETITORS_PER_RUN)
+    .slice(0, maxCompetitors)
 }
 
 async function createProspectRun(productId: string, competitorDomains: string[]): Promise<string | null> {
@@ -217,8 +210,9 @@ async function processCompetitor(
   settings: FilterSettings,
   senderName: string | null,
   emailSettings: EmailSettings,
-  enrichLimit: (fn: () => Promise<void>) => Promise<void>
-): Promise<{ prospectsCreated: number; costUsd: number; nextCursor: string | null; enrichment: Promise<unknown> }> {
+  enrichLimit: LimitFunction,
+  maxProspects: number
+): Promise<{ prospectsCreated: number; costUsd: number; nextCursor: string | null }> {
   const mozCursor = await getLastMozCursor(product.id, competitorDomain)
 
   log.info("processing competitor", { productId: product.id, competitorDomain, hasCursor: !!mozCursor })
@@ -239,7 +233,7 @@ async function processCompetitor(
         kept: 0,
         inserted: 0,
       })
-      return { prospectsCreated: 0, costUsd: 0, nextCursor, enrichment: Promise.resolve() }
+      return { prospectsCreated: 0, costUsd: 0, nextCursor }
     }
 
     const { results: scored, totalCost } = await scoreBacklinkRelevance(filtered, product)
@@ -247,7 +241,7 @@ async function processCompetitor(
     const passing = scored
       .filter((r) => r.relevanceScore >= MIN_RELEVANCE_SCORE)
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, MAX_PROSPECTS_PER_RUN)
+      .slice(0, maxProspects)
 
     if (passing.length === 0) {
       log.info("competitor digest", {
@@ -266,33 +260,18 @@ async function processCompetitor(
         kept: 0,
         inserted: 0,
       })
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor, enrichment: Promise.resolve() }
+      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
     }
 
-    const rows = passing.map((item) => ({
-      product_id: product.id,
-      domain: extractDomainFromUrl(item.urlFrom),
-      domain_rating: item.domainRating,
-      found_url: item.urlFrom,
-      target_url: item.urlTo,
-      tier: "competitor_backlink" as const,
-      action_type: "email_outreach" as const,
-      status: "new" as const,
-      raw_post_text: null,
-    }))
-
-    const { data: inserted, error: upsertError } = await supabaseAdmin
+    // Drop prospects we've already stored so we don't pay to enrich duplicates.
+    const { data: existing } = await supabaseAdmin
       .from("backlink_prospects")
-      .upsert(rows, { onConflict: "product_id,found_url", ignoreDuplicates: true })
-      .select("id, domain, found_url")
+      .select("found_url")
+      .eq("product_id", product.id)
+      .in("found_url", passing.map((item) => item.urlFrom))
 
-    if (upsertError) {
-      log.error("upsert failed", { productId: product.id, competitorDomain, error: upsertError.message })
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor, enrichment: Promise.resolve() }
-    }
-
-    const insertedRows = inserted ?? []
-    log.info("rows upserted", { productId: product.id, competitorDomain, count: insertedRows.length })
+    const existingUrls = new Set((existing ?? []).map((r) => r.found_url))
+    const newItems = passing.filter((item) => !existingUrls.has(item.urlFrom))
 
     log.info("competitor digest", {
       competitorDomain,
@@ -314,28 +293,52 @@ async function processCompetitor(
         pageType: r.pageType,
         reason: r.relevanceReason,
       })),
-      newlyInserted: insertedRows.length,
-      duplicatesSkipped: passing.length - insertedRows.length,
+      toEnrich: newItems.length,
+      duplicatesSkipped: passing.length - newItems.length,
     })
 
-    const scoredByFoundUrl = new Map(passing.map((item) => [item.urlFrom, item]))
-
-    const enrichment = Promise.allSettled(
-      insertedRows.map((row) =>
+    // Enrich each prospect first, then insert the fully-populated row so the UI
+    // never shows a contactless prospect that fills in later.
+    let prospectsCreated = 0
+    await Promise.allSettled(
+      newItems.map((item) =>
         enrichLimit(async () => {
-          const item = scoredByFoundUrl.get(row.found_url ?? "")
-          if (!item || !row.id) return
           const domain = extractDomainFromUrl(item.urlFrom)
-          await runBackgroundEnrichment(row.id, item, product, domain, senderName, emailSettings)
+          const enriched = await enrichProspect(item, product, domain, senderName, emailSettings)
+
+          const { data, error } = await supabaseAdmin
+            .from("backlink_prospects")
+            .upsert(
+              {
+                product_id: product.id,
+                domain,
+                domain_rating: item.domainRating,
+                found_url: item.urlFrom,
+                target_url: item.urlTo,
+                tier: "competitor_backlink" as const,
+                status: "new" as const,
+                ...enriched,
+              },
+              { onConflict: "product_id,found_url", ignoreDuplicates: true }
+            )
+            .select("id")
+
+          if (error) {
+            log.warn("prospect upsert failed", { competitorDomain, domain, error: error.message })
+            return
+          }
+          if ((data ?? []).length > 0) prospectsCreated += 1
         })
       )
     )
 
-    return { prospectsCreated: insertedRows.length, costUsd: totalCost, nextCursor, enrichment }
+    log.info("rows upserted", { productId: product.id, competitorDomain, count: prospectsCreated })
+
+    return { prospectsCreated, costUsd: totalCost, nextCursor }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     log.error("competitor processing failed", { productId: product.id, competitorDomain, error: msg })
-    return { prospectsCreated: 0, costUsd: 0, nextCursor: null, enrichment: Promise.resolve() }
+    return { prospectsCreated: 0, costUsd: 0, nextCursor: null }
   }
 }
 
@@ -349,8 +352,12 @@ export async function discoverCompetitorBacklinks(
     competitors: string[]
   },
   settings: FilterSettings,
-  emailSettings: EmailSettings = {}
+  emailSettings: EmailSettings = {},
+  limits: { maxCompetitors?: number; maxProspects?: number } = {}
 ): Promise<{ prospectsCreated: number; totalCostUsd: number }> {
+  const maxCompetitors = limits.maxCompetitors ?? MAX_COMPETITORS_PER_RUN
+  const maxProspects = limits.maxProspects ?? MAX_PROSPECTS_PER_RUN
+
   log.info("discovery started", { productId: product.id, competitors: product.competitors.length })
 
   if (product.competitors.length === 0) {
@@ -367,7 +374,7 @@ export async function discoverCompetitorBacklinks(
   const senderName = profile?.name ?? null
 
   const allDomains = product.competitors.map(extractCompetitorDomain)
-  const competitorsToProcess = await selectCompetitorsForRun(product.id, allDomains)
+  const competitorsToProcess = await selectCompetitorsForRun(product.id, allDomains, maxCompetitors)
   const enrichLimit = pLimit(1)
 
   log.info("competitors selected", {
@@ -381,18 +388,14 @@ export async function discoverCompetitorBacklinks(
   let totalProspectsCreated = 0
   let totalCostUsd = 0
   const mozCursorsByDomain: Record<string, string | null> = {}
-  const enrichments: Promise<unknown>[] = []
 
   try {
     for (const competitorDomain of competitorsToProcess) {
-      const result = await processCompetitor(competitorDomain, product, settings, senderName, emailSettings, enrichLimit)
+      const result = await processCompetitor(competitorDomain, product, settings, senderName, emailSettings, enrichLimit, maxProspects)
       totalProspectsCreated += result.prospectsCreated
       totalCostUsd += result.costUsd
       mozCursorsByDomain[competitorDomain] = result.nextCursor
-      enrichments.push(result.enrichment)
     }
-
-    await Promise.allSettled(enrichments)
 
     if (runId) await completeProspectRun(runId, totalProspectsCreated, totalCostUsd, mozCursorsByDomain)
   } catch (err) {

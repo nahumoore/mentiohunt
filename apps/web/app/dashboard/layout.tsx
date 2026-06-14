@@ -70,7 +70,6 @@ function mapDiscoverySettings(
   return {
     opportunityTypes: settings.opportunity_types.map((type) => {
       if (type === "competitor_backlink") return "competitor_backlinks"
-      if (type === "media_mention") return "media_mentions"
       return "unlinked_mentions"
     }),
     drMin: settings.dr_min,
@@ -225,6 +224,7 @@ export default async function DashboardLayout({
     : null
   let backlinkNetworkMembership: BacklinkNetworkMembership | null = null
   let hasRunningCommunityRun = false
+  let hasCompletedCommunityRun = false
   let hasReplyQueueConfig = false
   let initialDiscoveryStatus: DiscoveryStatus | null = null
 
@@ -240,7 +240,7 @@ export default async function DashboardLayout({
       supabase
         .from("backlink_prospects")
         .select(
-          "id, product_id, domain, target_url, tier, action_type, status, discovered_at, contact_email, contact_name, notes, domain_rating"
+          "id, product_id, domain, target_url, tier, status, discovered_at, contact_email, contact_name, domain_rating"
         )
         .eq("product_id", product.id)
         .order("discovered_at", { ascending: false }),
@@ -327,6 +327,14 @@ export default async function DashboardLayout({
         (config) => config.last_run_status === "running"
       )
 
+    hasCompletedCommunityRun =
+      !replyQueueConfigsResult.error &&
+      (replyQueueConfigsResult.data ?? []).some(
+        (config) =>
+          config.last_run_status === "complete" ||
+          config.last_run_status === "failed"
+      )
+
     hasReplyQueueConfig =
       !replyQueueConfigsResult.error &&
       (replyQueueConfigsResult.data ?? []).length > 0
@@ -397,6 +405,7 @@ export default async function DashboardLayout({
       directorySubmissions={directorySubmissions}
       communityMentions={communityMentions}
       hasRunningCommunityRun={hasRunningCommunityRun}
+      hasCompletedCommunityRun={hasCompletedCommunityRun}
       hasReplyQueueConfig={hasReplyQueueConfig}
       discoverySettings={discoverySettings}
       outreachSettings={outreachSettings}

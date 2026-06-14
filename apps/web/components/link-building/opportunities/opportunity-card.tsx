@@ -11,7 +11,6 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 
 import {
-  ACTION_TYPE_CONFIG,
   TYPE_CONFIG,
   formatDate,
   type ProspectTier,
@@ -21,7 +20,6 @@ import type { ProspectListItem } from "@/stores/prospect-store"
 const TIER_BORDER: Record<ProspectTier, string> = {
   competitor_backlink: "border-l-amber-500",
   unlinked_mention: "border-l-violet-500",
-  media_mention: "border-l-sky-500",
 }
 
 
@@ -37,9 +35,8 @@ function extractHostname(url: string | null): string | null {
 export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
   const router = useRouter()
   const tierCfg = TYPE_CONFIG[prospect.tier]
-  const actionCfg = ACTION_TYPE_CONFIG[prospect.action_type]
+  if (!tierCfg) return null
   const TierIcon = tierCfg.icon
-  const ActionIcon = actionCfg.icon
   const hasEmail = !!prospect.contact_email?.trim()
   const competitorHostname =
     prospect.tier === "competitor_backlink"
@@ -75,15 +72,6 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
             <TierIcon className="size-3" />
             {tierCfg.label}
           </span>
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-              actionCfg.color
-            )}
-          >
-            <ActionIcon className="size-3" />
-            {actionCfg.label}
-          </span>
           {prospect.domain_rating != null && (
             <span className="ml-auto inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-sm font-semibold tabular-nums text-muted-foreground">
               DR {prospect.domain_rating}
@@ -95,7 +83,7 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <p className="text-base font-semibold text-foreground">
-              {prospect.domain ?? prospect.contact_name ?? actionCfg.label}
+              {prospect.domain ?? prospect.contact_name ?? tierCfg.label}
             </p>
           </div>
           {competitorHostname && (
@@ -109,11 +97,6 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
           )}
         </div>
 
-        {prospect.notes && (
-          <p className="line-clamp-2 text-xs text-muted-foreground">
-            {prospect.notes}
-          </p>
-        )}
       </div>
 
       <div className="border-t border-border/50" />

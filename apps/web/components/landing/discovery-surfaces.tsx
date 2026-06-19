@@ -1,14 +1,11 @@
 import type { ComponentType } from "react"
 
 import { IconBrandClaude } from "@/components/custom-icons/brand-claude"
+import { IconBrandGemini } from "@/components/custom-icons/brand-gemini"
 import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
-import { IconBrandHackerNews } from "@/components/custom-icons/brand-hacker-news"
 import IconBrandPerplexity from "@/components/custom-icons/brand-perplexity"
-import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
-import { IconBrandBluesky } from "@tabler/icons-react"
 import { IconBrandBing } from "../custom-icons/brand-bing"
 import { IconBrandChatGPT } from "../custom-icons/brand-chatgpt"
-import { IconBrandXCustom } from "../custom-icons/brand-x"
 
 type Surface = {
   name: string
@@ -16,6 +13,10 @@ type Surface = {
 }
 
 const surfaces: Surface[] = [
+  {
+    name: "Google",
+    Icon: IconBrandGoogle,
+  },
   {
     name: "Claude",
     Icon: IconBrandClaude,
@@ -29,28 +30,12 @@ const surfaces: Surface[] = [
     Icon: IconBrandPerplexity,
   },
   {
-    name: "Google",
-    Icon: IconBrandGoogle,
+    name: "Gemini",
+    Icon: IconBrandGemini,
   },
   {
     name: "Bing",
     Icon: IconBrandBing,
-  },
-  {
-    name: "Reddit",
-    Icon: IconBrandRedditNew,
-  },
-  {
-    name: "Bluesky",
-    Icon: IconBrandBluesky,
-  },
-  {
-    name: "X",
-    Icon: IconBrandXCustom,
-  },
-  {
-    name: "Hacker News",
-    Icon: IconBrandHackerNews,
   },
 ]
 

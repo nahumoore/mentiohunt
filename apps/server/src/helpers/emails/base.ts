@@ -18,9 +18,9 @@ export function pluralize(count: number, singular: string, plural = `${singular}
   return `${count} ${count === 1 ? singular : plural}`
 }
 
-export function statCard(label: string, value: string, detail: string) {
+export function statCard(label: string, value: string, detail: string, width = "50%") {
   return `
-    <td class="mobile-stack" width="50%" style="padding:0 6px 12px;">
+    <td class="mobile-stack" width="${width}" style="padding:0 6px 12px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #F0ECE8; border-radius:12px; background-color:#FFFFFF;">
         <tr>
           <td style="padding:18px;">

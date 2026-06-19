@@ -7,32 +7,32 @@ const faqs: FaqItem[] = [
   {
     question: "What is Mentiohunt?",
     answer:
-      "Mentiohunt is a distribution tool for founders and small marketing teams. It runs two engines in parallel: one that finds backlink opportunities from your published articles, and one that monitors Reddit and forums for posts where your product is a natural fit.",
+      "Mentiohunt is a managed backlink placement autopilot for founder-led B2B SaaS teams. It handles prospect discovery, outreach, and placement coordination end-to-end. Your only job is to approve or reject opportunities before anything goes live.",
   },
   {
-    question: "How does the backlink engine work?",
+    question: "How does it work?",
     answer:
-      "You provide your sitemap or article URLs. Mentiohunt fetches them daily, identifies websites where each article would be a good fit, surfaces contact details for the site owner, and prepares a ready-to-send email draft with the recipient address already attached.",
+      "You provide your site or article URLs. Mentiohunt runs daily discovery to find websites where your content is a relevant fit, surfaces contact details, and runs outreach on your behalf. Every opportunity includes a fit rationale, placement angle, and expected SEO value before you approve it.",
   },
   {
-    question: "What communities does the monitoring cover?",
+    question: "How does the approval workflow work?",
     answer:
-      "Community monitoring currently covers Reddit and public forums. When a thread matches your product, Mentiohunt generates a suggested reply and sends you an email alert so you can respond while the conversation is still active.",
+      "Every opportunity is surfaced to you before outreach starts. You see the target site, why it's a fit, and the outreach angle. Approve to proceed, reject to skip. Nothing goes live without your sign-off — approval is a core product behavior, not an add-on.",
   },
   {
     question: "How does Mentiohunt score opportunities?",
     answer:
-      "Each prospect is ranked by fit: how closely the target site or post aligns with your article's topic, audience, and outreach angle. Every score comes with a plain-language rationale so you can decide whether it deserves your time before acting.",
+      "Each prospect is ranked by fit: how closely the target site aligns with your content's topic, audience, and outreach angle. Every score comes with a plain-language rationale so you understand why an opportunity was surfaced before acting on it.",
   },
   {
-    question: "Do I need to verify contact details manually?",
+    question: "How is this different from a link building agency?",
     answer:
-      "Mentiohunt surfaces contact details it finds during discovery, but does not claim they are verified. You should confirm accuracy before sending. The drafts and context are ready — final judgment stays with you.",
+      "More transparent and more controllable. You see the target site, fit rationale, and outreach draft before anything goes live. Agencies typically operate as a black box — you pay a retainer and get links without visibility into why. Mentiohunt charges a flat monthly fee, not a commission per link.",
   },
   {
-    question: "Is Mentiohunt right for agencies?",
+    question: "Is Mentiohunt right for my team size?",
     answer:
-      "The tool is built for founders and small in-house teams today. Multi-client agency workflows are on the roadmap but do not drive current product decisions. If your team manages a single product, you are the intended user.",
+      "Mentiohunt is built for founder-led B2B SaaS teams that can't justify running link building as an internal function — typically 2 to 30 people. If you're already using an agency or running outreach manually and it's eating time you don't have, it's a good fit.",
   },
 ]
 
@@ -61,8 +61,8 @@ export function Faq() {
             Common questions
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Everything you need to know before getting started with backlink
-            building and community monitoring.
+            Everything you need to know before getting started with managed
+            backlink placement.
           </p>
         </div>
 

@@ -1,6 +1,4 @@
-import Link from "next/link"
-
-import { IconArrowRight, IconCircleCheck } from "@tabler/icons-react"
+import { IconCircleCheck } from "@tabler/icons-react"
 
 export function AllReviewedEmpty() {
   return (
@@ -17,13 +15,6 @@ export function AllReviewedEmpty() {
           within the next few hours — check back soon.
         </p>
       </div>
-      <Link
-        href="/dashboard/mentions"
-        className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        Did you check the community queue yet?
-        <IconArrowRight className="size-3.5" />
-      </Link>
     </div>
   )
 }

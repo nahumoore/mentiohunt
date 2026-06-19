@@ -1,7 +1,0 @@
-export { MonitoringCta } from "./monitoring-cta"
-export { MonitoringFaq } from "./monitoring-faq"
-export { MonitoringFeedPreview } from "./monitoring-feed-preview"
-export { MonitoringHero } from "./monitoring-hero"
-export { MonitoringHowItWorks } from "./monitoring-how-it-works"
-export { MonitoringUseCases } from "./monitoring-use-cases"
-export { MonitoringWhy } from "./monitoring-why"

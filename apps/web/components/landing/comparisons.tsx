@@ -4,61 +4,74 @@ import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
 
 type Support = "yes" | "partial" | "no"
 
-type Feature = {
+type FeatureRow = {
+  type?: "support"
   label: string
-  seoTools: Support
-  outreachPlatforms: Support
+  agencies: Support
+  outreachSoftware: Support
   manual: Support
   mentiohunt: Support
 }
 
-const features: Feature[] = [
+type PricingRow = {
+  type: "pricing"
+  label: string
+  agencies: string
+  outreachSoftware: string
+  manual: string
+  mentiohunt: string
+}
+
+type Row = FeatureRow | PricingRow
+
+const features: Row[] = [
   {
-    label: "Built for founders & small teams",
-    seoTools: "no",
-    outreachPlatforms: "no",
-    manual: "yes",
-    mentiohunt: "yes",
-  },
-  {
-    label: "Backlink prospecting",
-    seoTools: "yes",
-    outreachPlatforms: "yes",
-    manual: "partial",
-    mentiohunt: "yes",
-  },
-  {
-    label: "Community monitoring",
-    seoTools: "no",
-    outreachPlatforms: "no",
-    manual: "partial",
-    mentiohunt: "yes",
-  },
-  {
-    label: "AI-drafted outreach & replies",
-    seoTools: "no",
-    outreachPlatforms: "partial",
+    label: "Prospect discovery handled for you",
+    agencies: "yes",
+    outreachSoftware: "no",
     manual: "no",
     mentiohunt: "yes",
   },
   {
-    label: "Daily ranked opportunity queue",
-    seoTools: "no",
-    outreachPlatforms: "no",
+    label: "Per-opportunity approval before outreach",
+    agencies: "no",
+    outreachSoftware: "no",
+    manual: "yes",
+    mentiohunt: "yes",
+  },
+  {
+    label: "Fit rationale on every placement",
+    agencies: "no",
+    outreachSoftware: "no",
+    manual: "yes",
+    mentiohunt: "yes",
+  },
+  {
+    label: "Managed end-to-end execution",
+    agencies: "yes",
+    outreachSoftware: "no",
     manual: "no",
     mentiohunt: "yes",
   },
   {
-    label: "Founder-friendly pricing",
-    seoTools: "no",
-    outreachPlatforms: "no",
-    manual: "yes",
+    label: "No campaign setup or management",
+    agencies: "yes",
+    outreachSoftware: "no",
+    manual: "no",
     mentiohunt: "yes",
+  },
+  {
+    type: "pricing",
+    label: "Typical monthly cost",
+    agencies: "$3k–$10k+",
+    outreachSoftware: "$400–$1,500",
+    manual: "Your time",
+    mentiohunt: "$49/mo",
   },
 ]
 
 const gridStyle: CSSProperties = {
-  gridTemplateColumns: "minmax(160px,1fr) 128px 140px 108px 128px",
+  gridTemplateColumns: "minmax(160px,1fr) 128px 148px 108px 128px",
 }
 
 function SupportIcon({
@@ -118,12 +131,12 @@ export function Comparisons() {
             id="comparisons-title"
             className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]"
           >
-            Built for founders, not agency teams.
+            More transparent than an agency. Less work than outreach software.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Most tools in this space target enterprise SEO teams or outreach
-            agencies. Mentiohunt is designed for the founder running
-            distribution themselves.
+            Agencies are opaque. Outreach software still makes you run
+            campaigns. Mentiohunt handles execution while you stay in control
+            of every placement.
           </p>
         </div>
 
@@ -134,18 +147,18 @@ export function Comparisons() {
               <div />
               <div className="self-end pb-3 text-center">
                 <span className="block text-xs font-semibold text-foreground/55">
-                  SEO Platforms
+                  Agencies
                 </span>
                 <span className="mt-0.5 block text-[0.63rem] text-muted-foreground/40">
-                  Ahrefs, SEMrush
+                  done-for-you services
                 </span>
               </div>
               <div className="self-end pb-3 text-center">
                 <span className="block text-xs font-semibold text-foreground/55">
-                  Outreach Tools
+                  Outreach Software
                 </span>
                 <span className="mt-0.5 block text-[0.63rem] text-muted-foreground/40">
-                  Pitchbox, BuzzStream
+                  Pitchbox, Respona
                 </span>
               </div>
               <div className="self-end pb-3 text-center">
@@ -164,35 +177,69 @@ export function Comparisons() {
             </div>
 
             {/* Feature rows */}
-            {features.map((feature, i) => {
+            {features.map((row, i) => {
               const isLast = i === features.length - 1
+              const isPricing = row.type === "pricing"
               return (
                 <div
-                  key={feature.label}
+                  key={row.label}
                   style={gridStyle}
                   className="grid border-t border-border/50"
                 >
                   <div className="py-4 pr-4 text-sm text-foreground/75">
-                    {feature.label}
+                    {row.label}
                   </div>
-                  <div className="flex items-center justify-center py-4">
-                    <SupportIcon support={feature.seoTools} />
-                  </div>
-                  <div className="flex items-center justify-center py-4">
-                    <SupportIcon support={feature.outreachPlatforms} />
-                  </div>
-                  <div className="flex items-center justify-center py-4">
-                    <SupportIcon support={feature.manual} />
-                  </div>
-                  <div
-                    className={`mx-2 flex items-center justify-center border-x border-[var(--color-blaze-orange)]/25 py-4 ${
-                      isLast
-                        ? "rounded-b-2xl border-b border-[var(--color-blaze-orange)]/25"
-                        : ""
-                    }`}
-                  >
-                    <SupportIcon support={feature.mentiohunt} highlight />
-                  </div>
+                  {isPricing ? (
+                    <>
+                      <div className="flex items-center justify-center py-4">
+                        <span className="text-xs font-medium text-muted-foreground/60">
+                          {(row as PricingRow).agencies}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-center py-4">
+                        <span className="text-xs font-medium text-muted-foreground/60">
+                          {(row as PricingRow).outreachSoftware}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-center py-4">
+                        <span className="text-xs font-medium text-muted-foreground/60">
+                          {(row as PricingRow).manual}
+                        </span>
+                      </div>
+                      <div
+                        className={`mx-2 flex items-center justify-center border-x border-[var(--color-blaze-orange)]/25 py-4 ${
+                          isLast
+                            ? "rounded-b-2xl border-b border-[var(--color-blaze-orange)]/25"
+                            : ""
+                        }`}
+                      >
+                        <span className="text-xs font-semibold text-[var(--color-blaze-orange)]">
+                          {(row as PricingRow).mentiohunt}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-center py-4">
+                        <SupportIcon support={(row as FeatureRow).agencies} />
+                      </div>
+                      <div className="flex items-center justify-center py-4">
+                        <SupportIcon support={(row as FeatureRow).outreachSoftware} />
+                      </div>
+                      <div className="flex items-center justify-center py-4">
+                        <SupportIcon support={(row as FeatureRow).manual} />
+                      </div>
+                      <div
+                        className={`mx-2 flex items-center justify-center border-x border-[var(--color-blaze-orange)]/25 py-4 ${
+                          isLast
+                            ? "rounded-b-2xl border-b border-[var(--color-blaze-orange)]/25"
+                            : ""
+                        }`}
+                      >
+                        <SupportIcon support={(row as FeatureRow).mentiohunt} highlight />
+                      </div>
+                    </>
+                  )}
                 </div>
               )
             })}
@@ -215,6 +262,21 @@ export function Comparisons() {
           <span className="flex items-center gap-1.5">
             <IconX className="h-3 w-3" /> Not supported
           </span>
+        </div>
+
+        <div className="mx-auto mt-10 flex max-w-5xl justify-center">
+          <div className="inline-flex items-start gap-3 rounded-xl border border-border/40 bg-muted/30 px-5 py-4 text-left">
+            <span className="mt-0.5 text-[var(--color-blaze-orange)]/60 text-base leading-none">✦</span>
+            <div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Agencies and outreach platforms charge a big commission per link.
+              </p>
+              <p className="mt-1 text-sm font-semibold text-muted-foreground leading-relaxed">
+                Mentiohunt automates the outreach end-to-end — you see real
+                prices, real prospects, and every placement before it goes live.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>

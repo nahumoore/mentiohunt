@@ -4,20 +4,17 @@ import { timingSafeEqual } from "node:crypto"
 import { sendOnboardingCompleteEmail } from "../helpers/emails/send-onboarding-complete.js"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
 import { discoverCompetitorBacklinks } from "../methods/competitor-backlinks/discover-competitor-backlinks.js"
+import { crawlProductPages } from "../methods/product-pages/crawl-product-pages.js"
 import { discoverUnlinkedMentions } from "../methods/unlinked-mentions/discover-unlinked-mentions.js"
 import { findDirectoryOpportunitiesForProduct } from "./find-directory-opportunities.js"
-import { runReplyQueueForConfig } from "./run-reply-queue.js"
 
 const log = createLogger("route-onboarding-complete")
-
-const SEND_INDIVIDUAL_ONBOARDING_EMAILS = false
 
 // Light cap for the first (onboarding) discovery run — keep it fast and cheap.
 // Daily jobs call the discovery methods without limits (full defaults).
 const ONBOARDING_BACKLINK_LIMITS = { maxCompetitors: 2, maxProspects: 10 }
 const ONBOARDING_MENTION_LIMITS = { maxCandidates: 12, maxProspects: 10 }
 
-type ReplyQueueOnboardingResult = Awaited<ReturnType<typeof runReplyQueueForConfig>>
 type DirectoryOnboardingResult = Awaited<ReturnType<typeof findDirectoryOpportunitiesForProduct>>
 
 export const onboardingCompleteRouter: IRouter = Router()
@@ -43,15 +40,20 @@ function readBodyString(body: unknown, key: string) {
 async function sendOnboardingSummaryEmail({
   userId,
   productId,
-  replyQueueResult,
   directoryResult,
   backlinkDiscoveryResult,
+  pagesResult,
 }: {
   userId: string
   productId: string
-  replyQueueResult: PromiseSettledResult<ReplyQueueOnboardingResult>
   directoryResult: PromiseSettledResult<DirectoryOnboardingResult>
   backlinkDiscoveryResult: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }>
+  pagesResult: PromiseSettledResult<{
+    pagesFound: number
+    pagesCrawled: number
+    pagesFailed: number
+    totalCostUsd: number
+  }>
 }) {
   const [
     { data: profile, error: profileError },
@@ -91,9 +93,9 @@ async function sendOnboardingSummaryEmail({
     userId,
     userName: profile.name,
     productName: product.product_name,
-    replyQueueResult,
     directoryResult,
     backlinkResult: backlinkDiscoveryResult,
+    pagesResult,
   })
 }
 
@@ -106,23 +108,31 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
 
   const userId = readBodyString(req.body, "userId")
   const productId = readBodyString(req.body, "productId")
-  const replyQueueConfigId = readBodyString(req.body, "replyQueueConfigId")
 
-  if (!userId || !productId || !replyQueueConfigId) {
+  if (!userId || !productId) {
     res.status(400).json({
-      error: "userId, productId, and replyQueueConfigId are required",
+      error: "userId and productId are required",
     })
     return
   }
 
-  return withRouteLog(`onboarding-complete-${productId}`, () => runOnboardingJobs(res, userId, productId, replyQueueConfigId))
+  const rawPageLimit =
+    req.body !== null && typeof req.body === "object"
+      ? Number((req.body as Record<string, unknown>)["pageLimit"])
+      : NaN
+  const pageLimit = Number.isFinite(rawPageLimit) && rawPageLimit > 0 ? rawPageLimit : 50
+
+  res.status(202).json({ queued: true })
+
+  withRouteLog(`onboarding-complete-${productId}`, () => runOnboardingJobs(userId, productId, pageLimit)).catch(
+    (err) => log.error("unhandled onboarding jobs error", { error: String(err) })
+  )
 })
 
 async function runOnboardingJobs(
-  res: import("express").Response,
   userId: string,
   productId: string,
-  replyQueueConfigId: string
+  pageLimit: number
 ) {
 
   async function setEngineStatus(engine: string, status: "running" | "done" | "failed") {
@@ -134,15 +144,15 @@ async function runOnboardingJobs(
 
   try {
     const t0 = Date.now()
-    log.info("jobs START", { userId, productId, replyQueueConfigId })
+    log.info("jobs START", { userId, productId })
 
     const { error: statusUpdateError } = await supabaseAdmin
       .from("backlink_prospects_settings")
       .update({
         discovery_status: {
-          community: "running",
           directories: "running",
           backlinks: "running",
+          pages: "running",
           started_at: new Date().toISOString(),
           total: 3,
         },
@@ -153,29 +163,28 @@ async function runOnboardingJobs(
       log.error("failed to set initial discovery_status", { productId, error: statusUpdateError.message })
     }
 
-    const [replyQueueResult, directoryResult, backlinkDiscoveryResult] = await Promise.allSettled([
-      (async () => {
-        const t = Date.now()
-        log.info("runReplyQueueForConfig START", { configId: replyQueueConfigId })
-        let failed = false
-        try {
-          const result = await runReplyQueueForConfig({
-            configId: replyQueueConfigId,
-            userId,
-            sendEmailAlerts: SEND_INDIVIDUAL_ONBOARDING_EMAILS,
-            maxPosts: 50,
-          })
-          log.success("runReplyQueueForConfig done", { durationMs: Date.now() - t, result })
-          return result
-        } catch (err) {
-          failed = true
-          log.error("runReplyQueueForConfig FAILED", { durationMs: Date.now() - t, error: String(err) })
-          await setEngineStatus("community", "failed")
-          throw err
-        } finally {
-          if (!failed) await setEngineStatus("community", "done")
-        }
-      })(),
+    // Fetch product + settings once, shared across both discovery branches.
+    const { data: product, error: productError } = await supabaseAdmin
+      .from("products")
+      .select("id, user_id, product_name, product_description, website_url, competitors")
+      .eq("id", productId)
+      .single()
+
+    if (productError) log.warn("product fetch error", { productId, error: productError.message })
+
+    const { data: settings, error: settingsError } = await supabaseAdmin
+      .from("backlink_prospects_settings")
+      .select("dr_min, dr_max, voice_tone, offering, opportunity_types")
+      .eq("product_id", productId)
+      .single()
+
+    if (settingsError) log.warn("settings fetch error", { productId, error: settingsError.message })
+
+    const filterSettings = { dr_min: settings?.dr_min ?? 0, dr_max: settings?.dr_max ?? null }
+    const emailSettings = { voice_tone: settings?.voice_tone ?? null, offering: settings?.offering ?? null }
+    const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention"]
+
+    const [directoryResult, backlinkDiscoveryResult, mentionDiscoveryResult, pagesResult] = await Promise.allSettled([
       (async () => {
         const t = Date.now()
         log.info("findDirectoryOpportunities START", { productId })
@@ -194,62 +203,22 @@ async function runOnboardingJobs(
         }
       })(),
       (async () => {
+        if (!product || !opportunityTypes.includes("competitor_backlink")) {
+          if (!product) log.warn("discoverCompetitorBacklinks: product not found, skipping", { productId })
+          return { prospectsCreated: 0, totalCostUsd: 0 }
+        }
         const t = Date.now()
         log.info("discoverCompetitorBacklinks START", { productId })
         let failed = false
         try {
-          const { data: product, error: productError } = await supabaseAdmin
-            .from("products")
-            .select("id, user_id, product_name, product_description, website_url, competitors")
-            .eq("id", productId)
-            .single()
-
-          if (productError) log.warn("discoverCompetitorBacklinks: product fetch error", { error: productError.message })
-          if (!product) {
-            log.warn("discoverCompetitorBacklinks: product not found, skipping", { productId })
-            return { prospectsCreated: 0, totalCostUsd: 0 }
-          }
-
-          const { data: settings, error: settingsError } = await supabaseAdmin
-            .from("backlink_prospects_settings")
-            .select("dr_min, dr_max, voice_tone, offering, opportunity_types")
-            .eq("product_id", productId)
-            .single()
-
-          if (settingsError) log.warn("discoverCompetitorBacklinks: settings fetch error", { error: settingsError.message })
-
-          const filterSettings = { dr_min: settings?.dr_min ?? 0, dr_max: settings?.dr_max ?? null }
-          const emailSettings = { voice_tone: settings?.voice_tone ?? null, offering: settings?.offering ?? null }
-          const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention"]
-
-          let prospectsCreated = 0
-          let totalCostUsd = 0
-
-          if (opportunityTypes.includes("competitor_backlink")) {
-            const result = await discoverCompetitorBacklinks(
-              { ...product, competitors: (product.competitors as string[]) ?? [] },
-              filterSettings,
-              emailSettings,
-              ONBOARDING_BACKLINK_LIMITS
-            )
-            prospectsCreated += result.prospectsCreated
-            totalCostUsd += result.totalCostUsd
-            log.success("discoverCompetitorBacklinks done", { durationMs: Date.now() - t, ...result })
-          }
-
-          if (opportunityTypes.includes("unlinked_mention")) {
-            const result = await discoverUnlinkedMentions(
-              product,
-              filterSettings,
-              emailSettings,
-              ONBOARDING_MENTION_LIMITS
-            )
-            prospectsCreated += result.prospectsCreated
-            totalCostUsd += result.totalCostUsd
-            log.success("discoverUnlinkedMentions done", { durationMs: Date.now() - t, ...result })
-          }
-
-          return { prospectsCreated, totalCostUsd }
+          const result = await discoverCompetitorBacklinks(
+            { ...product, competitors: (product.competitors as string[]) ?? [] },
+            filterSettings,
+            emailSettings,
+            ONBOARDING_BACKLINK_LIMITS
+          )
+          log.success("discoverCompetitorBacklinks done", { durationMs: Date.now() - t, ...result })
+          return result
         } catch (err) {
           failed = true
           log.error("discoverCompetitorBacklinks FAILED", { durationMs: Date.now() - t, error: String(err) })
@@ -259,16 +228,42 @@ async function runOnboardingJobs(
           if (!failed) await setEngineStatus("backlinks", "done")
         }
       })(),
+      (async () => {
+        if (!product || !opportunityTypes.includes("unlinked_mention")) {
+          if (!product) log.warn("discoverUnlinkedMentions: product not found, skipping", { productId })
+          return { prospectsCreated: 0, totalCostUsd: 0 }
+        }
+        const t = Date.now()
+        log.info("discoverUnlinkedMentions START", { productId })
+        try {
+          const result = await discoverUnlinkedMentions(product, filterSettings, emailSettings, ONBOARDING_MENTION_LIMITS)
+          log.success("discoverUnlinkedMentions done", { durationMs: Date.now() - t, ...result })
+          return result
+        } catch (err) {
+          log.error("discoverUnlinkedMentions FAILED", { durationMs: Date.now() - t, error: String(err) })
+          throw err
+        }
+      })(),
+      (async () => {
+        const t = Date.now()
+        log.info("crawlProductPages START", { productId, pageLimit })
+        let failed = false
+        try {
+          const result = await crawlProductPages(productId, pageLimit)
+          log.success("crawlProductPages done", { durationMs: Date.now() - t, ...result })
+          return result
+        } catch (err) {
+          failed = true
+          log.error("crawlProductPages FAILED", { durationMs: Date.now() - t, error: String(err) })
+          await setEngineStatus("pages", "failed")
+          throw err
+        } finally {
+          if (!failed) await setEngineStatus("pages", "done")
+        }
+      })(),
     ])
 
     log.info("all jobs END", { durationMs: Date.now() - t0 })
-
-    if (replyQueueResult.status === "rejected") {
-      log.error("onboarding reply queue run failed", {
-        configId: replyQueueConfigId,
-        error: String(replyQueueResult.reason),
-      })
-    }
 
     if (directoryResult.status === "rejected") {
       log.error("onboarding directory discovery failed", {
@@ -284,22 +279,45 @@ async function runOnboardingJobs(
       })
     }
 
+    if (mentionDiscoveryResult.status === "rejected") {
+      log.error("onboarding mention discovery failed", {
+        productId,
+        error: String(mentionDiscoveryResult.reason),
+      })
+    }
+
+    if (pagesResult.status === "rejected") {
+      log.error("onboarding page crawl failed", {
+        productId,
+        error: String(pagesResult.reason),
+      })
+    }
+
+    // Merge competitor backlinks + unlinked mentions into one result for the summary email.
+    const combinedBacklinkResult: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }> =
+      backlinkDiscoveryResult.status === "fulfilled" || mentionDiscoveryResult.status === "fulfilled"
+        ? {
+            status: "fulfilled",
+            value: {
+              prospectsCreated:
+                (backlinkDiscoveryResult.status === "fulfilled" ? backlinkDiscoveryResult.value.prospectsCreated : 0) +
+                (mentionDiscoveryResult.status === "fulfilled" ? mentionDiscoveryResult.value.prospectsCreated : 0),
+              totalCostUsd:
+                (backlinkDiscoveryResult.status === "fulfilled" ? backlinkDiscoveryResult.value.totalCostUsd : 0) +
+                (mentionDiscoveryResult.status === "fulfilled" ? mentionDiscoveryResult.value.totalCostUsd : 0),
+            },
+          }
+        : backlinkDiscoveryResult
+
     await sendOnboardingSummaryEmail({
       userId,
       productId,
-      replyQueueResult,
       directoryResult,
-      backlinkDiscoveryResult,
-    })
-
-    res.json({
-      success: true,
-      replyQueue: replyQueueResult.status === "fulfilled" ? replyQueueResult.value : null,
-      directoryOpportunities: directoryResult.status === "fulfilled" ? directoryResult.value : null,
-      backlinkDiscovery: backlinkDiscoveryResult.status === "fulfilled" ? backlinkDiscoveryResult.value : null,
+      backlinkDiscoveryResult: combinedBacklinkResult,
+      pagesResult,
     })
   } catch (err) {
     log.error("unhandled onboarding jobs error", { error: String(err) })
-    res.status(500).json({ error: "Failed to run onboarding jobs." })
+    throw err
   }
 }

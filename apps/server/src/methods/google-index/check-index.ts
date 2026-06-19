@@ -1,12 +1,11 @@
-import { XMLParser } from "fast-xml-parser"
 import {
   SCRAPERLINK_GOOGLE_SERP,
   type GoogleSerpInput,
   type GoogleSerpItem,
 } from "../../helpers/actors/google-serp-scraper.js"
 import { runApifyActor } from "../../helpers/actors/run-apify-actor.js"
-import { fetchWithRetry } from "../../helpers/http.js"
 import { createLogger } from "../../helpers/logger.js"
+import { fetchSitemapUrls, isSitemapUrl } from "../../helpers/sitemap.js"
 
 const PAGE_LIMIT = 100
 
@@ -61,86 +60,11 @@ function urlToTitle(url: string): string {
   }
 }
 
-async function fetchSitemapUrls(sitemapUrl: string, depth = 0): Promise<string[]> {
-  if (depth > 1) return []
-
-  log.info("fetching sitemap", { url: sitemapUrl, depth })
-
-  let body: string
-  try {
-    const res = await fetchWithRetry(sitemapUrl, { timeoutMs: 15_000, maxAttempts: 2 })
-    body = res.body
-  } catch (err) {
-    log.error("sitemap fetch failed", { url: sitemapUrl, err: String(err) })
-    throw new Error("Could not fetch sitemap. Check the URL and try again.")
-  }
-
-  const parser = new XMLParser({ ignoreAttributes: false })
-  let parsed: unknown
-  try {
-    parsed = parser.parse(body)
-  } catch {
-    throw new Error("Could not parse sitemap XML.")
-  }
-
-  if (
-    parsed !== null &&
-    typeof parsed === "object" &&
-    "sitemapindex" in parsed &&
-    (parsed as Record<string, unknown>).sitemapindex !== null
-  ) {
-    const idx = (parsed as Record<string, unknown>).sitemapindex as Record<string, unknown>
-    const sitemaps = Array.isArray(idx.sitemap) ? idx.sitemap : idx.sitemap ? [idx.sitemap] : []
-    log.info("sitemap index found", { childCount: sitemaps.length })
-    const first = sitemaps[0]
-    const loc = first
-      ? typeof first === "string"
-        ? first
-        : (first as Record<string, unknown>).loc
-      : null
-    if (loc && typeof loc === "string") return fetchSitemapUrls(loc, depth + 1)
-    return []
-  }
-
-  if (
-    parsed !== null &&
-    typeof parsed === "object" &&
-    "urlset" in parsed &&
-    (parsed as Record<string, unknown>).urlset !== null
-  ) {
-    const urlset = (parsed as Record<string, unknown>).urlset as Record<string, unknown>
-    const urls = Array.isArray(urlset.url) ? urlset.url : urlset.url ? [urlset.url] : []
-    const result = urls
-      .map((u: unknown) => {
-        if (typeof u === "string") return u
-        if (u && typeof u === "object" && "loc" in u) {
-          const loc = (u as Record<string, unknown>).loc
-          return typeof loc === "string" ? loc : String(loc)
-        }
-        return null
-      })
-      .filter((u): u is string => u !== null && u.startsWith("http"))
-    log.info("sitemap parsed", { urlCount: result.length })
-    return result
-  }
-
-  throw new Error("No URLs found in sitemap. Make sure it's a valid sitemap.xml file.")
-}
-
 function parseDirectUrls(input: string): string[] {
   return input
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.startsWith("http"))
-}
-
-function isSitemapUrl(url: string): boolean {
-  try {
-    const pathname = new URL(url).pathname.toLowerCase()
-    return pathname.endsWith(".xml") || pathname.includes("sitemap")
-  } catch {
-    return url.toLowerCase().includes(".xml") || url.toLowerCase().includes("sitemap")
-  }
 }
 
 async function fetchIndexedPages(domain: string): Promise<Map<string, string>> {

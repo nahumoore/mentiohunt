@@ -13,26 +13,27 @@ import {
   SoftwareApplicationSchema,
   TargetPersonas,
   Testimonials,
+  WhyMentiohunt,
 } from "@/components/landing"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
+  title: "Mentiohunt – Backlink Placement Autopilot for Founders",
   description:
-    "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details and email drafts.",
+    "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
   openGraph: {
-    title: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
+    title: "Mentiohunt – Backlink Placement Autopilot for Founders",
     description:
-      "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details and email drafts.",
+      "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
     url: "https://mentiohunt.com",
     siteName: "Mentiohunt",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mentiohunt – Backlink Building & Community Monitoring for Founders",
+    title: "Mentiohunt – Backlink Placement Autopilot for Founders",
     description:
-      "Build backlinks from your articles and monitor Reddit for posts where your product fits — with outreach-ready contact details and email drafts.",
+      "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
   },
 }
 
@@ -46,6 +47,7 @@ export default function Page() {
         <BigTestimonial />
         <BrandMentionSources />
         <AIMentionsOpportunities />
+        <WhyMentiohunt />
         <HowItWorks />
         <Comparisons />
         <TargetPersonas />

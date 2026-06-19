@@ -9,13 +9,11 @@ import {
   useDiscoveryProgress,
 } from "@/hooks/use-discovery-progress"
 import {
-  IconBrandReddit,
   IconCheck,
   IconChevronRight,
-  IconExternalLink,
+  IconFileText,
   IconLink,
   IconLoader2,
-  IconNews,
   IconWorld,
   IconX,
 } from "@tabler/icons-react"
@@ -24,15 +22,15 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
 const ENGINE_LABELS: Record<EngineKey, string> = {
-  community: "Community mentions",
   directories: "Directories",
   backlinks: "Backlink opportunities",
+  pages: "Product pages",
 }
 
 const ITEM_ICONS: Record<DiscoveryItemType, React.ComponentType<{ size?: number; className?: string }>> = {
   backlink: IconLink,
   directory: IconWorld,
-  community: IconBrandReddit,
+  page: IconFileText,
 }
 
 function EngineRow({ engineKey, status }: { engineKey: EngineKey; status: DiscoveryStatus }) {
@@ -77,16 +75,18 @@ function ItemCard({ item }: { item: DiscoveryItem }) {
   )
 }
 
-const ENGINE_KEYS: EngineKey[] = ["community", "directories", "backlinks"]
+const ENGINE_KEYS: EngineKey[] = ["directories", "backlinks", "pages"]
 
 export function DiscoveryProgressIsland({
   productId,
   userId,
   initialStatus,
+  productName,
 }: {
   productId: string
   userId: string
   initialStatus: DiscoveryStatus | null
+  productName: string
 }) {
   const router = useRouter()
   const { status, items, doneCount, isDiscovering } = useDiscoveryProgress(
@@ -95,7 +95,7 @@ export function DiscoveryProgressIsland({
     initialStatus
   )
   const [dismissed, setDismissed] = useState(false)
-  const allDone = status !== null && doneCount === (status.total ?? 3)
+  const allDone = status !== null && doneCount === (status.total ?? 2)
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const didRefresh = useRef(false)
   // Only show if discovery was still in-flight at mount (at least one engine running/pending).
@@ -138,7 +138,7 @@ export function DiscoveryProgressIsland({
             <motion.div
               className="h-1 bg-blaze-orange"
               initial={{ width: 0 }}
-              animate={{ width: `${(doneCount / (status.total ?? 3)) * 100}%` }}
+              animate={{ width: `${(doneCount / (status.total ?? 2)) * 100}%` }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             />
           </div>
@@ -154,7 +154,7 @@ export function DiscoveryProgressIsland({
                 )}
                 <span className="text-xs font-semibold text-foreground">
                   {isDiscovering
-                    ? `Discovering opportunities… ${doneCount}/${status.total ?? 3}`
+                    ? `Analyzing ${productName}… ${doneCount}/${status.total ?? 3}`
                     : `Discovery complete — ${items.length} found`}
                 </span>
               </div>

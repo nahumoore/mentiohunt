@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from fastapi import HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
-from scrapling.fetchers import PlayWrightFetcher
+from scrapling.fetchers import Fetcher, PlayWrightFetcher, StealthyFetcher
 
 from agent_enrich import AgentScrapeResponse, run_agent_scrape
 
@@ -44,7 +44,9 @@ def _execution_log(route: str):
         handler.close()
 
 
-fetcher = PlayWrightFetcher()
+_light_fetcher = Fetcher()
+_dynamic_fetcher = PlayWrightFetcher()
+_browser_semaphore = threading.Semaphore(1)
 
 API_KEY = os.getenv("API_KEY")
 _api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
@@ -181,13 +183,36 @@ def get_base_url(url: str) -> str:
 
 def fetch_page(url: str):
     try:
-        log.info(f"fetching {url}")
-        page = fetcher.fetch(url, headless=True, network_idle=True, stealth=True, timeout=60000)
-        log.info(f"fetched ok {url} status={page.status}")
-        return page
+        log.info(f"fetching lightweight {url}")
+        page = _light_fetcher.get(url, timeout=15000, stealthy_headers=True)
+        text = str(page.get_all_text()).strip()
+        if len(text) >= 500:
+            log.info(f"fetched ok (light) {url}")
+            return page
+        log.info(f"light fetch thin content ({len(text)} chars), escalating to playwright {url}")
     except Exception as e:
-        log.error(f"fetch failed {url}: {e}")
-        return None
+        log.warning(f"light fetch failed {url}: {e}, escalating to playwright")
+
+    with _browser_semaphore:
+        try:
+            log.info(f"fetching playwright {url}")
+            page = _dynamic_fetcher.fetch(url, headless=True, disable_resources=True, timeout=60000)
+            text = str(page.get_all_text()).strip()
+            if len(text) >= 500:
+                log.info(f"fetched ok (playwright) {url}")
+                return page
+            log.info(f"playwright fetch thin content ({len(text)} chars), escalating to stealthy {url}")
+        except Exception as e:
+            log.warning(f"playwright fetch failed {url}: {e}, escalating to stealthy")
+
+        try:
+            log.info(f"fetching stealthy {url}")
+            page = StealthyFetcher.fetch(url, headless=True, disable_resources=True, timeout=60000)
+            log.info(f"fetched ok (stealthy) {url}")
+            return page
+        except Exception as e:
+            log.error(f"stealthy fetch failed {url}: {e}")
+            return None
 
 
 def find_contact_form_url(page, base_url: str) -> str | None:
@@ -208,8 +233,6 @@ def _first_el(page, *selectors):
             return el
     return None
 
-
-_scrape_semaphore = threading.Semaphore(1)
 
 _AGENT_HELPERS = None
 
@@ -276,7 +299,6 @@ __all__ = [
     "log",
     "_execution_log",
     "_require_api_key",
-    "_scrape_semaphore",
     "_get_agent_helpers",
     "_seeded_helpers",
     "_links_to_target",

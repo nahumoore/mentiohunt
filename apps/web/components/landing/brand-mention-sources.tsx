@@ -11,7 +11,7 @@ type Factor = {
 
 const factors: Factor[] = [
   {
-    label: "Mentions across blogs, forums & news",
+    label: "Mentions across blogs & news",
     sublabel: "Product web mentions",
     value: 0.664,
   },
@@ -102,7 +102,7 @@ function FactorRow({ factor, index }: { factor: Factor; index: number }) {
 
 export function BrandMentionSources() {
   return (
-    <section className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32">
+    <section className="relative overflow-hidden bg-background py-20 pb-10 sm:py-24 sm:pb-12 lg:py-32 lg:pb-16">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-1/2 left-1/2 h-[32rem] w-[32rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-princeton-orange)]/6 blur-[120px]" />
         <div className="absolute top-0 right-0 h-[20rem] w-[20rem] translate-x-1/3 -translate-y-1/4 rounded-full bg-[var(--color-amber-flame)]/7 blur-[90px]" />
@@ -142,7 +142,7 @@ export function BrandMentionSources() {
               <div className="h-px bg-[var(--color-blaze-orange)]/15 sm:hidden" />
               <div className="flex flex-wrap gap-2">
                 {[
-                  "Web mentions",
+                  "Editorial mentions",
                   "Domain authority",
                   "Backlink diversity",
                 ].map((label) => (

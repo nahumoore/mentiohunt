@@ -3,7 +3,6 @@ import type { MetadataRoute } from "next"
 import { features } from "@/consts/features"
 import { ALL_FREE_TOOL_SLUGS } from "@/consts/free-tools"
 import { getResourceSlugs } from "@/lib/mdx"
-import { ALL_MONITORING_CONFIGS } from "@/consts/community-monitoring"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const altSlugs = getResourceSlugs("alternatives")
@@ -88,11 +87,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-05-15"),
       priority: 0.7,
     },
-    ...ALL_MONITORING_CONFIGS.map((config) => ({
-      url: `https://mentiohunt.com/${config.slug}`,
-      lastModified: new Date("2026-06-08"),
-      priority: 0.8 as const,
-    })),
     { url: "https://mentiohunt.com/privacy", priority: 0.3 as const },
     { url: "https://mentiohunt.com/tos", priority: 0.3 as const },
   ]

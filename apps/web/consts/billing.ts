@@ -1,6 +1,7 @@
 import type { Database } from "@workspace/supabase/database-types"
 
 export const FREE_TRIAL_DAYS = 7
+export const FREE_TRIAL_MAX_PAGES = 50
 
 export type BillingTier = Database["public"]["Enums"]["billing_tier"]
 
@@ -43,9 +44,9 @@ export const PLANS: Plan[] = [
     key: "agency",
     tier: PLAN_TIERS.agency,
     stripePriceId: "price_1TYvkzHoiNfmn8GhMduOno62",
-    name: "Agency",
+    name: "Growth",
     price: "99",
-    description: "For teams and agencies managing multiple sites.",
+    description: "For growth teams and SEO leads managing multiple sites.",
     features: [
       "Up to 5 websites",
       "Unlimited competitors per site",

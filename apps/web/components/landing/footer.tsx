@@ -2,26 +2,18 @@ import Link from "next/link"
 import type { ComponentType } from "react"
 
 import { features } from "@/consts/features"
-import { IconBrandBluskyCustom } from "@/components/custom-icons/brand-blusky"
 import { IconBrandClaude } from "@/components/custom-icons/brand-claude"
 import { IconBrandChatGPT } from "@/components/custom-icons/brand-chatgpt"
 import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
-import { IconBrandHackerNews } from "@/components/custom-icons/brand-hacker-news"
 import IconBrandPerplexity from "@/components/custom-icons/brand-perplexity"
-import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
-import { IconBrandXCustom } from "@/components/custom-icons/brand-x"
 import { Button } from "@workspace/ui/components/button"
 import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
 
-const discoveryPlatforms: { name: string; Icon: ComponentType<{ className?: string }> }[] = [
+const aiPlatforms: { name: string; Icon: ComponentType<{ className?: string }> }[] = [
   { name: "Claude", Icon: IconBrandClaude },
   { name: "ChatGPT", Icon: IconBrandChatGPT },
   { name: "Perplexity", Icon: IconBrandPerplexity },
   { name: "Google", Icon: IconBrandGoogle },
-  { name: "Reddit", Icon: IconBrandRedditNew },
-  { name: "Bluesky", Icon: IconBrandBluskyCustom },
-  { name: "X", Icon: IconBrandXCustom },
-  { name: "Hacker News", Icon: IconBrandHackerNews },
 ]
 
 const productLinks = [
@@ -45,12 +37,6 @@ const resourceLinks = [
   { href: "/compare", label: "Tool Comparisons" },
 ]
 
-const monitoringLinks = [
-  { href: "/reddit-monitoring", label: "Reddit Monitoring" },
-  { href: "/quora-monitoring", label: "Quora Monitoring" },
-  { href: "/twitter-monitoring", label: "X (Twitter) Monitoring" },
-]
-
 const legalLinks = [
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/tos", label: "Terms of Service" },
@@ -59,7 +45,7 @@ const legalLinks = [
 const stats = [
   { value: "Daily", label: "opportunity queue" },
   { value: "AI", label: "fit scoring" },
-  { value: "Zero", label: "cold prospecting" },
+  { value: "Zero", label: "outreach work for you" },
 ]
 
 function FooterSocialProof() {
@@ -201,9 +187,9 @@ export function Footer() {
               </h2>
 
               <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-                Mentiohunt turns your site, niche, keywords, and competitors
-                into a recurring stream of outreach opportunities — each with
-                fit rationale and a clear next step.
+                Mentiohunt discovers backlink opportunities, runs outreach, and
+                manages placements end-to-end. You approve or reject — nothing
+                else required.
               </p>
 
               <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -211,7 +197,7 @@ export function Footer() {
                   Get discovered across
                 </span>
                 <div className="flex items-center gap-1.5">
-                  {discoveryPlatforms.map(({ name, Icon }) => (
+                  {aiPlatforms.map(({ name, Icon }) => (
                     <span
                       key={name}
                       aria-label={name}
@@ -260,7 +246,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-10 border-t border-border/60 pt-10 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto_auto] lg:items-start">
+        <div className="mt-10 grid gap-10 border-t border-border/60 pt-10 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto] lg:items-start">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <IconBrandMentiohunt className="size-5 rotate-12 text-primary" />
@@ -269,9 +255,8 @@ export function Footer() {
               </p>
             </div>
             <p className="max-w-xs text-sm leading-6 text-muted-foreground">
-              Daily backlink queue for founders and agencies. Qualified
-              opportunities, plain-English fit rationale, and outreach prep —
-              ready each morning.
+              Managed backlink placements for lean B2B SaaS teams. We handle
+              discovery, outreach, and placement — you approve or reject.
             </p>
             <div className="space-y-1 text-xs leading-5 text-muted-foreground/65">
               <p>Made with ❤️ from 🇺🇸</p>
@@ -311,24 +296,6 @@ export function Footer() {
             </p>
             <ul className="space-y-2">
               {resourceLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-[var(--color-princeton-orange)]"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground/60 uppercase">
-              Monitoring
-            </p>
-            <ul className="space-y-2">
-              {monitoringLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

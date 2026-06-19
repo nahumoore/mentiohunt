@@ -2,9 +2,8 @@
 
 import {
   IconAdjustments,
-  IconEye,
+  IconFiles,
   IconLayoutGrid,
-  IconMessage2Share,
   IconNetwork,
   IconSearch,
 } from "@tabler/icons-react"
@@ -14,6 +13,7 @@ import * as React from "react"
 
 import { useDirectorySubmissionStore } from "@/stores/directory-submission-store"
 import { useProspectStore } from "@/stores/prospect-store"
+import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
@@ -24,6 +24,7 @@ type PageConfig = {
   title: string
   description: string
   icon: React.ElementType
+  settingsHref?: string
 }
 
 const PAGE_CONFIG: Record<string, PageConfig> = {
@@ -32,6 +33,7 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
     description:
       "Prioritized sites and outreach paths where there is a realistic next action toward a backlink.",
     icon: IconSearch,
+    settingsHref: "/dashboard/outreach/settings",
   },
   "/dashboard/outreach/settings": {
     title: "Outreach Settings",
@@ -45,23 +47,17 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
       "Track which directories your product is listed in and whether those listings are indexed by Google.",
     icon: IconLayoutGrid,
   },
-  "/dashboard/mentions": {
-    title: "Mentions",
-    description:
-      "Community mentions matched to your product. Review the fit, refine the reply, and post it yourself from the original thread.",
-    icon: IconMessage2Share,
-  },
-  "/dashboard/mentions/setup": {
-    title: "Monitoring Setup",
-    description:
-      "Configure which platforms and keywords feed your mentions queue. Start broad, then tighten keywords to improve match quality.",
-    icon: IconEye,
-  },
   "/dashboard/network": {
     title: "Link Exchange",
     description:
       "A private opt-in list for founders open to direct backlink collaboration. Coming soon — reserve your spot now.",
     icon: IconNetwork,
+  },
+  "/dashboard/pages": {
+    title: "Pages",
+    description:
+      "The pages we find backlink opportunities for. Prioritize high-value pages targeting your most important keywords to build authority where it matters.",
+    icon: IconFiles,
   },
 }
 
@@ -102,7 +98,7 @@ export function DashboardHeader() {
   const PageIcon = pageConfig?.icon ?? null
 
   return (
-    <header className="border-b">
+    <header>
       <div className="flex h-14 shrink-0 items-center gap-2 px-6">
         <SidebarTrigger className="-ml-1" />
         <Separator
@@ -139,14 +135,24 @@ export function DashboardHeader() {
       </div>
 
       {pageConfig && PageIcon && (
-        <div className="px-6 pb-6 pt-0.5">
-          <h1 className="flex items-center gap-2.5 font-heading text-[1.75rem] font-bold tracking-tight text-foreground sm:text-[2rem]">
-            <PageIcon className="size-8 shrink-0 text-foreground/80" />
-            {pageConfig.title}
-          </h1>
-          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {pageConfig.description}
-          </p>
+        <div className="flex items-start justify-between px-6 pb-6 pt-0.5">
+          <div>
+            <h1 className="flex items-center gap-2.5 font-heading text-[1.75rem] font-bold tracking-tight text-foreground sm:text-[2rem]">
+              <PageIcon className="size-8 shrink-0 text-foreground/80" />
+              {pageConfig.title}
+            </h1>
+            <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">
+              {pageConfig.description}
+            </p>
+          </div>
+          {pageConfig.settingsHref && (
+            <Button asChild variant="ghost" size="default" className="mt-1 shrink-0">
+              <Link href={pageConfig.settingsHref}>
+                <IconAdjustments className="size-4" />
+                Settings
+              </Link>
+            </Button>
+          )}
         </div>
       )}
     </header>

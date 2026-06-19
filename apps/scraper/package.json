@@ -1,0 +1,8 @@
+{
+  "name": "scraper",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": ".venv/bin/uvicorn main:app --reload --port 8000"
+  }
+}

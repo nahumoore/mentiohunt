@@ -29,8 +29,7 @@ export function StepLaunch({ data }: { data: OnboardingData }) {
       })(),
     ],
     ["Competitors", `${data.competitors.length} URLs`],
-    ["Keywords", `${data.monitoringKeywords.length} phrases`],
-    ["Communities", `${data.monitoringCommunities.length} subreddits`],
+    ["Target pages", `${data.resourceUrls.length} URL${data.resourceUrls.length === 1 ? "" : "s"}`],
   ]
 
   return (

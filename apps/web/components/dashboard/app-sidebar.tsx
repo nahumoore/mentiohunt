@@ -61,19 +61,20 @@ export function AppSidebar({
       className="shadow-[4px_0_24px_0_rgba(0,0,0,0.06)]"
       {...props}
     >
-      <SidebarHeader className="p-3 pb-4">
+      <SidebarHeader className="border-b p-0">
         <Link
           href="/"
-          className="flex min-w-0 items-center gap-2.5 rounded-lg px-1 py-1 transition-opacity duration-150 hover:opacity-75 group-data-[collapsible=icon]:justify-center focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none"
+          className="flex h-16 items-center gap-2.5 px-5 transition-opacity duration-150 hover:opacity-75 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           aria-label="Go to Mentiohunt home"
         >
-          <IconBrandMentiohunt className="size-6 shrink-0 text-blaze-orange group-data-[collapsible=icon]:size-5" />
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <IconBrandMentiohunt className="size-5" />
+          </div>
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="truncate font-heading text-sm font-semibold leading-5 tracking-tight">
-              <span className="text-sidebar-foreground">Mentio</span>
-              <span className="text-blaze-orange">hunt</span>
+            <p className="font-heading text-base font-bold leading-5 tracking-tight text-sidebar-foreground">
+              Mentiohunt
             </p>
-            <p className="truncate text-xs leading-4 text-sidebar-foreground/50">
+            <p className="truncate text-xs leading-4 text-muted-foreground">
               {productName}
             </p>
           </div>

@@ -1,6 +1,6 @@
 import {
-  IconBriefcase2,
   IconRocket,
+  IconTrendingUp,
   IconUsers,
 } from "@tabler/icons-react"
 import Image from "next/image"
@@ -11,7 +11,7 @@ const personas = [
     eyebrow: "Founder-led growth",
     image: "/landing/user_2.webp",
     description:
-      "For founders who publish, ship, and need a clearer way to find backlink and community opportunities without hiring an agency.",
+      "For founders who publish and ship but can't justify running link building as an internal function — and don't want another agency relationship.",
     Icon: IconRocket,
   },
   {
@@ -19,16 +19,16 @@ const personas = [
     eyebrow: "Lean growth teams",
     image: "/landing/user_4.webp",
     description:
-      "For small teams managing content, SEO, and community touchpoints who need repeatable discovery instead of scattered prospecting.",
+      "For small teams managing content and SEO who need a repeatable backlink pipeline instead of scattered manual prospecting.",
     Icon: IconUsers,
   },
   {
-    title: "Small Agencies",
-    eyebrow: "Client delivery",
+    title: "Growth & SEO Leads",
+    eyebrow: "In-house SEO",
     image: "/landing/user_5.webp",
     description:
-      "For lean agencies that want recurring opportunity discovery and outreach prep for a handful of client sites.",
-    Icon: IconBriefcase2,
+      "For heads of growth and SEO leads at B2B SaaS who own link building as a function but can't afford to run outreach operations in-house.",
+    Icon: IconTrendingUp,
   },
 ]
 
@@ -49,11 +49,12 @@ export function TargetPersonas() {
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />
           <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
-            Built for teams that need distribution momentum.
+            For teams that need backlinks without running outreach themselves.
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Mentiohunt is for founders and lean marketing teams who want a
-            practical queue of opportunities, not another analytics dashboard.
+            Mentiohunt is for founder-led B2B SaaS teams who know backlinks
+            matter but can't justify operating link building as an internal
+            function.
           </p>
         </div>
 

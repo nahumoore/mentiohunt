@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev --filter=server --filter=web",
+    "dev": "turbo dev --filter=server --filter=web --filter=scraper",
     "dev:server": "turbo dev --filter=server",
     "dev:web": "turbo dev --filter=web",
-    "dev:scraper": "cd apps/scraper && .venv/bin/uvicorn main:app --reload --port 8000",
+    "dev:scraper": "turbo dev --filter=scraper",
     "lint": "turbo lint",
     "format": "turbo format",
     "supabase:types": "supabase gen types typescript --project-id eagakiaavexoykhvvkwc --schema public > packages/supabase/database-types.ts",

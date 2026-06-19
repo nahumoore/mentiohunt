@@ -6,9 +6,10 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { Button } from "@workspace/ui/components/button"
-import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
-import { IconBrandQuora } from "@/components/custom-icons/brand-quora"
-import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
+import { IconBrandChatGPT } from "@/components/custom-icons/brand-chatgpt"
+import { IconBrandClaude } from "@/components/custom-icons/brand-claude"
+import { IconBrandGemini } from "@/components/custom-icons/brand-gemini"
+import IconBrandPerplexity from "@/components/custom-icons/brand-perplexity"
 
 const ease = [0.21, 0.47, 0.32, 0.98] as const
 
@@ -29,13 +30,14 @@ export function HeroContent() {
         transition={{ duration: 0.5, delay: 0, ease }}
       >
         <span className="text-sm font-bold text-(--color-blaze-orange) uppercase">
-          Daily Monitoring
+          Start ranking in
         </span>
         <span className="h-4 w-px bg-border/60" />
         <div className="flex items-center gap-2">
-          <IconBrandGoogle className="h-[22px] w-[22px]" />
-          <IconBrandRedditNew size={22} />
-          <IconBrandQuora className="h-[22px] w-[22px]" />
+          <IconBrandChatGPT className="h-[22px] w-[22px]" />
+          <IconBrandClaude className="h-[22px] w-[22px]" />
+          <IconBrandGemini className="h-[22px] w-[22px]" />
+          <IconBrandPerplexity className="h-[22px] w-[22px]" />
         </div>
       </motion.div>
 
@@ -47,9 +49,33 @@ export function HeroContent() {
         animate="animate"
         transition={{ duration: 0.6, delay: 0.08, ease }}
       >
-        Your product,{" "}
-        <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
-          everywhere it matters.
+        More authority,{" "}
+        <span className="relative inline-block">
+          <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
+            more revenue.
+          </span>
+          <svg
+            className="absolute -bottom-3 left-0 w-full"
+            viewBox="0 0 300 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M4 10 Q75 3 150 10 Q225 17 296 10"
+              stroke="url(#revenue-underline)"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              fill="none"
+            />
+            <defs>
+              <linearGradient id="revenue-underline" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="var(--color-blaze-orange-2)" />
+                <stop offset="100%" stopColor="var(--color-amber-flame)" />
+              </linearGradient>
+            </defs>
+          </svg>
         </span>
       </motion.h1>
 
@@ -61,9 +87,8 @@ export function HeroContent() {
         animate="animate"
         transition={{ duration: 0.55, delay: 0.16, ease }}
       >
-        Agents running 27/4 looking for high-fit backlinks and social media
-        posts asking for your product — start finding opportunities to
-        distribute your product!
+        We find backlink & mention opportunities, run outreach, and manage placements
+        end-to-end. You simply approve or reject — no outreach ops required.
       </motion.p>
 
       {/* CTA */}
@@ -80,7 +105,7 @@ export function HeroContent() {
           className="group h-16 rounded-full px-10 text-lg font-bold shadow-xl shadow-primary/30 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/40 active:scale-[0.99]"
         >
           <Link href="/signup">
-            START DISTRIBUTING
+            GET FIRST OPPORTUNITIES
             <IconArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </Button>
@@ -128,7 +153,7 @@ export function HeroContent() {
         <p className="text-sm font-medium text-muted-foreground">
           Trusted by{" "}
           <span className="font-semibold text-foreground">100+ founders</span>{" "}
-          distributing their products
+          earning relevant backlinks
         </p>
       </motion.div>
     </div>

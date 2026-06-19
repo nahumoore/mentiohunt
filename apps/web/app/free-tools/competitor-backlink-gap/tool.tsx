@@ -7,6 +7,7 @@ import {
   IconArrowRight,
   IconBolt,
   IconCheck,
+  IconCopy,
   IconExternalLink,
   IconLock,
   IconLoader2,
@@ -34,7 +35,7 @@ type Competitor = {
   id: string
   domain: string
   name: string
-  da: number
+  da: number | null
   totalBacklinks: number
   gapCount: number
   gaps: BacklinkGap[]
@@ -48,15 +49,9 @@ type Summary = {
 
 const loadingStages = [
   "Analyzing your website",
-  "Identifying your top competitors",
+  "Generating likely competitors",
   "Fetching competitor backlinks",
-  "Calculating your backlink gaps",
-]
-
-const proofPoints = [
-  "Surfaces real gaps — sites linking to competitors but not you.",
-  "Each gap includes a fit rationale so you know what to pitch.",
-  "Built to turn gap analysis into a prioritized outreach list.",
+  "Building your gap report",
 ]
 
 const gapTypeColors: Record<string, string> = {
@@ -94,16 +89,19 @@ export function CompetitorBacklinkGap() {
   const [stageIndex, setStageIndex] = useState(0)
   const [competitors, setCompetitors] = useState<Competitor[]>([])
   const [summary, setSummary] = useState<Summary | null>(null)
-  const [selectedCompetitorId, setSelectedCompetitorId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [copiedAll, setCopiedAll] = useState(false)
   const resultsRef = useRef<HTMLElement>(null)
 
   const websiteDomain = submittedUrl ? normalizeDomain(submittedUrl) : "your site"
 
-  const selectedCompetitor =
-    competitors.find((c) => c.id === selectedCompetitorId) ??
-    competitors[0] ??
-    null
+  const allGapRows = competitors.flatMap((competitor) =>
+    competitor.gaps.map((gap) => ({
+      competitorDomain: competitor.domain,
+      competitorName: competitor.name,
+      ...gap,
+    }))
+  )
 
   useEffect(() => {
     if (phase !== "loading") return
@@ -111,7 +109,7 @@ export function CompetitorBacklinkGap() {
 
     const timer = window.setTimeout(
       () => setStageIndex((current) => current + 1),
-      stageIndex === 0 ? 650 : 850
+      stageIndex === 0 ? 650 : 1800
     )
 
     return () => window.clearTimeout(timer)
@@ -134,6 +132,32 @@ export function CompetitorBacklinkGap() {
     return () => window.cancelAnimationFrame(frame)
   }, [phase])
 
+  async function handleCopyAll() {
+    if (allGapRows.length === 0) return
+
+    try {
+      const exportText = [
+        ["competitor", "source_domain", "title", "type", "dr", "url"].join("\t"),
+        ...allGapRows.map((gap) =>
+          [
+            gap.competitorDomain,
+            gap.domain,
+            (gap.name ?? "").replace(/\s+/g, " ").trim(),
+            gap.type,
+            gap.da === null ? "" : String(gap.da),
+            gap.url ?? "",
+          ].join("\t")
+        ),
+      ].join("\n")
+
+      await navigator.clipboard.writeText(exportText)
+      setCopiedAll(true)
+      window.setTimeout(() => setCopiedAll(false), 2000)
+    } catch {
+      // clipboard not available
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -142,8 +166,8 @@ export function CompetitorBacklinkGap() {
 
     setSubmittedUrl(trimmedUrl)
     setStageIndex(0)
+    setCopiedAll(false)
     setError(null)
-    setSelectedCompetitorId(null)
     setPhase("loading")
 
     const [res] = await Promise.all([
@@ -168,7 +192,6 @@ export function CompetitorBacklinkGap() {
     }
     setCompetitors(data.competitors)
     setSummary(data.summary)
-    setSelectedCompetitorId(data.competitors[0]?.id ?? null)
     setPhase("results")
   }
 
@@ -202,15 +225,15 @@ export function CompetitorBacklinkGap() {
               </h1>
 
               <p className="mt-7 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-                Enter your website URL and see which sites link to your
+                Enter your website URL and see which sites link to likely
                 competitors but not to you. Built for founders who want to
                 close real gaps, not guess at outreach targets.
               </p>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-3">
                 {[
-                  ["URL in", "Paste your website"],
-                  ["Find gaps", "3 competitors analyzed"],
+                  ["URL in", "Paste your site URL"],
+                  ["Find gaps", "AI finds likely competitors"],
                   ["Reach out", "Target missing links"],
                 ].map(([label, text]) => (
                   <div
@@ -250,37 +273,43 @@ export function CompetitorBacklinkGap() {
                     </div>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="mt-7 space-y-3">
-                    <label
-                      htmlFor="website-url"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      Your website URL
-                    </label>
-                    <div className="flex flex-col gap-3 sm:flex-row">
+                  <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+                    <div>
+                      <label
+                        htmlFor="website-url"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Your website URL
+                      </label>
                       <Input
                         id="website-url"
                         type="url"
                         value={websiteUrl}
                         onChange={(event) => setWebsiteUrl(event.target.value)}
                         placeholder="https://yourwebsite.com"
-                        className="h-12 rounded-full border-border bg-card px-5 text-sm shadow-sm"
+                        className="mt-1.5 h-11 rounded-full border-border bg-card px-5 text-sm shadow-sm"
                         required
                       />
-                      <Button
-                        type="submit"
-                        size="lg"
-                        disabled={phase === "loading"}
-                        className="h-12 rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
-                      >
-                        {phase === "loading" ? "Analyzing" : "Find gaps"}
-                        {phase === "loading" ? (
-                          <IconLoader2 className="animate-spin" size={16} />
-                        ) : (
-                          <IconArrowRight size={16} stroke={2.5} />
-                        )}
-                      </Button>
                     </div>
+
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      We&apos;ll read your homepage and generate likely competitors
+                      automatically before checking backlink gaps.
+                    </p>
+
+                    <Button
+                      type="submit"
+                      size="lg"
+                      disabled={phase === "loading"}
+                      className="h-12 w-full rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
+                    >
+                      {phase === "loading" ? "Analyzing" : "Find gaps"}
+                      {phase === "loading" ? (
+                        <IconLoader2 className="animate-spin" size={16} />
+                      ) : (
+                        <IconArrowRight size={16} stroke={2.5} />
+                      )}
+                    </Button>
                   </form>
 
                   {error ? (
@@ -304,11 +333,10 @@ export function CompetitorBacklinkGap() {
                         </div>
                         <div>
                           <p className="font-heading text-base font-semibold tracking-[-0.03em]">
-                            Ready when your URL is.
+                            Ready when your URLs are.
                           </p>
                           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            Enter your website URL to find which sites link to
-                            your competitors but not to you.
+                            Enter your website to find real backlink gaps.
                           </p>
                         </div>
                       </div>
@@ -388,226 +416,244 @@ export function CompetitorBacklinkGap() {
         className="scroll-mt-24 border-y border-border/70 bg-[linear-gradient(180deg,var(--color-background)_0%,color-mix(in_oklab,var(--color-background)_90%,var(--color-amber-glow)_10%)_100%)] px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
       >
         <div className="container mx-auto max-w-7xl">
-          <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-            <div className="lg:sticky lg:top-28">
-              <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
-                Results
-              </p>
-              <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">
-                Backlinks your competitors have. You don&apos;t.
-              </h2>
-              <p className="mt-5 max-w-md text-sm leading-7 text-muted-foreground">
-                Each gap is a site linking to a competitor but not to you — a
-                real outreach target with a clear fit rationale.
-              </p>
-
-              <div className="mt-7 space-y-3">
-                {proofPoints.map((point) => (
-                  <div key={point} className="flex gap-3 text-sm leading-6">
-                    <IconCheck
-                      size={18}
-                      className="mt-0.5 shrink-0 text-[var(--color-princeton-orange)]"
-                      stroke={2.5}
-                    />
-                    <span className="text-muted-foreground">{point}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-4">
+          <div className="space-y-4">
               {!hasResults ? (
-                <div className="rounded-[2rem] border border-dashed border-[var(--color-blaze-orange)]/30 bg-card/70 p-8 text-center">
+                <div className="rounded-[2rem] border border-dashed border-[var(--color-blaze-orange)]/30 bg-card/70 p-8 text-center shadow-sm">
                   <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
                     <IconTargetArrow size={24} stroke={2.4} />
                   </div>
                   <h3 className="mt-5 font-heading text-2xl font-semibold tracking-[-0.045em]">
-                    Results appear after the analysis.
+                    Results will show up here.
                   </h3>
                   <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
-                    Enter your website URL above to find competitor backlink
-                    gaps.
+                    Run the analysis above and this section will populate with a
+                    table of filtered backlink opportunities.
                   </p>
                 </div>
               ) : (
                 <>
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    {[
-                      [summary?.competitorsFound ?? 0, "competitors analyzed"],
-                      [summary?.totalGaps ?? 0, "backlink gaps found"],
-                      [summary?.highPriority ?? 0, "high priority"],
-                    ].map(([value, label]) => (
-                      <div
-                        key={String(label)}
-                        className="rounded-[1.45rem] border border-[var(--color-blaze-orange)]/20 bg-card p-5 shadow-sm"
-                      >
-                        <p className="font-heading text-3xl font-semibold tracking-[-0.05em] text-[var(--color-princeton-orange)]">
-                          {value}
-                        </p>
-                        <p className="mt-1 text-xs font-medium uppercase text-muted-foreground/60">
-                          {label}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                  <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/22 bg-card shadow-[0_28px_90px_-58px_rgba(255,96,0,0.7)]">
+                    <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/80 to-transparent" />
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--color-amber-glow)_0,transparent_18rem)] opacity-[0.08]" />
 
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    {competitors.map((competitor) => {
-                      const isSelected =
-                        selectedCompetitor?.id === competitor.id
-
-                      return (
-                        <button
-                          key={competitor.id}
-                          type="button"
-                          onClick={() =>
-                            setSelectedCompetitorId(competitor.id)
-                          }
-                          className={`group relative overflow-hidden rounded-[1.75rem] border p-5 text-left transition-all duration-300 ${
-                            isSelected
-                              ? "border-[var(--color-blaze-orange)]/35 bg-card shadow-[0_16px_50px_-28px_rgba(255,96,0,0.5)]"
-                              : "border-border bg-card/70 hover:border-[var(--color-blaze-orange)]/20 hover:bg-card"
-                          }`}
-                        >
-                          {isSelected ? (
-                            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
-                          ) : null}
-
-                          <div className="flex items-center gap-3">
-                            <div className="flex size-11 shrink-0 items-center justify-center rounded-[1.1rem] border border-border bg-background shadow-sm">
-                              <span
-                                aria-hidden="true"
-                                className="size-6 rounded-md bg-contain bg-center bg-no-repeat"
-                                style={{
-                                  backgroundImage: `url(${getFaviconUrl(competitor.domain)})`,
-                                }}
-                              />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p
-                                className={`truncate font-heading text-base font-semibold tracking-[-0.025em] transition-colors duration-200 ${
-                                  isSelected
-                                    ? "text-foreground"
-                                    : "text-muted-foreground group-hover:text-foreground"
-                                }`}
-                              >
-                                {competitor.name}
-                              </p>
-                              <p className="truncate text-xs text-muted-foreground">
-                                {competitor.domain}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div
-                            className={`grid transition-all duration-300 ease-in-out ${
-                              isSelected
-                                ? "mt-4 grid-rows-[1fr] opacity-100"
-                                : "grid-rows-[0fr] opacity-0"
-                            }`}
-                          >
-                            <div className="overflow-hidden">
-                              <div className="flex items-center justify-between border-t border-border/70 pt-3">
-                                <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase text-muted-foreground">
-                                  DA {competitor.da}
-                                </span>
-                                <div className="text-right">
-                                  <span className="font-heading text-xl font-semibold tracking-[-0.045em] text-[var(--color-princeton-orange)]">
-                                    {competitor.gapCount}
-                                  </span>
-                                  <span className="ml-1.5 text-xs text-muted-foreground">
-                                    gap sites
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  <div
-                    key={selectedCompetitor?.id}
-                    className="animate-in fade-in slide-in-from-bottom-2 space-y-4 duration-300"
-                  >
-                  {selectedCompetitor?.gaps.map((gap, index) => {
-                    const typeColor =
-                      gapTypeColors[gap.type] ??
-                      "border-border bg-background/70 text-muted-foreground"
-
-                    return (
-                      <article
-                        key={gap.id}
-                        className="group relative overflow-hidden rounded-[1.75rem] border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-blaze-orange)]/35 hover:shadow-[0_22px_70px_-54px_rgba(255,96,0,0.65)] sm:p-6"
-                      >
-                        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/65 to-transparent" />
-
-                        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex min-w-0 gap-4">
-                            <div className="flex size-12 shrink-0 items-center justify-center rounded-[1.15rem] border border-border bg-background shadow-sm">
-                              <span
-                                aria-hidden="true"
-                                className="size-7 rounded-md bg-contain bg-center bg-no-repeat"
-                                style={{
-                                  backgroundImage: `url(${getFaviconUrl(gap.domain)})`,
-                                }}
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h4 className="font-heading text-2xl font-semibold tracking-[-0.045em]">
-                                  {gap.name ?? gap.domain}
-                                </h4>
-                                <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[0.65rem] font-semibold uppercase text-muted-foreground">
-                                  {String(index + 1).padStart(2, "0")}
-                                </span>
-                              </div>
-                              <p className="mt-1 text-sm text-muted-foreground">
-                                {gap.domain}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2 sm:justify-end">
-                            <span
-                              className={`rounded-full border px-3 py-1 text-xs font-semibold ${typeColor}`}
-                            >
-                              {gap.type}
-                            </span>
-                            {gap.da !== null ? (
-                              <span className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-muted-foreground">
-                                DA {gap.da}
-                              </span>
-                            ) : null}
-                          </div>
+                    <div className="relative border-b border-border/70 px-5 py-5 sm:px-7">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-princeton-orange)]">
+                            Live Gap Table
+                          </p>
+                          <h3 className="mt-2 font-heading text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+                            Every high-authority link opportunity in one list.
+                          </h3>
+                          <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
+                            {summary?.totalGaps ?? 0} opportunities across {summary?.competitorsFound ?? 0} AI-discovered competitors. Export includes competitor, source domain, page title, type, DR, and URL.
+                          </p>
                         </div>
 
-                        {gap.reason ? (
-                          <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                            {gap.reason}
-                          </p>
-                        ) : null}
-
-                        {gap.url ? (
-                          <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/70 pt-4">
-                            <p className="truncate text-sm text-muted-foreground">
-                              {gap.url}
-                            </p>
-                            <Link
-                              href={gap.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-2 self-start rounded-full text-sm font-semibold text-foreground outline-none transition-colors hover:text-[var(--color-princeton-orange)] focus-visible:ring-3 focus-visible:ring-ring/30 sm:self-auto"
-                            >
-                              View site
-                              <IconExternalLink size={16} stroke={2.4} />
-                            </Link>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-princeton-orange)]">
+                            DR 20-65 only
                           </div>
-                        ) : null}
-                      </article>
-                    )
-                  })}
+                          <div className="rounded-full border border-border bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground">
+                            {competitors.length} competitors scanned
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="relative px-5 py-4 sm:px-7">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground/70">
+                          Tab-separated export, ready for Sheets or outreach workflows
+                        </p>
+
+                        <button
+                          type="button"
+                          onClick={handleCopyAll}
+                          disabled={allGapRows.length === 0}
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/22 bg-[var(--color-blaze-orange)]/8 px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-[var(--color-blaze-orange)]/40 hover:bg-[var(--color-blaze-orange)]/14 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {copiedAll ? (
+                            <>
+                              <IconCheck size={15} stroke={2.6} className="text-[var(--color-princeton-orange)]" />
+                              Copied full export
+                            </>
+                          ) : (
+                            <>
+                              <IconCopy size={15} stroke={2.2} />
+                              Copy all rows
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="hidden border-t border-border/70 md:block">
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full table-fixed border-separate border-spacing-0 text-left">
+                          <thead>
+                            <tr className="bg-[var(--color-blaze-orange)]/6 text-[0.7rem] uppercase tracking-[0.16em] text-muted-foreground/75">
+                              <th className="sticky top-0 z-10 border-b border-border/70 px-6 py-4 font-medium backdrop-blur supports-[backdrop-filter]:bg-[color-mix(in_oklab,var(--color-background)_88%,var(--color-amber-glow)_12%)]">
+                                Competitor
+                              </th>
+                              <th className="sticky top-0 z-10 border-b border-border/70 px-6 py-4 font-medium backdrop-blur supports-[backdrop-filter]:bg-[color-mix(in_oklab,var(--color-background)_88%,var(--color-amber-glow)_12%)]">
+                                Source domain
+                              </th>
+                              <th className="sticky top-0 z-10 border-b border-border/70 px-6 py-4 font-medium backdrop-blur supports-[backdrop-filter]:bg-[color-mix(in_oklab,var(--color-background)_88%,var(--color-amber-glow)_12%)]">
+                                Page
+                              </th>
+                              <th className="sticky top-0 z-10 border-b border-border/70 px-6 py-4 font-medium backdrop-blur supports-[backdrop-filter]:bg-[color-mix(in_oklab,var(--color-background)_88%,var(--color-amber-glow)_12%)]">
+                                Type
+                              </th>
+                              <th className="sticky top-0 z-10 border-b border-border/70 px-6 py-4 font-medium backdrop-blur supports-[backdrop-filter]:bg-[color-mix(in_oklab,var(--color-background)_88%,var(--color-amber-glow)_12%)]">
+                                DR
+                              </th>
+                              <th className="sticky top-0 z-10 border-b border-border/70 px-6 py-4 font-medium backdrop-blur supports-[backdrop-filter]:bg-[color-mix(in_oklab,var(--color-background)_88%,var(--color-amber-glow)_12%)]">
+                                Link
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {allGapRows.map((gap, index) => {
+                              const typeColor =
+                                gapTypeColors[gap.type] ??
+                                "border-border bg-background/70 text-muted-foreground"
+
+                              return (
+                                <tr
+                                  key={`${gap.competitorDomain}-${gap.id}`}
+                                  className="group bg-card/90 transition-colors hover:bg-[var(--color-blaze-orange)]/[0.035]"
+                                >
+                                  <td className="border-b border-border/60 px-6 py-5 align-top">
+                                    <div className="flex items-center gap-3">
+                                      <span
+                                        aria-hidden="true"
+                                        className="size-8 rounded-xl border border-border bg-background bg-contain bg-center bg-no-repeat shadow-sm"
+                                        style={{
+                                          backgroundImage: `url(${getFaviconUrl(gap.competitorDomain)})`,
+                                        }}
+                                      />
+                                      <div className="min-w-0">
+                                        <p className="truncate font-heading text-base font-semibold tracking-[-0.03em] text-foreground">
+                                          {gap.competitorName}
+                                        </p>
+                                        <p className="truncate text-xs text-muted-foreground">
+                                          {gap.competitorDomain}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="border-b border-border/60 px-6 py-5 align-top">
+                                    <div className="flex items-center gap-3">
+                                      <span
+                                        aria-hidden="true"
+                                        className="size-8 rounded-xl border border-border bg-background bg-contain bg-center bg-no-repeat shadow-sm"
+                                        style={{
+                                          backgroundImage: `url(${getFaviconUrl(gap.domain)})`,
+                                        }}
+                                      />
+                                      <div>
+                                        <p className="font-medium text-foreground">{gap.domain}</p>
+                                        <p className="text-xs text-muted-foreground">#{String(index + 1).padStart(2, "0")}</p>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="border-b border-border/60 px-6 py-5 align-top">
+                                    <div className="space-y-1">
+                                      <p className="line-clamp-2 text-sm font-medium leading-6 text-foreground">
+                                        {gap.name ?? gap.domain}
+                                      </p>
+                                      {gap.reason ? (
+                                        <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
+                                          {gap.reason}
+                                        </p>
+                                      ) : null}
+                                    </div>
+                                  </td>
+                                  <td className="border-b border-border/60 px-6 py-5 align-top">
+                                    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${typeColor}`}>
+                                      {gap.type}
+                                    </span>
+                                  </td>
+                                  <td className="border-b border-border/60 px-6 py-5 align-top">
+                                    <span className="inline-flex min-w-12 justify-center rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-xs font-semibold text-[var(--color-princeton-orange)]">
+                                      {gap.da ?? "-"}
+                                    </span>
+                                  </td>
+                                  <td className="border-b border-border/60 px-6 py-5 align-top">
+                                    {gap.url ? (
+                                      <Link
+                                        href={gap.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-2 rounded-full border border-border bg-background/70 px-3 py-1 text-xs font-semibold text-foreground transition-colors hover:border-[var(--color-blaze-orange)]/35 hover:text-[var(--color-princeton-orange)]"
+                                      >
+                                        Open
+                                        <IconExternalLink size={14} stroke={2.3} />
+                                      </Link>
+                                    ) : null}
+                                  </td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 border-t border-border/70 p-4 md:hidden">
+                      {allGapRows.map((gap, index) => {
+                        const typeColor =
+                          gapTypeColors[gap.type] ??
+                          "border-border bg-background/70 text-muted-foreground"
+
+                        return (
+                          <article
+                            key={`${gap.competitorDomain}-${gap.id}`}
+                            className="rounded-[1.6rem] border border-border bg-background/70 p-4 shadow-sm"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[var(--color-princeton-orange)]">
+                                  {gap.competitorDomain}
+                                </p>
+                                <h4 className="mt-2 font-heading text-xl font-semibold tracking-[-0.04em]">
+                                  {gap.name ?? gap.domain}
+                                </h4>
+                                <p className="mt-1 text-sm text-muted-foreground">{gap.domain}</p>
+                              </div>
+                              <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[0.65rem] font-semibold uppercase text-muted-foreground">
+                                {String(index + 1).padStart(2, "0")}
+                              </span>
+                            </div>
+
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${typeColor}`}>
+                                {gap.type}
+                              </span>
+                              <span className="inline-flex rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-xs font-semibold text-[var(--color-princeton-orange)]">
+                                DR {gap.da ?? "-"}
+                              </span>
+                            </div>
+
+                            {gap.url ? (
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                <Link
+                                  href={gap.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-foreground transition-colors hover:border-[var(--color-blaze-orange)]/35 hover:text-[var(--color-princeton-orange)]"
+                                >
+                                  Open
+                                  <IconExternalLink size={14} stroke={2.3} />
+                                </Link>
+                              </div>
+                            ) : null}
+                          </article>
+                        )
+                      })}
+                    </div>
+
                   </div>
 
                   <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/25 bg-card p-6 shadow-[0_28px_90px_-54px_rgba(255,96,0,0.75)] sm:p-8">
@@ -643,7 +689,6 @@ export function CompetitorBacklinkGap() {
                   </div>
                 </>
               )}
-            </div>
           </div>
         </div>
       </section>

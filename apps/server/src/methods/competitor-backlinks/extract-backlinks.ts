@@ -3,6 +3,7 @@ import { AHREFS_SEO_TOOLS, type AhrefsBacklinkItem, type AhrefsBacklinksResponse
 import { createLogger } from "../../helpers/logger.js"
 
 const log = createLogger("extract-competitor-backlinks")
+const BACKLINK_FETCH_TIMEOUT_SEC = 60
 
 export function extractCompetitorDomain(competitorUrl: string): string {
   try {
@@ -32,7 +33,7 @@ export async function extractBacklinks(
       searchType: "backlinks_list",
       urls: [`https://${competitorDomain}/`],
       mode: "subdomains",
-    })
+    }, BACKLINK_FETCH_TIMEOUT_SEC)
 
     const items = response[0]?.backlinks ?? []
 

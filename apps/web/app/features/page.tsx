@@ -18,14 +18,14 @@ import { Button } from "@workspace/ui/components/button"
 export const metadata: Metadata = {
   title: "Features",
   description:
-    "Mentiohunt gives founders two practical queues: backlink opportunities worth reviewing and community threads worth answering before momentum disappears.",
+    "Mentiohunt surfaces high-fit backlink opportunities from your article URLs — with fit rationale, contact details, and outreach drafts ready to review.",
   alternates: {
     canonical: "https://mentiohunt.com/features",
   },
   openGraph: {
     title: "Features — Mentiohunt",
     description:
-      "Mentiohunt gives founders two practical queues: backlink opportunities worth reviewing and community threads worth answering before momentum disappears.",
+      "Mentiohunt surfaces high-fit backlink opportunities from your article URLs — with fit rationale, contact details, and outreach drafts ready to review.",
     url: "https://mentiohunt.com/features",
     siteName: "Mentiohunt",
     type: "website",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Features — Mentiohunt",
     description:
-      "Mentiohunt gives founders two practical queues: backlink opportunities worth reviewing and community threads worth answering before momentum disappears.",
+      "Mentiohunt surfaces high-fit backlink opportunities from your article URLs — with fit rationale, contact details, and outreach drafts ready to review.",
   },
 }
 

@@ -11,12 +11,10 @@ import {
   IconSitemap,
   IconSparkles,
   IconSwords,
-  IconUser,
   IconWorldSearch,
 } from "@tabler/icons-react"
 
 import { IconBrandMentiohunt } from "@/components/custom-icons/brand-mentiohunt"
-import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
 import { Footer, Navbar } from "@/components/landing"
 import { FREE_TOOL_NAMES } from "@/consts/free-tools"
 import { Button } from "@workspace/ui/components/button"
@@ -24,14 +22,14 @@ import { Button } from "@workspace/ui/components/button"
 export const metadata: Metadata = {
   title: "Free Tools - Mentiohunt",
   description:
-    "Free founder tools for checking backlink fit, spotting community reply opportunities, and turning distribution research into a clearer next step.",
+    "Free founder tools for checking backlink fit, discovering placement opportunities, and turning distribution research into a clearer next step.",
   alternates: {
     canonical: "/free-tools",
   },
   openGraph: {
     title: "Free Tools - Mentiohunt",
     description:
-      "Free founder tools for checking backlink fit, spotting community reply opportunities, and turning distribution research into a clearer next step.",
+      "Free founder tools for checking backlink fit, discovering placement opportunities, and turning distribution research into a clearer next step.",
     url: "https://mentiohunt.com/free-tools",
     siteName: "Mentiohunt",
     type: "website",
@@ -40,7 +38,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Free Tools - Mentiohunt",
     description:
-      "Free founder tools for checking backlink fit, spotting community reply opportunities, and turning distribution research into a clearer next step.",
+      "Free founder tools for checking backlink fit, discovering placement opportunities, and turning distribution research into a clearer next step.",
   },
 }
 
@@ -94,26 +92,6 @@ const tools = [
     icon: IconSwords,
     href: `/free-tools/${FREE_TOOL_NAMES.competitorBacklinkGap}`,
     steps: ["Paste URL", "Find gap sites", "Close the gap"],
-  },
-  {
-    name: "Subreddit Finder",
-    eyebrow: "Website to communities",
-    status: "Free",
-    description:
-      "Enter your website URL and find the most relevant Reddit communities for your product. Get a ranked list with fit rationale so you know exactly where to show up.",
-    icon: IconBrandRedditNew,
-    href: `/free-tools/${FREE_TOOL_NAMES.subredditFinder}`,
-    steps: ["Paste URL", "Find subreddits", "Engage"],
-  },
-  {
-    name: "Reddit User Analyzer",
-    eyebrow: "Username to profile",
-    status: "Free",
-    description:
-      "Enter a Reddit username and get a full breakdown of their activity — top subreddits, karma split, interest profile, and behavior patterns.",
-    icon: IconUser,
-    href: `/free-tools/${FREE_TOOL_NAMES.redditUserAnalyzer}`,
-    steps: ["Username in", "Map activity", "Understand them"],
   },
   {
     name: "Google Index Checker",

@@ -16,11 +16,11 @@ import { getAllResources, type BlogPostMeta } from "@/lib/mdx"
 export const metadata: Metadata = {
   title: "Alternatives — Mentiohunt",
   description:
-    "Our honest comparison of backlink building and community monitoring tools. We have a bias — we'll tell you when the other tool is actually better.",
+    "Our honest comparison of backlink building tools. We have a bias — we'll tell you when the other tool is actually better.",
   openGraph: {
     title: "Alternatives — Mentiohunt",
     description:
-      "Our honest comparison of backlink building and community monitoring tools. We have a bias — we'll tell you when the other tool is actually better.",
+      "Our honest comparison of backlink building tools. We have a bias — we'll tell you when the other tool is actually better.",
     url: "https://mentiohunt.com/alternatives",
     siteName: "Mentiohunt",
     type: "website",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Alternatives — Mentiohunt",
     description:
-      "Our honest comparison of backlink building and community monitoring tools. We have a bias — we'll tell you when the other tool is actually better.",
+      "Our honest comparison of backlink building tools. We have a bias — we'll tell you when the other tool is actually better.",
   },
 }
 

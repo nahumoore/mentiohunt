@@ -1,8 +1,9 @@
-import { onboardingSchema, type OpportunityTypeId } from "@/consts/onboarding"
+import { onboardingSchema } from "@/consts/onboarding"
+import { FREE_TRIAL_MAX_PAGES } from "@/consts/billing"
 import { OPPORTUNITY_TYPE_TO_PROSPECT_TIER } from "@/lib/opportunity-types"
 import { supabaseServer } from "@/lib/supabase/server"
 import { waitUntil } from "@vercel/functions"
-import type { Json, TablesInsert, TablesUpdate } from "@workspace/supabase/database-types"
+import type { TablesInsert, TablesUpdate } from "@workspace/supabase/database-types"
 import { NextResponse } from "next/server"
 
 export const runtime = "nodejs"
@@ -16,7 +17,7 @@ function buildValidationError(message: string, status = 400) {
 async function runOnboardingJobsOnServer(payload: {
   userId: string
   productId: string
-  replyQueueConfigId: string
+  pageLimit: number
 }) {
   const serverResponse = await fetch(`${SERVER_URL}/onboarding/complete`, {
     method: "POST",
@@ -132,54 +133,34 @@ export async function POST(request: Request) {
     return buildValidationError("Failed to complete onboarding.", 500)
   }
 
-  const replyQueuePayload: TablesInsert<"reply_queue_configs"> = {
-    user_id: user.id,
-    product_id: productId,
-    platforms: parsedRequest.data.monitoringPlatforms,
-    communities: parsedRequest.data.monitoringCommunities as unknown as Json,
-    keywords: parsedRequest.data.monitoringKeywords,
-    email_alerts_enabled: parsedRequest.data.emailAlertsEnabled,
-    custom_voice_instructions: null,
-    status: "active",
-  }
+  const { resourceUrls, resourceMode } = parsedRequest.data
 
-  const { data: existingReplyQueueConfig, error: existingConfigError } =
-    await supabase
-      .from("reply_queue_configs")
-      .select("id")
+  if (resourceUrls.length > 0) {
+    const { error: deletePagesError } = await supabase
+      .from("product_pages")
+      .delete()
       .eq("product_id", productId)
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
 
-  if (existingConfigError) {
-    console.error(
-      "Error fetching onboarding reply queue settings:",
-      existingConfigError
-    )
-    return buildValidationError("Failed to complete onboarding.", 500)
-  }
+    if (deletePagesError) {
+      console.error("Error clearing product pages:", deletePagesError)
+      return buildValidationError("Failed to complete onboarding.", 500)
+    }
 
-  const saveReplyQueueConfig = existingReplyQueueConfig
-    ? supabase
-        .from("reply_queue_configs")
-        .update(replyQueuePayload)
-        .eq("id", existingReplyQueueConfig.id)
-        .select("id")
-        .single()
-    : supabase
-        .from("reply_queue_configs")
-        .insert(replyQueuePayload)
-        .select("id")
-        .single()
+    const pageType = resourceMode === "sitemap" ? "sitemap" : "manual"
+    const pagesPayload = resourceUrls.map((url) => ({
+      product_id: productId,
+      url,
+      page_type: pageType,
+    }))
 
-  const { data: replyQueueConfig, error: saveConfigError } =
-    await saveReplyQueueConfig
+    const { error: insertPagesError } = await supabase
+      .from("product_pages")
+      .insert(pagesPayload)
 
-  if (saveConfigError || !replyQueueConfig) {
-    console.error("Error saving onboarding reply queue settings:", saveConfigError)
-    return buildValidationError("Failed to complete onboarding.", 500)
+    if (insertPagesError) {
+      console.error("Error inserting product pages:", insertPagesError)
+      return buildValidationError("Failed to complete onboarding.", 500)
+    }
   }
 
   const profileUpdate: TablesUpdate<"profiles"> = {
@@ -190,7 +171,6 @@ export async function POST(request: Request) {
     ...(parsedRequest.data.referralSource
       ? { referral_source: parsedRequest.data.referralSource }
       : {}),
-    ...(parsedRequest.data.primaryUse ? { primary_use: parsedRequest.data.primaryUse } : {}),
   }
 
   const { error: updateProfileError } = await supabase
@@ -207,7 +187,7 @@ export async function POST(request: Request) {
     runOnboardingJobsOnServer({
       userId: user.id,
       productId,
-      replyQueueConfigId: replyQueueConfig.id,
+      pageLimit: FREE_TRIAL_MAX_PAGES,
     }).catch((error) => {
       console.error("Failed to reach the onboarding server:", error)
     })

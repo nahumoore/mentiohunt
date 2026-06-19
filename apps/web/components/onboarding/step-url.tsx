@@ -131,7 +131,7 @@ export function StepUrl({
               </>
             ) : (
               <>
-                Configure both queues
+                Find backlink opportunities
                 <IconArrowRight className="h-4 w-4" />
               </>
             )}

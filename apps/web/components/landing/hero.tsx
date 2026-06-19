@@ -1,5 +1,5 @@
 import { HeroContent } from "./hero-content"
-import { HeroTicker } from "./hero-ticker"
+import { HeroIllustration } from "./hero-illustration"
 
 export function Hero() {
   return (
@@ -11,15 +11,15 @@ export function Hero() {
         <div className="absolute left-0 top-2/3 h-[240px] w-[240px] rounded-full bg-[var(--color-blaze-orange)]/5 blur-[90px]" />
       </div>
 
-      {/* Vertically centered copy block */}
+      {/* Copy */}
       <div className="relative flex min-h-screen items-center">
         <div className="container mx-auto w-full px-4 sm:px-6 lg:px-8">
           <HeroContent />
         </div>
       </div>
 
-      {/* Opportunity ticker */}
-      <HeroTicker />
+      {/* Stats */}
+      <HeroIllustration />
     </section>
   )
 }

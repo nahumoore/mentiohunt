@@ -1,7 +1,6 @@
 import cron from "node-cron"
 import { deactivateExpiredFreeTrials } from "./deactivate-expired-free-trials.js"
 import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
-import { runReplyQueueScheduler } from "./reply-queue-scheduler.js"
 import { updateDirectorySeoMetrics } from "./update-directory-seo-metrics.js"
 import { runWeeklyDirectoryCheck } from "./weekly-directory-submission-check.js"
 
@@ -27,15 +26,6 @@ export function registerJobs(): void {
   console.log(
     "[cron] Scheduled: free trial deactivation (00:15, 08:15, 16:15 UTC)"
   )
-
-  cron.schedule("0 0 * * *", async () => {
-    try {
-      await runReplyQueueScheduler()
-    } catch (err) {
-      console.error("[cron] Error running reply queue scheduler:", err)
-    }
-  })
-  console.log("[cron] Scheduled: reply queue scheduler (daily at midnight UTC)")
 
   cron.schedule("0 3 * * 1", async () => {
     try {

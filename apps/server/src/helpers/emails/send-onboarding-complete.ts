@@ -1,11 +1,6 @@
 import { generateUnsubscribeUrl } from "./unsubscribe.js"
 import { APP_URL, escapeHtml, pluralize, sendMentiohuntEmail, statCard, statusNote } from "./base.js"
 
-type ReplyQueueOnboardingResult = {
-  postsScanned: number
-  mentionsFound: number
-}
-
 type DirectoryOnboardingResult = {
   checked: number
   indexed: number
@@ -20,76 +15,70 @@ type ProspectOnboardingResult = {
   totalCostUsd: number
 }
 
+type PagesOnboardingResult = {
+  pagesFound: number
+  pagesCrawled: number
+  pagesFailed: number
+  totalCostUsd: number
+}
+
 export async function sendOnboardingCompleteEmail({
   to,
   userId,
   userName,
   productName,
-  replyQueueResult,
   directoryResult,
   backlinkResult,
+  pagesResult,
 }: {
   to: string
   userId: string
   userName: string | null
   productName: string
-  replyQueueResult: PromiseSettledResult<ReplyQueueOnboardingResult>
   directoryResult: PromiseSettledResult<DirectoryOnboardingResult>
   backlinkResult: PromiseSettledResult<ProspectOnboardingResult>
+  pagesResult: PromiseSettledResult<PagesOnboardingResult>
 }) {
   const firstName = userName?.trim().split(/\s+/)[0]
   const greeting = firstName ? `Hi ${firstName},` : "Hi,"
   const escapedProductName = escapeHtml(productName)
-  const replyQueueFound =
-    replyQueueResult.status === "fulfilled"
-      ? replyQueueResult.value.mentionsFound
-      : 0
-  const indexedDirectories =
-    directoryResult.status === "fulfilled" ? directoryResult.value.indexed : 0
-  const totalActiveDirectories =
-    directoryResult.status === "fulfilled"
-      ? directoryResult.value.totalActiveDirectories
-      : 0
-
-  const replyQueueCard =
-    replyQueueResult.status === "fulfilled"
-      ? statCard(
-          "Possible Mentions",
-          String(replyQueueResult.value.mentionsFound),
-          `suggested ${replyQueueResult.value.mentionsFound === 1 ? "reply" : "replies"} from ${pluralize(replyQueueResult.value.postsScanned, "post")} scanned`
-        )
-      : ""
 
   const directoryCoverageCard =
     directoryResult.status === "fulfilled"
       ? statCard(
           "Directory coverage",
           `${directoryResult.value.indexed}/${directoryResult.value.totalActiveDirectories}`,
-          "active directories indexed for your product"
+          "active directories indexed for your product",
+          "33%"
         )
       : ""
 
   const backlinkCard =
     backlinkResult.status === "fulfilled"
       ? statCard(
-          "Backlink Prospects",
+          "Backlink prospects",
           String(backlinkResult.value.prospectsCreated),
-          "new prospects found from competitor backlinks"
+          "new prospects found from competitor backlinks",
+          "33%"
         )
       : ""
 
-  const primaryCardsRow = replyQueueCard ? `<tr>${replyQueueCard}</tr>` : ""
-  const directoryCardRow = directoryCoverageCard ? `<tr>${directoryCoverageCard}</tr>` : ""
-  const backlinkCardRow = backlinkCard ? `<tr>${backlinkCard}</tr>` : ""
+  const pagesCard =
+    pagesResult.status === "fulfilled"
+      ? statCard(
+          "Pages found",
+          String(pagesResult.value.pagesFound),
+          "product pages found for opportunity matching",
+          "33%"
+        )
+      : ""
+
+  const statsRow =
+    directoryCoverageCard || backlinkCard || pagesCard
+      ? `<tr>${directoryCoverageCard}${backlinkCard}${pagesCard}</tr>`
+      : ""
+
   const statusNotes = `
-    ${
-      replyQueueResult.status === "rejected"
-        ? statusNote(
-            "Community monitoring scan did not finish",
-            "Your monitoring setup was saved, but the first scan failed. We will keep the setup available so it can be run again."
-          )
-        : ""
-    }
     ${
       directoryResult.status === "rejected"
         ? statusNote(
@@ -114,26 +103,32 @@ export async function sendOnboardingCompleteEmail({
           )
         : ""
     }
+    ${
+      pagesResult.status === "rejected"
+        ? statusNote(
+            "Page crawl did not finish",
+            "Your product setup was saved, but the initial page crawl failed. Pages will be retried on the next discovery run."
+          )
+        : ""
+    }
     `
 
   await sendMentiohuntEmail({
     to,
     subject: `Your Mentiohunt onboarding results for ${productName}`,
     unsubscribeUrl: generateUnsubscribeUrl(userId, "alerts"),
-    previewText: `We found ${pluralize(replyQueueFound, "possible mention")} and ${pluralize(backlinkResult.status === "fulfilled" ? backlinkResult.value.prospectsCreated : 0, "backlink prospect")} for ${productName}.`,
+    previewText: `We found ${pluralize(backlinkResult.status === "fulfilled" ? backlinkResult.value.prospectsCreated : 0, "backlink prospect")} for ${productName}.`,
     footerReason:
       "You received this email because you completed onboarding for Mentiohunt.",
     body: `
       <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 18px; line-height:1.7;">${escapeHtml(greeting)}</p>
       <h1 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:28px; color:#241611; margin:0 0 16px; line-height:1.2; letter-spacing:-0.5px;">Your first opportunities are ready</h1>
-      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 26px; line-height:1.7;">We finished the initial Mentiohunt setup for <strong style="color:#241611;">${escapedProductName}</strong>. Here is what we found across community monitoring and directory prospecting.</p>
+      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 26px; line-height:1.7;">We finished the initial Mentiohunt setup for <strong style="color:#241611;">${escapedProductName}</strong>. Here is what we found across directory prospecting, backlink discovery, and page crawling.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 -6px 10px;">
-        ${primaryCardsRow}
-        ${directoryCardRow}
-        ${backlinkCardRow}
+        ${statsRow}
         ${statusNotes}
       </table>
-      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:15px; color:#6F625A; margin:18px 0 24px; line-height:1.7;">Next, review the queue and decide which opportunities are worth acting on first. Mentiohunt will show the fit rationale and prep work before you reach out or reply.</p>
+      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:15px; color:#6F625A; margin:18px 0 24px; line-height:1.7;">Next, review the queue and decide which opportunities are worth acting on first. Mentiohunt will show the fit rationale and prep work before you reach out.</p>
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="border-radius:10px; background-color:#FF5400;">

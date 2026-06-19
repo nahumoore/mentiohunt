@@ -18,11 +18,11 @@ import { Button } from "@workspace/ui/components/button"
 export const metadata: Metadata = {
   title: "About Mentiohunt - Built by Nicolas More",
   description:
-    "Founder note from Nicolas More on why Mentiohunt exists: helping founders find backlink and community opportunities without turning distribution into busywork.",
+    "Founder note from Nicolas More on why Mentiohunt exists: helping founders build backlinks without turning outreach into a full-time job.",
   openGraph: {
     title: "About Mentiohunt - Built by Nicolas More",
     description:
-      "Founder note from Nicolas More on why Mentiohunt exists: helping founders find backlink and community opportunities without turning distribution into busywork.",
+      "Founder note from Nicolas More on why Mentiohunt exists: helping founders build backlinks without turning outreach into a full-time job.",
     url: "https://mentiohunt.com/about",
     siteName: "Mentiohunt",
     type: "website",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "About Mentiohunt - Built by Nicolas More",
     description:
-      "Founder note from Nicolas More on why Mentiohunt exists: helping founders find backlink and community opportunities without turning distribution into busywork.",
+      "Founder note from Nicolas More on why Mentiohunt exists: helping founders build backlinks without turning outreach into a full-time job.",
   },
 }
 

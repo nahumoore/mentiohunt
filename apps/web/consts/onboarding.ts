@@ -22,14 +22,14 @@ export const ONBOARDING_STEPS = [
       "These are the sites we'll mine for backlink opportunities. Add or remove as needed.",
   },
   {
-    title: "Where to listen",
+    title: "Your target pages",
     description:
-      "Review the keywords and communities we'll monitor for relevant posts.",
+      "Add your sitemap URL or the specific pages you want to earn backlinks to.",
   },
   {
     title: "Launch",
     description:
-      "Backlink discovery and community monitoring will both activate immediately.",
+      "Backlink discovery will activate immediately.",
   },
 ] as const
 
@@ -43,16 +43,11 @@ export const REFERRAL_SOURCES = [
   "LinkedIn",
   "Other",
 ] as const
-export const PRIMARY_USES = [
-  { id: "backlinks", label: "Backlink building" },
-  { id: "mentions", label: "Community mentions" },
-  { id: "both", label: "Both" },
-] as const
 
 export type CompanySize = (typeof COMPANY_SIZES)[number]
 export type UserRole = (typeof USER_ROLES)[number]
 export type ReferralSource = (typeof REFERRAL_SOURCES)[number]
-export type PrimaryUse = "backlinks" | "mentions" | "both"
+export type ResourceMode = "sitemap" | "pages"
 
 export const OPPORTUNITY_TYPE_IDS = [
   "competitor_backlinks",
@@ -79,15 +74,7 @@ export const DEFAULT_OPPORTUNITY_TYPES = [
   "unlinked_mentions",
 ] satisfies OpportunityTypeId[]
 
-export const DEFAULT_MONITORING_PLATFORMS = ["reddit", "quora"] as const
-
 export type OpportunityTypeId = (typeof OPPORTUNITY_TYPE_IDS)[number]
-export type MonitoringPlatform = (typeof DEFAULT_MONITORING_PLATFORMS)[number]
-
-export type MonitoringCommunity = {
-  platform: "reddit"
-  community: string
-}
 
 export type OnboardingData = {
   websiteUrl: string
@@ -95,15 +82,12 @@ export type OnboardingData = {
   productDescription: string
   competitors: string[]
   opportunityTypes: OpportunityTypeId[]
-  monitoringPlatforms: MonitoringPlatform[]
-  monitoringKeywords: string[]
-  monitoringCommunities: MonitoringCommunity[]
-  emailAlertsEnabled: boolean
+  resourceMode: ResourceMode
+  resourceUrls: string[]
   userName: string
   companySize: string
   role: string
   referralSource: string
-  primaryUse: PrimaryUse
 }
 
 export type OnboardingField = keyof OnboardingData
@@ -115,15 +99,12 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   productDescription: "",
   competitors: [],
   opportunityTypes: DEFAULT_OPPORTUNITY_TYPES,
-  monitoringPlatforms: [...DEFAULT_MONITORING_PLATFORMS],
-  monitoringKeywords: [],
-  monitoringCommunities: [],
-  emailAlertsEnabled: true,
+  resourceMode: "sitemap",
+  resourceUrls: [],
   userName: "",
   companySize: "",
   role: "",
   referralSource: "",
-  primaryUse: "both",
 }
 
 const URL_PROTOCOL_PATTERN = /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//
@@ -181,36 +162,6 @@ export const competitorsStepSchema = z.object({
     }),
 })
 
-const monitoringCommunitySchema = z.object({
-  platform: z.literal("reddit"),
-  community: z
-    .string()
-    .trim()
-    .min(1, "Add at least one community.")
-    .max(80, "Keep community names under 80 characters.")
-    .transform((value) =>
-      value
-        .replace(/^\/?r\//i, "")
-        .replace(/^\/+/, "")
-        .trim()
-    ),
-})
-
-export const monitoringStepSchema = z.object({
-  monitoringPlatforms: z
-    .array(z.enum(["reddit", "quora"]))
-    .min(1, "Keep at least one monitoring platform active."),
-  monitoringKeywords: z
-    .array(z.string().trim().min(2).max(120))
-    .min(1, "Add at least one monitoring keyword.")
-    .max(10, "You can add up to 10 monitoring keywords."),
-  monitoringCommunities: z
-    .array(monitoringCommunitySchema)
-    .min(1, "Add at least one Reddit community.")
-    .max(15, "You can add up to 15 communities."),
-  emailAlertsEnabled: z.boolean(),
-})
-
 export const opportunityTypesStepSchema = z.object({
   opportunityTypes: z
     .array(z.enum(OPPORTUNITY_TYPE_IDS))
@@ -225,13 +176,27 @@ export const companyStepSchema = z.object({
   companySize: z.string().trim().min(1, "Select your company size."),
   role: z.string().trim().min(1, "Select your role."),
   referralSource: z.string().trim().optional().default(""),
-  primaryUse: z.enum(["backlinks", "mentions", "both"]).default("both"),
+})
+
+const resourceUrlSchema = z
+  .string()
+  .trim()
+  .min(1, "Enter a URL.")
+  .transform(normalizeUrl)
+  .pipe(z.string().url("Enter a valid URL."))
+
+export const resourcesStepSchema = z.object({
+  resourceMode: z.enum(["sitemap", "pages"]).default("sitemap"),
+  resourceUrls: z
+    .array(resourceUrlSchema)
+    .min(1, "Add at least one page URL or your sitemap URL.")
+    .max(20, "You can add up to 20 URLs."),
 })
 
 export const onboardingSchema = websiteUrlStepSchema
   .merge(productDescriptionStepSchema)
   .merge(competitorsStepSchema)
   .merge(opportunityTypesStepSchema)
-  .merge(monitoringStepSchema)
+  .merge(resourcesStepSchema)
   .merge(userNameStepSchema)
   .merge(companyStepSchema)

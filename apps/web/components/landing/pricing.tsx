@@ -28,12 +28,12 @@ export function Pricing() {
           <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
             Start with the plan that gets your{" "}
             <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
-              distribution queue moving.
+              backlink pipeline moving.
             </span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Two simple plans for recurring backlink discovery and community
-            monitoring. Start free, upgrade when you need more sites.
+            Two simple plans for managed backlink discovery and outreach.
+            Start free, upgrade when you need more sites.
           </p>
         </div>
 

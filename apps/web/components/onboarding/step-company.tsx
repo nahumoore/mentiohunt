@@ -2,13 +2,11 @@
 
 import {
   COMPANY_SIZES,
-  PRIMARY_USES,
   REFERRAL_SOURCES,
   USER_ROLES,
   type OnboardingData,
   type OnboardingField,
   type OnboardingFieldErrors,
-  type PrimaryUse,
 } from "@/consts/onboarding"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -98,39 +96,6 @@ export function StepCompany({
         onChange={(value) => updateField("referralSource", value)}
       />
 
-      <div className="space-y-2">
-        <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
-          What will you mainly use Mentiohunt for?
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {PRIMARY_USES.map(({ id, label }) => {
-            const isActive = data.primaryUse === id
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => updateField("primaryUse", id as PrimaryUse)}
-                className={cn(
-                  "rounded-full border px-5 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "border-transparent text-white"
-                    : "border-border bg-white text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                )}
-                style={
-                  isActive
-                    ? {
-                        background:
-                          "linear-gradient(135deg, var(--blaze-orange), var(--amber-flame))",
-                      }
-                    : undefined
-                }
-              >
-                {label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
     </div>
   )
 }

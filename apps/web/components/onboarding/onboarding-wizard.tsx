@@ -4,11 +4,11 @@ import { captureEvent } from "@/lib/analytics"
 import { supabaseClient } from "@/lib/supabase/client"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import {
-  IconAntenna,
   IconArrowLeft,
   IconArrowRight,
   IconBuilding,
   IconCheck,
+  IconFiles,
   IconLoader2,
   IconPackage,
   IconRocket,
@@ -19,24 +19,21 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-import { StepAudience } from "@/components/onboarding/step-audience"
 import { StepCompany } from "@/components/onboarding/step-company"
+import { StepResources } from "@/components/onboarding/step-resources"
 import { StepCompetitors } from "@/components/onboarding/step-competitors"
 import { StepLaunch } from "@/components/onboarding/step-launch"
 import { StepProduct } from "@/components/onboarding/step-product"
 import { StepUrl } from "@/components/onboarding/step-url"
 import {
-  DEFAULT_MONITORING_PLATFORMS,
   DEFAULT_OPPORTUNITY_TYPES,
   INITIAL_ONBOARDING_DATA,
   ONBOARDING_STEPS,
   competitorsStepSchema,
   companyStepSchema,
-  monitoringStepSchema,
   normalizeUrl,
   onboardingSchema,
   productDescriptionStepSchema,
-  type MonitoringCommunity,
   type OnboardingData,
   type OnboardingField,
   type OnboardingFieldErrors,
@@ -47,8 +44,6 @@ type LoadingField =
   | "productName"
   | "productDescription"
   | "competitors"
-  | "monitoringKeywords"
-  | "monitoringCommunities"
 
 function normalizeOnboardingData(data: OnboardingData): OnboardingData {
   return {
@@ -58,11 +53,6 @@ function normalizeOnboardingData(data: OnboardingData): OnboardingData {
       data.opportunityTypes?.length > 0
         ? data.opportunityTypes
         : DEFAULT_OPPORTUNITY_TYPES,
-    monitoringPlatforms:
-      data.monitoringPlatforms?.length > 0
-        ? data.monitoringPlatforms
-        : [...DEFAULT_MONITORING_PLATFORMS],
-    emailAlertsEnabled: data.emailAlertsEnabled ?? true,
   }
 }
 
@@ -73,15 +63,8 @@ function normalizeSubmissionData(data: OnboardingData): OnboardingData {
     productName: data.productName.trim(),
     productDescription: data.productDescription.trim(),
     competitors: data.competitors.map(normalizeUrl),
-    monitoringKeywords: data.monitoringKeywords.map((k) => k.trim()),
-    monitoringCommunities: data.monitoringCommunities.map((c) => ({
-      platform: "reddit",
-      community: c.community
-        .trim()
-        .replace(/^\/?r\//i, "")
-        .replace(/^\/+/, "")
-        .trim(),
-    })),
+    resourceMode: data.resourceMode,
+    resourceUrls: data.resourceUrls.map((u) => normalizeUrl(u.trim())).filter(Boolean),
   }
 }
 
@@ -166,34 +149,6 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     }
   }
 
-  const generateAudience = async (
-    site: FetchedSiteDetails,
-    productName: string,
-    productDescription: string
-  ) => {
-    try {
-      const res = await fetch("/api/onboarding/generate/audience", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ site, productName, productDescription }),
-      })
-      const json = await res.json()
-      if (res.ok) {
-        const typed = json as {
-          monitoringKeywords: string[]
-          monitoringCommunities: MonitoringCommunity[]
-        }
-        updateData({
-          monitoringKeywords: typed.monitoringKeywords,
-          monitoringCommunities: typed.monitoringCommunities,
-        })
-        captureEvent("onboarding_ai_generated", { field: "audience" })
-      }
-    } finally {
-      clearLoadingFields("monitoringKeywords", "monitoringCommunities")
-    }
-  }
-
   const generateProduct = async (site: FetchedSiteDetails, websiteUrl: string) => {
     let productName = ""
     let productDescription = ""
@@ -213,7 +168,6 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     } finally {
       clearLoadingFields("productName", "productDescription")
       void generateCompetitors(site, websiteUrl, productName, productDescription)
-      void generateAudience(site, productName, productDescription)
     }
   }
 
@@ -265,8 +219,6 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
           "productName",
           "productDescription",
           "competitors",
-          "monitoringKeywords",
-          "monitoringCommunities",
         ])
       )
       setCurrentStep(1)
@@ -310,11 +262,21 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     }
 
     if (step === 4) {
-      const monitoringResult = monitoringStepSchema.safeParse(normalizedData)
-      if (!monitoringResult.success) {
-        const issue = monitoringResult.error.issues[0]
-        const field = issue?.path[0] as OnboardingField | undefined
-        if (field && issue) nextErrors[field] = issue.message
+      if (safeData.resourceMode === "sitemap") {
+        const url = normalizedData.resourceUrls[0] ?? ""
+        if (!url) {
+          nextErrors.resourceUrls = "Add your sitemap URL."
+        } else {
+          try { new URL(url) } catch {
+            nextErrors.resourceUrls = "Enter a valid sitemap URL."
+          }
+        }
+      } else {
+        const count = normalizedData.resourceUrls.length
+        if (count < 5) {
+          const remaining = 5 - count
+          nextErrors.resourceUrls = `Add ${remaining} more page URL${remaining === 1 ? "" : "s"}.`
+        }
       }
     }
 
@@ -337,7 +299,6 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
     })
     if (currentStep === 1) {
       captureEvent("onboarding_company_submitted", {
-        primary_use: safeData.primaryUse,
         company_size: safeData.companySize,
         role: safeData.role,
       })
@@ -437,7 +398,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
   const lastStepIndex = ONBOARDING_STEPS.length - 1
   const isLastStep = currentStep === lastStepIndex
 
-  const stepIcons = [null, IconBuilding, IconPackage, IconSwords, IconAntenna, IconRocket]
+  const stepIcons = [null, IconBuilding, IconPackage, IconSwords, IconFiles, IconRocket]
   const StepIcon = stepIcons[currentStep] ?? null
 
   return (
@@ -505,10 +466,9 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
               />
             )}
             {currentStep === 4 && (
-              <StepAudience
+              <StepResources
                 data={safeData}
                 errors={fieldErrors}
-                loadingFields={loadingFields}
                 updateField={updateField}
               />
             )}

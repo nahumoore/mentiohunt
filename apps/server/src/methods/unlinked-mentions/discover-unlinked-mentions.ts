@@ -237,8 +237,7 @@ export async function discoverUnlinkedMentions(
     }
 
     // 3. Verify mention + no existing link, enriching contact in the same call.
-    //    Serial — the scraper service processes one request at a time.
-    const checkLimit = pLimit(1)
+    const checkLimit = pLimit(5)
     const checked = await Promise.all(
       candidates.map((c) =>
         checkLimit(async () => {

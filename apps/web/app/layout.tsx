@@ -12,11 +12,11 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
   title: {
     default:
-      "Mentiohunt – Backlink Building & Community Monitoring for Founders",
+      "Mentiohunt – Backlink Placement Autopilot for Founders",
     template: "%s — Mentiohunt",
   },
   description:
-    "Build backlinks from your articles and monitor communities for posts where your product fits — with outreach-ready contact details and email drafts.",
+    "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
 }
 
 const outfitHeading = Outfit({

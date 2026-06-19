@@ -135,7 +135,7 @@ export default async function Image() {
           <div style={{ display: "flex", alignItems: "center", gap: "40px" }}>
             {[
               ["Backlinks", "site pitching"],
-              ["Communities", "monitoring"],
+              ["Fit scoring", "per opportunity"],
               ["Ready-to-send", "outreach drafts"],
             ].map(([val, label]) => (
               <div key={label} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>

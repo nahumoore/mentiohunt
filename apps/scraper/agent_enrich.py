@@ -168,7 +168,7 @@ def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dic
         "social_links": page_social,
         "contact_form_url": contact_form_url,
         "page_markdown": raw[:4000],
-        "internal_links": internal_links[:50],
+        "internal_links": internal_links[:20],
     }
 
     log.info(
@@ -237,7 +237,7 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 tools=tools,
                 tool_choice="required",
                 temperature=0,
-                max_tokens=8000,
+                max_tokens=2048,
                 timeout=90,
             )
         except Exception as e:
@@ -248,7 +248,7 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 tools=tools,
                 tool_choice="required",
                 temperature=0,
-                max_tokens=8000,
+                max_tokens=2048,
                 timeout=90,
             )
 

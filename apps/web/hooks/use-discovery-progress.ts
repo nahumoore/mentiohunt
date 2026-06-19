@@ -6,18 +6,18 @@ import { useEffect, useMemo, useRef, useState } from "react"
 type PgInsert = { new: Record<string, unknown>; old: Record<string, unknown> }
 type PgUpdate = { new: Record<string, unknown>; old: Record<string, unknown> }
 
-export type EngineKey = "community" | "directories" | "backlinks"
+export type EngineKey = "directories" | "backlinks" | "pages"
 export type EngineStatus = "pending" | "running" | "done" | "failed"
 
 export type DiscoveryStatus = {
-  community: EngineStatus
   directories: EngineStatus
   backlinks: EngineStatus
+  pages: EngineStatus
   started_at: string | null
   total: number
 }
 
-export type DiscoveryItemType = "backlink" | "directory" | "community"
+export type DiscoveryItemType = "backlink" | "directory" | "page"
 
 export type DiscoveryItem = {
   id: string
@@ -32,7 +32,7 @@ type HookState = {
   items: DiscoveryItem[]
 }
 
-const ENGINE_KEYS: EngineKey[] = ["community", "directories", "backlinks"]
+const ENGINE_KEYS: EngineKey[] = ["directories", "backlinks", "pages"]
 
 function isActive(status: DiscoveryStatus | null): boolean {
   if (!status) return false
@@ -45,14 +45,14 @@ function parseStatus(raw: unknown): DiscoveryStatus | null {
   const validStatus = (v: unknown): v is EngineStatus =>
     v === "pending" || v === "running" || v === "done" || v === "failed"
   if (
-    validStatus(s.community) &&
     validStatus(s.directories) &&
-    validStatus(s.backlinks)
+    validStatus(s.backlinks) &&
+    validStatus(s.pages)
   ) {
     return {
-      community: s.community,
       directories: s.directories,
       backlinks: s.backlinks,
+      pages: s.pages,
       started_at: typeof s.started_at === "string" ? s.started_at : null,
       total: typeof s.total === "number" ? s.total : 3,
     }
@@ -153,31 +153,6 @@ export function useDiscoveryProgress(
                 title: (row.domain as string | null) ?? "New directory",
                 subtitle: "Directory opportunity",
                 timestamp: (row.discovered_at as string) ?? new Date().toISOString(),
-              },
-              ...prev.items,
-            ].slice(0, 20),
-          }))
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "reply_queue_items",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload: PgInsert) => {
-          const row = payload.new
-          setState((prev) => ({
-            ...prev,
-            items: [
-              {
-                id: String(row.id),
-                type: "community" as DiscoveryItemType,
-                title: (row.title as string | null) ?? (row.community as string | null) ?? "New mention",
-                subtitle: row.community ? `r/${row.community as string}` : null,
-                timestamp: (row.created_at as string) ?? new Date().toISOString(),
               },
               ...prev.items,
             ].slice(0, 20),

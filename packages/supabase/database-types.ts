@@ -382,6 +382,59 @@ export type Database = {
           },
         ]
       }
+      product_pages: {
+        Row: {
+          crawl_status: Database["public"]["Enums"]["page_crawl_status"]
+          crawled_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          keywords: string[]
+          page_type: Database["public"]["Enums"]["page_type"]
+          priority: Database["public"]["Enums"]["page_priority"]
+          product_id: string
+          title: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          crawl_status?: Database["public"]["Enums"]["page_crawl_status"]
+          crawled_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          keywords?: string[]
+          page_type?: Database["public"]["Enums"]["page_type"]
+          priority?: Database["public"]["Enums"]["page_priority"]
+          product_id: string
+          title?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          crawl_status?: Database["public"]["Enums"]["page_crawl_status"]
+          crawled_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          keywords?: string[]
+          page_type?: Database["public"]["Enums"]["page_type"]
+          priority?: Database["public"]["Enums"]["page_priority"]
+          product_id?: string
+          title?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_pages_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           competitors: string[]
@@ -427,7 +480,6 @@ export type Database = {
           id: string
           name: string | null
           onboarding_completed: boolean
-          primary_use: string | null
           referral_source: string | null
           role: string | null
           stripe_customer_id: string | null
@@ -445,7 +497,6 @@ export type Database = {
           id: string
           name?: string | null
           onboarding_completed?: boolean
-          primary_use?: string | null
           referral_source?: string | null
           role?: string | null
           stripe_customer_id?: string | null
@@ -463,7 +514,6 @@ export type Database = {
           id?: string
           name?: string | null
           onboarding_completed?: boolean
-          primary_use?: string | null
           referral_source?: string | null
           role?: string | null
           stripe_customer_id?: string | null
@@ -735,6 +785,17 @@ export type Database = {
         | "dismissed"
       email_sequence_status: "active" | "stopped" | "completed"
       email_sequence_type: "onboarding"
+      page_crawl_status: "pending" | "crawled" | "failed"
+      page_priority: "high" | "medium" | "low"
+      page_type:
+        | "sitemap"
+        | "article"
+        | "resource"
+        | "free_tool"
+        | "landing_page"
+        | "case_study"
+        | "comparison"
+        | "manual"
       prospect_status: "new" | "contacted" | "dismissed"
       prospect_tier: "competitor_backlink" | "unlinked_mention"
       reply_queue_platform: "reddit" | "quora"
@@ -877,6 +938,18 @@ export const Constants = {
       ],
       email_sequence_status: ["active", "stopped", "completed"],
       email_sequence_type: ["onboarding"],
+      page_crawl_status: ["pending", "crawled", "failed"],
+      page_priority: ["high", "medium", "low"],
+      page_type: [
+        "sitemap",
+        "article",
+        "resource",
+        "free_tool",
+        "landing_page",
+        "case_study",
+        "comparison",
+        "manual",
+      ],
       prospect_status: ["new", "contacted", "dismissed"],
       prospect_tier: ["competitor_backlink", "unlinked_mention"],
       reply_queue_platform: ["reddit", "quora"],

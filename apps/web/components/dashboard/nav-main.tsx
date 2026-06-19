@@ -1,10 +1,8 @@
 "use client"
 
 import {
-  IconAdjustments,
-  IconEye,
+  IconFiles,
   IconLayoutGrid,
-  IconMessage2Share,
   IconNetwork,
   IconTarget,
 } from "@tabler/icons-react"
@@ -43,27 +41,28 @@ type PageItem = {
 
 type FeatureModule = {
   title: string
-  baseHref: string
   pages: PageItem[]
 }
 
 const FEATURES: FeatureModule[] = [
   {
-    title: "Link Building",
-    baseHref: "/dashboard/outreach",
+    title: "Main",
     pages: [
       {
         title: "Outreach",
         url: "/dashboard/outreach",
         icon: <IconTarget />,
-        items: [
-          {
-            title: "Settings",
-            url: "/dashboard/outreach/settings",
-            icon: <IconAdjustments />,
-          },
-        ],
       },
+      {
+        title: "Pages",
+        url: "/dashboard/pages",
+        icon: <IconFiles />,
+      },
+    ],
+  },
+  {
+    title: "Submissions",
+    pages: [
       {
         title: "Directories",
         url: "/dashboard/directories",
@@ -76,24 +75,6 @@ const FEATURES: FeatureModule[] = [
       },
     ],
   },
-  {
-    title: "Community",
-    baseHref: "/dashboard/mentions",
-    pages: [
-      {
-        title: "Mentions",
-        url: "/dashboard/mentions",
-        icon: <IconMessage2Share />,
-        items: [
-          {
-            title: "Setup",
-            url: "/dashboard/mentions/setup",
-            icon: <IconEye />,
-          },
-        ],
-      },
-    ],
-  },
 ]
 
 export function NavMain() {
@@ -102,25 +83,15 @@ export function NavMain() {
   return (
     <>
       {FEATURES.map((feature) => {
-        const isFeatureActive = pathname.startsWith(feature.baseHref)
-
         return (
           <SidebarGroup
-            key={feature.baseHref}
-            className="py-0 not-first:mt-4 first:pt-2"
+            key={feature.title}
+            className="py-0 not-first:mt-3 first:pt-3"
           >
-            <div className="mb-2 flex items-center gap-2 px-2 group-data-[collapsible=icon]:hidden">
-              <p className="shrink-0 text-[10px] font-bold text-sidebar-foreground/40 uppercase">
+            <div className="mb-1 px-3 pb-1 group-data-[collapsible=icon]:hidden">
+              <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                 {feature.title}
               </p>
-              <div
-                className={cn(
-                  "h-px flex-1 transition-colors duration-300",
-                  isFeatureActive
-                    ? "bg-gradient-to-r from-blaze-orange/40 to-transparent"
-                    : "bg-sidebar-border"
-                )}
-              />
             </div>
 
             <SidebarMenu>
@@ -134,7 +105,7 @@ export function NavMain() {
                       <SidebarMenuButton
                         disabled
                         tooltip={`${page.title} (coming soon)`}
-                        className="pr-14"
+                        className="gap-3 px-3 py-2 text-sm font-medium text-sidebar-foreground/50"
                       >
                         {page.icon}
                         <span>{page.title}</span>
@@ -144,16 +115,20 @@ export function NavMain() {
                         asChild
                         isActive={isActive}
                         tooltip={page.title}
-                        className={
+                        className={cn(
+                          "gap-3 px-3 py-2 text-sm",
                           isActive
-                            ? "bg-primary text-primary-foreground hover:opacity-80"
-                            : undefined
-                        }
+                            ? "relative font-semibold text-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary hover:bg-primary/15 hover:text-primary"
+                            : "font-medium text-sidebar-foreground/80 hover:bg-muted hover:text-foreground"
+                        )}
                       >
                         <Link
                           href={page.url}
                           aria-current={isActive ? "page" : undefined}
                         >
+                          {isActive && (
+                            <span className="absolute top-1.5 bottom-1.5 left-0 w-1 rounded-r-full bg-primary" />
+                          )}
                           {page.icon}
                           <span>{page.title}</span>
                         </Link>

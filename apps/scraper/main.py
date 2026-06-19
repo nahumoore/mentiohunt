@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes import check_mention_router, health_router, scrape_router
+from routes import check_mention_router, fetch_content_router, health_router, scrape_router
 
 app = FastAPI(title="Scraper Service")
 
@@ -14,4 +14,5 @@ app.add_middleware(
 
 app.include_router(scrape_router)
 app.include_router(check_mention_router)
+app.include_router(fetch_content_router)
 app.include_router(health_router)

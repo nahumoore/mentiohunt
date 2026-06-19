@@ -1,253 +1,136 @@
 "use client"
 
-import { IconBrandRedditNew } from "@/components/custom-icons/brand-reddit-new"
-import {
-  IconCheck,
-  IconMailFast,
-  IconSend,
-  IconWorld,
-} from "@tabler/icons-react"
-import { AnimatePresence, motion } from "framer-motion"
-import { useEffect, useState, type ComponentType, type ReactNode } from "react"
+import { motion, useInView } from "framer-motion"
+import { useEffect, useRef, useState } from "react"
 
 const ease = [0.21, 0.47, 0.32, 0.98] as const
-const INTERVAL = 5000
 
-type Card = {
-  id: string
-  icon: ComponentType<{ className?: string }>
-  eyebrow: string
-  title: string
-  source: string
-  score: string
-  actionLabel: string
-  cta: string
-  detail: ReactNode
+function useCountUp(target: number, duration = 1800, enabled = true) {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    if (!enabled || target === 0) {
+      setCount(target)
+      return
+    }
+    let startTime: number | null = null
+    function step(ts: number) {
+      if (!startTime) startTime = ts
+      const progress = Math.min((ts - startTime) / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setCount(Math.floor(target * eased))
+      if (progress < 1) requestAnimationFrame(step)
+      else setCount(target)
+    }
+    requestAnimationFrame(step)
+  }, [target, duration, enabled])
+
+  return count
 }
 
-const cards: Card[] = [
+type Stat = {
+  value: number
+  suffix: string
+  label: string
+  formatFn?: (n: number) => string
+}
+
+const stats: Stat[] = [
   {
-    id: "community",
-    icon: IconBrandRedditNew,
-    eyebrow: "Community mention",
-    title: '"I need alerts that actually tell me what to act on."',
-    source: "r/SaaS · 11 min ago",
-    score: "89",
-    actionLabel: "Reply drafted",
-    cta: "Post reply",
-    detail: (
-      <div className="flex flex-1 flex-col gap-5">
-        <div>
-          <p className="mb-1.5 text-[0.58rem] font-semibold text-muted-foreground/50 uppercase">
-            Thread
-          </p>
-          <p className="text-sm leading-5 text-muted-foreground italic">
-            "Alerts are noisy. I need to know which threads are actually worth
-            answering."
-          </p>
-        </div>
-        <div className="h-px bg-border" />
-        <div>
-          <p className="mb-1.5 text-[0.58rem] font-semibold text-[var(--color-blaze-orange)] uppercase">
-            Suggested reply
-          </p>
-          <p className="text-sm leading-5 text-foreground">
-            Worth looking at Mentiohunt — it scores fit and drafts a reply you
-            can review before posting.
-          </p>
-        </div>
-      </div>
-    ),
+    value: 1200,
+    suffix: "+",
+    label: "backlink opportunities\nsurfaced every month",
+    formatFn: (n) => n.toLocaleString(),
   },
   {
-    id: "email",
-    icon: IconMailFast,
-    eyebrow: "Backlink opportunity",
-    title: "Resource page ready to pitch",
-    source: "growthstack.tools/resources",
-    score: "94",
-    actionLabel: "Email drafted",
-    cta: "Send email",
-    detail: (
-      <div className="grid flex-1 grid-cols-2 gap-x-8 gap-y-5">
-        {(
-          [
-            ["Audience", "Early-stage SaaS"],
-            ["Page type", "Founder tools list"],
-            ["Domain authority", "41"],
-            ["Contact", "maria@growthstack.tools"],
-          ] as [string, string][]
-        ).map(([label, value]) => (
-          <div key={label}>
-            <p className="text-[0.58rem] font-semibold text-muted-foreground/50 uppercase">
-              {label}
-            </p>
-            <p className="mt-1 truncate text-sm font-semibold text-foreground">
-              {value}
-            </p>
-          </div>
-        ))}
-      </div>
-    ),
+    value: 91,
+    suffix: "",
+    label: "average fit score\nper opportunity",
   },
   {
-    id: "directory",
-    icon: IconWorld,
-    eyebrow: "Directory listing",
-    title: "Site you haven't submitted to yet",
-    source: "startupstash.com/tools",
-    score: "91",
-    actionLabel: "Submission ready",
-    cta: "Submit listing",
-    detail: (
-      <div className="grid flex-1 grid-cols-2 gap-x-8 gap-y-5">
-        {(
-          [
-            ["Category", "Marketing tools"],
-            ["Audience", "Founders"],
-            ["Monthly visits", "~42 k"],
-            ["Status", "Not submitted"],
-          ] as [string, string][]
-        ).map(([label, value]) => (
-          <div key={label}>
-            <p className="text-[0.58rem] font-semibold text-muted-foreground/50 uppercase">
-              {label}
-            </p>
-            <p className="mt-1 truncate text-sm font-semibold text-foreground">
-              {value}
-            </p>
-          </div>
-        ))}
-      </div>
-    ),
+    value: 0,
+    suffix: " hrs",
+    label: "outreach time\nrequired from you",
   },
 ]
 
-export function HeroIllustration() {
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [tick, setTick] = useState(0)
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setActiveIndex((i) => (i + 1) % cards.length)
-      setTick(0)
-    }, INTERVAL)
-    return () => window.clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    const id = window.setInterval(() => setTick((t) => t + 1), 50)
-    return () => window.clearInterval(id)
-  }, [activeIndex])
-
-  const card = cards[activeIndex]!
-  const progress = Math.min((tick * 50) / INTERVAL, 1)
+function StatItem({
+  stat,
+  index,
+  animate,
+}: {
+  stat: Stat
+  index: number
+  animate: boolean
+}) {
+  const raw = useCountUp(stat.value, 1600, animate && stat.value > 0)
+  const display = stat.formatFn
+    ? stat.formatFn(animate ? raw : stat.value)
+    : (animate ? raw : stat.value).toString()
 
   return (
-    <div className="relative mx-auto w-full max-w-lg">
-      <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-[var(--color-princeton-orange)]/8 blur-3xl dark:bg-[var(--color-princeton-orange)]/12" />
-
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={card.id}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -16 }}
-          transition={{ duration: 0.4, ease }}
-        >
-          <OpportunityCard card={card} progress={progress} />
-        </motion.div>
-      </AnimatePresence>
-
-      <div className="mt-5 flex justify-center gap-2" aria-hidden="true">
-        {cards.map((c, i) => (
-          <button
-            key={c.id}
-            onClick={() => {
-              setActiveIndex(i)
-              setTick(0)
-            }}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === activeIndex
-                ? "w-6 bg-[var(--color-blaze-orange)]"
-                : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-            }`}
-          />
-        ))}
-      </div>
-    </div>
+    <motion.div
+      className="flex flex-col items-center text-center text-white sm:px-12"
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.65, delay: 0.15 + index * 0.13, ease }}
+    >
+      <p className="font-heading text-7xl font-black tracking-tight tabular-nums sm:text-[5.5rem]">
+        {display}
+        <span className="text-5xl sm:text-[3.5rem]">{stat.suffix}</span>
+      </p>
+      <p
+        className="mt-4 text-sm font-medium leading-relaxed whitespace-pre-line"
+        style={{ color: "rgba(255,255,255,0.68)" }}
+      >
+        {stat.label}
+      </p>
+    </motion.div>
   )
 }
 
-function OpportunityCard({
-  card,
-  progress,
-}: {
-  card: Card
-  progress: number
-}) {
-  const { icon: Icon, eyebrow, title, source, score, actionLabel, cta, detail } =
-    card
+export function HeroIllustration() {
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, margin: "-80px" })
 
   return (
-    <div className="flex min-h-[400px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      {/* Progress bar at top */}
-      <div className="h-0.5 w-full bg-border">
-        <div
-          className="h-full bg-[var(--color-blaze-orange)] transition-none"
-          style={{ width: `${progress * 100}%` }}
-        />
-      </div>
+    <motion.div
+      ref={ref}
+      className="relative w-full overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, delay: 0.3, ease }}
+      style={{
+        background:
+          "linear-gradient(135deg, var(--crimson-carrot) 0%, var(--blaze-orange) 28%, var(--pumpkin-spice) 60%, var(--harvest-orange) 100%)",
+      }}
+    >
+      {/* warm glow from top */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% -5%, rgba(255,182,0,0.38) 0%, transparent 65%)",
+        }}
+      />
+      {/* depth shadow at bottom */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 100% 70% at 50% 130%, rgba(160,30,0,0.32) 0%, transparent 65%)",
+        }}
+      />
 
-      {/* Header */}
-      <div className="px-6 pt-5 pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-blaze-orange)]/10 text-[var(--color-blaze-orange)]">
-              <Icon className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-[0.6rem] font-bold text-muted-foreground uppercase">
-                {eyebrow}
-              </p>
-              <p className="text-[0.65rem] text-muted-foreground/55">
-                {source}
-              </p>
-            </div>
-          </div>
-
-          <div className="text-right">
-            <span className="text-2xl font-black tabular-nums text-[var(--color-blaze-orange)]">
-              {score}
-            </span>
-            <p className="text-[0.5rem] font-bold text-muted-foreground/40 uppercase">
-              fit score
-            </p>
-          </div>
-        </div>
-
-        <h3 className="mt-4 font-heading text-base font-semibold leading-snug tracking-tight text-foreground">
-          {title}
-        </h3>
-      </div>
-
-      <div className="mx-6 h-px bg-border" />
-
-      {/* Body */}
-      <div className="flex flex-1 flex-col px-6 py-5">
-        {detail}
-
-        <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-          <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            <IconCheck className="h-3.5 w-3.5 text-[var(--color-blaze-orange)]" />
-            {actionLabel}
-          </span>
-          <button className="flex items-center gap-1.5 rounded-full bg-[var(--color-blaze-orange)] px-4 py-2 text-xs font-bold text-white transition-opacity hover:opacity-90">
-            {cta}
-            <IconSend className="h-3 w-3" />
-          </button>
+      <div className="container relative mx-auto px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <div className="grid grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-white/15">
+          {stats.map((stat, i) => (
+            <StatItem key={stat.label} stat={stat} index={i} animate={isInView} />
+          ))}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

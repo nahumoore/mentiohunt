@@ -23,11 +23,11 @@ export function FounderIntro() {
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
           <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
-            Found a way to get traffic and customers while you sleep
+            Backlinks compounded. Running outreach was the job I didn't want.
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            SEO and Reddit have been my two best growth channels- but I like
-            building, So I'm automating them as much as possible.
+            Backlinks became my best growth channel — but prospecting, emailing,
+            and following up was a full-time job on its own.
           </p>
         </div>
 
@@ -66,10 +66,29 @@ export function FounderIntro() {
                 </div>
               </div>
 
-              {/* Proof screenshots — rotated, overlapping */}
-              <div className="relative mt-10 pb-6">
-                {/* GSC — tilted left, behind */}
-                <div className="relative z-10 -rotate-[2.5deg] overflow-hidden rounded-2xl border border-border/70 bg-white shadow-[0_24px_64px_-20px_rgba(0,0,0,0.18)] transition-all duration-500 hover:z-30 hover:rotate-0 hover:shadow-[0_28px_72px_-20px_rgba(0,0,0,0.22)]">
+              {/* Stacked proof screenshots */}
+              <div className="relative mt-10 pb-24">
+                {/* Email reply — main top card */}
+                <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-white shadow-[0_24px_64px_-20px_rgba(0,0,0,0.18)]">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-1.5 bg-background/80 px-3 py-2 backdrop-blur-sm">
+                    <div className="size-2 rounded-full bg-red-400" />
+                    <div className="size-2 rounded-full bg-yellow-400" />
+                    <div className="size-2 rounded-full bg-green-400" />
+                    <span className="ml-2 text-[0.6rem] text-muted-foreground/70">
+                      Placement reply
+                    </span>
+                  </div>
+                  <Image
+                    src="/landing/mentiohunt-works-proof.webp"
+                    alt="Editor reply agreeing to feature Mentiohunt in their article"
+                    width={520}
+                    height={400}
+                    className="w-full pt-6"
+                  />
+                </div>
+
+                {/* GSC — rotated card peeking bottom-right */}
+                <div className="absolute bottom-0 left-[8%] right-[-6%] rotate-[5deg] overflow-hidden rounded-2xl border border-border/70 bg-white shadow-[0_32px_64px_-16px_rgba(0,0,0,0.22)]">
                   <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-1.5 bg-background/80 px-3 py-2 backdrop-blur-sm">
                     <div className="size-2 rounded-full bg-red-400" />
                     <div className="size-2 rounded-full bg-yellow-400" />
@@ -86,58 +105,38 @@ export function FounderIntro() {
                     className="w-full pt-6"
                   />
                 </div>
-
-                {/* Reddit — tilted right, on top, offset down */}
-                <div className="relative z-20 -mt-10 ml-6 rotate-[2deg] overflow-hidden rounded-2xl border border-border/70 bg-[#1a1a1b] shadow-[0_24px_64px_-20px_rgba(0,0,0,0.28)] transition-all duration-500 hover:z-30 hover:rotate-0 hover:shadow-[0_28px_72px_-20px_rgba(0,0,0,0.32)]">
-                  <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-1.5 bg-[#1a1a1b]/90 px-3 py-2 backdrop-blur-sm">
-                    <div className="size-2 rounded-full bg-red-400" />
-                    <div className="size-2 rounded-full bg-yellow-400" />
-                    <div className="size-2 rounded-full bg-green-400" />
-                    <span className="ml-2 text-[0.6rem] text-white/40">
-                      Reddit · Performance Overview
-                    </span>
-                  </div>
-                  <Image
-                    src="/landing/reddit-proof.webp"
-                    alt="Reddit performance — 1.5M post views, 2.2K upvotes"
-                    width={754}
-                    height={468}
-                    className="w-full pt-6"
-                  />
-                </div>
               </div>
             </div>
 
             {/* Right: narrative */}
             <div className="space-y-6 lg:pt-2">
               <blockquote className="border-l-2 border-[var(--color-blaze-orange)] pl-5 font-heading text-xl leading-snug font-medium tracking-[-0.02em] text-balance sm:text-2xl">
-                &ldquo;In two months, SEO + Reddit got me 15-20 daily new
-                users.&rdquo;
+                &ldquo;Built a few backlinks and Google started sending traffic
+                without me having to show up every day.&rdquo;
               </blockquote>
 
               <div className="space-y-4 text-base leading-7 text-muted-foreground">
                 <p>
-                  I started marketing by creating content for one of my
-                  products, built a few backlinks, and then Google was sending
-                  traffic wihtout me having to be there. Then, I also started to
-                  reply to Reddit threads where my product came up naturally
+                  I started by creating content for one of my products and
+                  building backlinks manually. Google started sending consistent
+                  traffic — compounding every month without me having to be
+                  there.
                 </p>
                 <p>
-                  In a few months, I was getting <b>15-20 daily new users</b>{" "}
-                  trying my product every.. single.. day
+                  But doing the outreach side was a real job. Prospecting sites,
+                  writing emails, following up, tracking replies. That bottleneck
+                  meant most founders either hire an agency or skip link building
+                  entirely.
                 </p>
                 <p>
-                  Those two channels became the backbone of my growth. No paid
-                  ads, no cold emails. Just SEO compounding over time and Reddit
-                  threads <i>(which translates to SEO as well)</i> where I could
-                  actually be useful
+                  Neither felt right. Agencies are expensive and opaque. I
+                  didn&apos;t want to manage another vendor or run campaigns
+                  myself.
                 </p>
                 <p>
-                  The problem was doing it every day while I could be improving
-                  the product or focusing on other tasks. I kept thinking there
-                  had to be a better way to run this as a system... so
-                  Mentiohunt is that system — built for founders who want the
-                  same results without turning distribution into a full-time job
+                  So I built Mentiohunt to handle that part. Give it your site,
+                  it finds opportunities, explains why they fit, and runs the
+                  outreach. You just approve or reject — nothing else required.
                 </p>
               </div>
 
@@ -148,7 +147,7 @@ export function FounderIntro() {
                   className="h-12 rounded-full px-7 text-sm font-semibold shadow-lg shadow-primary/25"
                 >
                   <Link href="/signup">
-                    Start automating your growth
+                    Get your first backlink opportunities
                     <IconArrowRight size={16} stroke={2.5} />
                   </Link>
                 </Button>

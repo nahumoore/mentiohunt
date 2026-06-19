@@ -17,7 +17,7 @@ const testimonials = [
   },
   {
     quote:
-      "The daily digest is a game-changer. I went from random outreach to having a clear plan every morning. My conversion rate on pitches has doubled.",
+      "We dropped our link building agency because we had no idea what we were paying for. Mentiohunt shows us the fit, the placement, and why it makes sense — before anything goes live.",
     author: "Sarah Mitchell",
     role: "Growth Lead, LaunchPad",
     avatar: "/landing/user_2.webp",
@@ -45,14 +45,14 @@ const testimonials = [
   },
   {
     quote:
-      "Community alerts helped us jump into relevant threads while they were still active. It feels like a daily distribution assistant, not another dashboard.",
+      "We're a two-person team. There's no way we'd run link building ourselves. Mentiohunt handles the prospecting and outreach — we just approve what makes sense and skip what doesn't.",
     author: "Owen Brooks",
     role: "Growth, Draftbase",
     avatar: "/landing/user_6.jpg",
   },
   {
     quote:
-      "The queue makes prioritization obvious. I open Mentiohunt, pick the strongest fit, and send a pitch that already has a clear angle.",
+      "I used to dread link building because it meant managing another campaign. Now I spend maybe 15 minutes a week reviewing what Mentiohunt surfaced. Everything else is handled.",
     author: "Maya Torres",
     role: "Solo Founder, Northstar",
     avatar: "/landing/user_7.jpg",
@@ -93,7 +93,7 @@ export function Testimonials() {
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
           <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
-            Loved by founders who want a clearer distribution queue.
+            Loved by founders who build backlinks without running outreach themselves.
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Real feedback from small teams using Mentiohunt to spot relevant

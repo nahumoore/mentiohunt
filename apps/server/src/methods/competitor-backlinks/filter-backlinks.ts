@@ -55,9 +55,15 @@ function extractDomainFromUrl(url: string): string {
   }
 }
 
+function matchesNoiseDomain(domain: string): boolean {
+  return [...NOISE_DOMAINS].some(
+    (noiseDomain) => domain === noiseDomain || domain.endsWith(`.${noiseDomain}`)
+  )
+}
+
 function isNoisyUrl(urlFrom: string): boolean {
   const domain = extractDomainFromUrl(urlFrom)
-  if (NOISE_DOMAINS.has(domain)) return true
+  if (matchesNoiseDomain(domain)) return true
 
   let path = ""
   try {
@@ -141,7 +147,7 @@ export function filterBacklinks(
 
 /** True when a domain (or URL) belongs to a big aggregator/social we never pitch. */
 export function isNoiseDomain(domainOrUrl: string): boolean {
-  return NOISE_DOMAINS.has(extractDomainFromUrl(domainOrUrl))
+  return matchesNoiseDomain(extractDomainFromUrl(domainOrUrl))
 }
 
 export { extractDomainFromUrl }

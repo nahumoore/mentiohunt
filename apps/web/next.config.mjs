@@ -21,6 +21,21 @@ const nextConfig = {
         destination: "/blog/:slug",
         permanent: true,
       },
+      {
+        source: "/blog/reddit-marketing",
+        destination: "/blog/how-to-find-backlink-opportunities",
+        permanent: true,
+      },
+      {
+        source: "/reddit-monitoring",
+        destination: "/blog/how-to-find-backlink-opportunities",
+        permanent: true,
+      },
+      {
+        source: "/twitter-monitoring",
+        destination: "/blog/how-to-find-backlink-opportunities",
+        permanent: true,
+      },
     ]
   },
 }

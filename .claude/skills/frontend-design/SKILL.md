@@ -140,6 +140,82 @@ When using this skill:
 - Preserve the product's orange brand energy unless the task clearly requires a different secondary treatment.
 - When working inside an existing screen or design system, match its structure and interaction patterns while still raising the design quality.
 
+## Mentiohunt Brand Guidelines
+
+### Color
+
+Orange is the only primary brand color — never use blue or green as hero. Secondary roles only.
+
+| Intent | Token |
+|---|---|
+| Primary CTA, active states, accents | `--blaze-orange` |
+| Ambient blobs, hover tints | `--princeton-orange` |
+| Page / card backgrounds | `--background` (#fcfcfc) |
+| Body text | `--foreground` |
+| Labels, subtitles | `--muted-foreground` |
+| Card edges, dividers | `--border` |
+
+### Typography
+
+- **Headings:** `font-heading` (Outfit). `tracking-tight`, `text-balance`.
+- **Body:** `font-sans` (Google Sans). `leading-7`.
+- **Eyebrows:** `text-[0.7rem] tracking-[0.24em] uppercase font-bold` in `text-(--color-blaze-orange)`. Always paired with a thin divider: `mx-auto mt-3 h-px w-12 bg-blaze-orange/60`.
+- **Score / numeric values:** tabular-nums, slightly heavier weight.
+
+### Shape Language
+
+- Card radius: `rounded-2xl`. Badge / pill radius: `rounded-full`.
+- Shadows: `shadow-sm` default, `shadow-md` on hover — never deep.
+- Card borders: 1px `border-border`, always visible, never heavy.
+- Cards sit white on off-white page — differentiated by border + shadow, not fill color.
+
+### Icons
+
+- **Always Tabler icons** (`@tabler/icons-react`). Never lucide-react, never inline SVGs, never other libraries.
+- Stroke weight: default (1.5). Size: 20px in UI, 24px in empty states.
+- Pair with `text-(--color-blaze-orange)` for action-pointing icons; muted for metadata.
+
+### Motion
+
+- Card hover: `hover:-translate-y-0.5 hover:shadow-md transition-all`.
+- Transitions: `duration-150 ease-out` — snappy, not floaty.
+- Background blobs: `blur-[100px]` orange at `/7` opacity — ambient warmth only.
+
+### Component Defaults
+
+| Component | Pattern |
+|---|---|
+| Primary CTA button | Solid `bg-(--color-blaze-orange)`, white text, `rounded-full`, hover → `--crimson-carrot` |
+| Secondary button | White + `border-border`, hover tint `bg-(--color-blaze-orange)/4` |
+| Score badges | `rounded-full`, orange bg at `/8–/10` opacity, orange text |
+| Opportunity cards | White `rounded-2xl`, left accent bar in orange for high-fit |
+| Empty states | Single Tabler icon (large, muted) + instructional copy |
+| Status pills | `rounded-full`, muted bg, colored dot |
+
+### Eyebrow + Section Header Pattern
+
+```tsx
+<span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+  Eyebrow
+</span>
+<div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
+<h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
+  Heading
+</h2>
+<p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
+  Subtext
+</p>
+```
+
+### What to Avoid
+
+- Blue as primary — links only
+- Gradient buttons — flat orange only
+- Heavy drop shadows or dark card backgrounds
+- All-caps headings (eyebrows only)
+- Generic dashboard chrome (sidebars with 10+ nav items, dense analytics grids)
+- Emojis in UI — use Tabler icons instead
+
 ## Output Expectation
 
 The final UI should feel deliberately designed for the product and context, not generated from a generic pattern library prompt.

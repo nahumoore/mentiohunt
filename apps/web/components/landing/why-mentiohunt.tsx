@@ -23,7 +23,7 @@ function ToolStackIllustration() {
       <div className="pointer-events-none absolute -top-12 -right-12 h-36 w-36 rounded-full bg-[var(--color-princeton-orange)]/12 blur-3xl" />
 
       <div className="relative space-y-2">
-        <p className="mb-3 text-[0.62rem] font-bold uppercase text-muted-foreground">
+        <p className="mb-3 text-[0.62rem] font-bold text-muted-foreground uppercase">
           Tools you&apos;d need otherwise
         </p>
         {TOOLS.map((tool) => (
@@ -39,28 +39,54 @@ function ToolStackIllustration() {
               height={16}
               className="h-4 w-4 shrink-0"
             />
-            <span className="flex-1 text-sm font-medium text-foreground/70">{tool.name}</span>
-            <span className="text-sm font-semibold text-muted-foreground/60">{tool.price}</span>
+            <span className="flex-1 text-sm font-medium text-foreground/70">
+              {tool.name}
+            </span>
+            <span className="text-sm font-semibold text-muted-foreground/60">
+              {tool.price}
+            </span>
           </div>
         ))}
 
         <div className="flex items-center gap-3 rounded-xl border border-border bg-background/60 px-3.5 py-2.5">
           <div className="flex h-4 w-4 shrink-0 items-center justify-center">
-            <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4 text-muted-foreground/50">
-              <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.25" />
-              <path d="M8 4.5v3.75l2.5 1.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              className="h-4 w-4 text-muted-foreground/50"
+            >
+              <circle
+                cx="8"
+                cy="8"
+                r="6.5"
+                stroke="currentColor"
+                strokeWidth="1.25"
+              />
+              <path
+                d="M8 4.5v3.75l2.5 1.5"
+                stroke="currentColor"
+                strokeWidth="1.25"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
-          <span className="flex-1 text-sm font-medium text-foreground/70">Your time</span>
+          <span className="flex-1 text-sm font-medium text-foreground/70">
+            Your time
+          </span>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground/40">~10h/mo</span>
-            <span className="text-sm font-semibold text-muted-foreground/60">≈$500/mo</span>
+            <span className="text-sm font-semibold text-muted-foreground/60">
+              ≈$500/mo
+            </span>
           </div>
         </div>
 
         <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 px-3.5 py-2">
           <span className="text-xs text-muted-foreground/50">Real total</span>
-          <span className="text-sm font-bold text-muted-foreground/50">~$725/mo</span>
+          <span className="text-sm font-bold text-muted-foreground/50">
+            ~$725/mo
+          </span>
         </div>
 
         <div className="!mt-4 flex items-center gap-3 rounded-xl border border-[var(--color-blaze-orange)]/30 bg-[var(--color-blaze-orange)]/8 px-3.5 py-3 ring-1 ring-[var(--color-blaze-orange)]/15">
@@ -72,7 +98,9 @@ function ToolStackIllustration() {
             height={16}
             className="h-4 w-4 shrink-0"
           />
-          <span className="flex-1 text-sm font-semibold text-foreground">Mentiohunt</span>
+          <span className="flex-1 text-sm font-semibold text-foreground">
+            Mentiohunt
+          </span>
           <span className="font-heading text-2xl font-bold text-[var(--color-blaze-orange)]">
             $49/mo
           </span>
@@ -89,7 +117,7 @@ function AgencyIllustration() {
       <div className="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-[var(--color-amber-flame)]/12 blur-3xl" />
 
       <div className="relative space-y-2">
-        <p className="mb-3 text-[0.62rem] font-bold uppercase text-muted-foreground">
+        <p className="mb-3 text-[0.62rem] font-bold text-muted-foreground uppercase">
           What actually happens
         </p>
 
@@ -101,7 +129,8 @@ function AgencyIllustration() {
           <div className="max-w-[80%] rounded-2xl rounded-tl-sm border border-border bg-background/70 px-3.5 py-2.5">
             <p className="text-[0.6rem] font-bold text-blue-400/80">Agency</p>
             <p className="mt-1 text-xs leading-relaxed text-foreground/70">
-              Hi, we&apos;d like to feature a client on your blog. What&apos;s your placement rate?
+              Hi, we&apos;d like to feature a client on your blog. What&apos;s
+              your placement rate?
             </p>
           </div>
         </div>
@@ -109,7 +138,9 @@ function AgencyIllustration() {
         {/* Site → Agency */}
         <div className="flex items-start justify-end gap-2.5">
           <div className="max-w-[80%] rounded-2xl rounded-tr-sm border border-border bg-background/70 px-3.5 py-2.5 text-right">
-            <p className="text-[0.6rem] font-bold text-emerald-500/80">Site Owner</p>
+            <p className="text-[0.6rem] font-bold text-emerald-500/80">
+              Site Owner
+            </p>
             <p className="mt-1 text-xs leading-relaxed text-foreground/70">
               Sure! Our sponsored post fee is{" "}
               <span className="font-bold text-foreground">$100.</span>
@@ -123,7 +154,9 @@ function AgencyIllustration() {
         {/* Dotted separator */}
         <div className="flex items-center gap-2 py-1">
           <div className="flex-1 border-t border-dashed border-border/60" />
-          <span className="text-[0.58rem] text-muted-foreground/40">agency reports back</span>
+          <span className="text-[0.58rem] text-muted-foreground/40">
+            agency reports back
+          </span>
           <div className="flex-1 border-t border-dashed border-border/60" />
         </div>
 
@@ -163,7 +196,9 @@ function RealSitesIllustration() {
       <div className="pointer-events-none absolute -top-12 -right-12 h-36 w-36 rounded-full bg-[var(--color-princeton-orange)]/10 blur-3xl" />
 
       <div className="relative space-y-3">
-        <p className="text-[0.62rem] font-bold uppercase text-muted-foreground">Filtered out</p>
+        <p className="text-[0.62rem] font-bold text-muted-foreground uppercase">
+          Filtered out
+        </p>
         <div className="space-y-2">
           {BLOCKED.map((site) => (
             <div
@@ -183,11 +218,13 @@ function RealSitesIllustration() {
 
         <div className="flex items-center gap-2">
           <div className="h-px flex-1 bg-border/50" />
-          <span className="text-[0.6rem] text-muted-foreground/40">passed through</span>
+          <span className="text-[0.6rem] text-muted-foreground/40">
+            passed through
+          </span>
           <div className="h-px flex-1 bg-border/50" />
         </div>
 
-        <p className="text-[0.62rem] font-bold uppercase text-[var(--color-blaze-orange)]">
+        <p className="text-[0.62rem] font-bold text-[var(--color-blaze-orange)] uppercase">
           Approved
         </p>
         <div className="space-y-2">
@@ -218,8 +255,12 @@ function RealSitesIllustration() {
                   <span className="text-[0.6rem] font-semibold text-[var(--color-blaze-orange)]">
                     {site.dr}
                   </span>
-                  <span className="text-[0.6rem] text-muted-foreground/40">·</span>
-                  <span className="text-[0.6rem] font-semibold text-muted-foreground">{site.traffic} traffic</span>
+                  <span className="text-[0.6rem] text-muted-foreground/40">
+                    ·
+                  </span>
+                  <span className="text-[0.6rem] font-semibold text-muted-foreground">
+                    {site.traffic} traffic
+                  </span>
                 </div>
               </div>
             </div>
@@ -259,7 +300,7 @@ function LearningAgentIllustration() {
 
       <div className="relative space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-[0.62rem] font-bold uppercase text-muted-foreground">
+          <p className="text-[0.62rem] font-bold text-muted-foreground uppercase">
             Today&apos;s strategy updates
           </p>
           <div className="flex items-center gap-1.5">
@@ -292,10 +333,16 @@ function LearningAgentIllustration() {
                   height={14}
                   className="h-3.5 w-3.5 shrink-0 rounded-sm"
                 />
-                <span className="text-[0.6rem] font-bold text-foreground/70">{item.source}</span>
-                <span className="text-[0.58rem] text-muted-foreground/40">{item.time}</span>
+                <span className="text-[0.6rem] font-bold text-foreground/70">
+                  {item.source}
+                </span>
+                <span className="text-[0.58rem] text-muted-foreground/40">
+                  {item.time}
+                </span>
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground/80">{item.text}</p>
+              <p className="text-xs leading-relaxed text-muted-foreground/80">
+                {item.text}
+              </p>
             </div>
           ))}
         </div>
@@ -344,7 +391,7 @@ function BenefitRow({ benefit, flip }: { benefit: Benefit; flip: boolean }) {
   return (
     <article className="grid gap-8 border-t border-border/70 py-10 first:border-t-0 first:pt-0 last:pb-0 lg:grid-cols-2 lg:items-center lg:gap-20">
       <div className={flip ? "lg:order-last" : ""}>
-        <p className="mb-4 text-[0.7rem] font-bold uppercase text-[var(--color-blaze-orange)]">
+        <p className="mb-4 text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase">
           {benefit.eyebrow}
         </p>
         <h3 className="font-heading text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
@@ -369,27 +416,32 @@ export function WhyMentiohunt() {
     <section className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-24 -right-32 h-[420px] w-[420px] rounded-full bg-[var(--color-princeton-orange)]/7 blur-[100px]" />
-        <div className="absolute -left-32 bottom-20 h-[360px] w-[360px] rounded-full bg-[var(--color-amber-flame)]/6 blur-[90px]" />
+        <div className="absolute bottom-20 -left-32 h-[360px] w-[360px] rounded-full bg-[var(--color-amber-flame)]/6 blur-[90px]" />
       </div>
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-[0.7rem] font-bold uppercase tracking-[0.24em] text-(--color-blaze-orange)">
+          <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
             Why Mentiohunt
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
           <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
             Everything you need.{" "}
-            <span className="text-muted-foreground/40">Nothing you don&apos;t.</span>
+            <span className="text-red-500">Nothing you don&apos;t.</span>
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Skip the agency fees, the tool subscriptions, and the guesswork. One system, one price.
+            Skip the agency fees, the tool subscriptions, and the guesswork. One
+            system, one price.
           </p>
         </div>
 
         <div className="mx-auto mt-14 max-w-6xl">
           {BENEFITS.map((benefit, i) => (
-            <BenefitRow key={benefit.title} benefit={benefit} flip={i % 2 === 1} />
+            <BenefitRow
+              key={benefit.title}
+              benefit={benefit}
+              flip={i % 2 === 1}
+            />
           ))}
         </div>
       </div>

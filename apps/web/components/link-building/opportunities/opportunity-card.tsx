@@ -10,18 +10,21 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 
+function getDiceBearUrl(seed: string): string {
+  return `https://api.dicebear.com/10.x/micah/svg?mouthVariant=smirk&facialHairVariant=&hairVariant=dannyPhantom,fonze,full,pixie&hairProbability=100&baseColor=f9c9b6,ac6651,f5bd8a&backgroundColor=ffffff&seed=${encodeURIComponent(seed)}`
+}
+
 import {
   TYPE_CONFIG,
   formatDate,
   type ProspectTier,
-} from "@/app/dashboard/outreach/_data"
+} from "@/app/dashboard/opportunities/_data"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
 const TIER_BORDER: Record<ProspectTier, string> = {
   competitor_backlink: "border-l-amber-500",
   unlinked_mention: "border-l-violet-500",
 }
-
 
 function extractHostname(url: string | null): string | null {
   if (!url) return null
@@ -37,6 +40,7 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
   const tierCfg = TYPE_CONFIG[prospect.tier]
   if (!tierCfg) return null
   const TierIcon = tierCfg.icon
+  const avatarUrl = getDiceBearUrl(prospect.domain ?? prospect.id)
   const hasEmail = !!prospect.contact_email?.trim()
   const competitorHostname =
     prospect.tier === "competitor_backlink"
@@ -47,12 +51,10 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
     <div
       role="button"
       tabIndex={0}
-      onClick={() =>
-        router.push(`/dashboard/outreach/${prospect.id}`)
-      }
+      onClick={() => router.push(`/dashboard/opportunities/${prospect.id}`)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ")
-          router.push(`/dashboard/outreach/${prospect.id}`)
+          router.push(`/dashboard/opportunities/${prospect.id}`)
       }}
       className={cn(
         "group cursor-pointer rounded-lg border border-l-4 border-border/60 bg-card",
@@ -72,16 +74,42 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
             <TierIcon className="size-3" />
             {tierCfg.label}
           </span>
-          {prospect.domain_rating != null && (
-            <span className="ml-auto inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-sm font-semibold tabular-nums text-muted-foreground">
-              DR {prospect.domain_rating}
-            </span>
-          )}
+          <div className="ml-auto flex items-center gap-1.5">
+            {prospect.site_relevance_score != null && (
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums",
+                  prospect.site_relevance_score >= 4
+                    ? "bg-emerald-500/10 text-emerald-600"
+                    : prospect.site_relevance_score === 3
+                      ? "bg-amber-500/10 text-amber-600"
+                      : "bg-muted text-muted-foreground"
+                )}
+              >
+                fit {prospect.site_relevance_score}/5
+              </span>
+            )}
+            {prospect.domain_rating != null && (
+              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-sm font-semibold text-muted-foreground tabular-nums">
+                DR {prospect.domain_rating}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* domain / fallback title */}
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
+            <div className="size-7 shrink-0 overflow-hidden rounded-lg bg-white border border-border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatarUrl}
+                alt=""
+                width={28}
+                height={28}
+                className="size-7"
+              />
+            </div>
             <p className="text-base font-semibold text-foreground">
               {prospect.domain ?? prospect.contact_name ?? tierCfg.label}
             </p>
@@ -96,7 +124,6 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
             </span>
           )}
         </div>
-
       </div>
 
       <div className="border-t border-border/50" />

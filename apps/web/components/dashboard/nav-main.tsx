@@ -4,7 +4,7 @@ import {
   IconFiles,
   IconLayoutGrid,
   IconNetwork,
-  IconTarget,
+  IconSparkles,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -49,9 +49,9 @@ const FEATURES: FeatureModule[] = [
     title: "Main",
     pages: [
       {
-        title: "Outreach",
-        url: "/dashboard/outreach",
-        icon: <IconTarget />,
+        title: "Opportunities",
+        url: "/dashboard/opportunities",
+        icon: <IconSparkles />,
       },
       {
         title: "Pages",

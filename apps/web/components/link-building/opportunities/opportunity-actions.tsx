@@ -39,7 +39,7 @@ export function OpportunityActions({
       )
       if (res.ok) {
         updateProspectStatuses([prospectId], status)
-        router.push("/dashboard/outreach")
+        router.push("/dashboard/opportunities")
       }
     } finally {
       setLoading(null)

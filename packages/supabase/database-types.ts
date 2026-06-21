@@ -124,6 +124,7 @@ export type Database = {
           id: string
           product_id: string
           raw_metadata: Json | null
+          site_relevance_score: number | null
           status: Database["public"]["Enums"]["prospect_status"]
           target_url: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
@@ -142,6 +143,7 @@ export type Database = {
           id?: string
           product_id: string
           raw_metadata?: Json | null
+          site_relevance_score?: number | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
@@ -160,6 +162,7 @@ export type Database = {
           id?: string
           product_id?: string
           raw_metadata?: Json | null
+          site_relevance_score?: number | null
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
           tier?: Database["public"]["Enums"]["prospect_tier"]

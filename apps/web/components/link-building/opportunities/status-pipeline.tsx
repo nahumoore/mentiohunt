@@ -4,7 +4,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import {
   STATUS_CONFIG,
   type ProspectStatus,
-} from "@/app/dashboard/outreach/_data"
+} from "@/app/dashboard/opportunities/_data"
 
 const STATUS_ORDER: ProspectStatus[] = ["new", "contacted"]
 

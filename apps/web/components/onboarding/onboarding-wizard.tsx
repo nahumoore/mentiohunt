@@ -353,7 +353,7 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
         competitors_count: result.data.competitors?.length ?? 0,
       })
       setIsCompleted(true)
-      router.replace("/dashboard/outreach")
+      router.replace("/dashboard/opportunities")
       router.refresh()
     } catch {
       setSubmitMessage("Failed to reach the server. Check your connection.")

@@ -40,7 +40,7 @@ _FINISH_TOOL = {
         "parameters": {
             "type": "object",
             "properties": {
-                "name": {"type": "string", "description": "Cleaned full name of founder/owner, or null."},
+                "name": {"type": "string", "description": "Cleaned full name of the article author or site founder/owner — must be a real human person's name (e.g. 'John Smith'). NEVER set this to a company name, brand name, or platform name. If no individual person is identified, set to null."},
                 "emails": {
                     "type": "array",
                     "items": {
@@ -211,7 +211,8 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 "- When calling finish(), set type='personal' for personal emails and type='general' for generic inbox emails\n"
                 "- Stop early ONLY if you have a personal email\n"
                 "- Call finish() with the best data found\n"
-                "- ALWAYS return name and bio fields in English, regardless of the site's language"
+                "- ALWAYS return name and bio fields in English, regardless of the site's language\n"
+                "- name must be a real human person's name only — NEVER a company, brand, or platform name. If you cannot identify a real person, set name to null"
             ),
         },
         {

@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit, { type LimitFunction } from "p-limit"
 import { createLogger } from "../../helpers/logger.js"
+import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import { enrichContact } from "./enrich-contact.js"
 import { extractBacklinks, extractCompetitorDomain } from "./extract-backlinks.js"
 import { filterBacklinks, extractDomainFromUrl, type TaggedBacklinkItem, type FilterSettings } from "./filter-backlinks.js"
@@ -236,7 +237,8 @@ async function processCompetitor(
       return { prospectsCreated: 0, costUsd: 0, nextCursor }
     }
 
-    const { results: scored, totalCost } = await scoreBacklinkRelevance(filtered, product)
+    const { results: scored, totalCost: pageScoringCost } = await scoreBacklinkRelevance(filtered, product)
+    let totalCost = pageScoringCost
     const belowThreshold = scored.filter((r) => r.relevanceScore < MIN_RELEVANCE_SCORE)
     const passing = scored
       .filter((r) => r.relevanceScore >= MIN_RELEVANCE_SCORE)
@@ -297,6 +299,19 @@ async function processCompetitor(
       duplicatesSkipped: passing.length - newItems.length,
     })
 
+    // Score site-level relevance for new items using DeepSeek.
+    const siteRelevanceInputs = newItems.map((item) => ({
+      id: item.urlFrom,
+      domain: extractDomainFromUrl(item.urlFrom),
+      title: item.title || "",
+      snippet: item.relevanceReason || "",
+    }))
+    const { results: siteRelevanceResults, cost: siteRelevanceCost } = await scoreSiteRelevance(
+      siteRelevanceInputs,
+      product
+    )
+    totalCost += siteRelevanceCost
+
     // Enrich each prospect first, then insert the fully-populated row so the UI
     // never shows a contactless prospect that fills in later.
     let prospectsCreated = 0
@@ -305,6 +320,7 @@ async function processCompetitor(
         enrichLimit(async () => {
           const domain = extractDomainFromUrl(item.urlFrom)
           const enriched = await enrichProspect(item, product, domain, senderName, emailSettings)
+          const sr = siteRelevanceResults.get(item.urlFrom)
 
           const { data, error } = await supabaseAdmin
             .from("backlink_prospects")
@@ -317,6 +333,7 @@ async function processCompetitor(
                 target_url: item.urlTo,
                 tier: "competitor_backlink" as const,
                 status: "new" as const,
+                site_relevance_score: sr?.score ?? null,
                 ...enriched,
               },
               { onConflict: "product_id,found_url", ignoreDuplicates: true }

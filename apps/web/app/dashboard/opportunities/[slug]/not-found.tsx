@@ -40,9 +40,9 @@ export default function ProspectNotFound() {
               size="lg"
               className="justify-start sm:justify-center"
             >
-              <Link href="/dashboard/outreach">
+              <Link href="/dashboard/opportunities">
                 <IconArrowLeft className="size-4" />
-                Back to outreach
+                Back to opportunities
               </Link>
             </Button>
             <Button
@@ -51,7 +51,7 @@ export default function ProspectNotFound() {
               size="lg"
               className="justify-start sm:justify-center"
             >
-              <Link href="/dashboard/outreach/settings">
+              <Link href="/dashboard/opportunities/settings">
                 Tune discovery inputs
                 <IconExternalLink className="size-4" />
               </Link>

@@ -17,6 +17,7 @@ import {
   isNoiseDomain,
   type FilterSettings,
 } from "../competitor-backlinks/filter-backlinks.js"
+import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import { checkMention, type CheckMentionResult } from "./check-mention-client.js"
 import { generateMentionEmail } from "./generate-mention-email.js"
 import { scoreMentionRelevance, type MentionCandidate } from "./score-mention-relevance.js"
@@ -320,7 +321,20 @@ export async function discoverUnlinkedMentions(
       duplicatesSkipped: passing.length - newItems.length,
     })
 
-    // 7. Enrich each prospect first, then insert the fully-populated row so the
+    // 7. Score site-level relevance for new items using DeepSeek.
+    const siteRelevanceInputs = newItems.map((item) => ({
+      id: item.url,
+      domain: item.domain,
+      title: item.title || "",
+      snippet: item.snippet || "",
+    }))
+    const { results: siteRelevanceResults, cost: siteRelevanceCost } = await scoreSiteRelevance(
+      siteRelevanceInputs,
+      product
+    )
+    totalCostUsd += siteRelevanceCost
+
+    // 8. Enrich each prospect first, then insert the fully-populated row so the
     //    UI never shows a contactless prospect that fills in later.
     const enrichLimit = pLimit(3)
     let prospectsCreated = 0
@@ -328,6 +342,7 @@ export async function discoverUnlinkedMentions(
       newItems.map((item) =>
         enrichLimit(async () => {
           const enriched = await enrichMention(item, product, senderName, emailSettings)
+          const sr = siteRelevanceResults.get(item.url)
 
           const { data, error } = await supabaseAdmin
             .from("backlink_prospects")
@@ -340,6 +355,7 @@ export async function discoverUnlinkedMentions(
                 target_url: product.website_url,
                 tier: "unlinked_mention" as const,
                 status: "new" as const,
+                site_relevance_score: sr?.score ?? null,
                 ...enriched,
               },
               { onConflict: "product_id,found_url", ignoreDuplicates: true }

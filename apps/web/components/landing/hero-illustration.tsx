@@ -48,9 +48,9 @@ const stats: Stat[] = [
     label: "average fit score\nper opportunity",
   },
   {
-    value: 0,
-    suffix: " hrs",
-    label: "outreach time\nrequired from you",
+    value: 25,
+    suffix: "+",
+    label: "backlinks acquired\nevery month",
   },
 ]
 

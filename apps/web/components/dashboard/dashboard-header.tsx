@@ -5,7 +5,7 @@ import {
   IconFiles,
   IconLayoutGrid,
   IconNetwork,
-  IconSearch,
+  IconSparkles,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -17,7 +17,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
-const outreachHref = "/dashboard/outreach"
+const opportunitiesHref = "/dashboard/opportunities"
 const directoriesHref = "/dashboard/directories"
 
 type PageConfig = {
@@ -28,17 +28,17 @@ type PageConfig = {
 }
 
 const PAGE_CONFIG: Record<string, PageConfig> = {
-  "/dashboard/outreach": {
-    title: "Outreach",
+  "/dashboard/opportunities": {
+    title: "Opportunities",
     description:
-      "Prioritized sites and outreach paths where there is a realistic next action toward a backlink.",
-    icon: IconSearch,
-    settingsHref: "/dashboard/outreach/settings",
+      "Prioritized sites and next actions where there is a realistic path toward a backlink.",
+    icon: IconSparkles,
+    settingsHref: "/dashboard/opportunities/settings",
   },
-  "/dashboard/outreach/settings": {
-    title: "Outreach Settings",
+  "/dashboard/opportunities/settings": {
+    title: "Opportunity Settings",
     description:
-      "Choose which sources should feed your outreach queue. Start broad, then pause anything that feels noisy.",
+      "Choose which sources should feed your opportunity queue. Start broad, then pause anything that feels noisy.",
     icon: IconAdjustments,
   },
   "/dashboard/directories": {
@@ -179,7 +179,7 @@ function getBreadcrumbs(
     const hrefSegments = segments.slice(0, dashboardIndex + 2 + index)
     const isCurrentProspect =
       segment === currentProspectId &&
-      visibleSegments[index - 1] === "outreach"
+      visibleSegments[index - 1] === "opportunities"
     const isCurrentDirectorySubmission =
       segment === currentDirectorySubmissionId &&
       visibleSegments[index - 1] === "directories"
@@ -196,7 +196,7 @@ function getBreadcrumbs(
 }
 
 function getCurrentProspectId(pathname: string) {
-  const prospectPath = `${outreachHref}/`
+  const prospectPath = `${opportunitiesHref}/`
 
   if (!pathname.startsWith(prospectPath)) return null
 

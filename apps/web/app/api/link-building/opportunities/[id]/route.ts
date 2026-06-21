@@ -4,9 +4,18 @@ import { z } from "zod"
 
 export const runtime = "nodejs"
 
-const patchSchema = z.object({
-  status: z.enum(["contacted", "dismissed"]),
-})
+const patchSchema = z.union([
+  z.object({
+    status: z.enum(["contacted", "dismissed"]),
+    email_subject: z.undefined(),
+    email_body: z.undefined(),
+  }),
+  z.object({
+    status: z.undefined(),
+    email_subject: z.string(),
+    email_body: z.string(),
+  }),
+])
 
 function err(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status })
@@ -60,9 +69,14 @@ export async function PATCH(
     return err("Opportunity not found.", 404)
   }
 
+  const updatePayload =
+    parsed.data.status !== undefined
+      ? { status: parsed.data.status }
+      : { email_subject: parsed.data.email_subject, email_body: parsed.data.email_body }
+
   const { error: updateError } = await supabase
     .from("backlink_prospects")
-    .update({ status: parsed.data.status })
+    .update(updatePayload)
     .eq("id", id)
 
   if (updateError) {
@@ -70,5 +84,5 @@ export async function PATCH(
     return err("Failed to update opportunity.", 500)
   }
 
-  return NextResponse.json({ id, status: parsed.data.status })
+  return NextResponse.json({ id, ...updatePayload })
 }

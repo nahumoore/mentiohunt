@@ -1,6 +1,7 @@
 import {
   AIMentionsOpportunities,
   BigTestimonial,
+  BurnedByAgencies,
   Comparisons,
   BrandMentionSources,
   Faq,
@@ -50,6 +51,7 @@ export default function Page() {
         <WhyMentiohunt />
         <HowItWorks />
         <Comparisons />
+        <BurnedByAgencies />
         <TargetPersonas />
         <Pricing />
         <Testimonials />

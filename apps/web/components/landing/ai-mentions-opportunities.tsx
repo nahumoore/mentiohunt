@@ -174,7 +174,7 @@ export function AIMentionsOpportunities() {
             </Highlighter>
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Blogs and editorial articles that cite your product teach AI models what you do. We surface exactly where your product needs to appear.
+            Blogs and editorial articles that cite your product teach AI models what you do. We surface guest posts, product roundups, resource pages, and editorial mentions — exactly where your product needs to appear.
           </p>
         </div>
 

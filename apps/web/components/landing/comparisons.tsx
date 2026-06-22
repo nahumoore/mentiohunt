@@ -124,7 +124,7 @@ export function Comparisons() {
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <span className="text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase">
-            Why Mentiohunt
+            Comparisons
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />
           <h2
@@ -135,8 +135,8 @@ export function Comparisons() {
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
             Agencies are opaque. Outreach software still makes you run
-            campaigns. Mentiohunt handles execution while you stay in control
-            of every placement.
+            campaigns. Mentiohunt handles execution while you stay in control of
+            every placement.
           </p>
         </div>
 
@@ -224,7 +224,9 @@ export function Comparisons() {
                         <SupportIcon support={(row as FeatureRow).agencies} />
                       </div>
                       <div className="flex items-center justify-center py-4">
-                        <SupportIcon support={(row as FeatureRow).outreachSoftware} />
+                        <SupportIcon
+                          support={(row as FeatureRow).outreachSoftware}
+                        />
                       </div>
                       <div className="flex items-center justify-center py-4">
                         <SupportIcon support={(row as FeatureRow).manual} />
@@ -236,7 +238,10 @@ export function Comparisons() {
                             : ""
                         }`}
                       >
-                        <SupportIcon support={(row as FeatureRow).mentiohunt} highlight />
+                        <SupportIcon
+                          support={(row as FeatureRow).mentiohunt}
+                          highlight
+                        />
                       </div>
                     </>
                   )}
@@ -245,10 +250,7 @@ export function Comparisons() {
             })}
 
             {/* Bottom border for last row non-Mentiohunt cells */}
-            <div
-              style={gridStyle}
-              className="grid border-t border-border/50"
-            />
+            <div style={gridStyle} className="grid border-t border-border/50" />
           </div>
         </div>
 
@@ -264,20 +266,6 @@ export function Comparisons() {
           </span>
         </div>
 
-        <div className="mx-auto mt-10 flex max-w-5xl justify-center">
-          <div className="inline-flex items-start gap-3 rounded-xl border border-border/40 bg-muted/30 px-5 py-4 text-left">
-            <span className="mt-0.5 text-[var(--color-blaze-orange)]/60 text-base leading-none">✦</span>
-            <div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Agencies and outreach platforms charge a big commission per link.
-              </p>
-              <p className="mt-1 text-sm font-semibold text-muted-foreground leading-relaxed">
-                Mentiohunt automates the outreach end-to-end — you see real
-                prices, real prospects, and every placement before it goes live.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   )

@@ -34,6 +34,36 @@ const faqs: FaqItem[] = [
     answer:
       "Mentiohunt is built for founder-led B2B SaaS teams that can't justify running link building as an internal function — typically 2 to 30 people. If you're already using an agency or running outreach manually and it's eating time you don't have, it's a good fit.",
   },
+  {
+    question: "Do you do guest posting?",
+    answer:
+      "Yes. Guest posts are one of the placement types we actively target, alongside resource pages, product roundups, and editorial listicles. When you provide your article URLs, we match each one to sites where a guest post would be a natural fit — and draft the pitch for you to approve before anything goes out.",
+  },
+  {
+    question: "How long until my first placed backlink?",
+    answer:
+      "Most customers see their first placed backlink within 14–21 days of setup. Discovery starts immediately after you add your URLs, but placement timelines depend on site owner response rates. We follow up on your behalf so you don't have to track any threads.",
+  },
+  {
+    question: "What's your outreach reply rate?",
+    answer:
+      "Reply rates vary by niche and site quality, but we typically see 15–30% on well-matched opportunities. We only surface high-fit prospects — which keeps reply rates higher than spray-and-pray campaigns — and personalize each email to the specific site and angle.",
+  },
+  {
+    question: "What does an opportunity card look like?",
+    answer:
+      "Each card shows the target site name, domain rating, monthly traffic, a plain-language fit rationale (why your content belongs there), the suggested placement angle, and a ready-to-review email draft. You approve or reject in one click — everything you need is on the card without leaving the dashboard.",
+  },
+  {
+    question: "What if my niche has few link opportunities?",
+    answer:
+      "Niche B2B SaaS often has fewer sites but higher-quality placements. We scan competitor backlink profiles, industry resource pages, and niche directories specific to your space — not just generic lists. Narrower niches typically see fewer total opportunities but higher fit scores per opportunity.",
+  },
+  {
+    question: "Are the emails AI-generated?",
+    answer:
+      "Email drafts are AI-assisted but personalized per site — not mass-templated. Each draft is tailored to the specific target, placement angle, and fit rationale. You review every draft before it goes out. Nothing sends without your sign-off.",
+  },
 ]
 
 export function Faq() {

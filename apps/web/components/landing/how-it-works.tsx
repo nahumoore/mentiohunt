@@ -52,7 +52,7 @@ const steps: Step[] = [
     eyebrow: "Action",
     title: "Accept the backlink or pass",
     description:
-      "Each opportunity comes with a ready-to-send email draft. Approve in one click — Mentiohunt handles the contact, the send, and the follow-up.",
+      "Each opportunity comes with a ready-to-send email draft. Approve in one click — Mentiohunt handles the contact, the send, and the follow-up. Most customers see their first placed backlink within 14–21 days of setup.",
     Illustration: ActionIllustration,
   },
 ]

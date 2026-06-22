@@ -365,7 +365,7 @@ const BENEFITS: Benefit[] = [
     eyebrow: "Transparent pricing",
     title: "Zero agency markup. Ever.",
     description:
-      "Agencies charge 2–3× the link value and pocket the difference. Mentiohunt charges for the software — 0% commission, no hidden markup. You see every number: what the site asked, what we evaluated, what you pay.",
+      "Agencies charge 2–3× the link value and pocket the difference. Mentiohunt charges for the software — 0% commission, no hidden markup. You see every number: what the site asked, what we evaluated, what you pay. If you've paid an agency retainer and have nothing to show for it, this is built for you.",
     Illustration: AgencyIllustration,
   },
   {
@@ -379,7 +379,7 @@ const BENEFITS: Benefit[] = [
     eyebrow: "Always learning",
     title: "An agent that gets smarter daily.",
     description:
-      "Monitors Reddit, X, and LinkedIn every day for new backlink strategies and negotiation tactics — and applies them to your project automatically.",
+      "Monitors Reddit, X, and LinkedIn every day for new backlink strategies and negotiation tactics — and applies them to your project automatically. Outreach is personalized per site, not mass-templated — every email draft is reviewed by you before it goes out.",
     Illustration: LearningAgentIllustration,
   },
 ]

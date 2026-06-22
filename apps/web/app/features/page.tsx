@@ -1,8 +1,10 @@
 import {
   IconArrowRight,
-  IconBolt,
-  IconChecks,
+  IconMail,
   IconMailSpark,
+  IconRadar,
+  IconSearch,
+  IconSitemap,
   IconTargetArrow,
 } from "@tabler/icons-react"
 import type { Metadata } from "next"
@@ -12,7 +14,6 @@ import Link from "next/link"
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
 import { features } from "@/consts/features"
-import { Button } from "@workspace/ui/components/button"
 
 export const metadata: Metadata = {
   title: "Features",
@@ -37,7 +38,9 @@ export const metadata: Metadata = {
   },
 }
 
-const featureIcons = [IconTargetArrow]
+// Order matches features array: backlink-opportunity-queue, link-building-software,
+// backlink-outreach, link-prospecting, backlink-opportunity-finder
+const featureIcons = [IconTargetArrow, IconSitemap, IconMail, IconSearch, IconRadar]
 
 const itemListSchema = {
   "@context": "https://schema.org",
@@ -159,61 +162,6 @@ export default function FeaturesPage() {
                   </Link>
                 )
               })}
-            </div>
-          </div>
-        </section>
-
-        <section className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-1/2 top-10 h-72 w-72 -translate-x-1/2 rounded-full bg-princeton-orange/7 blur-[100px]" />
-          </div>
-          <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <span className="text-[0.7rem] font-bold text-(--color-blaze-orange) uppercase">
-                One operating loop
-              </span>
-              <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
-              <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
-                Built for founders asking, what should I do next?
-              </h2>
-              <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-                The product stays intentionally practical: feed it context,
-                review the queue, act on the highest-fit opportunity.
-              </p>
-            </div>
-
-            <div className="mx-auto mt-14 grid max-w-6xl gap-4 md:grid-cols-3">
-              {[
-                "Import product, content, competitors, and keywords.",
-                "Review opportunities with plain-language fit rationale.",
-                "Send outreach or reply while the opportunity is still useful.",
-              ].map((step, index) => (
-                <div
-                  key={step}
-                  className="rounded-[1.7rem] border border-border bg-card p-6 shadow-sm"
-                >
-                  <div className="flex size-10 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
-                    {index === 0 ? (
-                      <IconBolt size={21} stroke={2.4} />
-                    ) : (
-                      <IconChecks size={21} stroke={2.4} />
-                    )}
-                  </div>
-                  <p className="mt-5 font-heading text-xl font-semibold tracking-[-0.035em]">
-                    {step}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-12 flex justify-center">
-              <Button
-                asChild
-                size="lg"
-                className="h-12 rounded-full px-7 text-sm font-semibold shadow-lg shadow-primary/25"
-              >
-                <Link href="/signup">Start for free</Link>
-              </Button>
             </div>
           </div>
         </section>

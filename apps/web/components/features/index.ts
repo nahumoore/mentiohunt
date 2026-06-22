@@ -1,0 +1,7 @@
+export { FeatureBenefits } from "./feature-benefits"
+export { FeatureCta } from "./feature-cta"
+export { FeatureComparison } from "./feature-comparison"
+export { FeatureFaq } from "./feature-faq"
+export { FeatureHero } from "./feature-hero"
+export { FeatureReasons } from "./feature-reasons"
+export { FeatureWorkflow } from "./feature-workflow"

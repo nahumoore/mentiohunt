@@ -50,10 +50,10 @@ Product feature landing pages targeting bottom-of-funnel commercial keywords. LO
 
 Data from DataForSEO (US, June 2026):
 
-- [ ] `/features/link-building-software` — "link building software" 320/mo, KD 17, LOW comp. Build first — highest volume + still rankable.
-- [ ] `/features/backlink-outreach` — "backlink outreach" 140/mo, KD 2, LOW comp. Easiest to rank. Commercial intent confirmed.
-- [ ] `/features/link-prospecting` — "link prospecting" / "link prospecting tools" 40/mo each, KD 10–12, LOW. Small volume but near-zero competition.
-- [ ] `/features/backlink-opportunity-finder` — "backlink opportunity" 40/mo, KD 7, LOW. Direct product feature name alignment.
+- [x] `/features/link-building-software` — "link building software" 320/mo, KD 17, LOW comp. Build first — highest volume + still rankable.
+- [x] `/features/backlink-outreach` — "backlink outreach" 140/mo, KD 2, LOW comp. Easiest to rank. Commercial intent confirmed.
+- [x] `/features/link-prospecting` — "link prospecting" / "link prospecting tools" 40/mo each, KD 10–12, LOW. Small volume but near-zero competition.
+- [x] `/features/backlink-opportunity-finder` — "backlink opportunity" 40/mo, KD 7, LOW. Direct product feature name alignment.
 
 > Skip: "backlink finder tool" (210/mo but KD 93 — too hard). "automated link building software" declining trend, KD 28.
 > "seo link building software" (260/mo, KD 14–16) is a variant of the top pick — fold into `/features/link-building-software` page via on-page targeting, don't build separate page.

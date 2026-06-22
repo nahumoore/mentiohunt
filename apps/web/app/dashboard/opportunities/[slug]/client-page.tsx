@@ -162,7 +162,7 @@ export function ProspectClientPage({
         style={{ height: "calc(100svh - 3.5rem)" }}
       >
         {/* ─── Left sidebar ─── */}
-        <aside className="w-[280px] shrink-0 overflow-y-auto border-r bg-background px-5 py-6">
+        <aside className="w-[320px] shrink-0 overflow-y-auto border-r bg-background px-5 py-6">
           {/* Site identity */}
           <div className="flex items-start justify-between gap-3 mb-4">
             <div className="flex items-start gap-2.5">
@@ -176,9 +176,9 @@ export function ProspectClientPage({
                   className="size-9"
                 />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-heading text-base font-bold tracking-tight leading-tight">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="font-heading text-base font-bold tracking-tight leading-tight break-all">
                     {current.domain}
                   </h2>
                   {statusCfg && StatusIcon && (

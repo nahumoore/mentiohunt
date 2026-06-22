@@ -79,14 +79,14 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
               <span
                 className={cn(
                   "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums",
-                  prospect.site_relevance_score >= 4
+                  prospect.site_relevance_score >= 70
                     ? "bg-emerald-500/10 text-emerald-600"
-                    : prospect.site_relevance_score === 3
+                    : prospect.site_relevance_score >= 50
                       ? "bg-amber-500/10 text-amber-600"
                       : "bg-muted text-muted-foreground"
                 )}
               >
-                fit {prospect.site_relevance_score}/5
+                fit {prospect.site_relevance_score}/100
               </span>
             )}
             {prospect.domain_rating != null && (

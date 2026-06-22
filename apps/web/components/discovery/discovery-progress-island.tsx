@@ -98,12 +98,17 @@ export function DiscoveryProgressIsland({
   const allDone = status !== null && doneCount === (status.total ?? 2)
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const didRefresh = useRef(false)
-  // Only show if discovery was still in-flight at mount (at least one engine running/pending).
-  // Avoids showing the island on every page refresh after a completed discovery.
-  const wasActiveAtMount = useRef(
+  // Latch: true once discovery was seen as active (at mount or discovered later via
+  // polling/bootstrap). Avoids showing the island after a completed discovery on refresh.
+  const [wasEverActive, setWasEverActive] = useState(
     initialStatus !== null &&
       ENGINE_KEYS.some((k) => initialStatus[k] === "running" || initialStatus[k] === "pending")
   )
+  useEffect(() => {
+    if (!wasEverActive && status !== null && ENGINE_KEYS.some((k) => status[k] === "running" || status[k] === "pending")) {
+      setWasEverActive(true)
+    }
+  }, [status, wasEverActive])
 
   useEffect(() => {
     if (allDone && !didRefresh.current) {
@@ -121,7 +126,7 @@ export function DiscoveryProgressIsland({
     }
   }, [allDone, dismissed])
 
-  const visible = !dismissed && wasActiveAtMount.current && (isDiscovering || allDone) && status !== null
+  const visible = !dismissed && wasEverActive && (isDiscovering || allDone) && status !== null
 
   return (
     <AnimatePresence>

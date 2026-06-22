@@ -12,8 +12,6 @@ import { useRouter } from "next/navigation"
 import { STATUS_CONFIG, TYPE_CONFIG } from "@/app/dashboard/opportunities/_data"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
-const MOCK_RELEVANCE = 50
-
 function getDiceBearUrl(seed: string): string {
   return `https://api.dicebear.com/10.x/micah/svg?mouthVariant=smirk&facialHairVariant=&hairVariant=dannyPhantom,fonze,full,pixie&hairProbability=100&baseColor=f9c9b6,ac6651,f5bd8a&backgroundColor=ffffff&seed=${encodeURIComponent(seed)}`
 }
@@ -49,6 +47,8 @@ export function OpportunityPipelineRow({
   const favicon = getFaviconUrl(prospect.domain)
   const displayDomain = stripDomain(prospect.domain)
   const dr = prospect.domain_rating
+  const relevanceScore = prospect.site_relevance_score
+  const relevancePercent = relevanceScore == null ? 0 : relevanceScore
 
   function navigate() {
     router.push(`/dashboard/opportunities/${prospect.id}`)
@@ -176,12 +176,12 @@ export function OpportunityPipelineRow({
       {/* Relevance col */}
       <td className="px-3 py-4 align-top">
         <span className="font-mono text-sm leading-none font-bold text-foreground tabular-nums">
-          {MOCK_RELEVANCE}
+          {relevanceScore == null ? "-" : `${relevanceScore}/100`}
         </span>
         <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-amber-400"
-            style={{ width: `${MOCK_RELEVANCE}%` }}
+            style={{ width: `${relevancePercent}%` }}
           />
         </div>
       </td>

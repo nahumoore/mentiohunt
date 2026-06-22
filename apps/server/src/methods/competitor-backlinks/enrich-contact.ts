@@ -5,6 +5,7 @@ import {
 import { runApifyActor } from "../../helpers/actors/run-apify-actor.js"
 import { createLogger } from "../../helpers/logger.js"
 import type { PageType } from "./score-backlink-relevance.js"
+import { isValidContactEmail, sanitizeContactName } from "./contact-validation.js"
 
 const log = createLogger("enrich-contact")
 
@@ -189,17 +190,30 @@ export async function resolveContactEmail(
   scraped: AgentScrapeResponse,
   domain: string
 ): Promise<ContactResult> {
+  // Sanitize LLM-produced name (rejects "null", "finish", tool names, etc.)
+  const cleanName = sanitizeContactName(scraped.name)
+  if (cleanName !== scraped.name) {
+    log.info("contact name sanitized", { domain, original: scraped.name, cleaned: cleanName })
+  }
+
+  // Filter out placeholder/sample emails before any verification attempt
+  const validEmails = scraped.emails.filter((e) => isValidContactEmail(e.value))
+  if (validEmails.length < scraped.emails.length) {
+    const dropped = scraped.emails.filter((e) => !isValidContactEmail(e.value)).map((e) => e.value)
+    log.info("placeholder emails filtered", { domain, dropped })
+  }
+
   const rawMetadata: RawContactMetadata = {
     bio: scraped.bio,
-    emails: scraped.emails,
+    emails: validEmails,
     contact_form_url: scraped.contact_form_url,
     visited_urls: scraped.visited_urls,
     confidence: scraped.confidence,
   }
 
-  if (scraped.emails.length > 0) {
+  if (validEmails.length > 0) {
     // Personal emails first, then general
-    const ordered = [...scraped.emails].sort((a, b) =>
+    const ordered = [...validEmails].sort((a, b) =>
       a.type === "personal" ? -1 : b.type === "personal" ? 1 : 0
     )
     const personalEmail = ordered.find((e) => e.type === "personal")?.value ?? null
@@ -208,25 +222,25 @@ export async function resolveContactEmail(
     const verified = await verifyPatterns(candidates, domain, personalEmail)
 
     if (verified) {
-      log.info("contact enriched via agent emails", { domain, name: scraped.name, email: verified })
+      log.info("contact enriched via agent emails", { domain, name: cleanName, email: verified })
       return {
-        name: scraped.name,
+        name: cleanName,
         email: verified,
         social_links: scraped.social_links,
-        confidence: scraped.name ? "personalized" : "email-only",
+        confidence: cleanName ? "personalized" : "email-only",
         rawMetadata,
       }
     }
   }
 
   // Agent found a name but no verifiable email — try pattern generation
-  if (scraped.name) {
-    const generated = generatePersonalizedPatterns(scraped.name, domain)
+  if (cleanName) {
+    const generated = generatePersonalizedPatterns(cleanName, domain)
     const verified = await verifyPatterns(generated, domain)
     if (verified) {
-      log.info("contact enriched via name patterns", { domain, name: scraped.name, email: verified })
+      log.info("contact enriched via name patterns", { domain, name: cleanName, email: verified })
       return {
-        name: scraped.name,
+        name: cleanName,
         email: verified,
         social_links: scraped.social_links,
         confidence: "personalized",
@@ -243,7 +257,7 @@ export async function resolveContactEmail(
   if (verified) {
     log.info("contact enriched via generic pattern", { domain, email: verified })
     return {
-      name: scraped.name,
+      name: cleanName,
       email: verified,
       social_links: scraped.social_links,
       confidence: "generic",
@@ -253,7 +267,7 @@ export async function resolveContactEmail(
 
   log.info("no contact found", { domain })
   return {
-    name: scraped.name,
+    name: cleanName,
     email: null,
     social_links: scraped.social_links,
     confidence: "none",

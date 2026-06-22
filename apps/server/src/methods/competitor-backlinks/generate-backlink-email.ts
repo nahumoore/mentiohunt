@@ -2,6 +2,7 @@ import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../helpers/logger.js"
 import type { PageType } from "./score-backlink-relevance.js"
+import { sanitizeContactName } from "./contact-validation.js"
 
 const log = createLogger("generate-backlink-email")
 
@@ -41,8 +42,9 @@ export async function generateBacklinkEmail(
     offering?: string | null
   }
 ): Promise<{ subject: string; body: string; cost: number } | null> {
-  const greeting = context.contactName
-    ? `Hi ${context.contactName.split(" ")[0]}`
+  const cleanContactName = sanitizeContactName(context.contactName)
+  const greeting = cleanContactName
+    ? `Hi ${cleanContactName.split(" ")[0]}`
     : "Hi there"
 
   const angle = buildAngle(context.pageType, context.competitorDomain)

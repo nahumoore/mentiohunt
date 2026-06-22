@@ -17,14 +17,14 @@ const SYSTEM_INSTRUCTIONS = (product: { product_name: string; product_descriptio
 Product: ${product.product_name}
 Description: ${product.product_description}
 
-Score guide (1-5):
-- 5: Perfect match — site squarely serves this product's ICP, backlink placement highly relevant
-- 4: Strong alignment — audience overlaps significantly with product's target market
-- 3: Moderate alignment — some overlap but not the site's core focus
-- 2: Weak alignment — tangential connection, audience unlikely to care about this product
-- 1: No alignment — different market entirely
+Score guide (0-100):
+- 90-100: Perfect match — site squarely serves this product's ICP, backlink placement highly relevant
+- 70-89: Strong alignment — audience overlaps significantly with product's target market
+- 50-69: Moderate alignment — some overlap but not the site's core focus
+- 25-49: Weak alignment — tangential connection, audience unlikely to care about this product
+- 0-24: No alignment — different market entirely
 
-Return only a numeric score per site.`
+Return only a numeric score (integer, 0-100) per site.`
 
 const RESPONSE_FORMAT = {
   type: "json_schema" as const,

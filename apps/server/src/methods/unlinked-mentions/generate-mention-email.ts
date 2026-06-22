@@ -1,6 +1,7 @@
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../helpers/logger.js"
+import { sanitizeContactName } from "../competitor-backlinks/contact-validation.js"
 
 const log = createLogger("generate-mention-email")
 
@@ -26,8 +27,9 @@ export async function generateMentionEmail(
     offering?: string | null
   }
 ): Promise<{ subject: string; body: string; cost: number } | null> {
-  const greeting = context.contactName
-    ? `Hi ${context.contactName.split(" ")[0]}`
+  const cleanContactName = sanitizeContactName(context.contactName)
+  const greeting = cleanContactName
+    ? `Hi ${cleanContactName.split(" ")[0]}`
     : "Hi there"
 
   const voiceTone = sanitizeUserInput(context.voiceTone)

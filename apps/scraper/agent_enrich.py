@@ -14,6 +14,33 @@ MAX_PAGES = 6
 
 _GENERIC_PREFIXES = {"noreply", "no-reply", "support", "team", "hello", "info", "contact", "admin", "enquiries", "enquiry", "mail", "office", "sales", "marketing", "press", "media", "billing", "accounts", "hr", "jobs", "careers", "legal", "privacy", "abuse", "postmaster", "webmaster", "newsletter", "notifications"}
 
+_PLACEHOLDER_EMAIL_DOMAINS = {"example.com", "example.org", "example.net", "test.com", "domain.com", "email.com", "yourdomain.com", "sample.com", "acme.com", "placeholder.com", "fakeemail.com"}
+
+_NAME_BLOCKLIST = {"null", "none", "n/a", "na", "undefined", "unknown", "finish", "scrape_page", "anonymous", "author", "admin", "editor", "staff", "team"}
+
+
+def _clean_name(name: str | None) -> str | None:
+    """Sanitize LLM-produced contact name; returns None for garbage values."""
+    if not name:
+        return None
+    trimmed = name.strip()
+    if not trimmed or len(trimmed) > 60:
+        return None
+    if not any(c.isalpha() for c in trimmed):
+        return None
+    if trimmed.lower() in _NAME_BLOCKLIST:
+        return None
+    return trimmed
+
+
+def _is_placeholder_email(email: str) -> bool:
+    """True if the email address is a known placeholder/sample address."""
+    at_idx = email.rfind("@")
+    if at_idx < 0:
+        return True
+    domain = email[at_idx + 1:].lower()
+    return domain in _PLACEHOLDER_EMAIL_DOMAINS
+
 _SCRAPE_PAGE_TOOL = {
     "type": "function",
     "function": {
@@ -323,7 +350,9 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
         log.warning("agent: loop ended without finish — empty result")
         finish_result = {}
 
-    final_name = finish_result.get("name")
+    final_name = _clean_name(finish_result.get("name"))
+    if final_name != finish_result.get("name"):
+        log.info(f"agent: name sanitized from {finish_result.get('name')!r} to {final_name!r}")
     raw_emails: list[dict] = finish_result.get("emails") or []
     final_social: dict = finish_result.get("social_links") or {}
     final_bio = finish_result.get("bio")
@@ -337,6 +366,9 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
         val = item.get("value", "")
         typ = item.get("type", "general")
         if val and val not in seen_e:
+            if _is_placeholder_email(val):
+                log.info(f"agent: dropping placeholder email {val!r}")
+                continue
             seen_e.add(val)
             deduped.append(EmailEntry(value=val, type=typ))
 

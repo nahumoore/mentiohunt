@@ -183,6 +183,21 @@ export async function POST(request: Request) {
     return buildValidationError("Failed to complete onboarding.", 500)
   }
 
+  // Set discovery_status synchronously before the client redirects so the
+  // island's wasActiveAtMount check sees "running" on first dashboard render.
+  await supabase
+    .from("backlink_prospects_settings")
+    .update({
+      discovery_status: {
+        directories: "running",
+        backlinks: "running",
+        pages: "running",
+        started_at: new Date().toISOString(),
+        total: 3,
+      },
+    })
+    .eq("product_id", productId)
+
   waitUntil(
     runOnboardingJobsOnServer({
       userId: user.id,

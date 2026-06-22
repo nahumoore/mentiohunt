@@ -56,7 +56,8 @@ function sortProspects(
       cmp = (a.domain ?? "").localeCompare(b.domain ?? "")
     else if (key === "dr")
       cmp = (a.domain_rating ?? 0) - (b.domain_rating ?? 0)
-    else if (key === "relevance") cmp = 0
+    else if (key === "relevance")
+      cmp = (a.site_relevance_score ?? 0) - (b.site_relevance_score ?? 0)
     return dir === "asc" ? cmp : -cmp
   })
 }
@@ -214,6 +215,12 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
                 <th className="px-3 py-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
                   <div className="flex items-center gap-1.5">
                     Relevance
+                    <SortButton
+                      sortKey="relevance"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onSort={handleSort}
+                    />
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button

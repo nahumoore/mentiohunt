@@ -3,10 +3,9 @@ import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Metadata } from "next"
 import { Google_Sans, Outfit } from "next/font/google"
+import Script from "next/script"
 import { Toaster } from "sonner"
 
-import { PostHogIdentify } from "../components/posthog-identify"
-import { PostHogInitializer } from "../components/posthog-initializer"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
@@ -56,9 +55,16 @@ export default function RootLayout({
             {/* GOOGLE ANALYTICS */}
             <GoogleAnalytics gaId="G-61WK6YY5RC" />
 
-            {/* POSTHOG */}
-            <PostHogInitializer />
-            <PostHogIdentify />
+            {/* PLAUSIBLE */}
+            <Script
+              async
+              src="https://analytics.mentiohunt.com/js/pa-asroR_guo18EFSBbZh8_M.js"
+              strategy="afterInteractive"
+            />
+            <Script id="plausible-init" strategy="afterInteractive">{`
+              window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+              plausible.init()
+            `}</Script>
           </>
         )}
         {/* </ThemeProvider> */}

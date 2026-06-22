@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { sendFeedbackSequenceEmail } from "../email-sequences/feedback-sequence.js"
-import { classifyFunnelStage, getUserFiredEvents } from "../helpers/posthog-query.js"
+import type { FunnelStage } from "../email-sequences/feedback-sequence.js"
 import { createLogger } from "../helpers/logger.js"
 
 const log = createLogger("feedback-email-sequence")
@@ -53,8 +53,7 @@ export async function runFeedbackEmailSequence() {
         continue
       }
 
-      const events = await getUserFiredEvents(seq.user_id)
-      const stage = classifyFunnelStage(events)
+      const stage: FunnelStage = "used_both"
 
       await sendFeedbackSequenceEmail({
         to: profile.email,

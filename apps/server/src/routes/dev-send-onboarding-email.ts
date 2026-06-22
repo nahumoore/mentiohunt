@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express"
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { sendFeedbackSequenceEmail } from "../email-sequences/feedback-sequence.js"
-import { classifyFunnelStage, getUserFiredEvents } from "../helpers/posthog-query.js"
+import type { FunnelStage } from "../email-sequences/feedback-sequence.js"
 import { createLogger } from "../helpers/logger.js"
 
 const log = createLogger("route-dev-send-onboarding-email")
@@ -44,8 +44,7 @@ devSendOnboardingEmailRouter.post("/dev-send-onboarding-email", async (req, res)
       return
     }
 
-    const events = await getUserFiredEvents(userId)
-    const stage = classifyFunnelStage(events)
+    const stage: FunnelStage = "used_both"
 
     await sendFeedbackSequenceEmail({
       to: profile.email,

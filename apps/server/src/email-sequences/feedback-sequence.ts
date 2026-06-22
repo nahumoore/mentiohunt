@@ -5,7 +5,12 @@ import {
 } from "@workspace/supabase/email-settings"
 import { Resend } from "resend"
 import { createLogger } from "../helpers/logger.js"
-import type { FunnelStage } from "../helpers/posthog-query.js"
+export type FunnelStage =
+  | "stuck_onboarding"
+  | "onboarding_done_no_action"
+  | "used_mentions_only"
+  | "used_opportunities_only"
+  | "used_both"
 
 const log = createLogger("feedback-sequence-email")
 

@@ -21,5 +21,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/confirm?expired=1`)
   }
 
-  return NextResponse.redirect(`${origin}/api/auth/post-signin`)
+  const postSigninUrl = type === "signup"
+    ? `${origin}/api/auth/post-signin?confirmed=email`
+    : `${origin}/api/auth/post-signin`
+
+  return NextResponse.redirect(postSigninUrl)
 }

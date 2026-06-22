@@ -21,7 +21,8 @@
       "WebFetch(domain:ahrefs.com)",
       "WebFetch(domain:docs.ahrefs.com)",
       "WebFetch(domain:moz.com)",
-      "WebFetch(domain:developers.moz.com)"
+      "WebFetch(domain:developers.moz.com)",
+      "mcp__plugin_posthog_posthog__exec"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -9,6 +9,7 @@ import {
   FounderIntro,
   Hero,
   HowItWorks,
+  LandingPageTracker,
   Navbar,
   Pricing,
   SoftwareApplicationSchema,
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
+      <LandingPageTracker />
       <SoftwareApplicationSchema />
       <main className="min-h-screen bg-background text-foreground">
         <Navbar />

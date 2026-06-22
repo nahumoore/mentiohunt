@@ -6,8 +6,10 @@ import {
   IconSparkles,
 } from "@tabler/icons-react"
 import Link from "next/link"
+import { useEffect } from "react"
 import type { BillingTier, Plan } from "@/consts/billing"
 import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
+import { captureEvent } from "@/lib/analytics"
 
 function getPlanStatus(
   plan: Plan,
@@ -23,6 +25,10 @@ export function PricingClientPage({
 }: {
   userTier: BillingTier | null
 }) {
+  useEffect(() => {
+    captureEvent("pricing_page_viewed")
+  }, [])
+
   return (
     <div className="relative overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-0" aria-hidden>

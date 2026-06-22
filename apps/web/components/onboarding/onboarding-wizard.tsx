@@ -68,7 +68,7 @@ function normalizeSubmissionData(data: OnboardingData): OnboardingData {
   }
 }
 
-export function OnboardingWizard({ userName }: { userName?: string | null }) {
+export function OnboardingWizard({ userName, emailConfirmed }: { userName?: string | null; emailConfirmed?: boolean }) {
   const router = useRouter()
   const {
     hasHydrated,
@@ -80,6 +80,9 @@ export function OnboardingWizard({ userName }: { userName?: string | null }) {
   } = useOnboardingStore()
 
   useEffect(() => {
+    if (emailConfirmed) {
+      captureEvent("email_confirmation_completed")
+    }
     captureEvent("onboarding_started")
     if (userName && !data.userName) {
       updateData({ userName })

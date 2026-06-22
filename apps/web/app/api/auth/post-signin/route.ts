@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from "next/server"
 import { handlePostSignin } from "../_handle-new-user"
 
 export async function GET(request: NextRequest) {
-  const { origin } = new URL(request.url)
+  const { origin, searchParams } = new URL(request.url)
+  const confirmed = searchParams.get("confirmed")
   const supabase = await supabaseServer()
 
   const {
@@ -22,5 +23,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/signin?auth_error=${result.reason}`)
   }
 
-  return NextResponse.redirect(`${origin}/${result.redirect}`)
+  const suffix = confirmed ? `?confirmed=${confirmed}` : ""
+  return NextResponse.redirect(`${origin}/${result.redirect}${suffix}`)
 }

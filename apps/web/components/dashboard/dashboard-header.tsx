@@ -1,10 +1,10 @@
 "use client"
 
 import {
-  IconAdjustments,
   IconFiles,
   IconLayoutGrid,
   IconNetwork,
+  IconSettings,
   IconSparkles,
 } from "@tabler/icons-react"
 import Link from "next/link"
@@ -39,7 +39,7 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
     title: "Opportunity Settings",
     description:
       "Choose which sources should feed your opportunity queue. Start broad, then pause anything that feels noisy.",
-    icon: IconAdjustments,
+    icon: IconSettings,
   },
   "/dashboard/directories": {
     title: "Directories",
@@ -148,7 +148,7 @@ export function DashboardHeader() {
           {pageConfig.settingsHref && (
             <Button asChild variant="ghost" size="default" className="mt-1 shrink-0">
               <Link href={pageConfig.settingsHref}>
-                <IconAdjustments className="size-4" />
+                <IconSettings className="size-4" />
                 Settings
               </Link>
             </Button>

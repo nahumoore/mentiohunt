@@ -4,6 +4,7 @@ import {
   IconFiles,
   IconLayoutGrid,
   IconNetwork,
+  IconSettings,
   IconSparkles,
 } from "@tabler/icons-react"
 import Link from "next/link"
@@ -52,6 +53,13 @@ const FEATURES: FeatureModule[] = [
         title: "Opportunities",
         url: "/dashboard/opportunities",
         icon: <IconSparkles />,
+        items: [
+          {
+            title: "Settings",
+            url: "/dashboard/opportunities/settings",
+            icon: <IconSettings />,
+          },
+        ],
       },
       {
         title: "Pages",
@@ -139,8 +147,8 @@ export function NavMain() {
                         {page.badge}
                       </SidebarMenuBadge>
                     ) : null}
-                    {page.items ? (
-                      <SidebarMenuSub>
+                    {page.items && (isActive || isSubActive) ? (
+                      <SidebarMenuSub className="animate-in fade-in-0 slide-in-from-top-2 duration-200">
                         {page.items.map((subItem) => {
                           const isSubItemActive = isRouteActive(
                             pathname,

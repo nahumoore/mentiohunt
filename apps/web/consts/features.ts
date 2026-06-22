@@ -6,7 +6,7 @@ export type FeaturePage = {
   description: string
   keyword: string
   h2: string
-  category: "Backlink building" | "Community monitoring"
+  category: "Backlink building"
   metric: string
   metricLabel: string
   primaryCta: string
@@ -122,90 +122,6 @@ export const features: FeaturePage[] = [
       title: "How to Find Backlink Opportunities (Practical Guide)",
       href: "/blog/how-to-find-backlink-opportunities",
     },
-  },
-  {
-    slug: "community-reply-alerts",
-    eyebrow: "Community reply alerts",
-    title: "Get alerted when a community thread is ready for a useful reply",
-    shortTitle: "Community reply alerts",
-    description:
-      "Community reply alerts watch relevant communities for posts where your product fits, then send a suggested reply so you can join while the thread is active.",
-    keyword: "community reply alerts",
-    h2: "Reply before the thread goes cold.",
-    category: "Community monitoring",
-    metric: "Realtime",
-    metricLabel: "reply opportunities",
-    primaryCta: "Start monitoring threads",
-    secondaryCta: "See backlink queue",
-    heroCardTitle: "Thread: How are founders finding early customers?",
-    heroCardDescription:
-      "High fit because the poster is asking for low-budget distribution channels and mentions trying Reddit, directories, and content outreach.",
-    sampleLabel: "Suggested reply angle",
-    sampleTitle: "Lead with the workflow, then mention the product softly",
-    sampleBody:
-      "Share a practical queue-based approach first. Mention Mentiohunt only after the useful advice, and make it clear they can replicate the process manually.",
-    inputs: [
-      "Product positioning",
-      "Customer pains and use cases",
-      "Competitors and alternatives",
-      "Communities and keywords to monitor",
-    ],
-    outcomes: [
-      "Relevant posts surfaced quickly",
-      "Fit reason for each thread",
-      "Suggested reply with product context",
-      "Email alert while the discussion is active",
-    ],
-    workflow: [
-      {
-        title: "Describe your product",
-        description:
-          "Add what you do, who it helps, and the problems that should trigger a reply opportunity.",
-      },
-      {
-        title: "Monitor active discussions",
-        description:
-          "Mentiohunt looks for posts where the context matches your product instead of notifying you on every keyword mention.",
-      },
-      {
-        title: "Reply with restraint",
-        description:
-          "The suggested reply starts with useful advice and keeps the product mention relevant, specific, and easy to ignore.",
-      },
-    ],
-    reasons: [
-      "Founders can respond before a useful thread goes cold.",
-      "Fit rationale reduces spammy replies and irrelevant alerts.",
-      "The suggested copy helps teams move quickly without sounding automated.",
-    ],
-    faq: [
-      {
-        question: "Will replies be posted automatically?",
-        answer:
-          "No. Mentiohunt prepares a suggested reply and sends an alert. You review the thread and decide whether to respond.",
-      },
-      {
-        question: "Which communities should I monitor first?",
-        answer:
-          "Start with the few places where your customers already ask for help, compare tools, or describe the pain your product solves.",
-      },
-      {
-        question: "Which platforms does Mentiohunt monitor?",
-        answer:
-          "Reddit, forums, and other communities where your target audience discusses tools and problems in your category. You can specify which communities to watch when setting up your product profile.",
-      },
-      {
-        question: "How does fit scoring work for threads?",
-        answer:
-          "The system checks whether the post's context, the poster's problem, and the community's norms align with your product. Keyword matches alone don't trigger an alert — the thread has to read like a genuine opening.",
-      },
-      {
-        question: "Can I adjust what triggers an alert?",
-        answer:
-          "Yes. Adding more detail to your product positioning, customer pains, and competitor names narrows the signal and reduces noise from threads that match a keyword but not your use case.",
-      },
-    ],
-    updatedAt: "2026-05-12",
   },
 ]
 

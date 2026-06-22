@@ -1,7 +1,6 @@
 import {
   IconArrowLeft,
   IconArrowRight,
-  IconBellRinging,
   IconChecks,
   IconMailSpark,
   IconMessage2,
@@ -58,8 +57,7 @@ export default async function FeaturePage({ params }: Props) {
 
   if (!feature) notFound()
 
-  const isCommunityFeature = feature.category === "Community monitoring"
-  const FeatureIcon = isCommunityFeature ? IconBellRinging : IconTargetArrow
+  const FeatureIcon = IconTargetArrow
   const alternateFeature = features.find((item) => item.slug !== feature.slug)
 
   const breadcrumbSchema = {

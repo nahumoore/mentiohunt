@@ -46,6 +46,7 @@ def _execution_log(route: str):
 
 _light_fetcher = Fetcher()
 _dynamic_fetcher = PlayWrightFetcher()
+_stealthy_fetcher = StealthyFetcher()
 _browser_semaphore = threading.Semaphore(1)
 
 API_KEY = os.getenv("API_KEY")
@@ -211,7 +212,7 @@ def fetch_page(url: str):
 
         try:
             log.info(f"fetching stealthy {url}")
-            page = StealthyFetcher.fetch(url, headless=True, disable_resources=True, timeout=60000)
+            page = _stealthy_fetcher.fetch(url, headless=True, disable_resources=True, timeout=60000)
             log.info(f"fetched ok (stealthy) {url}")
             return page
         except Exception as e:

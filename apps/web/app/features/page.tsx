@@ -1,6 +1,5 @@
 import {
   IconArrowRight,
-  IconBellRinging,
   IconBolt,
   IconChecks,
   IconMailSpark,
@@ -38,7 +37,7 @@ export const metadata: Metadata = {
   },
 }
 
-const featureIcons = [IconTargetArrow, IconBellRinging]
+const featureIcons = [IconTargetArrow]
 
 const itemListSchema = {
   "@context": "https://schema.org",
@@ -86,12 +85,11 @@ export default function FeaturesPage() {
               </span>
               <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
               <h1 className="mt-5 font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-6xl lg:text-[76px] lg:leading-[0.9]">
-                Backlink building and community monitoring for founders.
+                Backlink building on autopilot for founders.
               </h1>
               <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-                Mentiohunt gives founders two practical queues: backlink
-                opportunities worth reviewing and community threads worth
-                answering before momentum disappears.
+                Mentiohunt turns your content into a daily backlink opportunity
+                queue — prospects scored by fit, outreach drafts ready to send.
               </p>
             </div>
 

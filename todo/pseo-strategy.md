@@ -44,6 +44,22 @@ Direct product tie-in — Mentiohunt generates email drafts. Each page: template
 
 ---
 
+### New Template: `/features/[feature]`
+
+Product feature landing pages targeting bottom-of-funnel commercial keywords. LOW competition across the board. Direct product tie-in — each page targets a specific capability Mentiohunt offers.
+
+Data from DataForSEO (US, June 2026):
+
+- [ ] `/features/link-building-software` — "link building software" 320/mo, KD 17, LOW comp. Build first — highest volume + still rankable.
+- [ ] `/features/backlink-outreach` — "backlink outreach" 140/mo, KD 2, LOW comp. Easiest to rank. Commercial intent confirmed.
+- [ ] `/features/link-prospecting` — "link prospecting" / "link prospecting tools" 40/mo each, KD 10–12, LOW. Small volume but near-zero competition.
+- [ ] `/features/backlink-opportunity-finder` — "backlink opportunity" 40/mo, KD 7, LOW. Direct product feature name alignment.
+
+> Skip: "backlink finder tool" (210/mo but KD 93 — too hard). "automated link building software" declining trend, KD 28.
+> "seo link building software" (260/mo, KD 14–16) is a variant of the top pick — fold into `/features/link-building-software` page via on-page targeting, don't build separate page.
+
+---
+
 ### Content Asset: Email Templates (deprioritized)
 
 `link building email template` = KD 50, needs ~104 backlinks. Too hard at current authority. Covered better by `/outreach-templates/` template above.
@@ -62,4 +78,4 @@ Direct product tie-in — Mentiohunt generates email drafts. Each page: template
 - Verify volume/difficulty for top 3 pages in Ahrefs or Semrush before building at scale.
 - Platform pages dominate — 14 distinct platforms confirmed via Google Suggest. Low competition expected (agencies ignore informational).
 - "how to get backlinks from chatgpt" has real demand — early AI-search angle worth owning.
-- `/backlinks-from/reddit` ties to both Mentiohunt engines (backlink outreach + community monitoring) — best spoke to launch first.
+- `/backlinks-from/reddit` strong spoke to launch first — high ICP overlap with founder-led link building.

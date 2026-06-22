@@ -58,6 +58,7 @@ export default function RootLayout({
             {/* PLAUSIBLE */}
             <Script
               async
+              data-domain="mentiohunt.com"
               src="https://analytics.mentiohunt.com/js/pa-asroR_guo18EFSBbZh8_M.js"
               strategy="afterInteractive"
             />

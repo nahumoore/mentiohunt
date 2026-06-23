@@ -10,9 +10,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 
-function getDiceBearUrl(seed: string): string {
-  return `https://api.dicebear.com/10.x/micah/svg?mouthVariant=smirk&facialHairVariant=&hairVariant=dannyPhantom,fonze,full,pixie&hairProbability=100&baseColor=f9c9b6,ac6651,f5bd8a&backgroundColor=ffffff&seed=${encodeURIComponent(seed)}`
-}
+import { getContactAvatarUrl } from "@/consts/contact-avatar"
 
 import {
   TYPE_CONFIG,
@@ -40,7 +38,7 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
   const tierCfg = TYPE_CONFIG[prospect.tier]
   if (!tierCfg) return null
   const TierIcon = tierCfg.icon
-  const avatarUrl = getDiceBearUrl(prospect.domain ?? prospect.id)
+  const avatarUrl = getContactAvatarUrl(prospect.domain ?? prospect.id)
   const hasEmail = !!prospect.contact_email?.trim()
   const competitorHostname =
     prospect.tier === "competitor_backlink"

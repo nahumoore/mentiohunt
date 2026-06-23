@@ -48,107 +48,6 @@ const stats = [
   { value: "Zero", label: "outreach work for you" },
 ]
 
-function FooterSocialProof() {
-  return (
-    <div className="flex flex-col gap-2 pt-1">
-      <div className="flex items-center gap-3">
-        <a
-          href="https://fazier.com/launches/mentiohunt.com"
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          aria-label="Mentiohunt launch badge on Fazier"
-          className="inline-flex rounded-lg transition-opacity hover:opacity-85"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=neutral"
-            width={120}
-            height={54}
-            alt="Fazier badge"
-          />
-        </a>
-        <a
-          href="https://www.producthunt.com/products/mentiohunt?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-mentiohunt"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Mentiohunt on Product Hunt"
-          className="inline-flex rounded-lg transition-opacity hover:opacity-85"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            alt="Mentiohunt - Find backlink and mention opportunities for your startup | Product Hunt"
-            width={200}
-            height={54}
-            src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1153691&theme=neutral&t=1779549223016"
-          />
-        </a>
-        <a
-          href="https://www.nxgntools.com/tools/mentiohunt?utm_source=mentiohunt"
-          target="_blank"
-          rel="noopener nofollow"
-          aria-label="Featured on NextGen Tools"
-          className="inline-flex rounded-lg transition-opacity hover:opacity-85"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://www.nxgntools.com/api/embed/mentiohunt?type=FEATURED_ON&hideUpvotes=true"
-            alt="Featured on NextGen Tools"
-            height={54}
-            style={{ width: "auto" }}
-          />
-        </a>
-      </div>
-      <div className="flex items-center gap-3">
-        <a
-          href="https://dang.ai/"
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          aria-label="Dang.ai"
-          className="inline-flex rounded-lg transition-opacity hover:opacity-85"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://cdn.prod.website-files.com/63d8afd87da01fb58ea3fbcb/6487e2868c6c8f93b4828827_dang-badge.png"
-            alt="Dang.ai"
-            width={150}
-            height={54}
-          />
-        </a>
-        <a
-          href="https://twelve.tools"
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          aria-label="Featured on Twelve Tools"
-          className="inline-flex rounded-lg transition-opacity hover:opacity-85"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://twelve.tools/badge0-dark.svg"
-            alt="Featured on Twelve Tools"
-            width={200}
-            height={54}
-          />
-        </a>
-        <a
-          href="https://turbo0.com/item/mentiohunt"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Listed on Turbo0"
-          className="inline-flex rounded-lg transition-opacity hover:opacity-85"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://img.turbo0.com/badge-listed-light.svg"
-            alt="Listed on Turbo0"
-            height={54}
-            style={{ width: "auto" }}
-          />
-        </a>
-      </div>
-    </div>
-  )
-}
-
 export function Footer() {
   return (
     <footer className="relative overflow-hidden border-t border-border bg-background">
@@ -269,7 +168,6 @@ export function Footer() {
             <p className="text-xs text-muted-foreground/50">
               © 2026 Mentiohunt · Built for recurring backlink work
             </p>
-            <FooterSocialProof />
           </div>
 
           <div className="space-y-3">

@@ -2,31 +2,33 @@
 
 All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwards to Plausible.
 
-> **Name mapping:** `outreach_email_copied` → `email-draft-copied` in Plausible (see `NAME_MAP`). All other events convert underscores to hyphens automatically.
-
 ---
 
 ## Auth & Identity
 
 ### `landing_page_viewed`
+
 **Source:** `components/landing/landing-page-tracker.tsx`  
 **Props:** none
 
 ---
 
 ### `pricing_page_viewed`
+
 **Source:** `app/pricing/client-page.tsx`  
 **Props:** none
 
 ---
 
 ### `signup_page_viewed`
+
 **Source:** `components/auth/signup-form.tsx`  
 **Props:** none
 
 ---
 
 ### `signup_confirmation_prompt_shown`
+
 **Source:** `components/auth/signup-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -35,6 +37,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `signup_validation_failed`
+
 **Source:** `components/auth/signup-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -44,6 +47,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `signup_started`
+
 **Source:** `components/auth/signup-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -52,6 +56,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `signup_failed`
+
 **Source:** `components/auth/signup-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -61,6 +66,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `user_signed_up`
+
 **Source:** `components/auth/signup-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -70,6 +76,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `oauth_started`
+
 **Source:** `components/auth/signup-form.tsx`, `components/auth/signin-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -79,6 +86,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `signin_page_viewed`
+
 **Source:** `components/auth/signin-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -87,6 +95,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `signin_validation_failed`
+
 **Source:** `components/auth/signin-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -96,6 +105,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `signin_started`
+
 **Source:** `components/auth/signin-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -104,6 +114,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `signin_failed`
+
 **Source:** `components/auth/signin-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -113,6 +124,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `user_signed_in`
+
 **Source:** `components/auth/signin-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -121,12 +133,14 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `user_signed_out`
+
 **Source:** `components/onboarding/onboarding-wizard.tsx`  
 **Props:** none
 
 ---
 
 ### `email_confirmation_started`
+
 **Source:** `components/auth/confirm-view.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -135,12 +149,14 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `email_confirmation_completed`
+
 **Source:** `components/onboarding/onboarding-wizard.tsx`  
 **Props:** none — fires when the wizard mounts with `emailConfirmed=true`
 
 ---
 
 ### `mfa_challenge_started`
+
 **Source:** `components/auth/signin-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -149,6 +165,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `mfa_challenge_failed`
+
 **Source:** `components/auth/signin-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -158,6 +175,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `mfa_step_viewed`
+
 **Source:** `components/auth/signin-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -166,6 +184,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `mfa_verification_failed`
+
 **Source:** `components/auth/signin-form.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -174,6 +193,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `mfa_verified`
+
 **Source:** `components/auth/signin-form.tsx`  
 **Props:** none
 
@@ -182,12 +202,14 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ## Onboarding
 
 ### `onboarding_started`
+
 **Source:** `components/onboarding/onboarding-wizard.tsx`  
 **Props:** none
 
 ---
 
 ### `onboarding_site_fetched`
+
 **Source:** `components/onboarding/onboarding-wizard.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -196,6 +218,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `onboarding_ai_generated`
+
 **Source:** `components/onboarding/onboarding-wizard.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -204,6 +227,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `onboarding_step_completed`
+
 **Source:** `components/onboarding/onboarding-wizard.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -213,6 +237,7 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 ---
 
 ### `onboarding_company_submitted`
+
 **Source:** `components/onboarding/onboarding-wizard.tsx`  
 Fires alongside `onboarding_step_completed` when completing step 1 (company).  
 | Prop | Type | Description |
@@ -223,6 +248,7 @@ Fires alongside `onboarding_step_completed` when completing step 1 (company).
 ---
 
 ### `onboarding_completed`
+
 **Source:** `components/onboarding/onboarding-wizard.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -233,6 +259,7 @@ Fires alongside `onboarding_step_completed` when completing step 1 (company).
 ## Opportunities (Link Building)
 
 ### `opportunities_list_viewed`
+
 **Source:** `app/dashboard/opportunities/page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -241,6 +268,7 @@ Fires alongside `onboarding_step_completed` when completing step 1 (company).
 ---
 
 ### `opportunity_viewed`
+
 **Source:** `app/dashboard/opportunities/[slug]/client-page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -250,6 +278,7 @@ Fires alongside `onboarding_step_completed` when completing step 1 (company).
 ---
 
 ### `outreach_email_copied`
+
 **Plausible name:** `email-draft-copied`  
 **Source:** `app/dashboard/opportunities/[slug]/client-page.tsx`, `components/link-building/opportunities/outreach-draft.tsx`  
 | Prop | Type | Description |
@@ -260,6 +289,7 @@ Fires alongside `onboarding_step_completed` when completing step 1 (company).
 ---
 
 ### `outreach_open_in_client`
+
 **Source:** `app/dashboard/opportunities/[slug]/client-page.tsx`, `components/link-building/opportunities/outreach-draft.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -269,6 +299,7 @@ Fires alongside `onboarding_step_completed` when completing step 1 (company).
 ---
 
 ### `opportunity_issue_report_opened`
+
 **Source:** `components/link-building/opportunities/opportunity-report-issue-dialog.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -278,6 +309,7 @@ Fires alongside `onboarding_step_completed` when completing step 1 (company).
 ---
 
 ### `opportunity_issue_report_submitted`
+
 **Source:** `components/link-building/opportunities/opportunity-report-issue-dialog.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -287,6 +319,7 @@ Fires alongside `onboarding_step_completed` when completing step 1 (company).
 ---
 
 ### `discovery_settings_saved`
+
 **Source:** `app/dashboard/opportunities/settings/page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -299,6 +332,7 @@ Fires alongside `onboarding_step_completed` when completing step 1 (company).
 ## Directories
 
 ### `directories_page_viewed`
+
 **Source:** `app/dashboard/directories/page.tsx`  
 Only fires when `submissions.length > 0`.  
 | Prop | Type | Description |
@@ -313,6 +347,7 @@ Only fires when `submissions.length > 0`.
 ---
 
 ### `directories_filter_changed`
+
 **Source:** `app/dashboard/directories/page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -321,6 +356,7 @@ Only fires when `submissions.length > 0`.
 ---
 
 ### `directories_search_used`
+
 **Source:** `app/dashboard/directories/page.tsx`  
 Debounced 600ms. Only fires when query is non-empty.  
 | Prop | Type | Description |
@@ -331,6 +367,7 @@ Debounced 600ms. Only fires when query is non-empty.
 ---
 
 ### `directories_sorted`
+
 **Source:** `app/dashboard/directories/page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -340,6 +377,7 @@ Debounced 600ms. Only fires when query is non-empty.
 ---
 
 ### `directories_bulk_selected`
+
 **Source:** `app/dashboard/directories/page.tsx`  
 Only fires when selecting all (not deselecting).  
 | Prop | Type | Description |
@@ -350,6 +388,7 @@ Only fires when selecting all (not deselecting).
 ---
 
 ### `directories_bulk_status_updated`
+
 **Source:** `app/dashboard/directories/page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -361,6 +400,7 @@ Only fires when selecting all (not deselecting).
 ---
 
 ### `directories_row_clicked`
+
 **Source:** `app/dashboard/directories/page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -372,6 +412,7 @@ Only fires when selecting all (not deselecting).
 ---
 
 ### `directory_detail_viewed`
+
 **Source:** `app/dashboard/directories/[id]/client-page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -384,6 +425,7 @@ Only fires when selecting all (not deselecting).
 ---
 
 ### `directory_status_updated`
+
 **Source:** `app/dashboard/directories/[id]/client-page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -395,6 +437,7 @@ Only fires when selecting all (not deselecting).
 ---
 
 ### `directory_marked_submitted`
+
 **Source:** `app/dashboard/directories/[id]/client-page.tsx`  
 Fires after submit-assist confirms submission (in addition to `directory_status_updated`).  
 | Prop | Type | Description |
@@ -405,6 +448,7 @@ Fires after submit-assist confirms submission (in addition to `directory_status_
 ---
 
 ### `directory_external_link_clicked`
+
 **Source:** `app/dashboard/directories/[id]/client-page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -414,6 +458,7 @@ Fires after submit-assist confirms submission (in addition to `directory_status_
 ---
 
 ### `directory_dismissed`
+
 **Source:** `app/dashboard/directories/[id]/client-page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -423,6 +468,7 @@ Fires after submit-assist confirms submission (in addition to `directory_status_
 ---
 
 ### `directory_check_listing_clicked`
+
 **Source:** `app/dashboard/directories/[id]/client-page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -432,6 +478,7 @@ Fires after submit-assist confirms submission (in addition to `directory_status_
 ---
 
 ### `directory_submit_assist_opened`
+
 **Source:** `app/dashboard/directories/[id]/client-page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -441,6 +488,7 @@ Fires after submit-assist confirms submission (in addition to `directory_status_
 ---
 
 ### `directory_undo_submission`
+
 **Source:** `app/dashboard/directories/[id]/client-page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -450,6 +498,7 @@ Fires after submit-assist confirms submission (in addition to `directory_status_
 ---
 
 ### `directory_restored`
+
 **Source:** `app/dashboard/directories/[id]/client-page.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -459,6 +508,7 @@ Fires after submit-assist confirms submission (in addition to `directory_status_
 ---
 
 ### `directory_report_opened`
+
 **Source:** `components/link-building/directories/report-dialog.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
@@ -468,10 +518,10 @@ Fires after submit-assist confirms submission (in addition to `directory_status_
 
 ## Event Count Summary
 
-| Domain | Events |
-|--------|--------|
-| Auth & Identity | 20 |
-| Onboarding | 6 |
-| Opportunities | 7 |
-| Directories | 14 |
-| **Total** | **47** |
+| Domain          | Events |
+| --------------- | ------ |
+| Auth & Identity | 20     |
+| Onboarding      | 6      |
+| Opportunities   | 7      |
+| Directories     | 14     |
+| **Total**       | **47** |

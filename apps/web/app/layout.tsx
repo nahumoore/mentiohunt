@@ -6,12 +6,10 @@ import { Google_Sans, Outfit } from "next/font/google"
 import Script from "next/script"
 import { Toaster } from "sonner"
 
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
   title: {
-    default:
-      "Mentiohunt – Backlink Placement Autopilot for Founders",
+    default: "Mentiohunt – Backlink Placement Autopilot for Founders",
     template: "%s — Mentiohunt",
   },
   description:
@@ -59,7 +57,7 @@ export default function RootLayout({
             <Script
               async
               data-domain="mentiohunt.com"
-              src="https://analytics.mentiohunt.com/js/pa-asroR_guo18EFSBbZh8_M.js"
+              src="https://analytics.karmicup.com/js/pa-asroR_guo18EFSBbZh8_M.js"
               strategy="afterInteractive"
             />
             <Script id="plausible-init" strategy="afterInteractive">{`

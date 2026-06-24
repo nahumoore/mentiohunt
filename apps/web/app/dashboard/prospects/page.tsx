@@ -20,10 +20,10 @@ export default function ProspectsPage() {
 
   if (prospects.length === 0 && !hasCompletedRun) {
     return (
-      <Card className="px-6 py-16 text-center">
+      <Card className="rounded-xl border border-border px-6 py-16 text-center shadow-sm">
         <div className="mx-auto flex max-w-md flex-col items-center gap-3">
-          <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-            <IconLoader2 className="size-5 animate-spin text-primary" />
+          <span className="flex size-12 items-center justify-center rounded-full bg-(--color-blaze-orange)/10">
+            <IconLoader2 className="size-5 animate-spin text-(--color-blaze-orange)" />
           </span>
           <h2 className="text-base font-semibold text-foreground">
             Building your prospect queue

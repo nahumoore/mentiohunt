@@ -8,6 +8,50 @@
 @source "../**/*.{ts,tsx}";
 
 :root {
+  --background: #ffffff;
+  --foreground: #1f1f1f;
+  --card: #ffffff;
+  --card-foreground: #1f1f1f;
+  --popover: #ffffff;
+  --popover-foreground: #1f1f1f;
+  --primary: #ff5a1f;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #1f1f1f;
+  --muted: #f5f5f5;
+  --muted-foreground: #6f6f6f;
+  --accent: #ffe3d6;
+  --accent-foreground: #1f1f1f;
+  --destructive: #e24b4b;
+  --border: #e7e7e7;
+  --input: #e7e7e7;
+  --ring: #ff5a1f;
+  --chart-1: #ff5a1f;
+  --chart-2: #ff8a5a;
+  --chart-3: #2dbe60;
+  --chart-4: #f4c84a;
+  --chart-5: #6f6f6f;
+  --radius: 1rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1f1f1f;
+  --sidebar-primary: #1f1f1f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #1f1f1f;
+  --sidebar-border: #e7e7e7;
+  --sidebar-ring: #ff5a1f;
+
+  /* Brand palette */
+  --brand-primary: #ff5a1f;
+  --brand-primary-60: #ff8a5a;
+  --brand-primary-20: #ffe3d6;
+  --brand-secondary: #1f1f1f;
+  --brand-tertiary: #f5f5f5;
+  --brand-success: #2dbe60;
+  --brand-warning: #f4c84a;
+  --brand-error: #e24b4b;
+
+  /* Legacy orange ramp (used in existing landing sections) */
   --crimson-carrot: #ff4800;
   --blaze-orange: #ff5400;
   --blaze-orange-2: #ff6000;
@@ -18,73 +62,40 @@
   --amber-glow: #ff9e00;
   --orange: #ffaa00;
   --amber-flame: #ffb600;
-
-  --background: #fcfcfc;
-  --foreground: oklch(0.15 0.05 30);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.05 30);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.05 30);
-  --primary: oklch(0.65 0.18 40);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.04 35);
-  --secondary-foreground: oklch(0.2 0.08 35);
-  --muted: oklch(0.97 0.02 35);
-  --muted-foreground: oklch(0.5 0.06 30);
-  --accent: oklch(0.92 0.05 35);
-  --accent-foreground: oklch(0.2 0.08 35);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(94.309% 0.00011 271.152);
-  --input: oklch(0.9 0.02 30);
-  --ring: oklch(0.65 0.18 40);
-  --chart-1: oklch(0.65 0.18 40);
-  --chart-2: oklch(0.7 0.17 45);
-  --chart-3: oklch(0.75 0.16 48);
-  --chart-4: oklch(0.78 0.15 50);
-  --chart-5: oklch(0.8 0.14 52);
-  --radius: 0.325rem;
-  --sidebar: #fcfcfc;
-  --sidebar-foreground: oklch(0.2 0 0);
-  --sidebar-primary: oklch(0.2 0 0);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.95 0 0);
-  --sidebar-accent-foreground: oklch(0.2 0 0);
-  --sidebar-border: #f6f6f6;
-  --sidebar-ring: oklch(0.2 0 0);
 }
 
 .dark {
-  --background: oklch(0.12 0.03 30);
-  --foreground: oklch(0.95 0.02 30);
-  --card: oklch(0.15 0.03 30);
-  --card-foreground: oklch(0.95 0.02 30);
-  --popover: oklch(0.15 0.03 30);
-  --popover-foreground: oklch(0.95 0.02 30);
-  --primary: oklch(0.75 0.16 48);
-  --primary-foreground: oklch(0.15 0.05 30);
-  --secondary: oklch(0.22 0.04 30);
-  --secondary-foreground: oklch(0.95 0.02 30);
-  --muted: oklch(0.22 0.04 30);
-  --muted-foreground: oklch(0.7 0.05 30);
-  --accent: oklch(0.25 0.04 35);
-  --accent-foreground: oklch(0.95 0.02 30);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 15%);
-  --input: oklch(1 0 0 / 20%);
-  --ring: oklch(0.75 0.16 48);
-  --chart-1: oklch(0.75 0.16 48);
-  --chart-2: oklch(0.78 0.15 50);
-  --chart-3: oklch(0.8 0.14 52);
-  --chart-4: oklch(0.82 0.13 54);
-  --chart-5: oklch(0.85 0.12 56);
-  --sidebar: oklch(0.14 0.03 30);
-  --sidebar-foreground: oklch(0.95 0.02 30);
-  --sidebar-primary: oklch(0.75 0.16 48);
-  --sidebar-primary-foreground: oklch(0.15 0.05 30);
-  --sidebar-accent: oklch(0.22 0.04 30);
-  --sidebar-accent-foreground: oklch(0.95 0.02 30);
-  --sidebar-border: oklch(1 0 0 / 15%);
-  --sidebar-ring: oklch(0.75 0.16 48);
+  --background: #1a1a1a;
+  --foreground: #f5f5f5;
+  --card: #242424;
+  --card-foreground: #f5f5f5;
+  --popover: #242424;
+  --popover-foreground: #f5f5f5;
+  --primary: #ff8a5a;
+  --primary-foreground: #1f1f1f;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #f5f5f5;
+  --muted: #2a2a2a;
+  --muted-foreground: #a0a0a0;
+  --accent: #3d2018;
+  --accent-foreground: #f5f5f5;
+  --destructive: #e24b4b;
+  --border: #333333;
+  --input: #333333;
+  --ring: #ff8a5a;
+  --chart-1: #ff8a5a;
+  --chart-2: #ff5a1f;
+  --chart-3: #2dbe60;
+  --chart-4: #f4c84a;
+  --chart-5: #a0a0a0;
+  --sidebar: #1a1a1a;
+  --sidebar-foreground: #f5f5f5;
+  --sidebar-primary: #ff8a5a;
+  --sidebar-primary-foreground: #1f1f1f;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #f5f5f5;
+  --sidebar-border: #333333;
+  --sidebar-ring: #ff8a5a;
 }
 
 @theme inline {
@@ -111,13 +122,13 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  --radius-4xl: 9999px;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -128,6 +139,16 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --font-sans: var(--font-sans);
   --font-heading: var(--font-heading);
+  --font-ui: var(--font-ui);
+
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-60: var(--brand-primary-60);
+  --color-brand-primary-20: var(--brand-primary-20);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-tertiary: var(--brand-tertiary);
+  --color-brand-success: var(--brand-success);
+  --color-brand-warning: var(--brand-warning);
+  --color-brand-error: var(--brand-error);
 
   --color-crimson-carrot: var(--crimson-carrot);
   --color-blaze-orange: var(--blaze-orange);
@@ -139,24 +160,17 @@
   --color-amber-glow: var(--amber-glow);
   --color-orange: var(--orange);
   --color-amber-flame: var(--amber-flame);
+
   --animate-blink-cursor: blink-cursor 1.2s step-end infinite;
   @keyframes blink-cursor {
-  0%, 49% {
-    opacity: 1;
-    }
-  50%, 100% {
-    opacity: 0;
-    }
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
   }
 }
 
 @keyframes discovery-surfaces-marquee-right {
-  from {
-    transform: translate3d(-50%, 0, 0);
-  }
-  to {
-    transform: translate3d(0, 0, 0);
-  }
+  from { transform: translate3d(-50%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
 }
 
 @layer base {

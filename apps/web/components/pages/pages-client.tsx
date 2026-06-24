@@ -92,7 +92,7 @@ function PriorityIcons({
     <span className="flex items-center gap-0.5">
       {Array.from({ length: 3 }).map((_, i) =>
         i < filled ? (
-          <IconLinkFilled key={i} className={cn(size, "text-primary")} />
+          <IconLinkFilled key={i} className={cn(size, "text-(--color-blaze-orange)")} />
         ) : (
           <IconLink key={i} className={cn(size, "text-muted-foreground/30")} />
         )
@@ -188,7 +188,7 @@ function PriorityInfoPopover() {
           <IconInfoCircle className="size-3.5" />
         </button>
       </PopoverTrigger>
-      <PopoverContent side="top" align="start">
+      <PopoverContent side="top" align="start" className="rounded-xl">
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-foreground">
@@ -258,7 +258,7 @@ function PriorityDropdown({
           <IconChevronDown className="size-3 text-muted-foreground/50" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-40">
+      <DropdownMenuContent align="start" className="min-w-40 rounded-xl">
         {(["high", "medium", "low"] as const).map((p) => (
           <DropdownMenuItem
             key={p}
@@ -289,8 +289,8 @@ function PageRow({
   const TypeIcon = typeCfg.icon
 
   return (
-    <tr className="group border-b border-border/60 transition-colors last:border-0 hover:bg-muted/30">
-      {/* Page col — 30%, truncates */}
+    <tr className="group border-b border-border/60 transition-colors last:border-0 hover:bg-muted/20">
+      {/* Page col */}
       <td className="overflow-hidden py-4 pr-3 pl-6 align-top">
         <div className="flex min-w-0 items-start gap-2.5">
           <div className="mt-0.5 shrink-0">
@@ -336,7 +336,7 @@ function PageRow({
         </div>
       </td>
 
-      {/* Type col — 18%, icon + neutral label */}
+      {/* Type col */}
       <td className="px-3 py-4 align-top">
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <TypeIcon className="size-3.5 shrink-0" />
@@ -344,7 +344,7 @@ function PageRow({
         </div>
       </td>
 
-      {/* Priority col — 22% */}
+      {/* Priority col */}
       <td className="px-3 py-4 align-top">
         <PriorityDropdown
           value={page.priority}
@@ -352,7 +352,7 @@ function PageRow({
         />
       </td>
 
-      {/* Opportunities col — 30% */}
+      {/* Opportunities col */}
       <td className="py-4 pr-6 pl-3 align-top">
         <div className="flex items-center gap-1.5">
           <IconLink className="size-4 text-muted-foreground/50" />
@@ -397,16 +397,19 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button
+          size="sm"
+          className="rounded-full bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot)"
+        >
           <IconPlus className="size-4" />
           Add page
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="rounded-xl">
         <DialogTitle>Add page</DialogTitle>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
+            <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
               URL
             </label>
             <Input
@@ -414,19 +417,20 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               autoFocus
+              className="rounded-md"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
+              <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
                 Page type
               </label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-9 w-full items-center justify-between rounded-full border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted"
+                    className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted/50"
                   >
                     <span className="flex items-center gap-1.5 text-muted-foreground">
                       {(() => {
@@ -438,7 +442,7 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
                     <IconChevronDown className="size-4 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
+                <DropdownMenuContent align="start" className="rounded-xl">
                   {(Object.keys(PAGE_TYPE_CONFIG) as PageType[]).map((t) => {
                     const TypeIcon = PAGE_TYPE_CONFIG[t].icon
                     return (
@@ -457,14 +461,14 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
+              <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
                 Priority
               </label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-9 w-full items-center justify-between rounded-full border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted"
+                    className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted/50"
                   >
                     <span className="flex items-center gap-1.5">
                       <PriorityIcons
@@ -478,7 +482,7 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
                     <IconChevronDown className="size-4 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
+                <DropdownMenuContent align="start" className="rounded-xl">
                   {(["high", "medium", "low"] as const).map((p) => (
                     <DropdownMenuItem
                       key={p}
@@ -501,11 +505,16 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
 
           <div className="flex justify-end gap-2 pt-2">
             <DialogClose asChild>
-              <Button type="button" variant="ghost" size="sm">
+              <Button type="button" variant="ghost" size="sm" className="rounded-full">
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" size="sm" disabled={!url.trim()}>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={!url.trim()}
+              className="rounded-full bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot) disabled:opacity-40"
+            >
               Add page
             </Button>
           </div>
@@ -602,8 +611,9 @@ export function PagesClient() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Trial banner */}
       {!isPaid && !bannerDismissed && (
-        <div className="flex items-center gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
+        <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
           <IconAlertTriangle className="size-4 shrink-0 text-amber-500" />
           <p className="text-sm text-muted-foreground">
             Free trial is limited to{" "}
@@ -621,13 +631,15 @@ export function PagesClient() {
           <button
             type="button"
             onClick={dismissBanner}
-            className="shrink-0 text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+            className="ml-auto shrink-0 text-muted-foreground/50 transition-colors hover:text-muted-foreground"
             aria-label="Dismiss"
           >
             <IconX className="size-3.5" />
           </button>
         </div>
       )}
+
+      {/* Toolbar */}
       <div className="flex items-center gap-3">
         <div className="relative">
           <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground/50" />
@@ -636,7 +648,7 @@ export function PagesClient() {
             placeholder="Search pages…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-9 w-64 border-border/50 bg-white pl-8 text-sm shadow-md ring-1 ring-foreground/5"
+            className="h-9 w-64 rounded-md border-border/60 bg-white pl-8 text-sm shadow-sm"
           />
         </div>
         <div className="ml-auto shrink-0">
@@ -644,16 +656,17 @@ export function PagesClient() {
         </div>
       </div>
 
+      {/* States */}
       {pages.length === 0 && !hasCompletedRun ? (
-        <Card className="px-6 py-16 text-center">
+        <Card className="rounded-xl border border-border px-6 py-16 text-center shadow-sm">
           <div className="mx-auto flex max-w-md flex-col items-center gap-3">
-            <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-              <IconLoader2 className="size-5 animate-spin text-primary" />
+            <span className="flex size-12 items-center justify-center rounded-full bg-(--color-blaze-orange)/10">
+              <IconLoader2 className="size-5 animate-spin text-(--color-blaze-orange)" />
             </span>
             <h2 className="text-base font-semibold text-foreground">
               Scanning your site for pages
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm leading-6 text-muted-foreground">
               We&apos;re fetching your sitemap and identifying the best pages to
               target for backlinks. This usually takes a few minutes — you&apos;ll
               receive an email once done!
@@ -661,14 +674,14 @@ export function PagesClient() {
           </div>
         </Card>
       ) : pages.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-4xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
-          <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-            <IconFiles className="size-5 text-primary" />
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
+          <span className="flex size-12 items-center justify-center rounded-full bg-(--color-blaze-orange)/10">
+            <IconFiles className="size-5 text-(--color-blaze-orange)" />
           </span>
           <h2 className="text-base font-semibold text-foreground">
             No pages tracked yet
           </h2>
-          <p className="max-w-sm text-sm text-muted-foreground">
+          <p className="max-w-sm text-sm leading-6 text-muted-foreground">
             Add the pages you want to earn backlinks to. Prioritize pages
             targeting your most important keywords — they get the most discovery
             attention.
@@ -677,7 +690,8 @@ export function PagesClient() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          <div className="overflow-hidden rounded-4xl bg-card shadow-md ring-1 ring-foreground/5">
+          {/* Table card */}
+          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <TooltipProvider>
               <table className="w-full table-fixed">
                 <colgroup>
@@ -687,7 +701,7 @@ export function PagesClient() {
                   <col className="w-[30%]" />
                 </colgroup>
                 <thead>
-                  <tr className="border-b border-border/60 bg-muted/30">
+                  <tr className="border-b border-border/60 bg-muted/20">
                     <th className="py-3 pr-3 pl-6 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
                       <div className="flex items-center gap-1.5">
                         Page
@@ -760,6 +774,8 @@ export function PagesClient() {
               </table>
             </TooltipProvider>
           </div>
+
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-1">
               <p className="text-xs text-muted-foreground">
@@ -773,7 +789,7 @@ export function PagesClient() {
                   size="sm"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="h-7 px-2 text-xs"
+                  className="h-7 rounded-full px-3 text-xs"
                 >
                   Previous
                 </Button>
@@ -784,7 +800,7 @@ export function PagesClient() {
                     setCurrentPage((p) => Math.min(totalPages, p + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className="h-7 px-2 text-xs"
+                  className="h-7 rounded-full px-3 text-xs"
                 >
                   Next
                 </Button>

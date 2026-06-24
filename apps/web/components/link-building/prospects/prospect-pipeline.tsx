@@ -163,7 +163,7 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-4xl bg-card shadow-md ring-1 ring-foreground/5">
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <TooltipProvider>
           <table className="w-full table-fixed">
             <colgroup>
@@ -175,7 +175,7 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
               <col className="w-[10%]" />
             </colgroup>
             <thead>
-              <tr className="border-b border-border/60 bg-muted/30">
+              <tr className="border-b border-border/60 bg-muted/20">
                 <th className="py-3 pr-3 pl-6 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
                   <div className="flex items-center gap-1.5">
                     Contact

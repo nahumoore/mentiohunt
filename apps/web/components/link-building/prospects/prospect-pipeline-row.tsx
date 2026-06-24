@@ -194,7 +194,7 @@ export function OpportunityPipelineRow({
 
       {/* Action col */}
       <td className="py-4 pr-6 pl-3 align-top">
-        <span className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors group-hover:border-primary/40 group-hover:text-primary">
+        <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors group-hover:border-(--color-blaze-orange)/40 group-hover:text-(--color-blaze-orange)">
           Open
           <IconArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
         </span>

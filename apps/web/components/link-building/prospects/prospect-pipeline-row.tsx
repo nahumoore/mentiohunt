@@ -9,7 +9,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 
-import { STATUS_CONFIG, TYPE_CONFIG } from "@/app/dashboard/opportunities/_data"
+import { STATUS_CONFIG, TYPE_CONFIG } from "@/app/dashboard/prospects/_data"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
 function getDiceBearUrl(seed: string): string {
@@ -51,7 +51,7 @@ export function OpportunityPipelineRow({
   const relevancePercent = relevanceScore == null ? 0 : relevanceScore
 
   function navigate() {
-    router.push(`/dashboard/opportunities/${prospect.id}`)
+    router.push(`/dashboard/prospects/${prospect.id}`)
   }
 
   return (

@@ -28,7 +28,7 @@ import { captureEvent } from "@/lib/analytics"
 import { PROSPECT_TIER_CONFIG } from "@/lib/opportunity-types"
 import type { ProspectDetail } from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
-import { STATUS_CONFIG, formatDate } from "@/app/dashboard/opportunities/_data"
+import { STATUS_CONFIG, formatDate } from "@/app/dashboard/prospects/_data"
 
 type ProspectProduct = {
   productName: string
@@ -139,7 +139,7 @@ export function ProspectClientPage({
       })
       if (res.ok) {
         updateProspectStatuses([current.id], status)
-        router.push("/dashboard/opportunities")
+        router.push("/dashboard/prospects")
       }
     } finally {
       setStatusLoading(null)

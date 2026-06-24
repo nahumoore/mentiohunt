@@ -15,10 +15,10 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import { useMemo, useState } from "react"
 
-import type { ProspectStatus } from "@/app/dashboard/opportunities/_data"
+import type { ProspectStatus } from "@/app/dashboard/prospects/_data"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
-import { OpportunityPipelineRow } from "./opportunity-pipeline-row"
+import { OpportunityPipelineRow } from "./prospect-pipeline-row"
 
 type StageValue = "all" | ProspectStatus
 
@@ -249,7 +249,7 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
                     colSpan={6}
                     className="px-6 py-10 text-center text-sm text-muted-foreground"
                   >
-                    No opportunities in this stage.
+                    No prospects in this stage.
                   </td>
                 </tr>
               ) : (

@@ -356,7 +356,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
         competitors_count: result.data.competitors?.length ?? 0,
       })
       setIsCompleted(true)
-      router.replace("/dashboard/opportunities")
+      router.replace("/dashboard/prospects")
       router.refresh()
     } catch {
       setSubmitMessage("Failed to reach the server. Check your connection.")

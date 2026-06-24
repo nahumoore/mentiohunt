@@ -4,7 +4,7 @@ import {
   TYPE_CONFIG,
   formatDate,
   type ProspectTier,
-} from "@/app/dashboard/opportunities/_data"
+} from "@/app/dashboard/prospects/_data"
 
 interface OpportunityMetaCardProps {
   tier: ProspectTier

@@ -3,6 +3,7 @@
 import {
   IconFiles,
   IconLayoutGrid,
+  IconMailBolt,
   IconNetwork,
   IconSettings,
   IconSparkles,
@@ -47,16 +48,16 @@ type FeatureModule = {
 
 const FEATURES: FeatureModule[] = [
   {
-    title: "Main",
+    title: "Outreach",
     pages: [
       {
-        title: "Opportunities",
-        url: "/dashboard/opportunities",
+        title: "Prospects",
+        url: "/dashboard/prospects",
         icon: <IconSparkles />,
         items: [
           {
             title: "Settings",
-            url: "/dashboard/opportunities/settings",
+            url: "/dashboard/prospects/settings",
             icon: <IconSettings />,
           },
         ],
@@ -65,6 +66,11 @@ const FEATURES: FeatureModule[] = [
         title: "Pages",
         url: "/dashboard/pages",
         icon: <IconFiles />,
+      },
+      {
+        title: "Email Accounts",
+        url: "/dashboard/email-accounts",
+        icon: <IconMailBolt />,
       },
     ],
   },

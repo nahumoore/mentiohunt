@@ -4,12 +4,12 @@ import { IconLoader2 } from "@tabler/icons-react"
 import { Card } from "@workspace/ui/components/card"
 import { useEffect } from "react"
 
-import { AllReviewedEmpty } from "@/components/link-building/opportunities/all-reviewed-empty"
-import { OpportunityPipeline } from "@/components/link-building/opportunities/opportunity-pipeline"
+import { AllReviewedEmpty } from "@/components/link-building/prospects/all-reviewed-empty"
+import { OpportunityPipeline } from "@/components/link-building/prospects/prospect-pipeline"
 import { captureEvent } from "@/lib/analytics"
 import { useProspectStore } from "@/stores/prospect-store"
 
-export default function OpportunitiesPage() {
+export default function ProspectsPage() {
   const prospects = useProspectStore((state) => state.prospects)
   const hasCompletedRun = useProspectStore((state) => state.hasCompletedRun)
 
@@ -26,11 +26,11 @@ export default function OpportunitiesPage() {
             <IconLoader2 className="size-5 animate-spin text-primary" />
           </span>
           <h2 className="text-base font-semibold text-foreground">
-            Building your opportunity queue
+            Building your prospect queue
           </h2>
           <p className="text-sm text-muted-foreground">
             We&apos;re analyzing your site and competitors to surface relevant
-            backlink opportunities. This usually takes a few minutes —
+            backlink prospects. This usually takes a few minutes —
             you&apos;ll receive an email once done!
           </p>
         </div>

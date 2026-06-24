@@ -3,6 +3,7 @@
 import {
   IconFiles,
   IconLayoutGrid,
+  IconMailBolt,
   IconNetwork,
   IconSettings,
   IconSparkles,
@@ -17,7 +18,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
-const opportunitiesHref = "/dashboard/opportunities"
+const opportunitiesHref = "/dashboard/prospects"
 const directoriesHref = "/dashboard/directories"
 
 type PageConfig = {
@@ -28,17 +29,17 @@ type PageConfig = {
 }
 
 const PAGE_CONFIG: Record<string, PageConfig> = {
-  "/dashboard/opportunities": {
-    title: "Opportunities",
+  "/dashboard/prospects": {
+    title: "Prospects",
     description:
       "Prioritized sites and next actions where there is a realistic path toward a backlink.",
     icon: IconSparkles,
-    settingsHref: "/dashboard/opportunities/settings",
+    settingsHref: "/dashboard/prospects/settings",
   },
-  "/dashboard/opportunities/settings": {
-    title: "Opportunity Settings",
+  "/dashboard/prospects/settings": {
+    title: "Prospect Settings",
     description:
-      "Choose which sources should feed your opportunity queue. Start broad, then pause anything that feels noisy.",
+      "Choose which sources should feed your prospect queue. Start broad, then pause anything that feels noisy.",
     icon: IconSettings,
   },
   "/dashboard/directories": {
@@ -58,6 +59,12 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
     description:
       "The pages we find backlink opportunities for. Prioritize high-value pages targeting your most important keywords to build authority where it matters.",
     icon: IconFiles,
+  },
+  "/dashboard/email-accounts": {
+    title: "Email Accounts",
+    description:
+      "Connect the mailboxes Mentiohunt uses to send outreach and read replies. You approve the first send per site — everything after runs on autopilot.",
+    icon: IconMailBolt,
   },
 }
 
@@ -179,7 +186,7 @@ function getBreadcrumbs(
     const hrefSegments = segments.slice(0, dashboardIndex + 2 + index)
     const isCurrentProspect =
       segment === currentProspectId &&
-      visibleSegments[index - 1] === "opportunities"
+      visibleSegments[index - 1] === "prospects"
     const isCurrentDirectorySubmission =
       segment === currentDirectorySubmissionId &&
       visibleSegments[index - 1] === "directories"

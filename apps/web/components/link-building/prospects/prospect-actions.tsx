@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { IconCircleCheck, IconCircleX, IconLoader2 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 
-import { OpportunityReportIssueDialog } from "@/components/link-building/opportunities/opportunity-report-issue-dialog"
+import { OpportunityReportIssueDialog } from "@/components/link-building/prospects/prospect-report-issue-dialog"
 import { useProspectStore } from "@/stores/prospect-store"
 
 interface OpportunityActionsProps {
@@ -39,7 +39,7 @@ export function OpportunityActions({
       )
       if (res.ok) {
         updateProspectStatuses([prospectId], status)
-        router.push("/dashboard/opportunities")
+        router.push("/dashboard/prospects")
       }
     } finally {
       setLoading(null)
@@ -54,7 +54,7 @@ export function OpportunityActions({
             Actions
           </p>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            What do you want to do with this opportunity?
+            What do you want to do with this prospect?
           </p>
         </div>
 

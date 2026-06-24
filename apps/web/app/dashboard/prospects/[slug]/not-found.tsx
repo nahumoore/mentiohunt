@@ -31,7 +31,7 @@ export default function ProspectNotFound() {
           <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
             The prospect may have been dismissed, moved, or it may not belong to
             this product. Head back to the queue to keep working from current
-            opportunities and suggested next actions.
+            prospects and suggested next actions.
           </p>
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -40,9 +40,9 @@ export default function ProspectNotFound() {
               size="lg"
               className="justify-start sm:justify-center"
             >
-              <Link href="/dashboard/opportunities">
+              <Link href="/dashboard/prospects">
                 <IconArrowLeft className="size-4" />
-                Back to opportunities
+                Back to prospects
               </Link>
             </Button>
             <Button
@@ -51,7 +51,7 @@ export default function ProspectNotFound() {
               size="lg"
               className="justify-start sm:justify-center"
             >
-              <Link href="/dashboard/opportunities/settings">
+              <Link href="/dashboard/prospects/settings">
                 Tune discovery inputs
                 <IconExternalLink className="size-4" />
               </Link>

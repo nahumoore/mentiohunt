@@ -3,7 +3,7 @@ import {
   formatDate,
   type ProspectStatus,
   type ProspectTier,
-} from "@/app/dashboard/opportunities/_data"
+} from "@/app/dashboard/prospects/_data"
 
 import { StatusPipeline } from "./status-pipeline"
 

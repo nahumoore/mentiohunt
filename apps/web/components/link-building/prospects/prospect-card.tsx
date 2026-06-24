@@ -16,7 +16,7 @@ import {
   TYPE_CONFIG,
   formatDate,
   type ProspectTier,
-} from "@/app/dashboard/opportunities/_data"
+} from "@/app/dashboard/prospects/_data"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
 const TIER_BORDER: Record<ProspectTier, string> = {
@@ -49,10 +49,10 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
     <div
       role="button"
       tabIndex={0}
-      onClick={() => router.push(`/dashboard/opportunities/${prospect.id}`)}
+      onClick={() => router.push(`/dashboard/prospects/${prospect.id}`)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ")
-          router.push(`/dashboard/opportunities/${prospect.id}`)
+          router.push(`/dashboard/prospects/${prospect.id}`)
       }}
       className={cn(
         "group cursor-pointer rounded-lg border border-l-4 border-border/60 bg-card",

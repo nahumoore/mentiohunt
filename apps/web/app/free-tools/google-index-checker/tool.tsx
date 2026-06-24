@@ -314,247 +314,196 @@ export function GoogleIndexChecker() {
 
   return (
     <>
-      <section className="relative isolate overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-20 sm:pt-32 lg:px-8 lg:pb-24 lg:pt-32">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_10%,var(--color-amber-glow)_0,transparent_23rem),radial-gradient(circle_at_86%_16%,var(--color-blaze-orange)_0,transparent_21rem)] opacity-[0.12]" />
-        <div
-          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.03]"
-          style={{
-            backgroundImage: `linear-gradient(var(--color-foreground) 1px, transparent 1px), linear-gradient(90deg, var(--color-foreground) 1px, transparent 1px)`,
-            backgroundSize: "36px 36px",
-          }}
-        />
+      <section className="relative overflow-hidden px-4 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-36 lg:px-8">
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute left-1/2 top-0 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-princeton-orange/5 blur-[100px]" />
+        </div>
 
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid gap-10 lg:grid-cols-[0.94fr_1.06fr] lg:items-center">
-            <div className="max-w-3xl">
-              <Link
-                href="/free-tools"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase text-[var(--color-princeton-orange)] transition-colors hover:bg-[var(--color-blaze-orange)]/12"
+        <div className="mx-auto max-w-2xl text-center">
+          <Link
+            href="/free-tools"
+            className="inline-flex items-center gap-1.5 rounded-full border border-blaze-orange/25 bg-blaze-orange/7 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-(--color-princeton-orange) transition-colors hover:bg-blaze-orange/12"
+          >
+            <IconBolt size={12} stroke={2.8} />
+            Free SEO tools
+          </Link>
+
+          <h1 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[2.75rem]">
+            Google Index Checker
+          </h1>
+
+          <p className="mt-4 text-base leading-7 text-muted-foreground">
+            Paste your sitemap URL and instantly see which pages Google has
+            indexed, which aren&apos;t discovered yet, and where keyword
+            opportunities exist — free, no login required.
+          </p>
+
+          <div className="mt-8 rounded-2xl border border-border bg-card p-6 text-left">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Tabs
+                value={inputMode}
+                onValueChange={(v) => {
+                  setInputMode(v as InputMode)
+                  setError(null)
+                }}
               >
-                <IconBolt size={13} stroke={2.6} />
-                Free SEO tool
-              </Link>
+                <TabsList variant="line" className="mb-4 w-full">
+                  <TabsTrigger value="sitemap" className="gap-1.5">
+                    <IconSitemap size={14} stroke={2.2} />
+                    Sitemap
+                  </TabsTrigger>
+                  <TabsTrigger value="urls" className="gap-1.5">
+                    <IconLayoutList size={14} stroke={2.2} />
+                    Page URLs
+                  </TabsTrigger>
+                </TabsList>
 
-              <h1 className="mt-7 font-heading text-5xl font-semibold tracking-[-0.065em] text-balance sm:text-7xl lg:text-[6.2rem] lg:leading-[0.88]">
-                Google Index Checker
-              </h1>
-
-              <p className="mt-7 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-                Paste your sitemap URL and instantly see which pages Google has indexed,
-                which aren&apos;t discovered yet, and where keyword opportunities exist —
-                free, no login required.
-              </p>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                {[
-                  ["Paste sitemap", "Drop your sitemap.xml URL"],
-                  ["Check index", "See which pages Google found"],
-                  ["Find gaps", "Keyword opportunities per page"],
-                ].map(([label, text]) => (
-                  <div
-                    key={label}
-                    className="rounded-[1.25rem] border border-border bg-card/70 p-4 shadow-sm backdrop-blur"
+                <TabsContent value="sitemap" className="space-y-1.5">
+                  <label
+                    htmlFor="sitemap-url"
+                    className="text-xs font-medium text-muted-foreground"
                   >
-                    <p className="font-heading text-lg font-semibold tracking-[-0.035em]">
-                      {label}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                      {text}
-                    </p>
-                  </div>
-                ))}
+                    Sitemap URL
+                  </label>
+                  <Input
+                    id="sitemap-url"
+                    type="url"
+                    value={sitemapUrl}
+                    onChange={(e) => setSitemapUrl(e.target.value)}
+                    placeholder="https://yoursite.com/sitemap.xml"
+                    className="h-11 rounded-xl border-border bg-card px-4 text-sm shadow-sm"
+                    required={inputMode === "sitemap"}
+                    disabled={phase === "loading"}
+                  />
+                  <p className="text-[0.68rem] text-muted-foreground/60">
+                    Usually at{" "}
+                    <span className="font-mono text-foreground/50">/sitemap.xml</span>{" "}
+                    — supports sitemap index files too.
+                  </p>
+                </TabsContent>
+
+                <TabsContent value="urls" className="space-y-1.5">
+                  <label
+                    htmlFor="page-urls"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    Page URLs{" "}
+                    <span className="text-muted-foreground/50">(one per line, up to 20)</span>
+                  </label>
+                  <Textarea
+                    id="page-urls"
+                    value={urlsInput}
+                    onChange={(e) => setUrlsInput(e.target.value)}
+                    placeholder={"https://yoursite.com/\nhttps://yoursite.com/blog/post-1\nhttps://yoursite.com/pricing"}
+                    className="min-h-[96px] resize-none rounded-xl border-border bg-card px-4 py-3 font-mono text-xs leading-6 shadow-sm"
+                    required={inputMode === "urls"}
+                    disabled={phase === "loading"}
+                  />
+                </TabsContent>
+              </Tabs>
+
+              <Button
+                type="submit"
+                size="lg"
+                disabled={phase === "loading" || !activeInput.trim()}
+                className="h-11 w-full rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
+              >
+                {phase === "loading" ? "Checking…" : "Check index"}
+                {phase === "loading" ? (
+                  <IconLoader2 className="animate-spin" size={16} />
+                ) : (
+                  <IconArrowRight size={16} stroke={2.5} />
+                )}
+              </Button>
+            </form>
+
+            {error ? (
+              <div className="mt-5 flex items-start gap-3 rounded-[1rem] border border-destructive/25 bg-destructive/8 px-4 py-3">
+                <IconAlertCircle
+                  size={18}
+                  className="mt-0.5 shrink-0 text-destructive"
+                  stroke={2.2}
+                />
+                <p className="text-sm leading-6 text-destructive">{error}</p>
               </div>
-            </div>
+            ) : null}
 
-            <div className="relative">
-              <div className="pointer-events-none absolute -right-8 -top-8 h-44 w-44 rounded-full bg-[var(--color-amber-glow)]/16 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-8 left-10 h-44 w-44 rounded-full bg-[var(--color-blaze-orange)]/12 blur-3xl" />
-
-              <div className="relative overflow-hidden rounded-[2.25rem] border border-[var(--color-blaze-orange)]/25 bg-card p-4 shadow-[0_36px_120px_-56px_rgba(255,96,0,0.75)]">
-                <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/80 to-transparent" />
-
-                <div className="rounded-[1.75rem] border border-border/80 bg-background/80 p-5 sm:p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
-                        Run a check
-                      </p>
-                      <h2 className="mt-2 font-heading text-3xl font-semibold tracking-[-0.05em]">
-                        Check Google index
-                      </h2>
-                    </div>
-                    <div className="flex size-12 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)] text-white">
-                      <IconSitemap size={22} stroke={2.2} />
-                    </div>
+            <div className="mt-5 rounded-xl border border-border bg-background p-4">
+              {phase === "idle" ? (
+                <div className="flex gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
+                    <IconSearch size={20} stroke={2.2} />
                   </div>
-
-                  <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-                    <Tabs
-                      value={inputMode}
-                      onValueChange={(v) => {
-                        setInputMode(v as InputMode)
-                        setError(null)
-                      }}
-                    >
-                      <TabsList variant="line" className="mb-4 w-full">
-                        <TabsTrigger value="sitemap" className="gap-1.5">
-                          <IconSitemap size={14} stroke={2.2} />
-                          Sitemap
-                        </TabsTrigger>
-                        <TabsTrigger value="urls" className="gap-1.5">
-                          <IconLayoutList size={14} stroke={2.2} />
-                          Page URLs
-                        </TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="sitemap" className="space-y-1.5">
-                        <label
-                          htmlFor="sitemap-url"
-                          className="text-xs font-medium text-muted-foreground"
-                        >
-                          Sitemap URL
-                        </label>
-                        <Input
-                          id="sitemap-url"
-                          type="url"
-                          value={sitemapUrl}
-                          onChange={(e) => setSitemapUrl(e.target.value)}
-                          placeholder="https://yoursite.com/sitemap.xml"
-                          className="h-11 rounded-xl border-border bg-card px-4 text-sm shadow-sm"
-                          required={inputMode === "sitemap"}
-                          disabled={phase === "loading"}
-                        />
-                        <p className="text-[0.68rem] text-muted-foreground/60">
-                          Usually at <span className="font-mono text-foreground/50">/sitemap.xml</span> — supports sitemap index files too.
-                        </p>
-                      </TabsContent>
-
-                      <TabsContent value="urls" className="space-y-1.5">
-                        <label
-                          htmlFor="page-urls"
-                          className="text-xs font-medium text-muted-foreground"
-                        >
-                          Page URLs <span className="text-muted-foreground/50">(one per line, up to 20)</span>
-                        </label>
-                        <Textarea
-                          id="page-urls"
-                          value={urlsInput}
-                          onChange={(e) => setUrlsInput(e.target.value)}
-                          placeholder={"https://yoursite.com/\nhttps://yoursite.com/blog/post-1\nhttps://yoursite.com/pricing"}
-                          className="min-h-[96px] resize-none rounded-xl border-border bg-card px-4 py-3 font-mono text-xs shadow-sm leading-6"
-                          required={inputMode === "urls"}
-                          disabled={phase === "loading"}
-                        />
-                      </TabsContent>
-                    </Tabs>
-
-                    <Button
-                      type="submit"
-                      size="lg"
-                      disabled={phase === "loading" || !activeInput.trim()}
-                      className="h-11 w-full rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
-                    >
-                      {phase === "loading" ? "Checking…" : "Check index"}
-                      {phase === "loading" ? (
-                        <IconLoader2 className="animate-spin" size={16} />
-                      ) : (
-                        <IconArrowRight size={16} stroke={2.5} />
-                      )}
-                    </Button>
-                  </form>
-
-                  {error ? (
-                    <div className="mt-5 flex items-start gap-3 rounded-[1rem] border border-destructive/25 bg-destructive/8 px-4 py-3">
-                      <IconAlertCircle
-                        size={18}
-                        className="mt-0.5 shrink-0 text-destructive"
-                        stroke={2.2}
-                      />
-                      <p className="text-sm leading-6 text-destructive">{error}</p>
-                    </div>
-                  ) : null}
-
-                  <div className="mt-5 rounded-[1.4rem] border border-border bg-card p-4">
-                    {phase === "idle" ? (
-                      <div className="flex gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
-                          <IconSearch size={20} stroke={2.2} />
-                        </div>
-                        <div>
-                          <p className="font-heading text-base font-semibold tracking-[-0.03em]">
-                            Ready when your sitemap is.
-                          </p>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            Usually at{" "}
-                            <span className="font-mono text-[0.75rem] text-foreground/70">/sitemap.xml</span>
-                          </p>
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {phase === "loading" ? (
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)] text-white">
-                            <IconLoader2
-                              className="animate-spin"
-                              size={20}
-                              stroke={2.4}
-                            />
-                          </div>
-                          <div>
-                            <p className="font-heading text-base font-semibold tracking-[-0.03em]">
-                              Scanning {domain}
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {loadingStages[stageIndex]}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-5 space-y-2">
-                          {loadingStages.map((stage, index) => (
-                            <div
-                              key={stage}
-                              className="flex items-center justify-between gap-3 rounded-full bg-muted/60 px-3 py-2 text-xs"
-                            >
-                              <span className="text-muted-foreground">
-                                {stage}
-                              </span>
-                              {index < stageIndex ? (
-                                <IconCheck
-                                  size={15}
-                                  className="text-[var(--color-princeton-orange)]"
-                                  stroke={2.6}
-                                />
-                              ) : index === stageIndex ? (
-                                <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--color-princeton-orange)]" />
-                              ) : (
-                                <span className="h-2 w-2 rounded-full bg-border" />
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {hasResults ? (
-                      <div className="flex gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
-                          <IconCheck size={20} stroke={2.5} />
-                        </div>
-                        <div>
-                          <p className="font-heading text-base font-semibold tracking-[-0.03em]">
-                            Scan complete.
-                          </p>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            {summary?.total} pages checked — results below.
-                          </p>
-                        </div>
-                      </div>
-                    ) : null}
+                  <div>
+                    <p className="font-heading text-base font-semibold tracking-[-0.03em]">
+                      Ready when your sitemap is.
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Usually at{" "}
+                      <span className="font-mono text-[0.75rem] text-foreground/70">/sitemap.xml</span>
+                    </p>
                   </div>
                 </div>
-              </div>
+              ) : null}
+
+              {phase === "loading" ? (
+                <div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)] text-white">
+                      <IconLoader2
+                        className="animate-spin"
+                        size={20}
+                        stroke={2.4}
+                      />
+                    </div>
+                    <div>
+                      <p className="font-heading text-base font-semibold tracking-[-0.03em]">
+                        Scanning {domain}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {loadingStages[stageIndex]}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-5 space-y-2">
+                    {loadingStages.map((stage, index) => (
+                      <div
+                        key={stage}
+                        className="flex items-center justify-between gap-3 rounded-full bg-muted/60 px-3 py-2 text-xs"
+                      >
+                        <span className="text-muted-foreground">{stage}</span>
+                        {index < stageIndex ? (
+                          <IconCheck
+                            size={15}
+                            className="text-[var(--color-princeton-orange)]"
+                            stroke={2.6}
+                          />
+                        ) : index === stageIndex ? (
+                          <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--color-princeton-orange)]" />
+                        ) : (
+                          <span className="h-2 w-2 rounded-full bg-border" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {hasResults ? (
+                <div className="flex gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
+                    <IconCheck size={20} stroke={2.5} />
+                  </div>
+                  <div>
+                    <p className="font-heading text-base font-semibold tracking-[-0.03em]">
+                      Scan complete.
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      {summary?.total} pages checked — results below.
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

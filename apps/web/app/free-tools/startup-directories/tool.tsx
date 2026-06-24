@@ -140,40 +140,29 @@ export function StartupDirectoriesBrowser({
 
   return (
     <>
-      <section className="relative overflow-hidden bg-background px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-[-8rem] top-16 h-80 w-80 rounded-full bg-princeton-orange/7 blur-[100px]" />
-          <div className="absolute right-[-7rem] top-24 h-96 w-96 rounded-full bg-blaze-orange/10 blur-[120px]" />
-          <div className="absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-amber-glow/10 blur-[100px]" />
+      <section className="relative overflow-hidden px-4 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-36 lg:px-8">
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute left-1/2 top-0 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-princeton-orange/5 blur-[100px]" />
         </div>
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.035]"
-          style={{
-            backgroundImage: `linear-gradient(var(--color-foreground) 1px, transparent 1px), linear-gradient(90deg, var(--color-foreground) 1px, transparent 1px)`,
-            backgroundSize: "38px 38px",
-          }}
-        />
 
-        <div className="relative container mx-auto max-w-7xl pt-10">
-          <div className="mx-auto max-w-2xl text-center">
-            <Link
-              href="/free-tools"
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase transition-colors hover:bg-[var(--color-blaze-orange)]/12"
-            >
-              <IconBolt size={13} stroke={2.6} />
-              Free directory tool
-            </Link>
-            <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
-            <h1 className="mt-5 font-heading text-5xl font-semibold tracking-[-0.065em] text-balance sm:text-7xl lg:text-[6rem] lg:leading-[0.88]">
-              Startup Directory Browser
-            </h1>
-            <p className="mt-6 text-base leading-8 text-muted-foreground sm:text-lg">
-              Browse startup directories with sortable authority, backlink,
-              pricing, verification, and submission signals. Build a shortlist,
-              then run the gap scan to see which listings your product is
-              missing.
-            </p>
-          </div>
+        <div className="mx-auto max-w-2xl text-center">
+          <Link
+            href="/free-tools"
+            className="inline-flex items-center gap-1.5 rounded-full border border-blaze-orange/25 bg-blaze-orange/7 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-(--color-princeton-orange) transition-colors hover:bg-blaze-orange/12"
+          >
+            <IconBolt size={12} stroke={2.8} />
+            Free SEO tools
+          </Link>
+
+          <h1 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[2.75rem]">
+            Startup Directory Browser
+          </h1>
+
+          <p className="mt-4 text-base leading-7 text-muted-foreground">
+            Browse startup directories with sortable authority, backlink,
+            pricing, verification, and submission signals. Build a shortlist,
+            then run the gap scan to see which listings your product is missing.
+          </p>
         </div>
       </section>
 

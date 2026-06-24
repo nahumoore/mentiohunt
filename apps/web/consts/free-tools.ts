@@ -8,6 +8,7 @@ export const FREE_TOOL_NAMES = {
   competitorBacklinkGap: "competitor-backlink-gap",
   startupDirectories: "startup-directories",
   googleIndexChecker: "google-index-checker",
+  anchorTextGenerator: "anchor-text-generator",
 } as const
 
 export type FreeToolName =
@@ -21,6 +22,7 @@ export const ALL_FREE_TOOL_SLUGS: FreeToolName[] = [
   FREE_TOOL_NAMES.backlinkOpportunityFinder,
   FREE_TOOL_NAMES.competitorBacklinkGap,
   FREE_TOOL_NAMES.googleIndexChecker,
+  FREE_TOOL_NAMES.anchorTextGenerator,
 ]
 
 // In-memory rate limiter — resets on deploy/restart, breaks with multiple instances

@@ -175,210 +175,154 @@ export function BacklinkOpportunityFinder() {
 
   return (
     <>
-      <section className="relative isolate overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-20 sm:pt-32 lg:px-8 lg:pb-24 lg:pt-32">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_10%,var(--color-amber-glow)_0,transparent_23rem),radial-gradient(circle_at_86%_16%,var(--color-blaze-orange)_0,transparent_21rem)] opacity-[0.12]" />
-        <div
-          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.03]"
-          style={{
-            backgroundImage: `linear-gradient(var(--color-foreground) 1px, transparent 1px), linear-gradient(90deg, var(--color-foreground) 1px, transparent 1px)`,
-            backgroundSize: "36px 36px",
-          }}
-        />
+      <section className="relative overflow-hidden px-4 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-36 lg:px-8">
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute left-1/2 top-0 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-princeton-orange/5 blur-[100px]" />
+        </div>
 
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid gap-10 lg:grid-cols-[0.94fr_1.06fr] lg:items-center">
-            <div className="max-w-3xl">
-              <Link
-                href="/free-tools"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase text-[var(--color-princeton-orange)] transition-colors hover:bg-[var(--color-blaze-orange)]/12"
+        <div className="mx-auto max-w-2xl text-center">
+          <Link
+            href="/free-tools"
+            className="inline-flex items-center gap-1.5 rounded-full border border-blaze-orange/25 bg-blaze-orange/7 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-(--color-princeton-orange) transition-colors hover:bg-blaze-orange/12"
+          >
+            <IconBolt size={12} stroke={2.8} />
+            Free backlink tools
+          </Link>
+
+          <h1 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[2.75rem]">
+            Backlink Opportunity Finder
+          </h1>
+
+          <p className="mt-4 text-base leading-7 text-muted-foreground">
+            Enter your website URL and surface relevant blogs, resource pages,
+            and content hubs where a backlink to your product would be a strong
+            fit. Built for founders who want real outreach targets, not a domain
+            dump.
+          </p>
+
+          <div className="mt-8 rounded-2xl border border-border bg-card p-6 text-left">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <label
+                htmlFor="website-url"
+                className="text-sm font-medium text-foreground"
               >
-                <IconBolt size={13} stroke={2.6} />
-                Free backlink tool
-              </Link>
-
-              <h1 className="mt-7 font-heading text-5xl font-semibold tracking-[-0.065em] text-balance sm:text-7xl lg:text-[6.2rem] lg:leading-[0.88]">
-                Backlink Opportunity Finder
-              </h1>
-
-              <p className="mt-7 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-                Enter your website URL and surface relevant blogs, resource
-                pages, and content hubs where a backlink to your product would
-                be a strong fit. Built for founders who want real outreach
-                targets, not a domain dump.
-              </p>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                {[
-                  ["URL in", "Paste your website"],
-                  ["Scan", "Find relevant sites"],
-                  ["Reach out", "Work the list"],
-                ].map(([label, text]) => (
-                  <div
-                    key={label}
-                    className="rounded-[1.25rem] border border-border bg-card/70 p-4 shadow-sm backdrop-blur"
-                  >
-                    <p className="font-heading text-lg font-semibold tracking-[-0.035em]">
-                      {label}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                      {text}
-                    </p>
-                  </div>
-                ))}
+                Website URL
+              </label>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Input
+                  id="website-url"
+                  type="url"
+                  value={websiteUrl}
+                  onChange={(event) => setWebsiteUrl(event.target.value)}
+                  placeholder="https://yourwebsite.com"
+                  className="h-12 rounded-full border-border bg-card px-5 text-sm shadow-sm"
+                  required
+                />
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={phase === "loading"}
+                  className="h-12 rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
+                >
+                  {phase === "loading" ? "Scanning" : "Find opportunities"}
+                  {phase === "loading" ? (
+                    <IconLoader2 className="animate-spin" size={16} />
+                  ) : (
+                    <IconArrowRight size={16} stroke={2.5} />
+                  )}
+                </Button>
               </div>
-            </div>
+            </form>
 
-            <div className="relative">
-              <div className="pointer-events-none absolute -right-8 -top-8 h-44 w-44 rounded-full bg-[var(--color-amber-glow)]/16 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-8 left-10 h-44 w-44 rounded-full bg-[var(--color-blaze-orange)]/12 blur-3xl" />
+            {error ? (
+              <div className="mt-5 flex items-start gap-3 rounded-[1rem] border border-destructive/25 bg-destructive/8 px-4 py-3">
+                <IconAlertCircle
+                  size={18}
+                  className="mt-0.5 shrink-0 text-destructive"
+                  stroke={2.2}
+                />
+                <p className="text-sm leading-6 text-destructive">{error}</p>
+              </div>
+            ) : null}
 
-              <div className="relative overflow-hidden rounded-[2.25rem] border border-[var(--color-blaze-orange)]/25 bg-card p-4 shadow-[0_36px_120px_-56px_rgba(255,96,0,0.75)]">
-                <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/80 to-transparent" />
-
-                <div className="rounded-[1.75rem] border border-border/80 bg-background/80 p-5 sm:p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
-                        Run a scan
-                      </p>
-                      <h2 className="mt-2 font-heading text-3xl font-semibold tracking-[-0.05em]">
-                        Find backlink targets
-                      </h2>
-                    </div>
-                    <div className="flex size-12 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)] text-white">
-                      <IconWorldSearch size={25} stroke={2.4} />
-                    </div>
+            <div className="mt-5 rounded-xl border border-border bg-background p-4">
+              {phase === "idle" ? (
+                <div className="flex gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
+                    <IconSearch size={20} stroke={2.4} />
                   </div>
-
-                  <form onSubmit={handleSubmit} className="mt-7 space-y-3">
-                    <label
-                      htmlFor="website-url"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      Website URL
-                    </label>
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                      <Input
-                        id="website-url"
-                        type="url"
-                        value={websiteUrl}
-                        onChange={(event) => setWebsiteUrl(event.target.value)}
-                        placeholder="https://yourwebsite.com"
-                        className="h-12 rounded-full border-border bg-card px-5 text-sm shadow-sm"
-                        required
-                      />
-                      <Button
-                        type="submit"
-                        size="lg"
-                        disabled={phase === "loading"}
-                        className="h-12 rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
-                      >
-                        {phase === "loading" ? "Scanning" : "Find opportunities"}
-                        {phase === "loading" ? (
-                          <IconLoader2 className="animate-spin" size={16} />
-                        ) : (
-                          <IconArrowRight size={16} stroke={2.5} />
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-
-                  {error ? (
-                    <div className="mt-5 flex items-start gap-3 rounded-[1rem] border border-destructive/25 bg-destructive/8 px-4 py-3">
-                      <IconAlertCircle
-                        size={18}
-                        className="mt-0.5 shrink-0 text-destructive"
-                        stroke={2.2}
-                      />
-                      <p className="text-sm leading-6 text-destructive">{error}</p>
-                    </div>
-                  ) : null}
-
-                  <div className="mt-5 rounded-[1.4rem] border border-border bg-card p-4">
-                    {phase === "idle" ? (
-                      <div className="flex gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
-                          <IconSearch size={20} stroke={2.4} />
-                        </div>
-                        <div>
-                          <p className="font-heading text-base font-semibold tracking-[-0.03em]">
-                            Ready when your URL is.
-                          </p>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            Enter your website URL to start scanning for
-                            backlink opportunities.
-                          </p>
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {phase === "loading" ? (
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)] text-white">
-                            <IconLoader2
-                              className="animate-spin"
-                              size={20}
-                              stroke={2.4}
-                            />
-                          </div>
-                          <div>
-                            <p className="font-heading text-base font-semibold tracking-[-0.03em]">
-                              Scanning {websiteDomain}
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {loadingStages[stageIndex]}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-5 space-y-2">
-                          {loadingStages.map((stage, index) => (
-                            <div
-                              key={stage}
-                              className="flex items-center justify-between gap-3 rounded-full bg-muted/60 px-3 py-2 text-xs"
-                            >
-                              <span className="text-muted-foreground">
-                                {stage}
-                              </span>
-                              {index < stageIndex ? (
-                                <IconCheck
-                                  size={15}
-                                  className="text-[var(--color-princeton-orange)]"
-                                  stroke={2.6}
-                                />
-                              ) : index === stageIndex ? (
-                                <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--color-princeton-orange)]" />
-                              ) : (
-                                <span className="h-2 w-2 rounded-full bg-border" />
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {hasResults ? (
-                      <div className="flex gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
-                          <IconCheck size={20} stroke={2.5} />
-                        </div>
-                        <div>
-                          <p className="font-heading text-base font-semibold tracking-[-0.03em]">
-                            Scan complete for {websiteDomain}.
-                          </p>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            {opportunities.length}{" "}
-                            {opportunities.length === 1
-                              ? "opportunity"
-                              : "opportunities"}{" "}
-                            ready below.
-                          </p>
-                        </div>
-                      </div>
-                    ) : null}
+                  <div>
+                    <p className="font-heading text-base font-semibold tracking-[-0.03em]">
+                      Ready when your URL is.
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Enter your website URL to start scanning for backlink
+                      opportunities.
+                    </p>
                   </div>
                 </div>
-              </div>
+              ) : null}
+
+              {phase === "loading" ? (
+                <div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)] text-white">
+                      <IconLoader2
+                        className="animate-spin"
+                        size={20}
+                        stroke={2.4}
+                      />
+                    </div>
+                    <div>
+                      <p className="font-heading text-base font-semibold tracking-[-0.03em]">
+                        Scanning {websiteDomain}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {loadingStages[stageIndex]}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-5 space-y-2">
+                    {loadingStages.map((stage, index) => (
+                      <div
+                        key={stage}
+                        className="flex items-center justify-between gap-3 rounded-full bg-muted/60 px-3 py-2 text-xs"
+                      >
+                        <span className="text-muted-foreground">{stage}</span>
+                        {index < stageIndex ? (
+                          <IconCheck
+                            size={15}
+                            className="text-[var(--color-princeton-orange)]"
+                            stroke={2.6}
+                          />
+                        ) : index === stageIndex ? (
+                          <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--color-princeton-orange)]" />
+                        ) : (
+                          <span className="h-2 w-2 rounded-full bg-border" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {hasResults ? (
+                <div className="flex gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-blaze-orange)]/10 text-[var(--color-princeton-orange)]">
+                    <IconCheck size={20} stroke={2.5} />
+                  </div>
+                  <div>
+                    <p className="font-heading text-base font-semibold tracking-[-0.03em]">
+                      Scan complete for {websiteDomain}.
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      {opportunities.length}{" "}
+                      {opportunities.length === 1 ? "opportunity" : "opportunities"}{" "}
+                      ready below.
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

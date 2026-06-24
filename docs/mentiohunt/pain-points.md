@@ -50,6 +50,29 @@ Implication: convenience alone is not enough. The buyer wants control without wo
 
 Implication: for founder-led B2B SaaS, the strongest need is often not "help me send outreach better," but "do not make me run outreach at all."
 
+### D) Agencies recycle the same domain inventory across all clients
+
+- agencies resell the same sites to every client — same list, different logo
+- dilutes link value and creates footprint risk
+- buyers often discover this only after months of spend
+- community research confirms this is the most specific and repeated complaint beyond general opacity
+
+> "Most agencies resell the same sites. Same lists. Same 'premium publishers.' Same recycled placements. Different logo. Same spreadsheet." — r/linkbuilding
+
+Implication: Mentiohunt's per-customer opportunity discovery (based on their content, competitors, and niche) is a direct structural answer — not just a marketing claim.
+
+### E) Pricing dead zone leaves bootstrap founders with no viable option
+
+- DIY tactics: $0–$100/mo but require 5–15 hrs/week
+- Agency retainers: $1,000–$5,000/mo minimum
+- Nothing managed and quality-guaranteed exists between $100 and $1,000/mo
+
+Founders who can't justify agency costs cycle between burning out on DIY, getting ghosted by Fiverr freelancers, and giving up on link building entirely.
+
+> "I wasted 6 months doing SEO myself — biggest mistake." — r/micro_saas
+
+Implication: A $200–500/mo managed entry tier captures a segment with high pain and no current alternative.
+
 ---
 
 ## Reddit Validation (June 2026)

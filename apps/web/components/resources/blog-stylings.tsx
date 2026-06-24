@@ -27,7 +27,7 @@ export default function BlogStylings(): MDXComponents {
           {...props}
           id={id}
           className={cn(
-            "scroll-m-20 text-4xl font-bold tracking-tight lg:text-5xl",
+            "scroll-m-20 text-4xl font-semibold tracking-tight text-foreground lg:text-5xl",
             props.className
           )}
         />
@@ -41,7 +41,7 @@ export default function BlogStylings(): MDXComponents {
           {...props}
           id={id}
           className={cn(
-            "mt-16 scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0",
+            "mt-14 scroll-m-20 text-2xl font-medium tracking-tight text-foreground first:mt-0",
             props.className
           )}
         />
@@ -55,7 +55,7 @@ export default function BlogStylings(): MDXComponents {
           {...props}
           id={id}
           className={cn(
-            "mt-10 scroll-m-20 text-2xl font-semibold tracking-tight",
+            "mt-10 scroll-m-20 text-xl font-medium tracking-tight text-foreground",
             props.className
           )}
         />
@@ -69,7 +69,7 @@ export default function BlogStylings(): MDXComponents {
           {...props}
           id={id}
           className={cn(
-            "mt-8 scroll-m-20 text-xl font-semibold tracking-tight",
+            "mt-8 scroll-m-20 text-lg font-medium tracking-tight text-foreground",
             props.className
           )}
         />
@@ -79,7 +79,7 @@ export default function BlogStylings(): MDXComponents {
       <p
         {...props}
         className={cn(
-          "text-base leading-7 [&:not(:first-child)]:mt-6",
+          "text-base leading-7 text-muted-foreground [&:not(:first-child)]:mt-6",
           props.className
         )}
       />
@@ -88,7 +88,7 @@ export default function BlogStylings(): MDXComponents {
       <ul
         {...props}
         className={cn(
-          "my-6 ml-6 list-disc space-y-3 [&>li]:leading-7",
+          "my-6 ml-6 list-disc space-y-2 text-muted-foreground [&>li]:leading-7",
           props.className
         )}
       />
@@ -97,7 +97,7 @@ export default function BlogStylings(): MDXComponents {
       <ol
         {...props}
         className={cn(
-          "my-6 ml-6 list-decimal space-y-3 [&>li]:leading-7",
+          "my-6 ml-6 list-decimal space-y-2 text-muted-foreground [&>li]:leading-7",
           props.className
         )}
       />
@@ -116,7 +116,7 @@ export default function BlogStylings(): MDXComponents {
     },
     code: (props) => (
       <code
-        className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-medium"
+        className="relative rounded bg-zinc-100 px-[0.3rem] py-[0.2rem] font-mono text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
         {...props}
       />
     ),
@@ -135,7 +135,7 @@ export default function BlogStylings(): MDXComponents {
           {...props}
           href={hrefValue}
           className={cn(
-            "font-medium text-primary underline decoration-foreground/10 underline-offset-4 transition-colors hover:decoration-foreground/25",
+            "text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-muted-foreground/50",
             className
           )}
           target={target ?? (isExternal ? "_blank" : undefined)}
@@ -146,7 +146,7 @@ export default function BlogStylings(): MDXComponents {
       )
     },
     table: (props) => (
-      <div className="my-6 w-full overflow-x-auto rounded-lg border border-border">
+      <div className="my-6 w-full overflow-x-auto">
         <table
           {...props}
           className={cn("w-full border-collapse text-sm", props.className)}
@@ -156,7 +156,7 @@ export default function BlogStylings(): MDXComponents {
     thead: (props) => (
       <thead
         {...props}
-        className={cn("border-b border-border bg-muted/50", props.className)}
+        className={cn("border-b border-border", props.className)}
       />
     ),
     tbody: (props) => <tbody {...props} className={cn("", props.className)} />,
@@ -164,7 +164,7 @@ export default function BlogStylings(): MDXComponents {
       <tr
         {...props}
         className={cn(
-          "border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+          "border-b border-border/50 transition-colors hover:bg-muted/30",
           props.className
         )}
       />
@@ -173,7 +173,7 @@ export default function BlogStylings(): MDXComponents {
       <th
         {...props}
         className={cn(
-          "h-10 px-4 text-left align-middle font-medium [&[align=center]]:text-center [&[align=right]]:text-right",
+          "h-10 px-4 text-left align-middle text-xs font-medium uppercase tracking-wide text-muted-foreground [&[align=center]]:text-center [&[align=right]]:text-right",
           props.className
         )}
       />
@@ -182,7 +182,7 @@ export default function BlogStylings(): MDXComponents {
       <td
         {...props}
         className={cn(
-          "p-4 align-middle [&[align=center]]:text-center [&[align=right]]:text-right",
+          "p-4 align-middle text-muted-foreground [&[align=center]]:text-center [&[align=right]]:text-right",
           props.className
         )}
       />
@@ -191,7 +191,7 @@ export default function BlogStylings(): MDXComponents {
       <blockquote
         {...props}
         className={cn(
-          "mt-6 border-l-2 border-primary pl-6 text-muted-foreground italic",
+          "mt-6 border-l-2 border-border pl-6 text-muted-foreground italic",
           props.className
         )}
       />
@@ -199,13 +199,13 @@ export default function BlogStylings(): MDXComponents {
     img: (props) => (
       <img
         {...props}
-        className={cn("rounded-lg border border-border", props.className)}
+        className={cn("rounded-md opacity-95", props.className)}
       />
     ),
     hr: (props) => (
       <hr
         {...props}
-        className={cn("my-4 border-border md:my-8", props.className)}
+        className={cn("my-8 border-border/50 md:my-12", props.className)}
       />
     ),
     YoutubeVideo,

@@ -158,7 +158,7 @@ export function Comparisons() {
                   Outreach Software
                 </span>
                 <span className="mt-0.5 block text-[0.63rem] text-muted-foreground/40">
-                  Pitchbox, Respona
+                  Pitchbox, Buzzstream
                 </span>
               </div>
               <div className="self-end pb-3 text-center">
@@ -265,7 +265,6 @@ export function Comparisons() {
             <IconX className="h-3 w-3" /> Not supported
           </span>
         </div>
-
       </div>
     </section>
   )

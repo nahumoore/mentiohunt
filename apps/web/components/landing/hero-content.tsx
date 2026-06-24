@@ -87,13 +87,13 @@ export function HeroContent() {
         animate="animate"
         transition={{ duration: 0.55, delay: 0.16, ease }}
       >
-        We find backlink & mention opportunities, run outreach, and manage placements
+        We find backlink opportunities, run outreach, and manage placements
         end-to-end. You simply approve or reject — no outreach ops required.
       </motion.p>
 
       {/* CTA */}
       <motion.div
-        className="mt-10"
+        className="mt-10 flex flex-col items-center gap-4"
         variants={fadeUp}
         initial="initial"
         animate="animate"
@@ -109,6 +109,13 @@ export function HeroContent() {
             <IconArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </Button>
+        <Link
+          href="#how-it-works"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          See how it works
+          <IconArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </motion.div>
 
       {/* Trusted by */}

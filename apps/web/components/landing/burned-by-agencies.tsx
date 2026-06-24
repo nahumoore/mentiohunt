@@ -1,4 +1,4 @@
-import { IconEye, IconFileCheck, IconMailCheck } from "@tabler/icons-react"
+import { IconEye, IconFileCheck, IconMailCheck, IconTarget } from "@tabler/icons-react"
 import type { ComponentType } from "react"
 
 type Item = {
@@ -26,6 +26,12 @@ const items: Item[] = [
     detail:
       "Nothing sends without your approval. You read the pitch, edit if you want, then approve with one click.",
   },
+  {
+    icon: IconTarget,
+    heading: "Opportunities built from your content — not a recycled list",
+    detail:
+      "Most agencies resell the same domain inventory to every client. Same sites, different logo. Mentiohunt discovers prospects from your content and competitors, so every opportunity is built specifically for you.",
+  },
 ]
 
 export function BurnedByAgencies() {
@@ -50,7 +56,7 @@ export function BurnedByAgencies() {
         </div>
 
         <div className="mx-auto mt-14 max-w-5xl">
-          <div className="grid gap-10 sm:grid-cols-3 sm:gap-8">
+          <div className="grid gap-10 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
             {items.map(({ icon: Icon, heading, detail }) => (
               <div key={heading} className="flex flex-col gap-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blaze-orange/10 text-(--color-blaze-orange)">

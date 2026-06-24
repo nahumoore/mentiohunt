@@ -273,22 +273,19 @@ function RealSitesIllustration() {
 
 const FEED = [
   {
-    source: "Reddit",
-    domain: "reddit.com",
+    source: "Niche Discovery",
     time: "2h ago",
-    text: "Anchor text diversity thread — 3 new patterns extracted and applied",
+    text: "4 new SaaS roundups found in your niche — added to your opportunity queue",
   },
   {
-    source: "X",
-    domain: "x.com",
-    time: "4h ago",
-    text: "Outreach template going viral — reply rate benchmark updated to 34%",
+    source: "Fit Learning",
+    time: "5h ago",
+    text: "How-to angles earning +18% acceptance in your category — scoring updated",
   },
   {
-    source: "LinkedIn",
-    domain: "linkedin.com",
-    time: "6h ago",
-    text: "Agency founder reveals negotiation framework — added to your agent",
+    source: "Competitor Scan",
+    time: "8h ago",
+    text: "2 competitor placements detected — same sites now prioritized in your queue",
   },
 ]
 
@@ -303,19 +300,9 @@ function LearningAgentIllustration() {
           <p className="text-[0.62rem] font-bold text-muted-foreground uppercase">
             Today&apos;s strategy updates
           </p>
-          <div className="flex items-center gap-1.5">
-            {FEED.map((item) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={item.domain}
-                src={`https://www.google.com/s2/favicons?domain=${item.domain}&sz=32`}
-                alt=""
-                width={14}
-                height={14}
-                className="h-3.5 w-3.5 rounded-sm opacity-60"
-              />
-            ))}
-          </div>
+          <span className="text-[0.6rem] font-semibold text-[var(--color-blaze-orange)] uppercase">
+            Mentiohunt
+          </span>
         </div>
 
         <div className="space-y-2">
@@ -325,14 +312,7 @@ function LearningAgentIllustration() {
               className="rounded-xl border border-border bg-background/70 p-3.5"
             >
               <div className="mb-1.5 flex items-center gap-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`https://www.google.com/s2/favicons?domain=${item.domain}&sz=32`}
-                  alt=""
-                  width={14}
-                  height={14}
-                  className="h-3.5 w-3.5 shrink-0 rounded-sm"
-                />
+                <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-blaze-orange)]" />
                 <span className="text-[0.6rem] font-bold text-foreground/70">
                   {item.source}
                 </span>
@@ -355,10 +335,10 @@ function LearningAgentIllustration() {
 
 const BENEFITS: Benefit[] = [
   {
-    eyebrow: "One price",
-    title: "Replace your whole tool stack.",
+    eyebrow: "No tool stack needed",
+    title: "Replaces the whole function, not just the tools.",
     description:
-      "Ahrefs, Instantly, Hunter — combined you're paying $300+/mo for tools that still leave the hard work to you. Mentiohunt does all of it for $49/mo.",
+      "Ahrefs, Instantly, Hunter — each one adds cost without removing the work. You still own prospecting, email writing, follow-ups, and tracking. Mentiohunt replaces the entire workflow: discovery, outreach, and placement coordination. You approve or reject — nothing else required.",
     Illustration: ToolStackIllustration,
   },
   {
@@ -376,10 +356,10 @@ const BENEFITS: Benefit[] = [
     Illustration: RealSitesIllustration,
   },
   {
-    eyebrow: "Always learning",
-    title: "An agent that gets smarter daily.",
+    eyebrow: "Always improving",
+    title: "Your queue gets sharper over time.",
     description:
-      "Monitors Reddit, X, and LinkedIn every day for new backlink strategies and negotiation tactics — and applies them to your project automatically. Outreach is personalized per site, not mass-templated — every email draft is reviewed by you before it goes out.",
+      "As Mentiohunt learns what earns placements in your niche — which angles work, which site types respond, which fits convert — your opportunity queue improves automatically. Better fit scores, fewer irrelevant prospects, higher reply rates. No configuration required.",
     Illustration: LearningAgentIllustration,
   },
 ]
@@ -430,8 +410,9 @@ export function WhyMentiohunt() {
             <span className="text-red-500">Nothing you don&apos;t.</span>
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Skip the agency fees, the tool subscriptions, and the guesswork. One
-            system, one price.
+            Agency minimums start at $1,000–5,000/mo. DIY link building takes
+            10–15 hrs/week. Mentiohunt handles execution end-to-end — you just
+            approve what goes live.
           </p>
         </div>
 

@@ -18,10 +18,10 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   };
 
   return (
-    <div className="relative my-6 rounded-xl overflow-hidden border border-border bg-muted shadow-sm">
-      <div className="flex items-center justify-between px-4 py-2.5 bg-muted/80 border-b border-border">
+    <div className="relative my-6 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-2 dark:border-zinc-800">
         {language && language !== "code" ? (
-          <span className="text-xs font-mono text-muted-foreground lowercase">
+          <span className="font-mono text-xs text-zinc-400 lowercase dark:text-zinc-500">
             {language}
           </span>
         ) : (
@@ -29,13 +29,13 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         )}
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors duration-150 cursor-pointer ml-auto"
+          className="ml-auto flex cursor-pointer items-center gap-1.5 text-xs text-zinc-400 transition-colors duration-150 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
           aria-label="Copy code"
         >
           {copied ? (
             <>
-              <IconCheck size={13} className="text-green-500" />
-              <span className="text-green-500">Copied!</span>
+              <IconCheck size={13} className="text-zinc-500" />
+              <span>Copied</span>
             </>
           ) : (
             <>
@@ -45,7 +45,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
           )}
         </button>
       </div>
-      <pre className="overflow-x-auto p-5 text-sm leading-relaxed font-mono whitespace-pre-wrap wrap-break-word">
+      <pre className="overflow-x-auto p-5 font-mono text-sm leading-relaxed text-zinc-700 whitespace-pre-wrap wrap-break-word dark:text-zinc-300">
         <code>{code}</code>
       </pre>
     </div>

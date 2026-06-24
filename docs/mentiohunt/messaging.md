@@ -1,5 +1,19 @@
 # Mentiohunt — Messaging
 
+## Core buying triggers (anchor every message to one of these)
+
+Community research identified two dominant complaints that signal active purchase intent — not just frustration:
+
+1. **"I don't know if the links I'm getting are good"**
+   → Answer: approval workflow + fit rationale on every opportunity
+
+2. **"I don't have time to run this myself or manage someone doing it"**
+   → Answer: autopilot model — we execute, you approve
+
+Every headline, subheadline, feature description, and CTA should map to one of these two things. If it doesn't answer either complaint, it's not load-bearing copy.
+
+---
+
 ## Messaging pillars
 
 ### Pillar 1: Done-for-you, not do-it-yourself

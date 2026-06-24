@@ -170,7 +170,6 @@ export function OpportunityPipelineRow({
         <span className="font-mono text-2xl leading-none font-bold text-foreground tabular-nums">
           {dr ?? "—"}
         </span>
-        <p className="text-[10px] text-muted-foreground">DR</p>
       </td>
 
       {/* Relevance col */}
@@ -180,7 +179,14 @@ export function OpportunityPipelineRow({
         </span>
         <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full bg-amber-400"
+            className={cn(
+              "h-full rounded-full",
+              relevancePercent >= 70
+                ? "bg-emerald-400"
+                : relevancePercent >= 40
+                  ? "bg-amber-400"
+                  : "bg-red-400"
+            )}
             style={{ width: `${relevancePercent}%` }}
           />
         </div>

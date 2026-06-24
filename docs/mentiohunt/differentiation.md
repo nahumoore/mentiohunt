@@ -28,15 +28,31 @@ Three broad buckets currently exist:
    - Strength: power, workflows, prospecting, campaign management
    - Weakness: heavier setup, denser UI, higher learning curve, premium pricing, more campaign ownership required
 
-2. **Managed placements / done-for-you services** (Respona's direction)
+2. **Managed placements / done-for-you services** (uSERP, Jeenam, Editorial.Link)
    - Strength: convenience, end-to-end execution
-   - Weakness: can feel black-box, manual control may cost extra, trust must be constantly re-earned
+   - Weakness: black-box, minimum $1K–5K/mo, recycled domain inventory across clients, no pre-placement approval
 
 3. **Backlink-adjacent management tools** (backlink CRMs / monitoring)
    - Strength: tracking and reporting
    - Weakness: do not remove outreach work or create an autopilot experience
 
 **Best strategic contrast: More transparent than an agency. Less work than outreach software.**
+
+### Competitive landscape (named players)
+
+| Product | Type | Min. Entry | Approval Workflow | SaaS-Specific | Fit for Tier 1 ICP |
+|---|---|---|---|---|---|
+| uSERP | Agency | $5,000/mo | No | Yes | ❌ Priced out |
+| Editorial.Link | Per-link marketplace | $300/link | No | Partial | ⚠️ Expensive at scale |
+| Jeenam | Productized agency | $1,000/mo | No | Yes | ⚠️ Barely accessible |
+| Pitchbox | Outreach tool | ~$550/mo | N/A (you operate) | No | ❌ Requires specialist |
+| Respona | Outreach tool | ~$99/mo | N/A (you operate) | No | ❌ Requires specialist |
+| FATJOE | Marketplace | Pay-per-link | No | No | ⚠️ Low quality signal |
+| **Mentiohunt** | **Managed autopilot** | **TBD** | **Yes (core UX)** | **Yes** | **✅ Direct target** |
+
+### The shared weakness: recycled domain inventory
+
+The most frequent specific complaint across agencies and marketplaces is not just opacity — it's that agencies resell the same domain list to every client. Same sites, different logo, same spreadsheet. This dilutes link value and creates footprint risk. Mentiohunt's opportunity-discovery model, built per customer from their content and competitors, is the structural answer to this.
 
 ---
 

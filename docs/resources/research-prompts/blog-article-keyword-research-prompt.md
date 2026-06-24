@@ -1,19 +1,49 @@
-Create a comprehensive, source-backed research report for writing a blog article targeting the keyword: **[KEYWORD]**.
+Create a comprehensive research report for writing a blog article targeting the keyword: **[KEYWORD]**.
 
-Focus 100% on this keyword and its immediate semantic neighbors. Do not make this a generic SEO guide. The goal is to gather enough accurate, nuanced information to write a well-ranking, genuinely useful article — covering search intent, SERP landscape, content gaps, structural patterns, and E-E-A-T requirements.
+Focus only on this keyword and its immediate semantic neighbors. Do not turn this into a generic SEO guide. The goal is to gather enough accurate, nuanced, up-to-date information to produce a high-quality article brief for a later content-writing step.
 
-Do not decide whether the article is worth creating. Do not give a go/no-go recommendation on whether to target the keyword. The purpose of this research is to build the best possible factual, strategic, and contextual input for a later LLM content-generation step.
+Do not decide whether the article is worth creating. Do not give a go/no-go recommendation. The purpose of this research is to build the best possible factual, strategic, and contextual input for a later LLM content-generation step.
 
-Use the E-E-A-T evaluation standard from `.claude/skills/seo-content/references/eeat-framework.md` throughout the research. Treat trustworthiness as the highest-priority dimension, evaluate E-E-A-T even for non-YMYL queries, and look for concrete evidence of experience, expertise, authoritativeness, and trustworthiness in the current SERP. Only include signals that can be researched or verified from public sources, pages, sitewide policies, visible page elements, or reputable third-party coverage.
+Treat this as a search-first, evidence-first research task. Use current public information wherever possible, including:
 
-Research requirements:
+- Google SERPs
+- People Also Ask
+- Google autocomplete
+- Related searches
+- Reddit
+- Quora
+- Niche forums or communities
+- Publicly available SEO tool data
+- Reputable third-party studies, experiments, benchmarks, and official documentation
 
-- Use current, reliable sources wherever possible: Google SERPs, People Also Ask boxes, autocomplete, Reddit, Quora, forums, SEO tools (Ahrefs, Semrush, Moz where data is public), and reputable third-party experiments.
-- Cite sources inline for every factual claim, especially SERP positions, search volumes, and ranking factors.
-- Clearly label anything that is inferred, estimated, outdated, or not verified.
-- If claims conflict across sources, explain the discrepancy.
-- Prioritize information from 2023 onward. Label older data clearly.
-- When assessing E-E-A-T, prefer observable evidence such as original examples, screenshots, cited data, site reputation, editorial standards, update history, contact/about pages, policies, reviews, external mentions, and other public trust signals. Do not rely on private knowledge or unverifiable assumptions.
+Research standards:
+
+- Prioritize information from 2025 onward whenever possible.
+- Clearly label anything that is estimated, inferred, outdated, disputed, or not directly verifiable.
+- If multiple sources conflict, explain the discrepancy instead of choosing one silently.
+- If a useful data point cannot be verified, say so explicitly.
+- Do not present assumptions as facts.
+- Keep the tone neutral, analytical, and factual.
+- Do not write the article itself.
+- Do not produce a recommendation about whether to pursue the keyword.
+
+Use this E-E-A-T evaluation standard throughout the research:
+
+- Experience: look for direct first-hand evidence, testing, screenshots, walkthroughs, original examples, case studies, process details, personal or organizational implementation evidence, and signs the author has actually done the thing they are describing.
+- Expertise: look for technical accuracy, depth, correct terminology, nuanced explanation, methodology, cited evidence, current knowledge, and topic-specific competence.
+- Authoritativeness: look for strong brand reputation, consistent topical depth, external mentions, backlinks or citations from reputable sites, original research, recognized authors, industry presence, and evidence that the site or author is a known source on the topic.
+- Trustworthiness: treat this as the highest-priority dimension. Look for accurate claims, transparent sourcing, visible update history, editorial standards, disclosures, clear ownership, contact or about pages, privacy or policy pages, reputation signals, and low signs of manipulation or misinformation.
+
+Evaluate E-E-A-T even for non-YMYL topics. Only use signals that can be observed from public pages, visible page elements, sitewide policies, third-party coverage, or other verifiable public evidence.
+
+When reviewing the SERP and competitors, pay special attention to:
+
+- What type of content Google is rewarding
+- What user problem the ranking pages are actually solving
+- Whether search intent is singular or split
+- Whether the SERP favors freshness, brand authority, tools, community content, original research, or step-by-step execution
+- Whether there are weak spots that better structure, clearer explanations, stronger evidence, or better examples could improve on
+- What level of credibility a new article would need in order to compete
 
 Output the report in Markdown using this exact structure:
 
@@ -21,7 +51,15 @@ Output the report in Markdown using this exact structure:
 
 ## Executive Summary
 
- Summarize the topic landscape. Explain what type of content ranks, what the SERP suggests users expect, the realistic difficulty and timeline, and what unique angle gives a new article the best shot at ranking.
+Summarize the topic landscape.
+Explain:
+
+- What type of content currently ranks
+- What the SERP suggests users expect
+- How competitive the query appears to be
+- The realistic content challenge level and likely timeline to compete
+- The biggest opportunities for differentiation
+- The strongest likely angle for a new article based on the current SERP
 
 ## Keyword Overview
 
@@ -29,73 +67,107 @@ Provide the core keyword data.
 Include:
 
 - Primary keyword exact match
-- Estimated monthly search volume (label source and date)
-- Keyword difficulty score (label source)
-- CPC if available (signals commercial intent)
-- Search trend direction (growing, stable, declining — with source)
-- Keyword type: informational, navigational, commercial, transactional
-- Source citations
+- Estimated monthly search volume with source and date
+- Keyword difficulty score with source
+- CPC if available
+- Search trend direction with source
+- Keyword type: informational, navigational, commercial, transactional, or mixed
+- Geographic or language nuance if visible in the SERP
+- Close variants that appear to share intent
 
 ## Search Intent Analysis
 
 Explain exactly what someone searching for this keyword wants.
 Include:
 
-- Primary intent (what they are trying to do or learn)
-- Secondary intent (what they may also want)
-- Stage in the buyer or learning journey
-- What format they likely expect: list post, how-to guide, comparison, definition, tool roundup, opinion piece, etc.
+- Primary intent
+- Secondary intent
+- Stage in the buyer journey or learning journey
+- Likely expected format: list post, how-to guide, comparison, definition, tutorial, tool roundup, template, opinion piece, etc.
 - Whether the intent is consistent or split across different user types
-- Any mismatch between the keyword and what actually ranks (intent drift)
-- Source citations
+- Any mismatch between the literal keyword and what actually ranks
+- Key questions the searcher needs answered before they feel satisfied
+- What would make the result feel incomplete or unhelpful to that searcher
 
 ## SERP Landscape
 
 Document what is currently ranking for this keyword.
 Include:
 
-- SERP features present: featured snippet, People Also Ask, video carousel, image pack, knowledge panel, local pack, news box, etc.
-- Top 10 ranking pages with: URL, domain, title, estimated traffic (if available via public tools), content type, approximate word count, publication/update date
-- Domain authority or brand strength of top 3 results
-- Whether the top results are editorial content, landing pages, tools, or aggregator sites
-- Is the SERP dominated by one domain type or is it diverse?
-- Source citations
+- SERP features present: featured snippet, People Also Ask, video carousel, image pack, knowledge panel, local pack, news box, discussions and forums, AI overview, shopping results, or others
+- Top 10 ranking pages with: rank, URL, domain, title, content type, estimated traffic if publicly available, approximate word count, publication date if visible, update date if visible
+- Domain or brand strength of the top 3 results
+- Whether the top results are editorial articles, landing pages, product pages, tools, aggregators, community posts, videos, or mixed
+- Whether the SERP is dominated by one domain type or is diverse
+- Whether freshness appears to matter
+- Whether exact-match targeting appears necessary or if broader topic pages are ranking
+
+## Competitive Content Breakdown
+
+Analyze the top 3 to 5 ranking pages in depth.
+For each, include:
+
+- URL and title
+- Content type and overall structure
+- Main claims, promises, or takeaways
+- What they do well
+- What they do poorly, skip, oversimplify, or get outdated
+- Estimated comprehensiveness on a 1 to 10 scale
+- Evidence of experience, expertise, authoritativeness, and trustworthiness
+- Whether it looks beatable and why
 
 ## Content Gap Analysis
 
-Identify what the top-ranking content is missing or doing poorly.
+Identify what the current ranking content is missing or doing weakly.
 Include:
 
-- Topics or subtopics underserved by current top results
-- Questions people ask that no result fully answers
-- Audience segments the current results do not serve well (beginners vs. experts, different roles, different contexts)
-- Outdated information in current top results
-- Angles that no result takes but that would be valuable
-- Formats that are missing (no comparison table, no step-by-step, no tool list, etc.)
-- Source citations or evidence for each gap
+- Topics or subtopics underserved by current results
+- Questions users ask that no result fully answers
+- Missing examples, workflows, screenshots, comparisons, data, or decision frameworks
+- Audience segments that are not well served
+- Outdated or shallow sections in current results
+- Valuable angles that no result takes
+- Missing content formats such as tables, checklists, templates, calculators, step-by-step instructions, FAQs, visuals, or examples
+- Gaps in trust signals, sourcing, clarity, or methodology
 
 ## People Also Ask and Related Questions
 
-List all relevant questions found in PAA boxes, autocomplete, and related searches.
+List relevant questions found in People Also Ask, autocomplete, related searches, Reddit, Quora, and forums.
 Include:
 
-- People Also Ask questions (exact wording)
+- People Also Ask questions using exact wording where possible
 - Autocomplete suggestions for the keyword and close variants
-- Reddit, Quora, or forum questions that reveal real user confusion or curiosity
-- Long-tail question variants that indicate subtopics to cover
-- Group questions into thematic clusters
+- Related searches
+- Community questions that reveal real confusion, objections, intent, or terminology
+- Long-tail question variants that indicate meaningful subtopics
+- Thematic clusters of questions
+- Notes on which questions seem beginner, intermediate, advanced, commercial, or troubleshooting-oriented
 
 ## Semantic Keyword Map
 
-Map the full semantic landscape around the keyword.
+Map the semantic landscape around the keyword.
 Include:
 
 - Primary keyword
-- Secondary keywords (close variants, plural, tense, related terms)
-- LSI / semantic terms Google likely expects to see in authoritative content on this topic
-- Related topic clusters worth linking to or covering in H2s
-- Negative space: what NOT to include (off-topic terms that dilute focus)
-- Source citations or reasoning
+- Secondary keywords and close variants
+- Entities, products, concepts, jargon, and terms that repeatedly appear across ranking pages
+- Semantic terms Google likely expects to see in credible content on this topic
+- Related subtopics worth covering in H2s or H3s
+- Adjacent topics worth linking to internally
+- Negative space: what should not be included because it dilutes intent or shifts the article off-topic
+- Terminology differences used by beginners versus experts if relevant
+
+## Audience Insights
+
+Describe who this content likely needs to serve.
+Include:
+
+- Primary audience
+- Secondary audience
+- Likely knowledge level of searchers
+- Pain points, blockers, risks, or anxieties reflected in search behavior or community discussion
+- What the audience most needs before they trust an answer on this topic
+- What level of depth is likely necessary to satisfy them
 
 ## Winning Content Structure
 
@@ -103,39 +175,28 @@ Based on what ranks and what the intent requires, recommend the ideal article st
 Include:
 
 - Recommended title format with hook
-- H1 recommendation
-- Full outline: H2s and key H3s, in order
+- Recommended H1
+- Full outline with H2s and important H3s in order
 - Recommended word count range and why
-- Recommended format: listicle, how-to, definition + examples, ultimate guide, opinion, etc.
-- Whether a table of contents helps
-- Whether multimedia (images, videos, tools, calculators) is expected based on competing content
-- Any content types that clearly help rankings in this SERP (e.g., embedded tools, code snippets, data tables)
+- Recommended format: listicle, how-to, definition plus examples, ultimate guide, comparison, opinion, etc.
+- Whether a table of contents would help
+- Whether multimedia such as images, screenshots, videos, diagrams, calculators, downloadable templates, or tables appears necessary
+- Any content elements that clearly help rankings in this SERP
+- Which sections need original evidence, examples, or testing to feel competitive
 
 ## E-E-A-T Requirements
 
-Define what it would take for an article on this keyword to be considered credible.
+Define what it would take for a new article on this keyword to be considered credible.
 Include:
 
-- What first-hand experience signals are present in the SERP and what equivalent evidence a new article would need (original examples, screenshots, test results, case-study style proof, process documentation)
-- What expertise signals are visible in top-ranking content and supporting sources (technical depth, accurate terminology, evidence quality, citations, current references, methodology)
-- What authoritativeness signals are visible across ranking pages and domains (reputable brand presence, external mentions, industry recognition, consistent topical coverage, cited research, affiliations)
-- What trustworthiness signals matter most for this keyword (source quality, fact verification, disclosures, update history, contact/about information, editorial transparency, policies, reputation)
-- Named practitioners, researchers, organizations, publications, datasets, or official sources whose quotes, findings, or references would add authority
-- Whether this topic appears to require strong first-person evidence, original research, or documented testing to compete
-- Provide an overall E-E-A-T assessment for the SERP using the framework: strong, moderate, weak, or none for each dimension, with evidence
-
-## Competitive Content Breakdown
-
-Analyze the top 3–5 ranking articles in depth.
-For each, include:
-
-- URL and title
-- Content type and structure
-- Key arguments or claims made
-- What they do well
-- What they do poorly or skip
-- Estimated comprehensiveness on a 1–10 scale
-- Whether it is beatable and why
+- What first-hand experience signals appear in the SERP and what equivalent evidence a new article would need
+- What expertise signals are visible in top-ranking content and supporting sources
+- What authoritativeness signals are visible across ranking pages and domains
+- What trustworthiness signals matter most for this keyword
+- Which claims would require especially careful sourcing or verification
+- Named practitioners, researchers, organizations, publications, datasets, or official sources that would strengthen credibility
+- Whether the topic appears to require original research, testing, product usage, or first-person documentation to compete
+- An overall E-E-A-T assessment for the SERP with separate ratings for Experience, Expertise, Authoritativeness, and Trustworthiness: strong, moderate, weak, or none, each with evidence
 
 ## Internal Linking Opportunities
 
@@ -143,51 +204,42 @@ Identify topics this article could link to or receive links from.
 Include:
 
 - Related articles that would naturally link to or from this piece
-- Semantic anchor text options that feel natural in context
+- Semantic anchor text options that would feel natural
 - Whether this keyword sits at the top, middle, or bottom of a content cluster
-- Supporting articles that should be created to reinforce topical authority around this keyword
+- Supporting articles that should exist to reinforce topical authority around this keyword
+- Adjacent pages that could help distribute authority into this article
 
 ## Unique Angle Recommendation
 
-Based on everything above, recommend the single strongest angle for a new article.
+Based on all findings above, recommend the single strongest angle for a new article.
 Include:
 
-- The specific angle and why it beats what is currently ranking
-- Target reader: who exactly this article is for
-- The primary promise of the article (what the reader will know or be able to do after reading)
-- One-sentence pitch for the article
-- What makes this version authoritative and distinct
+- The angle
+- Why it is the best opportunity against what currently ranks
+- Exactly who the article should be written for
+- The core promise to the reader
+- A one-sentence article pitch
+- What would make this version more useful, more credible, or more distinctive than competing results
 
 ## Risks and Assumptions
 
 Flag anything uncertain before writing begins.
 Include:
 
-- Search volume estimates that could be unreliable
-- SERP volatility signals (results changing frequently)
-- Whether this keyword is trending up or fading
-- Any YMYL (Your Money, Your Life) concerns that raise quality bar
-- Any Google algorithm sensitivities relevant to this topic
+- Search volume estimates that may be unreliable
+- SERP volatility signals
+- Whether the keyword appears to be rising, stable, seasonal, or fading
+- Any YMYL concerns that raise the quality threshold
+- Any algorithm sensitivities relevant to this topic, such as freshness, first-hand testing, brand bias, or forum-heavy SERPs
 - Anything that should be manually verified before investing in the article
-
-## Source List
-
-Provide a complete list of all sources used, grouped by type:
-
-- SERP and keyword data (Ahrefs, Semrush, Google tools)
-- Top-ranking content reviewed
-- Community discussions (Reddit, Quora, forums)
-- SEO practitioner commentary
-- Other sources
 
 Formatting requirements:
 
 - Write in clear Markdown.
-- Use tables where helpful, especially for SERP landscape, keyword variants, and competitive breakdown.
+- Use tables where helpful, especially for SERP landscape, competitive breakdown, semantic keywords, and question clustering.
 - Keep the tone factual and neutral.
-- Do not write the article itself — only the research and structural recommendation.
+- Do not write the article itself.
 - Do not overstate claims.
 - Do not present assumptions as facts.
-- Every major claim should include a citation.
-- Output a full source list at the end.
-- Do not recommend adding an author or credentials section unless that recommendation is directly supported by observable SERP patterns or public evidence; prioritize researchable content and site signals first.
+- For every major factual claim, include a citation or a clearly labeled source note.
+- If a section cannot be completed with confidence, state the limitation explicitly instead of filling it with weak assumptions.

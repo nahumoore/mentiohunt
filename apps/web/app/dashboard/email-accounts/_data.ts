@@ -32,6 +32,10 @@ export const SEED_ACCOUNTS: EmailAccount[] = [
     status: "active",
     dailySendCap: 30,
     connectedAt: "2026-06-10",
+    smtpHost: "smtp.gmail.com",
+    smtpPort: 587,
+    imapHost: "imap.gmail.com",
+    imapPort: 993,
   },
   {
     id: "2",
@@ -41,6 +45,10 @@ export const SEED_ACCOUNTS: EmailAccount[] = [
     status: "active",
     dailySendCap: 20,
     connectedAt: "2026-06-18",
+    smtpHost: "smtp.office365.com",
+    smtpPort: 587,
+    imapHost: "outlook.office365.com",
+    imapPort: 993,
   },
   {
     id: "3",
@@ -57,17 +65,3 @@ export const SEED_ACCOUNTS: EmailAccount[] = [
     imapPort: 993,
   },
 ]
-
-export type OAuthProvider = Extract<
-  AccountProvider,
-  "gmail" | "google_workspace" | "outlook"
->
-
-export type SmtpProvider = Extract<
-  AccountProvider,
-  "yahoo" | "zoho" | "smtp"
->
-
-export function isOAuthProvider(p: AccountProvider): p is OAuthProvider {
-  return p === "gmail" || p === "google_workspace" || p === "outlook"
-}

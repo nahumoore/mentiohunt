@@ -20,7 +20,6 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useState } from "react"
 
 import type { EmailAccount } from "@/app/dashboard/email-accounts/_data"
-import { isOAuthProvider } from "@/app/dashboard/email-accounts/_data"
 import { PROVIDER_CONFIG, ProviderIcon } from "./provider-config"
 
 function Field({
@@ -78,44 +77,41 @@ export function EmailAccountDetailClient({
   const [name, setName] = useState(account.name)
   const [cap, setCap] = useState(String(account.dailySendCap))
 
-  const isOAuth = isOAuthProvider(account.provider)
   const providerCfg = PROVIDER_CONFIG[account.provider]
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
       {/* Page header */}
-      <div className="flex items-center gap-3">
-        <ProviderIcon provider={account.provider} size="size-10" />
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <div className="flex items-center gap-2">
-            <span className="text-base font-semibold text-foreground">
-              {account.name}
-            </span>
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ring-1",
-                account.status === "active"
-                  ? "text-emerald-600 bg-emerald-500/10 ring-emerald-500/20"
-                  : "text-red-600 bg-red-500/10 ring-red-500/20"
-              )}
-            >
-              {account.status === "active" ? (
-                <IconCircleCheckFilled className="size-3" />
-              ) : (
-                <IconAlertTriangle className="size-3" />
-              )}
-              {account.status === "active" ? "Active" : "Error"}
-            </span>
-          </div>
-          <span className="text-xs text-muted-foreground">
-            {account.email} · {providerCfg.label} · Connected{" "}
-            {new Date(account.connectedAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
+      <div>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <h1 className="flex items-center gap-2.5 font-heading text-[1.75rem] font-bold tracking-tight text-foreground sm:text-[2rem]">
+            <ProviderIcon provider={account.provider} size="size-8" />
+            {account.name}
+          </h1>
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ring-1",
+              account.status === "active"
+                ? "text-emerald-600 bg-emerald-500/10 ring-emerald-500/20"
+                : "text-red-600 bg-red-500/10 ring-red-500/20"
+            )}
+          >
+            {account.status === "active" ? (
+              <IconCircleCheckFilled className="size-3" />
+            ) : (
+              <IconAlertTriangle className="size-3" />
+            )}
+            {account.status === "active" ? "Active" : "Error"}
           </span>
         </div>
+        <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+          {account.email} · {providerCfg.label} · Connected{" "}
+          {new Date(account.connectedAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </p>
       </div>
 
       {account.status === "error" && account.errorMessage && (
@@ -194,55 +190,67 @@ export function EmailAccountDetailClient({
         </TabsContent>
 
         <TabsContent value="connection" className="flex flex-col gap-6">
-          {isOAuth ? (
-            <SectionCard>
-              <div className="flex flex-col gap-4">
+          <SectionCard>
+            <div className="flex flex-col gap-5">
+              <div className="flex items-center justify-between">
                 <p className="text-[0.7rem] font-bold tracking-wide text-muted-foreground uppercase">
-                  OAuth
+                  SMTP (sending)
                 </p>
-                <div className="flex items-center gap-3">
-                  <ProviderIcon provider={account.provider} size="size-8" />
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium text-foreground">
-                      {providerCfg.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Authorized via OAuth — no password stored
-                    </span>
-                  </div>
-                  <Button size="sm" variant="ghost" className="ml-auto">
-                    <IconRefresh className="size-3.5" />
-                    Reauthorize
-                  </Button>
+                <Button size="sm" variant="ghost" className="h-7 text-xs">
+                  <IconRefresh className="size-3.5" />
+                  Test connection
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 space-y-1.5">
+                  <label className="text-[0.68rem] text-muted-foreground">
+                    Host
+                  </label>
+                  <Input defaultValue={account.smtpHost ?? ""} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[0.68rem] text-muted-foreground">
+                    Port
+                  </label>
+                  <Input
+                    defaultValue={account.smtpPort ?? ""}
+                    type="number"
+                  />
                 </div>
               </div>
-            </SectionCard>
-          ) : (
-            <SectionCard>
-              <div className="flex flex-col gap-5">
-                <div className="flex items-center justify-between">
-                  <p className="text-[0.7rem] font-bold tracking-wide text-muted-foreground uppercase">
-                    SMTP (sending)
-                  </p>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs">
-                    <IconRefresh className="size-3.5" />
-                    Test connection
-                  </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[0.68rem] text-muted-foreground">
+                    Username
+                  </label>
+                  <Input defaultValue={account.email} />
                 </div>
+                <div className="space-y-1.5">
+                  <label className="text-[0.68rem] text-muted-foreground">
+                    Password
+                  </label>
+                  <Input placeholder="••••••••" type="password" />
+                </div>
+              </div>
 
+              <div className="space-y-3 border-t border-border/50 pt-2">
+                <p className="text-[0.7rem] font-bold tracking-wide text-muted-foreground uppercase">
+                  IMAP (reply reading)
+                </p>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="col-span-2 space-y-1.5">
                     <label className="text-[0.68rem] text-muted-foreground">
                       Host
                     </label>
-                    <Input defaultValue={account.smtpHost ?? ""} />
+                    <Input defaultValue={account.imapHost ?? ""} />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[0.68rem] text-muted-foreground">
                       Port
                     </label>
                     <Input
-                      defaultValue={account.smtpPort ?? ""}
+                      defaultValue={account.imapPort ?? ""}
                       type="number"
                     />
                   </div>
@@ -261,51 +269,14 @@ export function EmailAccountDetailClient({
                     <Input placeholder="••••••••" type="password" />
                   </div>
                 </div>
-
-                <div className="space-y-3 border-t border-border/50 pt-2">
-                  <p className="text-[0.7rem] font-bold tracking-wide text-muted-foreground uppercase">
-                    IMAP (reply reading)
-                  </p>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="col-span-2 space-y-1.5">
-                      <label className="text-[0.68rem] text-muted-foreground">
-                        Host
-                      </label>
-                      <Input defaultValue={account.imapHost ?? ""} />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[0.68rem] text-muted-foreground">
-                        Port
-                      </label>
-                      <Input
-                        defaultValue={account.imapPort ?? ""}
-                        type="number"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <label className="text-[0.68rem] text-muted-foreground">
-                        Username
-                      </label>
-                      <Input defaultValue={account.email} />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[0.68rem] text-muted-foreground">
-                        Password
-                      </label>
-                      <Input placeholder="••••••••" type="password" />
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-xs text-muted-foreground">
-                  Credentials are encrypted at rest. We only send from this
-                  address and read replies.
-                </p>
               </div>
-            </SectionCard>
-          )}
+
+              <p className="text-xs text-muted-foreground">
+                Credentials are encrypted at rest. We only send from this
+                address and read replies.
+              </p>
+            </div>
+          </SectionCard>
 
           <SaveFooter onRemove={() => {}} />
         </TabsContent>

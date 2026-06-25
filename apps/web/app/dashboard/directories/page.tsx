@@ -335,7 +335,7 @@ export default function DirectoriesPage() {
           </div>
         </Card>
       ) : (
-        <Card className="gap-0 overflow-hidden py-0">
+        <Card className="gap-0 overflow-hidden rounded-xl py-0">
           <TooltipProvider>
           <div className="border-b border-border/60 bg-linear-to-r from-orange/8 via-card to-card px-4 py-3 sm:px-6">
             {lastCheckedAt && (

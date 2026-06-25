@@ -394,7 +394,7 @@ export type Database = {
           id: string
           keywords: string[]
           page_type: Database["public"]["Enums"]["page_type"]
-          priority: Database["public"]["Enums"]["page_priority"]
+          priority: number
           product_id: string
           title: string | null
           updated_at: string
@@ -408,7 +408,7 @@ export type Database = {
           id?: string
           keywords?: string[]
           page_type?: Database["public"]["Enums"]["page_type"]
-          priority?: Database["public"]["Enums"]["page_priority"]
+          priority?: number
           product_id: string
           title?: string | null
           updated_at?: string
@@ -422,7 +422,7 @@ export type Database = {
           id?: string
           keywords?: string[]
           page_type?: Database["public"]["Enums"]["page_type"]
-          priority?: Database["public"]["Enums"]["page_priority"]
+          priority?: number
           product_id?: string
           title?: string | null
           updated_at?: string
@@ -789,7 +789,6 @@ export type Database = {
       email_sequence_status: "active" | "stopped" | "completed"
       email_sequence_type: "onboarding"
       page_crawl_status: "pending" | "crawled" | "failed"
-      page_priority: "high" | "medium" | "low"
       page_type:
         | "sitemap"
         | "article"
@@ -942,7 +941,6 @@ export const Constants = {
       email_sequence_status: ["active", "stopped", "completed"],
       email_sequence_type: ["onboarding"],
       page_crawl_status: ["pending", "crawled", "failed"],
-      page_priority: ["high", "medium", "low"],
       page_type: [
         "sitemap",
         "article",

@@ -55,7 +55,7 @@ import { usePagesStore } from "@/stores/pages-store"
 import { useProfileStore } from "@/stores/profile-store"
 import { useProspectStore } from "@/stores/prospect-store"
 
-type PagePriority = "high" | "medium" | "low"
+type PagePriority = 1 | 2 | 3 | 4 | 5
 
 type ProductPage = {
   id: string
@@ -74,13 +74,6 @@ function toPageType(t: string): PageType {
   return "article"
 }
 
-const PRIORITY_CONFIG: Record<PagePriority, { label: string; filled: number }> =
-  {
-    high: { label: "High", filled: 3 },
-    medium: { label: "Medium", filled: 2 },
-    low: { label: "Low", filled: 1 },
-  }
-
 function PriorityIcons({
   filled,
   size = "size-4",
@@ -90,21 +83,15 @@ function PriorityIcons({
 }) {
   return (
     <span className="flex items-center gap-0.5">
-      {Array.from({ length: 3 }).map((_, i) =>
+      {Array.from({ length: 5 }).map((_, i) =>
         i < filled ? (
-          <IconLinkFilled key={i} className={cn(size, "text-(--color-blaze-orange)")} />
+          <IconLinkFilled key={i} className={size} style={{ color: "var(--color-blaze-orange)" }} />
         ) : (
           <IconLink key={i} className={cn(size, "text-muted-foreground/30")} />
         )
       )}
     </span>
   )
-}
-
-const PRIORITY_ORDER: Record<PagePriority, number> = {
-  high: 0,
-  medium: 1,
-  low: 2,
 }
 
 type SortKey = "page" | "type" | "priority" | "opportunities"
@@ -119,8 +106,7 @@ function sortPages(
     let cmp = 0
     if (key === "page") cmp = (a.title ?? a.url).localeCompare(b.title ?? b.url)
     else if (key === "type") cmp = a.page_type.localeCompare(b.page_type)
-    else if (key === "priority")
-      cmp = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
+    else if (key === "priority") cmp = a.priority - b.priority
     else if (key === "opportunities")
       cmp = a.opportunities_count - b.opportunities_count
     return dir === "asc" ? cmp : -cmp
@@ -204,34 +190,26 @@ function PriorityInfoPopover() {
             </PopoverClose>
           </div>
           <p className="text-xs leading-5 text-muted-foreground">
-            Priority controls how aggressively we hunt backlinks for each page.
-            Higher priority pages get more discovery cycles and more outreach
+            Score from 1 to 5 controls how aggressively we hunt backlinks for
+            each page. Higher scores get more discovery cycles and more outreach
             slots.
           </p>
-          <p className="text-xs leading-5 text-muted-foreground">
-            Focus <span className="font-medium text-foreground">High</span> on
-            pages targeting your most important keywords — the ones that need
-            authority to rank and drive meaningful traffic.
-          </p>
           <div className="space-y-1.5 pt-0.5">
-            {(["high", "medium", "low"] as const).map((p) => {
-              const cfg = PRIORITY_CONFIG[p]
-              return (
-                <div key={p} className="flex items-center gap-2.5">
-                  <PriorityIcons filled={cfg.filled} size="size-3" />
-                  <span className="text-xs font-medium text-foreground">
-                    {cfg.label}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {p === "high" &&
-                      "— high-intent landing pages, pillar content"}
-                    {p === "medium" &&
-                      "— supporting blog posts, secondary features"}
-                    {p === "low" && "— about, legal, auxiliary pages"}
-                  </span>
-                </div>
-              )
-            })}
+            {(
+              [
+                [5, "high-intent landing pages, pillar content"],
+                [3, "supporting blog posts, secondary features"],
+                [1, "about, legal, auxiliary pages"],
+              ] as const
+            ).map(([score, desc]) => (
+              <div key={score} className="flex items-center gap-2.5">
+                <PriorityIcons filled={score} size="size-3" />
+                <span className="text-xs font-medium text-foreground">
+                  {score}
+                </span>
+                <span className="text-xs text-muted-foreground">— {desc}</span>
+              </div>
+            ))}
           </div>
         </div>
       </PopoverContent>
@@ -252,23 +230,21 @@ function PriorityDropdown({
         <button
           type="button"
           className="inline-flex items-center gap-1 transition-opacity hover:opacity-70"
-          aria-label={`Priority: ${PRIORITY_CONFIG[value].label}`}
+          aria-label={`Priority: ${value}`}
         >
-          <PriorityIcons filled={PRIORITY_CONFIG[value].filled} />
+          <PriorityIcons filled={value} />
           <IconChevronDown className="size-3 text-muted-foreground/50" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-40 rounded-xl">
-        {(["high", "medium", "low"] as const).map((p) => (
+        {([5, 4, 3, 2, 1] as const).map((p) => (
           <DropdownMenuItem
             key={p}
             onSelect={() => onChange(p)}
-            className={cn(value === p && "bg-accent")}
+            className={cn("focus:bg-muted focus:text-foreground", value === p && "bg-muted")}
           >
-            <PriorityIcons filled={PRIORITY_CONFIG[p].filled} size="size-3.5" />
-            <span className="font-medium text-foreground">
-              {PRIORITY_CONFIG[p].label}
-            </span>
+            <PriorityIcons filled={p} size="size-3.5" />
+            <span className="font-medium text-foreground">{p}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -369,29 +345,50 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
   const [open, setOpen] = useState(false)
   const [url, setUrl] = useState("")
   const [pageType, setPageType] = useState<PageType>("landing_page")
-  const [priority, setPriority] = useState<PagePriority>("medium")
+  const [priority, setPriority] = useState<PagePriority>(3)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!url.trim()) return
+    if (!url.trim() || submitting) return
 
-    let normalized = url.trim()
-    if (!normalized.startsWith("http")) normalized = `https://${normalized}`
+    setSubmitting(true)
+    setError(null)
 
-    onAdd({
-      id: crypto.randomUUID(),
-      url: normalized,
-      title: null,
-      description: null,
-      page_type: pageType,
-      priority,
-      opportunities_count: 0,
-    })
+    try {
+      const res = await fetch("/api/pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url.trim(), page_type: pageType, priority }),
+      })
 
-    setUrl("")
-    setPageType("landing_page")
-    setPriority("medium")
-    setOpen(false)
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error ?? "Failed to add page.")
+        return
+      }
+
+      onAdd({
+        id: data.id,
+        url: data.url,
+        title: data.title,
+        description: data.description,
+        page_type: toPageType(data.page_type),
+        priority: (data.priority as PagePriority) ?? priority,
+        opportunities_count: 0,
+      })
+
+      setUrl("")
+      setPageType("landing_page")
+      setPriority(3)
+      setOpen(false)
+    } catch {
+      setError("Failed to add page.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -471,31 +468,23 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
                     className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted/50"
                   >
                     <span className="flex items-center gap-1.5">
-                      <PriorityIcons
-                        filled={PRIORITY_CONFIG[priority].filled}
-                        size="size-3.5"
-                      />
+                      <PriorityIcons filled={priority} size="size-3.5" />
                       <span className="font-medium text-foreground">
-                        {PRIORITY_CONFIG[priority].label}
+                        {priority}
                       </span>
                     </span>
                     <IconChevronDown className="size-4 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="rounded-xl">
-                  {(["high", "medium", "low"] as const).map((p) => (
+                  {([5, 4, 3, 2, 1] as const).map((p) => (
                     <DropdownMenuItem
                       key={p}
                       onSelect={() => setPriority(p)}
-                      className={cn(priority === p && "bg-accent")}
+                      className={cn("focus:bg-muted focus:text-foreground", priority === p && "bg-muted")}
                     >
-                      <PriorityIcons
-                        filled={PRIORITY_CONFIG[p].filled}
-                        size="size-3.5"
-                      />
-                      <span className="font-medium text-foreground">
-                        {PRIORITY_CONFIG[p].label}
-                      </span>
+                      <PriorityIcons filled={p} size="size-3.5" />
+                      <span className="font-medium text-foreground">{p}</span>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -503,18 +492,23 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
             </div>
           </div>
 
+          {error && (
+            <p className="text-xs text-destructive">{error}</p>
+          )}
+
           <div className="flex justify-end gap-2 pt-2">
             <DialogClose asChild>
-              <Button type="button" variant="ghost" size="sm" className="rounded-full">
+              <Button type="button" variant="ghost" size="sm" className="rounded-full" disabled={submitting}>
                 Cancel
               </Button>
             </DialogClose>
             <Button
               type="submit"
               size="sm"
-              disabled={!url.trim()}
+              disabled={!url.trim() || submitting}
               className="rounded-full bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot) disabled:opacity-40"
             >
+              {submitting ? <IconLoader2 className="size-3.5 animate-spin" /> : null}
               Add page
             </Button>
           </div>
@@ -541,14 +535,14 @@ export function PagesClient() {
       title: p.title,
       description: p.description,
       page_type: toPageType(p.page_type),
-      priority: p.priority as PagePriority,
+      priority: (p.priority as unknown as PagePriority) ?? 3,
       opportunities_count: count,
     }
   })
 
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>("priority")
-  const [sortDir, setSortDir] = useState<SortDir>("asc")
+  const [sortDir, setSortDir] = useState<SortDir>("desc")
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -574,7 +568,22 @@ export function PagesClient() {
   }
 
   function handlePriorityChange(id: string, priority: PagePriority) {
+    const prev = storePages.find((p) => p.id === id)?.priority
     updatePagePriority(id, priority as Parameters<typeof updatePagePriority>[1])
+
+    fetch("/api/pages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, priority }),
+    }).then((res) => {
+      if (!res.ok && prev !== undefined) {
+        updatePagePriority(id, prev as Parameters<typeof updatePagePriority>[1])
+      }
+    }).catch(() => {
+      if (prev !== undefined) {
+        updatePagePriority(id, prev as Parameters<typeof updatePagePriority>[1])
+      }
+    })
   }
 
   function handleAddPage(page: ProductPage) {

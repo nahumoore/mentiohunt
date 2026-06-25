@@ -1,5 +1,6 @@
 import type { Application } from "express"
 import { analyzeBacklinkSiteRouter } from "./analyze-backlink-site.js"
+import { crawlSinglePageRouter } from "./crawl-single-page.js"
 import { devDiscoverCompetitorBacklinksRouter } from "./dev-discover-competitor-backlinks.js"
 import { freeToolCompetitorBacklinkGapRouter } from "./free-tool-competitor-backlink-gap.js"
 import { devDiscoverUnlinkedMentionsRouter } from "./dev-discover-unlinked-mentions.js"
@@ -20,6 +21,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(analyzeBacklinkSiteRouter)
   app.use(freeToolCompetitorBacklinkGapRouter)
   app.use(onboardingCompleteRouter)
+  app.use(crawlSinglePageRouter)
   app.use(resendInboundWebhookRouter)
   app.use(redditUserAnalyzerRouter)
   app.use(googleIndexCheckerRouter)

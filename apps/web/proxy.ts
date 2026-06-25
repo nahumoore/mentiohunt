@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 const PROTECTED_ROUTES = ["/dashboard", "/onboarding"]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { supabase, supabaseResponse } = createClient(request)
 
   const { data: { user } } = await supabase.auth.getUser()

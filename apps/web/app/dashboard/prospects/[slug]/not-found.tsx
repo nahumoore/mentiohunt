@@ -10,7 +10,7 @@ import Link from "next/link"
 
 export default function ProspectNotFound() {
   return (
-    <main className="relative min-h-[calc(100vh-7rem)] overflow-hidden rounded-4xl border border-border/70 bg-card px-5 py-7 shadow-sm ring-1 ring-foreground/5 sm:px-8 sm:py-10 lg:px-10">
+    <main className="relative min-h-[calc(100vh-7rem)] overflow-hidden rounded-xl border border-border bg-card px-5 py-7 shadow-sm sm:px-8 sm:py-10 lg:px-10">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-28 right-[-6rem] size-72 rounded-full bg-orange/20 blur-3xl" />
         <div className="absolute bottom-[-9rem] left-[-8rem] size-80 rounded-full bg-blaze-orange/10 blur-3xl" />

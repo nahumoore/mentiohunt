@@ -14,7 +14,6 @@ import {
   IconFileText,
   IconLink,
   IconLoader2,
-  IconWorld,
   IconX,
 } from "@tabler/icons-react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -22,14 +21,12 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
 const ENGINE_LABELS: Record<EngineKey, string> = {
-  directories: "Directories",
   backlinks: "Backlink opportunities",
   pages: "Product pages",
 }
 
 const ITEM_ICONS: Record<DiscoveryItemType, React.ComponentType<{ size?: number; className?: string }>> = {
   backlink: IconLink,
-  directory: IconWorld,
   page: IconFileText,
 }
 
@@ -75,7 +72,7 @@ function ItemCard({ item }: { item: DiscoveryItem }) {
   )
 }
 
-const ENGINE_KEYS: EngineKey[] = ["directories", "backlinks", "pages"]
+const ENGINE_KEYS: EngineKey[] = ["backlinks", "pages"]
 
 export function DiscoveryProgressIsland({
   productId,

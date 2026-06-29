@@ -1,5 +1,7 @@
 import {
+  IconCircleCheck,
   IconCircleX,
+  IconLink,
   IconListDetails,
   IconSend,
   IconSparkles,
@@ -49,6 +51,16 @@ export const STATUS_CONFIG: Record<ProspectStatus, StatusConfig> = {
     icon: IconSend,
     color: "text-orange-600 bg-orange-500/10",
   },
+  negotiating: {
+    label: "Negotiating",
+    icon: IconLink,
+    color: "text-yellow-600 bg-yellow-500/10",
+  },
+  won: {
+    label: "Won",
+    icon: IconCircleCheck,
+    color: "text-green-600 bg-green-500/10",
+  },
   dismissed: {
     label: "Dismissed",
     icon: IconCircleX,
@@ -71,6 +83,16 @@ export const STATUS_FILTERS: ProspectFilterConfig[] = [
     value: "contacted",
     label: STATUS_CONFIG.contacted.label,
     icon: STATUS_CONFIG.contacted.icon,
+  },
+  {
+    value: "negotiating",
+    label: STATUS_CONFIG.negotiating.label,
+    icon: STATUS_CONFIG.negotiating.icon,
+  },
+  {
+    value: "won",
+    label: STATUS_CONFIG.won.label,
+    icon: STATUS_CONFIG.won.icon,
   },
   {
     value: "dismissed",

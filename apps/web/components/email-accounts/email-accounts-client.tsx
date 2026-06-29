@@ -5,9 +5,18 @@ import {
   IconArrowLeft,
   IconChevronRight,
   IconCircleCheckFilled,
+  IconInfoCircle,
   IconMailOff,
   IconPlus,
+  IconShieldLock,
+  IconStar,
+  IconUsers,
+  IconMailCheck,
+  IconTrendingUp,
+  IconX,
 } from "@tabler/icons-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -19,7 +28,6 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Switch } from "@workspace/ui/components/switch"
 import { cn } from "@workspace/ui/lib/utils"
-import Link from "next/link"
 import { useState } from "react"
 
 import type {
@@ -27,7 +35,6 @@ import type {
   AccountStatus,
   EmailAccount,
 } from "@/app/dashboard/email-accounts/_data"
-import { SEED_ACCOUNTS } from "@/app/dashboard/email-accounts/_data"
 import { PROVIDER_CONFIG, ProviderIcon } from "./provider-config"
 
 const STATUS_CONFIG: Record<
@@ -104,11 +111,22 @@ function AccountCard({ account }: { account: EmailAccount }) {
   )
 }
 
+const APP_PASSWORD_CALLOUT: Partial<
+  Record<AccountProvider, { text: string; href: string }>
+> = {
+  gmail: {
+    text: "Gmail blocks plain passwords. Enable 2-Step Verification, then generate a 16-character App Password to use here.",
+    href: "https://myaccount.google.com/apppasswords",
+  },
+  outlook: {
+    text: "Microsoft requires an App Password when MFA is enabled. Generate one in your Microsoft account security settings.",
+    href: "https://account.live.com/proofs/AppPassword",
+  },
+}
+
 const PROVIDER_ORDER: AccountProvider[] = [
   "gmail",
-  "google_workspace",
   "outlook",
-  "yahoo",
   "zoho",
   "smtp",
 ]
@@ -122,7 +140,7 @@ function ProviderPicker({
   onSelect: (p: AccountProvider) => void
 }) {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 gap-3">
       {PROVIDER_ORDER.map((p) => {
         const cfg = PROVIDER_CONFIG[p]
         const active = selected === p
@@ -132,14 +150,14 @@ function ProviderPicker({
             type="button"
             onClick={() => onSelect(p)}
             className={cn(
-              "flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center transition-all",
+              "flex items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition-all",
               active
                 ? "border-primary bg-primary/5 ring-1 ring-primary/20"
                 : "border-border/60 bg-background hover:border-border hover:bg-muted/30"
             )}
           >
             <ProviderIcon provider={p} size="size-8" />
-            <span className="text-[0.65rem] font-medium leading-tight text-muted-foreground">
+            <span className="text-sm font-medium text-foreground">
               {cfg.label}
             </span>
           </button>
@@ -152,38 +170,115 @@ function ProviderPicker({
 function CredentialsForm({
   provider,
   onBack,
+  onConnected,
 }: {
   provider: AccountProvider
   onBack: () => void
+  onConnected: () => void
 }) {
   const cfg = PROVIDER_CONFIG[provider]
+  const router = useRouter()
 
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [smtpHost, setSmtpHost] = useState(cfg.smtpHost ?? "")
+  const [smtpPort, setSmtpPort] = useState(String(cfg.smtpPort ?? ""))
   const [smtpUser, setSmtpUser] = useState("")
   const [smtpPass, setSmtpPass] = useState("")
   const [sameCredentials, setSameCredentials] = useState(true)
+  const [imapHost, setImapHost] = useState(cfg.imapHost ?? "")
+  const [imapPort, setImapPort] = useState(String(cfg.imapPort ?? ""))
   const [imapUser, setImapUser] = useState("")
   const [imapPass, setImapPass] = useState("")
 
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const callout = APP_PASSWORD_CALLOUT[provider]
+
+  async function handleSubmit() {
+    setError(null)
+    setLoading(true)
+    try {
+      const res = await fetch("/api/email-accounts/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider,
+          name,
+          email,
+          smtpHost,
+          smtpPort: Number(smtpPort),
+          smtpUser,
+          smtpPass,
+          imapHost: imapHost || undefined,
+          imapPort: imapPort ? Number(imapPort) : undefined,
+          imapUser: imapUser || undefined,
+          imapPass: imapPass || undefined,
+          sameCredentials,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Try again.")
+        return
+      }
+      router.refresh()
+      onConnected()
+    } catch {
+      setError("Network error. Check your connection and try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-5 pt-1">
-      {/* Identity */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <label className="text-[0.7rem] font-bold uppercase text-muted-foreground">
-            Send from
-          </label>
-          <Input placeholder="Alex Johnson" />
+      {callout && (
+        <div className="flex gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/8 px-3.5 py-3">
+          <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-amber-600" />
+          <p className="text-xs leading-5 text-amber-800 dark:text-amber-300">
+            {callout.text}{" "}
+            <a
+              href={callout.href}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium underline underline-offset-2"
+            >
+              Generate App Password →
+            </a>
+          </p>
         </div>
-        <div className="space-y-1.5">
-          <label className="text-[0.7rem] font-bold uppercase text-muted-foreground">
-            Email address
-          </label>
-          <Input placeholder="you@yourdomain.com" type="email" />
+      )}
+
+      {/* Identity */}
+      <div className="space-y-2">
+        <p className="text-[0.7rem] font-bold uppercase tracking-wide text-muted-foreground">
+          Account name
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <label className="text-[0.68rem] text-muted-foreground">Send from</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Alex Johnson"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[0.68rem] text-muted-foreground">Email address</label>
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@yourdomain.com"
+              type="email"
+            />
+          </div>
         </div>
       </div>
 
       {/* SMTP */}
-      <div className="space-y-2">
+      <div className="space-y-2 border-t border-border/50 pt-4">
         <p className="text-[0.7rem] font-bold uppercase tracking-wide text-muted-foreground">
           SMTP — sending
         </p>
@@ -191,14 +286,16 @@ function CredentialsForm({
           <div className="space-y-1.5">
             <label className="text-[0.68rem] text-muted-foreground">Host</label>
             <Input
-              defaultValue={cfg.smtpHost ?? ""}
+              value={smtpHost}
+              onChange={(e) => setSmtpHost(e.target.value)}
               placeholder="smtp.yourdomain.com"
             />
           </div>
           <div className="w-20 space-y-1.5">
             <label className="text-[0.68rem] text-muted-foreground">Port</label>
             <Input
-              defaultValue={cfg.smtpPort ?? ""}
+              value={smtpPort}
+              onChange={(e) => setSmtpPort(e.target.value)}
               placeholder="587"
               type="number"
             />
@@ -226,7 +323,7 @@ function CredentialsForm({
       </div>
 
       {/* IMAP */}
-      <div className="space-y-2">
+      <div className="space-y-2 border-t border-border/50 pt-4">
         <div className="flex items-center justify-between">
           <p className="text-[0.7rem] font-bold uppercase tracking-wide text-muted-foreground">
             IMAP — reply reading
@@ -246,14 +343,16 @@ function CredentialsForm({
           <div className="space-y-1.5">
             <label className="text-[0.68rem] text-muted-foreground">Host</label>
             <Input
-              defaultValue={cfg.imapHost ?? ""}
+              value={imapHost}
+              onChange={(e) => setImapHost(e.target.value)}
               placeholder="imap.yourdomain.com"
             />
           </div>
           <div className="w-20 space-y-1.5">
             <label className="text-[0.68rem] text-muted-foreground">Port</label>
             <Input
-              defaultValue={cfg.imapPort ?? ""}
+              value={imapPort}
+              onChange={(e) => setImapPort(e.target.value)}
               placeholder="993"
               type="number"
             />
@@ -286,19 +385,23 @@ function CredentialsForm({
         Credentials are encrypted at rest. We only send from this address and read replies.
       </p>
 
+      {error && (
+        <p className="text-xs text-red-600">{error}</p>
+      )}
+
       <div className="flex items-center justify-between pt-1">
-        <Button type="button" variant="ghost" size="sm" onClick={onBack}>
+        <Button type="button" variant="ghost" size="sm" onClick={onBack} disabled={loading}>
           <IconArrowLeft className="size-3.5" />
           Back
         </Button>
         <div className="flex gap-2">
           <DialogClose asChild>
-            <Button type="button" variant="ghost" size="sm">
+            <Button type="button" variant="ghost" size="sm" disabled={loading}>
               Cancel
             </Button>
           </DialogClose>
-          <Button type="button" size="sm">
-            Connect account
+          <Button type="button" size="sm" onClick={handleSubmit} disabled={loading}>
+            {loading ? "Connecting…" : "Connect account"}
           </Button>
         </div>
       </div>
@@ -330,6 +433,12 @@ function ConnectAccountDialog() {
 
   function handleBack() {
     setStep(1)
+  }
+
+  function handleConnected() {
+    setOpen(false)
+    setStep(1)
+    setSelectedProvider(null)
   }
 
   return (
@@ -371,20 +480,124 @@ function ConnectAccountDialog() {
         )}
 
         {step === 2 && selectedProvider && (
-          <CredentialsForm provider={selectedProvider} onBack={handleBack} />
+          <CredentialsForm
+            provider={selectedProvider}
+            onBack={handleBack}
+            onConnected={handleConnected}
+          />
         )}
       </DialogContent>
     </Dialog>
   )
 }
 
-export function EmailAccountsClient() {
-  const [accounts] = useState<EmailAccount[]>(SEED_ACCOUNTS)
+export type UserPlan = "active" | "free_trial" | "canceled"
+
+const UNLOCK_BULLETS = [
+  {
+    icon: <IconMailCheck className="size-4 text-primary" />,
+    title: "Your own sending domain",
+    body: "Outreach goes out from your brand — not a shared pool recipients have seen from dozens of other senders.",
+  },
+  {
+    icon: <IconTrendingUp className="size-4 text-primary" />,
+    title: "Higher deliverability",
+    body: "Dedicated inboxes hold their own reputation. One bad actor in a shared pool hurts everyone.",
+  },
+  {
+    icon: <IconStar className="size-4 text-primary" />,
+    title: "Founder-level trust signal",
+    body: "Personalized from-addresses get meaningfully higher reply rates. Founders respond to founders.",
+  },
+]
+
+function LockedFeatureState({ plan }: { plan: Exclude<UserPlan, "active"> }) {
+  const isTrial = plan === "free_trial"
+
+  return (
+    <div className="max-w-3xl">
+      {/* Plan badge + context */}
+      {!isTrial && (
+        <div className="mb-5 flex items-center gap-3">
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-red-500/10 px-2.5 py-1 text-[0.65rem] font-semibold text-red-600 ring-1 ring-red-500/20">
+            <IconX className="size-3" />
+            Subscription inactive
+          </span>
+          <p className="text-sm text-muted-foreground">
+            Your subscription is inactive. Outreach has paused.
+          </p>
+        </div>
+      )}
+
+      {/* Current state card */}
+      <div className="mb-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+        <p className="mb-3 text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground/50">
+          Currently sending from
+        </p>
+        <div className="flex items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted ring-1 ring-border/60">
+            <IconUsers className="size-4 text-muted-foreground" />
+          </span>
+          <div>
+            <p className="text-sm font-medium text-foreground">Shared domain pool</p>
+            <p className="text-xs text-muted-foreground">
+              mentiohuntapp.com · not your brand
+            </p>
+          </div>
+          <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-[0.65rem] font-semibold text-amber-700 ring-1 ring-amber-500/20">
+            <IconShieldLock className="size-3" />
+            Free trial
+          </span>
+        </div>
+      </div>
+
+      {/* Unlock bullets — 3 columns to stay compact */}
+      <div className="mb-5 rounded-2xl border border-primary/15 bg-primary/4 px-5 py-5">
+        <p className="mb-4 text-[0.65rem] font-bold uppercase tracking-wider text-primary/70">
+          With a paid plan
+        </p>
+        <div className="grid grid-cols-3 gap-5">
+          {UNLOCK_BULLETS.map((bullet) => (
+            <div key={bullet.title} className="flex flex-col gap-2">
+              <span className="flex size-7 items-center justify-center rounded-lg border border-primary/15 bg-primary/8">
+                {bullet.icon}
+              </span>
+              <p className="text-sm font-semibold text-foreground">{bullet.title}</p>
+              <p className="text-xs leading-5 text-muted-foreground">{bullet.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="flex items-center gap-4">
+        <Link
+          href="/dashboard/billing"
+          className="inline-flex h-9 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-crimson-carrot"
+        >
+          {isTrial ? "Upgrade now" : "Reactivate plan"}
+        </Link>
+        <p className="text-xs text-muted-foreground">
+          Unlimited inboxes · custom domains · reply tracking
+        </p>
+      </div>
+    </div>
+  )
+}
+
+export function EmailAccountsClient({
+  userPlan = "active",
+  accounts,
+}: {
+  userPlan?: UserPlan
+  accounts: EmailAccount[]
+}) {
+  if (userPlan === "free_trial" || userPlan === "canceled") {
+    return <LockedFeatureState plan={userPlan} />
+  }
 
   const activeCount = accounts.filter((a) => a.status === "active").length
-  const totalCap = accounts
-    .filter((a) => a.status === "active")
-    .reduce((sum, a) => sum + a.dailySendCap, 0)
+  const totalCap = accounts.reduce((sum, a) => sum + a.dailySendCap, 0)
 
   if (accounts.length === 0) {
     return (

@@ -9,7 +9,6 @@ import { devPopulateMissingSeoMetricsRouter } from "./dev-populate-missing-seo-m
 import { devSendOnboardingEmailRouter } from "./dev-send-onboarding-email.js"
 import { devUpdateAllSeoMetricsRouter } from "./dev-update-all-seo-metrics.js"
 import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunities-by-url.js"
-import { directoryOpportunitiesRouter } from "./find-directory-opportunities.js"
 import { googleIndexCheckerRouter } from "./google-index-checker.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
 import { resendInboundWebhookRouter } from "./resend-inbound-webhook.js"
@@ -27,7 +26,6 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(googleIndexCheckerRouter)
 
   if (isDev) {
-    app.use(directoryOpportunitiesRouter)
     app.use(verifyDirectoryUrlsRouter)
     app.use(devUpdateAllSeoMetricsRouter)
     app.use(devPopulateMissingSeoMetricsRouter)

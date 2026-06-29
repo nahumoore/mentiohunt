@@ -4,9 +4,9 @@ import { timingSafeEqual } from "node:crypto"
 import { sendOnboardingCompleteEmail } from "../helpers/emails/send-onboarding-complete.js"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
 import { discoverCompetitorBacklinks } from "../methods/competitor-backlinks/discover-competitor-backlinks.js"
+import { generateFollowupEmails } from "../methods/email-sequences/generate-followup-emails.js"
 import { crawlProductPages } from "../methods/product-pages/crawl-product-pages.js"
 import { discoverUnlinkedMentions } from "../methods/unlinked-mentions/discover-unlinked-mentions.js"
-import { findDirectoryOpportunitiesForProduct } from "./find-directory-opportunities.js"
 
 const log = createLogger("route-onboarding-complete")
 
@@ -14,8 +14,6 @@ const log = createLogger("route-onboarding-complete")
 // Daily jobs call the discovery methods without limits (full defaults).
 const ONBOARDING_BACKLINK_LIMITS = { maxCompetitors: 2, maxProspects: 10 }
 const ONBOARDING_MENTION_LIMITS = { maxCandidates: 12, maxProspects: 10 }
-
-type DirectoryOnboardingResult = Awaited<ReturnType<typeof findDirectoryOpportunitiesForProduct>>
 
 export const onboardingCompleteRouter: IRouter = Router()
 
@@ -40,13 +38,11 @@ function readBodyString(body: unknown, key: string) {
 async function sendOnboardingSummaryEmail({
   userId,
   productId,
-  directoryResult,
   backlinkDiscoveryResult,
   pagesResult,
 }: {
   userId: string
   productId: string
-  directoryResult: PromiseSettledResult<DirectoryOnboardingResult>
   backlinkDiscoveryResult: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }>
   pagesResult: PromiseSettledResult<{
     pagesFound: number
@@ -93,7 +89,6 @@ async function sendOnboardingSummaryEmail({
     userId,
     userName: profile.name,
     productName: product.product_name,
-    directoryResult,
     backlinkResult: backlinkDiscoveryResult,
     pagesResult,
   })
@@ -129,6 +124,146 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
   )
 })
 
+async function resolveEmailAccount(userId: string): Promise<{ id: string } | null> {
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("tier")
+    .eq("id", userId)
+    .single()
+
+  const isPaid = profile?.tier === "pro" || profile?.tier === "agency"
+
+  if (isPaid) {
+    const { data: userAccount } = await supabaseAdmin
+      .from("email_accounts")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("is_public", false)
+      .eq("status", "active")
+      .limit(1)
+      .single()
+
+    if (userAccount) return userAccount
+  }
+
+  const { data: publicAccount } = await supabaseAdmin
+    .from("email_accounts")
+    .select("id")
+    .eq("is_public", true)
+    .single()
+
+  return publicAccount ?? null
+}
+
+async function assignSequences(
+  userId: string,
+  productId: string,
+  productContext: { productName: string; productDescription: string; websiteUrl: string },
+  emailSettings: { offering: string | null; voiceTone: string | null }
+): Promise<void> {
+  const account = await resolveEmailAccount(userId)
+
+  if (!account) {
+    log.warn("assignSequences: no email account available, skipping", { userId, productId })
+    return
+  }
+
+  const { data: prospects } = await supabaseAdmin
+    .from("backlink_prospects")
+    .select("id, contact_name, email_subject, email_body")
+    .eq("product_id", productId)
+    .is("email_account_id", null)
+
+  if (!prospects?.length) {
+    log.info("assignSequences: no unassigned prospects", { productId })
+    return
+  }
+
+  log.info("assignSequences START", { productId, count: prospects.length, accountId: account.id })
+
+  const now = new Date()
+  const hour1 = new Date(now.getTime() + 60 * 60 * 1000)
+  const day3 = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
+  const day7 = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+  const followupResults = await Promise.all(
+    prospects.map((p) =>
+      generateFollowupEmails({
+        productName: productContext.productName,
+        productDescription: productContext.productDescription,
+        websiteUrl: productContext.websiteUrl,
+        contactName: p.contact_name,
+        step1Body: p.email_body ?? "",
+        offering: emailSettings.offering,
+        voiceTone: emailSettings.voiceTone,
+      })
+    )
+  )
+
+  const sequences = prospects.flatMap((p, i) => {
+    const reSubject = p.email_subject ? `Re: ${p.email_subject}` : null
+    const followups = followupResults[i]
+    const firstName = p.contact_name?.split(" ")[0] ?? "there"
+
+    const step2Body =
+      followups?.step2Body ??
+      `Hi ${firstName},\n\nWanted to reach out once more — happy to share more details if helpful.\n\nBest,\nNico`
+
+    const step3Body =
+      followups?.step3Body ??
+      `Hi ${firstName},\n\nLast note from me — if timing ever works out, I'd love to connect.\n\nBest,\nNico\n\nP.S. No hard feelings if it's not a fit — I won't follow up after this.`
+
+    return [
+      {
+        prospect_id: p.id,
+        email_account_id: account.id,
+        step: 1,
+        subject: p.email_subject,
+        body: p.email_body,
+        scheduled_at: hour1.toISOString(),
+      },
+      {
+        prospect_id: p.id,
+        email_account_id: account.id,
+        step: 2,
+        subject: reSubject,
+        body: step2Body,
+        scheduled_at: day3.toISOString(),
+      },
+      {
+        prospect_id: p.id,
+        email_account_id: account.id,
+        step: 3,
+        subject: reSubject,
+        body: step3Body,
+        scheduled_at: day7.toISOString(),
+      },
+    ]
+  })
+
+  const { error: seqError } = await supabaseAdmin
+    .from("prospect_sequences")
+    .insert(sequences)
+
+  if (seqError) {
+    log.error("assignSequences: failed to insert sequences", { productId, error: seqError.message })
+    return
+  }
+
+  const { error: updateError } = await supabaseAdmin
+    .from("backlink_prospects")
+    .update({ email_account_id: account.id })
+    .eq("product_id", productId)
+    .is("email_account_id", null)
+
+  if (updateError) {
+    log.error("assignSequences: failed to update prospects", { productId, error: updateError.message })
+    return
+  }
+
+  log.success("assignSequences done", { productId, sequences: sequences.length })
+}
+
 async function runOnboardingJobs(
   userId: string,
   productId: string,
@@ -150,11 +285,10 @@ async function runOnboardingJobs(
       .from("backlink_prospects_settings")
       .update({
         discovery_status: {
-          directories: "running",
           backlinks: "running",
           pages: "running",
           started_at: new Date().toISOString(),
-          total: 3,
+          total: 2,
         },
       })
       .eq("product_id", productId)
@@ -184,24 +318,7 @@ async function runOnboardingJobs(
     const emailSettings = { voice_tone: settings?.voice_tone ?? null, offering: settings?.offering ?? null }
     const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention"]
 
-    const [directoryResult, backlinkDiscoveryResult, mentionDiscoveryResult, pagesResult] = await Promise.allSettled([
-      (async () => {
-        const t = Date.now()
-        log.info("findDirectoryOpportunities START", { productId })
-        let failed = false
-        try {
-          const result = await findDirectoryOpportunitiesForProduct(productId)
-          log.success("findDirectoryOpportunities done", { durationMs: Date.now() - t, result })
-          return result
-        } catch (err) {
-          failed = true
-          log.error("findDirectoryOpportunities FAILED", { durationMs: Date.now() - t, error: String(err) })
-          await setEngineStatus("directories", "failed")
-          throw err
-        } finally {
-          if (!failed) await setEngineStatus("directories", "done")
-        }
-      })(),
+    const [backlinkDiscoveryResult, mentionDiscoveryResult, pagesResult] = await Promise.allSettled([
       (async () => {
         if (!product || !opportunityTypes.includes("competitor_backlink")) {
           if (!product) log.warn("discoverCompetitorBacklinks: product not found, skipping", { productId })
@@ -265,12 +382,16 @@ async function runOnboardingJobs(
 
     log.info("all jobs END", { durationMs: Date.now() - t0 })
 
-    if (directoryResult.status === "rejected") {
-      log.error("onboarding directory discovery failed", {
-        productId,
-        error: String(directoryResult.reason),
-      })
-    }
+    await assignSequences(
+      userId,
+      productId,
+      {
+        productName: product?.product_name ?? "",
+        productDescription: product?.product_description ?? "",
+        websiteUrl: product?.website_url ?? "",
+      },
+      { offering: emailSettings.offering, voiceTone: emailSettings.voice_tone }
+    )
 
     if (backlinkDiscoveryResult.status === "rejected") {
       log.error("onboarding backlink discovery failed", {
@@ -312,7 +433,6 @@ async function runOnboardingJobs(
     await sendOnboardingSummaryEmail({
       userId,
       productId,
-      directoryResult,
       backlinkDiscoveryResult: combinedBacklinkResult,
       pagesResult,
     })

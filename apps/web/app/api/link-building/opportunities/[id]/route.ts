@@ -6,7 +6,7 @@ export const runtime = "nodejs"
 
 const patchSchema = z.union([
   z.object({
-    status: z.enum(["contacted", "dismissed"]),
+    status: z.enum(["contacted", "negotiating", "won", "dismissed"]),
     email_subject: z.undefined(),
     email_body: z.undefined(),
   }),

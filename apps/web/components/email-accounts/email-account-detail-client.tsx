@@ -7,6 +7,7 @@ import {
   IconServer,
   IconSettings,
   IconTrash,
+  IconWifi,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -17,10 +18,19 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { cn } from "@workspace/ui/lib/utils"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import type { EmailAccount } from "@/app/dashboard/email-accounts/_data"
+import { useEmailAccountStore } from "@/stores/email-account-store"
 import { PROVIDER_CONFIG, ProviderIcon } from "./provider-config"
+
+type TestResult = {
+  ok: boolean
+  results: {
+    smtp: { ok: boolean; error?: string }
+    imap: { ok: boolean; error?: string } | null
+  }
+}
 
 function Field({
   label,
@@ -74,10 +84,45 @@ export function EmailAccountDetailClient({
 }: {
   account: EmailAccount
 }) {
+  const upsertEmailAccountDetail = useEmailAccountStore((s) => s.upsertEmailAccountDetail)
+
+  useEffect(() => {
+    upsertEmailAccountDetail({ id: account.id, email: account.email })
+  }, [account.id, account.email, upsertEmailAccountDetail])
+
   const [name, setName] = useState(account.name)
   const [cap, setCap] = useState(String(account.dailySendCap))
+  const [testing, setTesting] = useState(false)
+  const [smtpVerified, setSmtpVerified] = useState(false)
+  const [imapVerified, setImapVerified] = useState(false)
+  const smtpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const imapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const providerCfg = PROVIDER_CONFIG[account.provider]
+
+  async function handleTestConnection() {
+    setTesting(true)
+    try {
+      const res = await fetch("/api/email-accounts/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: account.id }),
+      })
+      const data = await res.json() as Partial<TestResult>
+      if (data.results?.smtp.ok) {
+        setSmtpVerified(true)
+        if (smtpTimerRef.current) clearTimeout(smtpTimerRef.current)
+        smtpTimerRef.current = setTimeout(() => setSmtpVerified(false), 3000)
+      }
+      if (data.results?.imap?.ok) {
+        setImapVerified(true)
+        if (imapTimerRef.current) clearTimeout(imapTimerRef.current)
+        imapTimerRef.current = setTimeout(() => setImapVerified(false), 3000)
+      }
+    } finally {
+      setTesting(false)
+    }
+  }
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
@@ -193,12 +238,27 @@ export function EmailAccountDetailClient({
           <SectionCard>
             <div className="flex flex-col gap-5">
               <div className="flex items-center justify-between">
-                <p className="text-[0.7rem] font-bold tracking-wide text-muted-foreground uppercase">
+                <p className="flex items-center gap-1.5 text-[0.7rem] font-bold tracking-wide text-muted-foreground uppercase">
                   SMTP (sending)
+                  <span className={cn(
+                    "inline-flex items-center gap-1 text-emerald-600 transition-all duration-700",
+                    smtpVerified ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-1"
+                  )}>
+                    <IconCircleCheckFilled className="size-3" />
+                    Verified
+                  </span>
                 </p>
-                <Button size="sm" variant="ghost" className="h-7 text-xs">
-                  <IconRefresh className="size-3.5" />
-                  Test connection
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs"
+                  onClick={handleTestConnection}
+                  disabled={testing}
+                >
+                  {testing
+                    ? <IconRefresh className="size-3.5 animate-spin" />
+                    : <IconWifi className="size-3.5" />}
+                  {testing ? "Testing…" : "Test connection"}
                 </Button>
               </div>
 
@@ -235,8 +295,15 @@ export function EmailAccountDetailClient({
               </div>
 
               <div className="space-y-3 border-t border-border/50 pt-2">
-                <p className="text-[0.7rem] font-bold tracking-wide text-muted-foreground uppercase">
+                <p className="flex items-center gap-1.5 text-[0.7rem] font-bold tracking-wide text-muted-foreground uppercase">
                   IMAP (reply reading)
+                  <span className={cn(
+                    "inline-flex items-center gap-1 text-emerald-600 transition-all duration-700",
+                    imapVerified ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-1"
+                  )}>
+                    <IconCircleCheckFilled className="size-3" />
+                    Verified
+                  </span>
                 </p>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="col-span-2 space-y-1.5">

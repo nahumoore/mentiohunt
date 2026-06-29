@@ -1,5 +1,5 @@
 import { supabaseServer } from "@/lib/supabase/server"
-import type { ProspectDetail } from "@/stores/prospect-store"
+import type { ProspectDetail, ProspectSequence } from "@/stores/prospect-store"
 import { notFound, redirect } from "next/navigation"
 
 import { ProspectClientPage } from "./client-page"
@@ -10,6 +10,7 @@ export default async function ProspectPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+
   const supabase = await supabaseServer()
   const {
     data: { user },
@@ -35,21 +36,42 @@ export default async function ProspectPage({
     notFound()
   }
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("id, product_name, website_url")
-    .eq("id", prospect.product_id)
-    .eq("user_id", user.id)
-    .maybeSingle()
+  const [productResult, sequencesResult, profileResult] = await Promise.all([
+    supabase
+      .from("products")
+      .select("id, product_name, website_url")
+      .eq("id", prospect.product_id)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("prospect_sequences")
+      .select("id, step, subject, body, status, scheduled_at, sent_at")
+      .eq("prospect_id", prospect.id)
+      .order("step", { ascending: true }),
+    supabase
+      .from("profiles")
+      .select("tier")
+      .eq("id", user.id)
+      .maybeSingle(),
+  ])
 
-  if (!product) {
+  if (!productResult.data) {
     notFound()
   }
+
+  if (sequencesResult.error) {
+    console.error("Error fetching prospect sequences:", sequencesResult.error)
+  }
+
+  const sequences: ProspectSequence[] = sequencesResult.data ?? []
+  const isFreeUser = profileResult.data == null ? true : profileResult.data.tier === "free"
 
   return (
     <ProspectClientPage
       prospect={prospect as ProspectDetail}
-      product={{ productName: product.product_name, websiteUrl: product.website_url }}
+      product={{ productName: productResult.data.product_name, websiteUrl: productResult.data.website_url }}
+      sequences={sequences}
+      isFreeUser={isFreeUser}
     />
   )
 }

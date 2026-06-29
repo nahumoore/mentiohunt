@@ -12,36 +12,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
-import { cn } from "@workspace/ui/lib/utils"
 import { useMemo, useState } from "react"
 
 import type { ProspectStatus } from "@/app/dashboard/prospects/_data"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
 import { OpportunityPipelineRow } from "./prospect-pipeline-row"
+import { StatusOverviewV1 } from "./prospect-status-overview"
 
 type StageValue = "all" | ProspectStatus
 
-interface Stage {
-  value: StageValue
-  label: string
-  dotClass: string
-}
-
-const PIPELINE_STAGES: Stage[] = [
-  { value: "all", label: "All", dotClass: "bg-primary" },
-  { value: "new", label: "New", dotClass: "bg-blue-400" },
-  { value: "contacted", label: "Contacted", dotClass: "bg-amber-400" },
-  { value: "dismissed", label: "Dismissed", dotClass: "bg-slate-400" },
-]
-
 type SortKey = "contact" | "domain" | "dr" | "relevance"
 type SortDir = "asc" | "desc"
-
-function stageCount(prospects: ProspectListItem[], value: StageValue): number {
-  if (value === "all") return prospects.length
-  return prospects.filter((p) => p.status === value).length
-}
 
 function sortProspects(
   list: ProspectListItem[],
@@ -97,7 +79,7 @@ interface OpportunityPipelineProps {
 }
 
 export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
-  const [activeStage, setActiveStage] = useState<StageValue>("all")
+  const [activeStage, setActiveStage] = useState<StageValue>("new")
   const [sortKey, setSortKey] = useState<SortKey>("contact")
   const [sortDir, setSortDir] = useState<SortDir>("asc")
 
@@ -120,47 +102,11 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Stage filter bar */}
-      <div className="flex items-center gap-0.5 overflow-x-auto">
-        {PIPELINE_STAGES.map((stage, i) => {
-          const isActive = activeStage === stage.value
-          const count = stageCount(prospects, stage.value)
-          return (
-            <span
-              key={stage.value}
-              className="flex shrink-0 items-center gap-0.5"
-            >
-              {i > 0 && (
-                <span className="mx-2 select-none text-border">·</span>
-              )}
-              <button
-                type="button"
-                onClick={() => setActiveStage(stage.value)}
-                className={cn(
-                  "relative inline-flex items-center gap-1.5 rounded px-1 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <span
-                  className={cn(
-                    "size-1.5 shrink-0 rounded-full",
-                    stage.dotClass
-                  )}
-                />
-                {stage.label}
-                <span className="font-mono font-bold tabular-nums text-foreground">
-                  {count}
-                </span>
-                {isActive && (
-                  <span className="absolute bottom-0 left-1 right-1 h-px bg-primary" />
-                )}
-              </button>
-            </span>
-          )
-        })}
-      </div>
+      <StatusOverviewV1
+        prospects={prospects}
+        activeStage={activeStage}
+        onStageChange={(s) => setActiveStage(s as StageValue)}
+      />
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">

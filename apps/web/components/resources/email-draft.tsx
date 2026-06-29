@@ -1,19 +1,21 @@
+import type { ReactNode } from "react"
+
 interface EmailDraftProps {
   subject: string
   to?: string
   from?: string
   body?: string
-  children?: string
+  children?: ReactNode
 }
 
 export function EmailDraft({
   subject,
   to = "Recipient",
   from = "Sender",
-  body: bodyProp,
+  body,
   children,
 }: EmailDraftProps) {
-  const body = (bodyProp ?? children ?? "").trim()
+  const bodyText = body?.trim()
 
   return (
     <figure className="my-10 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_18px_60px_-52px_var(--pumpkin-spice)]">
@@ -41,9 +43,15 @@ export function EmailDraft({
       </div>
 
       <div className="bg-background px-4 py-5 sm:px-6 sm:py-6">
-        <div className="whitespace-pre-wrap font-sans text-sm leading-7 text-foreground sm:text-[0.95rem]">
-          {body}
-        </div>
+        {bodyText ? (
+          <div className="whitespace-pre-wrap font-sans text-sm leading-7 text-foreground sm:text-[0.95rem]">
+            {bodyText}
+          </div>
+        ) : (
+          <div className="font-sans text-sm leading-7 sm:text-[0.95rem] [&_p]:!mt-0 [&_p]:!text-sm [&_p]:!leading-7 [&_p]:!text-foreground [&_p+p]:!mt-4 [&_ul]:!my-2 [&_ul]:!text-sm [&_li]:!leading-7 [&_li]:!text-foreground">
+            {children}
+          </div>
+        )}
       </div>
     </figure>
   )

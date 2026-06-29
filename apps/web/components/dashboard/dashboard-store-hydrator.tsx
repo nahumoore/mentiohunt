@@ -14,8 +14,8 @@ import type { ProspectListItem } from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import type { DashboardProfile } from "@/stores/profile-store"
 import { useProfileStore } from "@/stores/profile-store"
-import type { DirectorySubmissionListItem } from "@/stores/directory-submission-store"
-import { useDirectorySubmissionStore } from "@/stores/directory-submission-store"
+import type { DirectoryListItem } from "@/stores/directory-store"
+import { useDirectoryStore } from "@/stores/directory-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
 import { usePagesStore } from "@/stores/pages-store"
 
@@ -24,7 +24,7 @@ type DashboardStoreHydratorProps = {
   product: DashboardProduct | null
   prospects: ProspectListItem[]
   hasCompletedProspectRun: boolean
-  directorySubmissions: DirectorySubmissionListItem[]
+  directories: DirectoryListItem[]
   discoverySettings: DiscoverySettings | null
   outreachSettings: OutreachSettings | null
   backlinkNetworkMembership: BacklinkNetworkMembership | null
@@ -37,7 +37,7 @@ export function DashboardStoreHydrator({
   product,
   prospects,
   hasCompletedProspectRun,
-  directorySubmissions,
+  directories,
   discoverySettings,
   outreachSettings,
   backlinkNetworkMembership,
@@ -49,12 +49,12 @@ export function DashboardStoreHydrator({
     useProductStore.getState().setProduct(product)
     useProspectStore.getState().setProspects(prospects)
     useProspectStore.getState().setHasCompletedRun(hasCompletedProspectRun)
-    useDirectorySubmissionStore.getState().setSubmissions(directorySubmissions)
+    useDirectoryStore.getState().setDirectories(directories)
     useDiscoverySettingsStore.getState().setSettings(discoverySettings)
     useOutreachSettingsStore.getState().setSettings(outreachSettings)
     useBacklinkNetworkStore.getState().setMembership(backlinkNetworkMembership)
     usePagesStore.getState().setPages(pages)
-  }, [profile, product, prospects, hasCompletedProspectRun, directorySubmissions, discoverySettings, outreachSettings, backlinkNetworkMembership, pages])
+  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages])
 
   return children
 }

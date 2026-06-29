@@ -15,24 +15,14 @@ type ProviderMeta = {
 
 export const PROVIDER_CONFIG: Record<AccountProvider, ProviderMeta> = {
   gmail: {
-    label: "Gmail",
+    label: "Gmail / Google Workspace",
     faviconDomain: "gmail.com",
     smtpHost: "smtp.gmail.com",
     smtpPort: 587,
     imapHost: "imap.gmail.com",
     imapPort: 993,
-    smtpUserPlaceholder: "you@gmail.com",
-    smtpPassPlaceholder: "App Password (16 chars)",
-  },
-  google_workspace: {
-    label: "Google Workspace",
-    faviconDomain: "workspace.google.com",
-    smtpHost: "smtp.gmail.com",
-    smtpPort: 587,
-    imapHost: "imap.gmail.com",
-    imapPort: 993,
     smtpUserPlaceholder: "you@yourdomain.com",
-    smtpPassPlaceholder: "App Password (16 chars)",
+    smtpPassPlaceholder: "Password",
   },
   outlook: {
     label: "Outlook / Microsoft 365",
@@ -42,19 +32,9 @@ export const PROVIDER_CONFIG: Record<AccountProvider, ProviderMeta> = {
     imapHost: "outlook.office365.com",
     imapPort: 993,
     smtpUserPlaceholder: "you@outlook.com",
-    smtpPassPlaceholder: "App Password",
+    smtpPassPlaceholder: "Password",
   },
-  yahoo: {
-    label: "Yahoo Mail",
-    faviconDomain: "yahoo.com",
-    smtpHost: "smtp.mail.yahoo.com",
-    smtpPort: 587,
-    imapHost: "imap.mail.yahoo.com",
-    imapPort: 993,
-    smtpUserPlaceholder: "you@yahoo.com",
-    smtpPassPlaceholder: "App Password",
-  },
-  zoho: {
+zoho: {
     label: "Zoho Mail",
     faviconDomain: "zoho.com",
     smtpHost: "smtp.zoho.com",
@@ -62,7 +42,7 @@ export const PROVIDER_CONFIG: Record<AccountProvider, ProviderMeta> = {
     imapHost: "imap.zoho.com",
     imapPort: 993,
     smtpUserPlaceholder: "you@zoho.com",
-    smtpPassPlaceholder: "Account password",
+    smtpPassPlaceholder: "Password",
   },
   smtp: {
     label: "Custom SMTP",

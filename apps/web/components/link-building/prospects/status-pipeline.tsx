@@ -6,7 +6,7 @@ import {
   type ProspectStatus,
 } from "@/app/dashboard/prospects/_data"
 
-const STATUS_ORDER: ProspectStatus[] = ["new", "contacted"]
+const STATUS_ORDER: ProspectStatus[] = ["new", "contacted", "negotiating", "won"]
 
 export function StatusPipeline({ status }: { status: ProspectStatus }) {
   if (status === "dismissed") {

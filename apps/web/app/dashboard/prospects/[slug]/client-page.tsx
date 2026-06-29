@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import {
@@ -10,25 +10,106 @@ import {
   IconBrandTwitter,
   IconBrandYoutube,
   IconCalendar,
-  IconCircleCheck,
-  IconCircleX,
-  IconClipboard,
+  IconCheck,
+  IconChevronRight,
   IconExternalLink,
-  IconLoader2,
   IconMail,
+  IconMailCheck,
+  IconMessage2,
+  IconPlayerPause,
+  IconSend,
   IconSparkles,
   IconUser,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Json } from "@workspace/supabase/database-types"
 
-import { IconBrandGmail } from "@/components/custom-icons/brand-gmail"
-import { IconBrandOutlook } from "@/components/custom-icons/brand-outlook"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
+import { Switch } from "@workspace/ui/components/switch"
+
 import { captureEvent } from "@/lib/analytics"
+import { formatRelative } from "@/lib/format-date"
 import { PROSPECT_TIER_CONFIG } from "@/lib/opportunity-types"
-import type { ProspectDetail } from "@/stores/prospect-store"
+import type { ProspectDetail, ProspectSequence } from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
-import { STATUS_CONFIG, formatDate } from "@/app/dashboard/prospects/_data"
+import { STATUS_CONFIG, formatDate, type ProspectStatus } from "@/app/dashboard/prospects/_data"
+import { EmailSequenceNav } from "@/components/prospects/email-sequence-nav"
+
+const PIPELINE_STEPS: ProspectStatus[] = ["new", "contacted", "negotiating", "won"]
+
+function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
+  if (status === "dismissed") {
+    const cfg = STATUS_CONFIG.dismissed
+    const Icon = cfg.icon
+    return (
+      <div className="flex items-center gap-3">
+        {PIPELINE_STEPS.map((s, index) => {
+          const cfg = STATUS_CONFIG[s]
+          const Icon = cfg.icon
+          return (
+            <div key={s} className="flex items-center gap-1">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground/20">
+                <Icon className="size-3" />
+                {cfg.label}
+              </span>
+              {index < PIPELINE_STEPS.length - 1 && (
+                <IconChevronRight className="ml-1 size-3 shrink-0 text-muted-foreground/15" />
+              )}
+            </div>
+          )
+        })}
+        <span className="ml-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-muted-foreground bg-muted">
+          <Icon className="size-3.5" />
+          {cfg.label}
+        </span>
+      </div>
+    )
+  }
+
+  const currentIdx = PIPELINE_STEPS.indexOf(status)
+
+  return (
+    <div className="flex items-center gap-0.5">
+      {PIPELINE_STEPS.map((s, index) => {
+        const cfg = STATUS_CONFIG[s]
+        const Icon = cfg.icon
+        const isActive = index === currentIdx
+        const isPast = index < currentIdx
+
+        return (
+          <div key={s} className="flex items-center gap-0.5">
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                isActive
+                  ? "bg-primary/10 text-primary ring-1 ring-inset ring-primary/20"
+                  : isPast
+                    ? "text-primary/50"
+                    : "text-muted-foreground/25"
+              )}
+            >
+              {isPast ? <IconCheck className="size-3" /> : <Icon className="size-3" />}
+              {cfg.label}
+            </span>
+            {index < PIPELINE_STEPS.length - 1 && (
+              <IconChevronRight
+                className={cn(
+                  "size-3 shrink-0",
+                  isPast ? "text-primary/30" : "text-muted-foreground/20"
+                )}
+              />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 type ProspectProduct = {
   productName: string
@@ -39,11 +120,16 @@ function getDiceBearUrl(seed: string): string {
   return `https://api.dicebear.com/10.x/micah/svg?mouthVariant=smirk&facialHairVariant=&hairVariant=dannyPhantom,fonze,full,pixie&hairProbability=100&baseColor=f9c9b6,ac6651,f5bd8a&backgroundColor=ffffff&seed=${encodeURIComponent(seed)}`
 }
 
+function nullishString(v: string | null | undefined): string | null {
+  if (!v || v === "null" || v === "undefined" || v.trim() === "") return null
+  return v
+}
+
 function parseSocialLinks(raw: Json | null | undefined): Record<string, string> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {}
   return Object.fromEntries(
     Object.entries(raw as Record<string, Json>)
-      .filter(([, v]) => typeof v === "string")
+      .filter(([, v]) => typeof v === "string" && nullishString(v as string) !== null)
       .map(([k, v]) => [k, v as string])
   )
 }
@@ -51,7 +137,7 @@ function parseSocialLinks(raw: Json | null | undefined): Record<string, string> 
 function parseRawMetadataBio(raw: Json | null | undefined): string | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
   const obj = raw as Record<string, Json>
-  return typeof obj.bio === "string" ? obj.bio : null
+  return typeof obj.bio === "string" ? nullishString(obj.bio) : null
 }
 
 function getHostname(url: string): string {
@@ -78,11 +164,149 @@ function drBarColor(dr: number): string {
   return "bg-primary"
 }
 
+function ConversationView({
+  prospect,
+  sequences,
+}: {
+  prospect: ProspectDetail
+  sequences: ProspectSequence[]
+}) {
+  const subject = prospect.email_subject ?? "Collaboration opportunity"
+  const sentSteps = sequences.filter((s) => s.status === "sent")
+  const [replyBody, setReplyBody] = useState("")
+  const [isSending, setIsSending] = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [])
+
+  function handleSend() {
+    if (!replyBody.trim()) return
+    setIsSending(true)
+    setTimeout(() => {
+      setIsSending(false)
+      setReplyBody("")
+    }, 1200)
+  }
+
+  function handleAiDraft() {
+    setReplyBody(
+      `Hi ${prospect.contact_name?.split(" ")[0] ?? "there"},\n\nThanks for getting back to me — really appreciate it.\n\nWe're building [your product description]. The article I had in mind was [article URL], where a mention of our tool in the context of [topic] would feel like a natural fit for your readers.\n\nHappy to share more context or even draft the exact paragraph you could use. Would that be helpful?\n\nBest,\n[Your name]`
+    )
+  }
+
+  return (
+    <div className="flex flex-col">
+      {/* Thread subject */}
+      <div className="mb-4 flex items-center gap-2">
+        <IconMail className="size-3.5 shrink-0 text-muted-foreground/50" />
+        <p className="text-[11px] font-semibold text-muted-foreground/60 truncate">
+          Re: {subject}
+        </p>
+      </div>
+
+      {/* Sent messages */}
+      <div className="space-y-4 mb-6">
+        {sentSteps.length === 0 ? (
+          <p className="text-sm text-muted-foreground/60 italic">No emails sent yet.</p>
+        ) : (
+          sentSteps.map((seq) => (
+            <div key={seq.id} className="flex gap-3">
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ring-1 bg-primary/10 text-primary ring-primary/20">
+                Y
+              </div>
+              <div className="flex-1 min-w-0 rounded-xl border border-l-2 border-l-primary border-border bg-card px-4 py-3 transition-all">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-[11px] font-semibold text-primary">
+                      You (via Mentiohunt)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-600">
+                      <IconMailCheck className="size-2.5" />
+                      Sent
+                    </span>
+                    {seq.sent_at && (
+                      <span className="text-[10px] text-muted-foreground/40">
+                        {formatRelative(new Date(seq.sent_at))}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                  {seq.body ?? ""}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Compose reply */}
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        {/* Compose header */}
+        <div className="flex items-center gap-2 border-b border-border bg-muted/20 px-4 py-2">
+          <IconMessage2 className="size-3.5 text-muted-foreground/50" />
+          <span className="text-[11px] font-semibold text-muted-foreground/60">Reply</span>
+          <span className="mx-1 text-muted-foreground/20">·</span>
+          <span className="text-[11px] text-muted-foreground/50 truncate">Re: {subject}</span>
+        </div>
+
+        {/* To row */}
+        <div className="flex items-center gap-2 border-b border-border/60 px-4 py-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">To</span>
+          <span className="text-[11px] text-muted-foreground font-medium">
+            {prospect.contact_name ?? "Lead"}{" "}
+            <span className="text-muted-foreground/50">&lt;{prospect.contact_email ?? `hello@${prospect.domain ?? "example.com"}`}&gt;</span>
+          </span>
+        </div>
+
+        {/* Textarea */}
+        <textarea
+          rows={6}
+          value={replyBody}
+          onChange={(e) => setReplyBody(e.target.value)}
+          placeholder={`Reply to ${prospect.contact_name?.split(" ")[0] ?? "them"}…`}
+          className="w-full resize-none bg-transparent px-4 py-3 text-sm text-foreground leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none"
+        />
+
+        {/* Actions */}
+        <div className="flex items-center justify-between border-t border-border/60 px-4 py-2.5">
+          <button
+            type="button"
+            onClick={handleAiDraft}
+            className="inline-flex items-center gap-1.5 rounded-full border border-(--color-princeton-orange)/30 bg-(--color-princeton-orange)/8 px-3 py-1.5 text-[11px] font-semibold text-(--color-blaze-orange) transition-colors hover:bg-(--color-princeton-orange)/15"
+          >
+            <IconSparkles className="size-3" />
+            AI Draft
+          </button>
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={!replyBody.trim() || isSending}
+            className="inline-flex items-center gap-1.5 rounded-full bg-(--color-blaze-orange) px-4 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-(--color-crimson-carrot) disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <IconSend className="size-3" />
+            {isSending ? "Sending…" : "Send Reply"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function ProspectClientPage({
   prospect,
+  sequences,
+  isFreeUser,
 }: {
   prospect: ProspectDetail
   product: ProspectProduct
+  sequences: ProspectSequence[]
+  isFreeUser: boolean
 }) {
   const router = useRouter()
   const upsertProspectDetail = useProspectStore((s) => s.upsertProspectDetail)
@@ -90,10 +314,10 @@ export function ProspectClientPage({
   const updateProspectStatuses = useProspectStore((s) => s.updateProspectStatuses)
   const current = storedProspect ?? prospect
 
-  const [subject, setSubject] = useState(current.email_subject ?? "")
-  const [body, setBody] = useState(current.email_body ?? "")
   const [statusLoading, setStatusLoading] = useState<"contacted" | "dismissed" | null>(null)
-  const [copied, setCopied] = useState<"subject" | "body" | null>(null)
+  const [pauseModalOpen, setPauseModalOpen] = useState(false)
+  const [activeEmailIdx, setActiveEmailIdx] = useState(0)
+  const [sameThread, setSameThread] = useState(true)
 
   useEffect(() => {
     upsertProspectDetail(prospect)
@@ -101,14 +325,10 @@ export function ProspectClientPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prospect.id])
 
-  useEffect(() => {
-    setSubject(current.email_subject ?? "")
-    setBody(current.email_body ?? "")
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current.id])
-
   const socialLinks = parseSocialLinks(current.contact_social_links)
   const bio = parseRawMetadataBio(current.raw_metadata)
+  const contactName = nullishString(current.contact_name)
+  const contactEmail = nullishString(current.contact_email)
   const tierCfg = PROSPECT_TIER_CONFIG[current.tier]
   const TierIcon = tierCfg?.icon
   const statusCfg = STATUS_CONFIG[current.status]
@@ -116,18 +336,22 @@ export function ProspectClientPage({
   const avatarUrl = getDiceBearUrl(current.domain ?? current.id)
   const dr = current.domain_rating
 
-  const hasRecipient = !!current.contact_email?.trim()
-  const hasDraft = subject.trim().length > 0 || body.trim().length > 0
+  function stepLabel(step: number): string {
+    if (step === 1) return "Initial outreach"
+    if (step === 2) return "Follow-up"
+    return "Last follow-up"
+  }
 
-  const gmailUrl = hasRecipient
-    ? `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(current.contact_email!)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    : null
-  const outlookUrl = hasRecipient
-    ? `https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(current.contact_email!)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    : null
-  const mailtoUrl = hasRecipient
-    ? `mailto:${encodeURIComponent(current.contact_email!)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    : null
+  const emailSequence = sequences.map((seq) => ({
+    number: seq.step,
+    label: stepLabel(seq.step),
+    subject: seq.subject ?? "",
+    body: seq.body ?? "",
+    status: seq.status === "sent" ? ("sent" as const) : ("scheduled" as const),
+    date: new Date(seq.sent_at ?? seq.scheduled_at ?? current.created_at),
+  }))
+  const activeEmail = emailSequence[activeEmailIdx]!
+  const isNegotiating = current.status === "negotiating"
 
   async function handleStatusUpdate(status: "contacted" | "dismissed") {
     setStatusLoading(status)
@@ -146,21 +370,21 @@ export function ProspectClientPage({
     }
   }
 
-  function copyText(text: string, field: "subject" | "body") {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(field)
-      setTimeout(() => setCopied(null), 1500)
-    })
-    captureEvent("outreach_email_copied", { prospect_id: current.id, field })
-  }
-
   return (
-    <div className="-mx-6 -mt-6 -mb-6 flex flex-col">
+    <div
+      className="-mx-6 -mt-6 -mb-6 flex flex-col"
+      style={{ height: "calc(100svh - 3.5rem)" }}
+    >
+      {/* Pipeline status header */}
+      <div className="flex shrink-0 items-center gap-4 border-b bg-background px-8 py-3">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
+          Status
+        </span>
+        <DetailStatusPipeline status={current.status} />
+      </div>
+
       {/* Two-panel layout */}
-      <div
-        className="flex overflow-hidden"
-        style={{ height: "calc(100svh - 3.5rem)" }}
-      >
+      <div className="flex flex-1 overflow-hidden">
         {/* ─── Left sidebar ─── */}
         <aside className="w-[320px] shrink-0 overflow-y-auto border-r bg-background px-5 py-6">
           {/* Site identity */}
@@ -181,17 +405,6 @@ export function ProspectClientPage({
                   <h2 className="font-heading text-base font-bold tracking-tight leading-tight break-all">
                     {current.domain}
                   </h2>
-                  {statusCfg && StatusIcon && (
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                        statusCfg.color
-                      )}
-                    >
-                      <StatusIcon className="size-3" />
-                      {statusCfg.label}
-                    </span>
-                  )}
                 </div>
                 {current.found_url && (
                   <a
@@ -228,24 +441,24 @@ export function ProspectClientPage({
           )}
 
           {/* Contact section */}
-          {(current.contact_name || current.contact_email) && (
+          {(contactName || contactEmail) && (
             <section className="mb-4">
               <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground mb-1.5">
                 Contact
               </p>
-              {current.contact_name && (
+              {contactName && (
                 <div className="flex items-center gap-1.5 mb-1">
                   <IconUser className="size-3 shrink-0 text-muted-foreground" />
                   <p className="text-sm font-semibold text-foreground">
-                    {current.contact_name}
+                    {contactName}
                   </p>
                 </div>
               )}
-              {current.contact_email && (
+              {contactEmail && (
                 <div className="flex items-center gap-1.5">
                   <IconMail className="size-3 shrink-0 text-muted-foreground" />
                   <p className="text-xs text-muted-foreground truncate">
-                    {current.contact_email}
+                    {contactEmail}
                   </p>
                 </div>
               )}
@@ -382,149 +595,161 @@ export function ProspectClientPage({
 
         {/* ─── Main panel ─── */}
         <div className="flex-1 overflow-y-auto px-8 py-6">
-          {/* Email draft header row */}
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
-              Email draft
-            </p>
-            {hasDraft && hasRecipient && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] text-muted-foreground">Open in</span>
-                {gmailUrl && (
-                  <a
-                    href={gmailUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() =>
-                      captureEvent("outreach_open_in_client", {
-                        prospect_id: current.id,
-                        client: "gmail",
-                      })
-                    }
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-muted/40 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-                  >
-                    <IconBrandGmail className="size-3.5" />
-                    Gmail
-                  </a>
-                )}
-                {outlookUrl && (
-                  <a
-                    href={outlookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() =>
-                      captureEvent("outreach_open_in_client", {
-                        prospect_id: current.id,
-                        client: "outlook",
-                      })
-                    }
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-muted/40 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-                  >
-                    <IconBrandOutlook className="size-3.5" />
-                    Outlook
-                  </a>
-                )}
-                {mailtoUrl && (
-                  <a
-                    href={mailtoUrl}
-                    onClick={() =>
-                      captureEvent("outreach_open_in_client", {
-                        prospect_id: current.id,
-                        client: "mailto",
-                      })
-                    }
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-muted/40 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-                  >
-                    <IconExternalLink className="size-3.5 text-muted-foreground" />
-                    Default
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
 
-          {/* Subject */}
-          <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground mb-1">
-            Subject
-          </p>
-          <div className="relative mb-4">
-            <input
-              type="text"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Email subject…"
-              className="w-full rounded-lg border bg-card px-4 pr-10 py-2.5 text-sm font-semibold text-foreground focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none transition"
-            />
-            <button
-              type="button"
-              onClick={() => copyText(subject, "subject")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <IconClipboard
-                className={cn("size-3.5 transition-colors", copied === "subject" && "text-primary")}
-              />
-            </button>
-          </div>
-
-          {/* Body */}
-          <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground mb-1">
-            Message
-          </p>
-          <div className="relative mb-6">
-            <textarea
-              rows={12}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Email body…"
-              className="w-full rounded-lg border bg-card px-4 pb-8 py-3 text-sm text-foreground leading-relaxed focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none resize-none transition font-sans"
-            />
-            <button
-              type="button"
-              onClick={() => copyText(body, "body")}
-              className="absolute right-2.5 bottom-2.5 rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <IconClipboard
-                className={cn("size-3.5 transition-colors", copied === "body" && "text-primary")}
-              />
-            </button>
-          </div>
-
-          {/* Status actions */}
-          {current.status === "contacted" ? (
-            <div className="inline-flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-4 py-2.5 text-sm font-medium text-emerald-700">
-              <IconCircleCheck className="size-4" />
-              Contacted
+          {isNegotiating ? (
+            /* ── Conversation view ── */
+            <ConversationView prospect={current} sequences={sequences} />
+          ) : emailSequence.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <p className="text-sm font-medium text-foreground">No outreach sequence yet</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Connect an email account to activate automated outreach for this prospect.
+              </p>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                disabled={statusLoading !== null}
-                onClick={() => handleStatusUpdate("dismissed")}
-                className="inline-flex items-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40"
-              >
-                {statusLoading === "dismissed" ? (
-                  <IconLoader2 className="size-4 animate-spin" />
-                ) : (
-                  <IconCircleX className="size-4" />
+            /* ── Email sequence / draft view ── */
+            <>
+              <EmailSequenceNav
+                steps={emailSequence}
+                activeIdx={activeEmailIdx}
+                onSelect={setActiveEmailIdx}
+              />
+
+              {/* Email draft label */}
+              <p className="mb-3 text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+                {activeEmail.label}
+              </p>
+
+              {/* Subject row */}
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+                  Subject
+                </p>
+                {activeEmailIdx > 0 && (
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <span className="text-[10px] text-muted-foreground">Reply on same thread</span>
+                    <Switch
+                      checked={sameThread}
+                      onCheckedChange={setSameThread}
+                      aria-label="Reply on same thread"
+                    />
+                  </label>
                 )}
-                Dismiss
-              </button>
-              <button
-                type="button"
-                disabled={statusLoading !== null}
-                onClick={() => handleStatusUpdate("contacted")}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition-colors disabled:opacity-40"
-              >
-                {statusLoading === "contacted" ? (
-                  <IconLoader2 className="size-4 animate-spin" />
+              </div>
+              {(!sameThread || activeEmailIdx === 0) && (
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    readOnly={activeEmail.status === "sent" || isFreeUser}
+                    defaultValue={activeEmailIdx > 0 ? emailSequence[0]!.subject : activeEmail.subject}
+                    key={`subject-${activeEmailIdx}-${sameThread}`}
+                    placeholder="Email subject…"
+                    className={cn(
+                      "w-full rounded-lg border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition",
+                      activeEmail.status === "sent" || isFreeUser
+                        ? "cursor-default select-text text-muted-foreground"
+                        : "focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                    )}
+                  />
+                </div>
+              )}
+              {sameThread && activeEmailIdx > 0 && (
+                <div className="mb-4 flex items-center gap-2 rounded-lg border border-dashed border-border/60 bg-muted/20 px-4 py-2.5">
+                  <span className="text-[11px] text-muted-foreground/60 italic">
+                    Re: {emailSequence[0]!.subject || "—"}
+                  </span>
+                </div>
+              )}
+
+              {/* Body */}
+              <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground mb-1">
+                Message
+              </p>
+              <div className="mb-5">
+                {isFreeUser ? (
+                  <div className="overflow-hidden rounded-lg border">
+                    <textarea
+                      rows={12}
+                      readOnly
+                      defaultValue={activeEmail.body}
+                      key={`body-${activeEmailIdx}`}
+                      placeholder="Email body…"
+                      className="w-full rounded-none border-0 bg-card px-4 py-3 text-sm text-muted-foreground leading-relaxed resize-none font-sans cursor-default select-text"
+                    />
+                    <div className="border-t bg-muted/40 px-4 py-3">
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        Sent in our behalf, via our shared email accounts — editing is disabled on the free trial.{" "}
+                        <a href="/pricing" className="font-medium text-foreground underline underline-offset-2 hover:opacity-70 transition-opacity">
+                          Upgrade your plan
+                        </a>{" "}
+                        to connect your own email and take full control of outreach.
+                      </p>
+                    </div>
+                  </div>
                 ) : (
-                  <IconCircleCheck className="size-4" />
+                  <textarea
+                    rows={12}
+                    readOnly={activeEmail.status === "sent"}
+                    defaultValue={activeEmail.body}
+                    key={`body-${activeEmailIdx}`}
+                    placeholder="Email body…"
+                    className={cn(
+                      "w-full rounded-lg border bg-card px-4 py-3 text-sm text-foreground leading-relaxed resize-none transition font-sans",
+                      activeEmail.status === "sent"
+                        ? "cursor-default select-text text-muted-foreground"
+                        : "focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                    )}
+                  />
                 )}
-                Mark as contacted
-              </button>
-            </div>
+              </div>
+
+              {/* Status actions */}
+              {current.status !== "dismissed" && current.status !== "won" && (
+                <button
+                  type="button"
+                  disabled={statusLoading !== null}
+                  onClick={() => setPauseModalOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-md border border-destructive/40 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors disabled:opacity-40"
+                >
+                  <IconPlayerPause className="size-4" />
+                  Pause sequence
+                </button>
+              )}
+            </>
           )}
+
+          <Dialog open={pauseModalOpen} onOpenChange={setPauseModalOpen}>
+            <DialogContent>
+              <div className="flex flex-col gap-4">
+                <div className="flex size-10 items-center justify-center rounded-full bg-destructive/10">
+                  <IconPlayerPause className="size-5 text-destructive" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <DialogTitle>Pause sequence</DialogTitle>
+                  <DialogDescription>
+                    The outreach sequence for <span className="font-medium text-foreground">{current.domain}</span> will be paused. No further emails will be sent until you resume it.
+                  </DialogDescription>
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setPauseModalOpen(false)}
+                    className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPauseModalOpen(false)}
+                    className="inline-flex items-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-semibold text-white hover:bg-destructive/90 transition-colors"
+                  >
+                    <IconPlayerPause className="size-4" />
+                    Pause
+                  </button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

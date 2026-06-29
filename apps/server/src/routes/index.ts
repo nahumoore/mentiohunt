@@ -1,5 +1,6 @@
 import type { Application } from "express"
 import { analyzeBacklinkSiteRouter } from "./analyze-backlink-site.js"
+import { crawlSinglePageRouter } from "./crawl-single-page.js"
 import { devDiscoverCompetitorBacklinksRouter } from "./dev-discover-competitor-backlinks.js"
 import { freeToolCompetitorBacklinkGapRouter } from "./free-tool-competitor-backlink-gap.js"
 import { devDiscoverUnlinkedMentionsRouter } from "./dev-discover-unlinked-mentions.js"
@@ -8,7 +9,6 @@ import { devPopulateMissingSeoMetricsRouter } from "./dev-populate-missing-seo-m
 import { devSendOnboardingEmailRouter } from "./dev-send-onboarding-email.js"
 import { devUpdateAllSeoMetricsRouter } from "./dev-update-all-seo-metrics.js"
 import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunities-by-url.js"
-import { directoryOpportunitiesRouter } from "./find-directory-opportunities.js"
 import { googleIndexCheckerRouter } from "./google-index-checker.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
 import { resendInboundWebhookRouter } from "./resend-inbound-webhook.js"
@@ -20,12 +20,12 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(analyzeBacklinkSiteRouter)
   app.use(freeToolCompetitorBacklinkGapRouter)
   app.use(onboardingCompleteRouter)
+  app.use(crawlSinglePageRouter)
   app.use(resendInboundWebhookRouter)
   app.use(redditUserAnalyzerRouter)
   app.use(googleIndexCheckerRouter)
 
   if (isDev) {
-    app.use(directoryOpportunitiesRouter)
     app.use(verifyDirectoryUrlsRouter)
     app.use(devUpdateAllSeoMetricsRouter)
     app.use(devPopulateMissingSeoMetricsRouter)

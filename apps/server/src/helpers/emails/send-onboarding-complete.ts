@@ -1,15 +1,6 @@
 import { generateUnsubscribeUrl } from "./unsubscribe.js"
 import { APP_URL, escapeHtml, pluralize, sendMentiohuntEmail, statCard, statusNote } from "./base.js"
 
-type DirectoryOnboardingResult = {
-  checked: number
-  indexed: number
-  gaps: number
-  errors: number
-  newRows: number
-  totalActiveDirectories: number
-}
-
 type ProspectOnboardingResult = {
   prospectsCreated: number
   totalCostUsd: number
@@ -27,7 +18,6 @@ export async function sendOnboardingCompleteEmail({
   userId,
   userName,
   productName,
-  directoryResult,
   backlinkResult,
   pagesResult,
 }: {
@@ -35,23 +25,12 @@ export async function sendOnboardingCompleteEmail({
   userId: string
   userName: string | null
   productName: string
-  directoryResult: PromiseSettledResult<DirectoryOnboardingResult>
   backlinkResult: PromiseSettledResult<ProspectOnboardingResult>
   pagesResult: PromiseSettledResult<PagesOnboardingResult>
 }) {
   const firstName = userName?.trim().split(/\s+/)[0]
   const greeting = firstName ? `Hi ${firstName},` : "Hi,"
   const escapedProductName = escapeHtml(productName)
-
-  const directoryCoverageCard =
-    directoryResult.status === "fulfilled"
-      ? statCard(
-          "Directory coverage",
-          `${directoryResult.value.indexed}/${directoryResult.value.totalActiveDirectories}`,
-          "active directories indexed for your product",
-          "33%"
-        )
-      : ""
 
   const backlinkCard =
     backlinkResult.status === "fulfilled"
@@ -74,27 +53,11 @@ export async function sendOnboardingCompleteEmail({
       : ""
 
   const statsRow =
-    directoryCoverageCard || backlinkCard || pagesCard
-      ? `<tr>${directoryCoverageCard}${backlinkCard}${pagesCard}</tr>`
+    backlinkCard || pagesCard
+      ? `<tr>${backlinkCard}${pagesCard}</tr>`
       : ""
 
   const statusNotes = `
-    ${
-      directoryResult.status === "rejected"
-        ? statusNote(
-            "Directory discovery did not finish",
-            "Your product setup was saved, but the first directory discovery run failed. We will keep the setup available so it can be run again."
-          )
-        : ""
-    }
-    ${
-      directoryResult.status === "fulfilled" && directoryResult.value.errors > 0
-        ? statusNote(
-            "Some directory checks were inconclusive",
-            `${pluralize(directoryResult.value.errors, "directory", "directories")} could not be verified during this run.`
-          )
-        : ""
-    }
     ${
       backlinkResult.status === "rejected"
         ? statusNote(
@@ -123,7 +86,7 @@ export async function sendOnboardingCompleteEmail({
     body: `
       <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 18px; line-height:1.7;">${escapeHtml(greeting)}</p>
       <h1 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:28px; color:#241611; margin:0 0 16px; line-height:1.2; letter-spacing:-0.5px;">Your first opportunities are ready</h1>
-      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 26px; line-height:1.7;">We finished the initial Mentiohunt setup for <strong style="color:#241611;">${escapedProductName}</strong>. Here is what we found across directory prospecting, backlink discovery, and page crawling.</p>
+      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 26px; line-height:1.7;">We finished the initial Mentiohunt setup for <strong style="color:#241611;">${escapedProductName}</strong>. Here is what we found across backlink discovery and page crawling.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 -6px 10px;">
         ${statsRow}
         ${statusNotes}

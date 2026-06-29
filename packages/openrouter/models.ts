@@ -35,6 +35,13 @@ export const OPENROUTER_MODELS = {
   // Pricing: see OpenRouter model page.
   // Context window: see OpenRouter model page.
   DEEPSEEK_DEEPSEEK_V4_PRO: "deepseek/deepseek-v4-pro",
+
+  // Z AI GLM-5.
+  // OpenRouter page: https://openrouter.ai/z-ai/glm-5
+  // Description: Z AI's GLM-5 language model.
+  // Pricing: see OpenRouter model page.
+  // Context window: see OpenRouter model page.
+  Z_AI_GLM_5: "z-ai/glm-5",
 } as const
 
 export type OpenRouterModel =

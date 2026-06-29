@@ -18,6 +18,7 @@ import {
   type FilterSettings,
 } from "../competitor-backlinks/filter-backlinks.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
+import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import { checkMention, type CheckMentionResult } from "./check-mention-client.js"
 import { generateMentionEmail } from "./generate-mention-email.js"
 import { scoreMentionRelevance, type MentionCandidate } from "./score-mention-relevance.js"
@@ -189,12 +190,7 @@ export async function discoverUnlinkedMentions(
 
   const brandTerms = [productName]
 
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("name")
-    .eq("id", product.user_id)
-    .single()
-  const senderName = profile?.name ?? null
+  const senderName = await resolveSenderName(product.user_id)
 
   const runId = await createProspectRun(product.id, brandTerms)
   let totalCostUsd = 0

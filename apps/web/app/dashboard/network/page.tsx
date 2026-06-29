@@ -171,7 +171,7 @@ export default function BacklinkNetworkPage() {
 
 function NotJoinedState({ onJoin }: { onJoin: () => void }) {
   return (
-    <div className="rounded-[2rem] border border-border/70 bg-card p-6 sm:p-8">
+    <div className="rounded-[2rem] border border-border/70 bg-white p-6 sm:p-8">
       <div className="max-w-2xl space-y-5">
         <div className="space-y-3">
           <h2 className="font-heading text-3xl font-semibold tracking-tight text-balance text-foreground sm:text-4xl">
@@ -215,7 +215,7 @@ function NotJoinedState({ onJoin }: { onJoin: () => void }) {
 
 function JoinedState({ email }: { email: string }) {
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-card p-6 sm:p-8">
+    <div className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-white p-6 sm:p-8">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-10 right-0 h-56 w-56 rounded-full bg-princeton-orange/10 blur-[100px]" />
       </div>

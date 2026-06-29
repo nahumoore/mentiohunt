@@ -7,6 +7,7 @@ import { extractBacklinks, extractCompetitorDomain } from "./extract-backlinks.j
 import { filterBacklinks, extractDomainFromUrl, type TaggedBacklinkItem, type FilterSettings } from "./filter-backlinks.js"
 import { generateBacklinkEmail } from "./generate-backlink-email.js"
 import { scoreBacklinkRelevance, type ScoredBacklinkItem } from "./score-backlink-relevance.js"
+import { resolveSenderName } from "../shared/resolve-sender-name.js"
 
 const log = createLogger("discover-competitor-backlinks")
 
@@ -382,13 +383,7 @@ export async function discoverCompetitorBacklinks(
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("name")
-    .eq("id", product.user_id)
-    .single()
-
-  const senderName = profile?.name ?? null
+  const senderName = await resolveSenderName(product.user_id)
 
   const allDomains = product.competitors.map(extractCompetitorDomain)
   const competitorsToProcess = await selectCompetitorsForRun(product.id, allDomains, maxCompetitors)

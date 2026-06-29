@@ -6,18 +6,17 @@ import { useEffect, useMemo, useRef, useState } from "react"
 type PgInsert = { new: Record<string, unknown>; old: Record<string, unknown> }
 type PgUpdate = { new: Record<string, unknown>; old: Record<string, unknown> }
 
-export type EngineKey = "directories" | "backlinks" | "pages"
+export type EngineKey = "backlinks" | "pages"
 export type EngineStatus = "pending" | "running" | "done" | "failed"
 
 export type DiscoveryStatus = {
-  directories: EngineStatus
   backlinks: EngineStatus
   pages: EngineStatus
   started_at: string | null
   total: number
 }
 
-export type DiscoveryItemType = "backlink" | "directory" | "page"
+export type DiscoveryItemType = "backlink" | "page"
 
 export type DiscoveryItem = {
   id: string
@@ -32,7 +31,7 @@ type HookState = {
   items: DiscoveryItem[]
 }
 
-const ENGINE_KEYS: EngineKey[] = ["directories", "backlinks", "pages"]
+const ENGINE_KEYS: EngineKey[] = ["backlinks", "pages"]
 
 function isActive(status: DiscoveryStatus | null): boolean {
   if (!status) return false
@@ -45,16 +44,14 @@ function parseStatus(raw: unknown): DiscoveryStatus | null {
   const validStatus = (v: unknown): v is EngineStatus =>
     v === "pending" || v === "running" || v === "done" || v === "failed"
   if (
-    validStatus(s.directories) &&
     validStatus(s.backlinks) &&
     validStatus(s.pages)
   ) {
     return {
-      directories: s.directories,
       backlinks: s.backlinks,
       pages: s.pages,
       started_at: typeof s.started_at === "string" ? s.started_at : null,
-      total: typeof s.total === "number" ? s.total : 3,
+      total: typeof s.total === "number" ? s.total : 2,
     }
   }
   return null
@@ -127,31 +124,6 @@ export function useDiscoveryProgress(
                 type: "backlink" as DiscoveryItemType,
                 title: (row.domain as string | null) ?? "New prospect",
                 subtitle: "Email outreach ready",
-                timestamp: (row.discovered_at as string) ?? new Date().toISOString(),
-              },
-              ...prev.items,
-            ].slice(0, 20),
-          }))
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "directory_submissions",
-          filter: `product_id=eq.${productId}`,
-        },
-        (payload: PgInsert) => {
-          const row = payload.new
-          setState((prev) => ({
-            ...prev,
-            items: [
-              {
-                id: String(row.id),
-                type: "directory" as DiscoveryItemType,
-                title: (row.domain as string | null) ?? "New directory",
-                subtitle: "Directory opportunity",
                 timestamp: (row.discovered_at as string) ?? new Date().toISOString(),
               },
               ...prev.items,

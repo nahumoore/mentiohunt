@@ -3,6 +3,7 @@
 import {
   IconFiles,
   IconLayoutGrid,
+  IconMailBolt,
   IconNetwork,
   IconSettings,
   IconSparkles,
@@ -11,14 +12,14 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import * as React from "react"
 
-import { useDirectorySubmissionStore } from "@/stores/directory-submission-store"
+import { useEmailAccountStore } from "@/stores/email-account-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
-const opportunitiesHref = "/dashboard/opportunities"
-const directoriesHref = "/dashboard/directories"
+const opportunitiesHref = "/dashboard/prospects"
+const emailAccountsHref = "/dashboard/email-accounts"
 
 type PageConfig = {
   title: string
@@ -28,23 +29,23 @@ type PageConfig = {
 }
 
 const PAGE_CONFIG: Record<string, PageConfig> = {
-  "/dashboard/opportunities": {
-    title: "Opportunities",
+  "/dashboard/prospects": {
+    title: "Prospects",
     description:
       "Prioritized sites and next actions where there is a realistic path toward a backlink.",
     icon: IconSparkles,
-    settingsHref: "/dashboard/opportunities/settings",
+    settingsHref: "/dashboard/prospects/settings",
   },
-  "/dashboard/opportunities/settings": {
-    title: "Opportunity Settings",
+  "/dashboard/prospects/settings": {
+    title: "Prospect Settings",
     description:
-      "Choose which sources should feed your opportunity queue. Start broad, then pause anything that feels noisy.",
+      "Choose which sources should feed your prospect queue. Start broad, then pause anything that feels noisy.",
     icon: IconSettings,
   },
   "/dashboard/directories": {
     title: "Directories",
     description:
-      "Track which directories your product is listed in and whether those listings are indexed by Google.",
+      "Browse directories to submit your product to. Sort by authority to prioritize the highest-value listings.",
     icon: IconLayoutGrid,
   },
   "/dashboard/network": {
@@ -59,12 +60,18 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
       "The pages we find backlink opportunities for. Prioritize high-value pages targeting your most important keywords to build authority where it matters.",
     icon: IconFiles,
   },
+  "/dashboard/email-accounts": {
+    title: "Email Accounts",
+    description:
+      "Connect the mailboxes Mentiohunt uses to send outreach and read replies. You approve the first send per site — everything after runs on autopilot.",
+    icon: IconMailBolt,
+  },
 }
 
 export function DashboardHeader() {
   const pathname = usePathname()
   const currentProspectId = getCurrentProspectId(pathname)
-  const currentDirectorySubmissionId = getCurrentDirectorySubmissionId(pathname)
+  const currentEmailAccountId = getCurrentEmailAccountId(pathname)
   const currentProspectLabel = useProspectStore((state) => {
     if (!currentProspectId) return undefined
 
@@ -75,23 +82,16 @@ export function DashboardHeader() {
       "Current prospect"
     )
   })
-  const currentDirectorySubmissionLabel = useDirectorySubmissionStore((state) => {
-    if (!currentDirectorySubmissionId) return undefined
-
-    return (
-      state.submissionDetailsById[currentDirectorySubmissionId]?.domain ??
-      state.submissions.find(
-        (submission) => submission.id === currentDirectorySubmissionId
-      )?.domain ??
-      "Current directory"
-    )
+  const currentEmailAccountLabel = useEmailAccountStore((state) => {
+    if (!currentEmailAccountId) return undefined
+    return state.emailAccountDetailsById[currentEmailAccountId]?.email
   })
   const breadcrumbs = getBreadcrumbs(
     pathname,
     currentProspectId,
     currentProspectLabel,
-    currentDirectorySubmissionId,
-    currentDirectorySubmissionLabel
+    currentEmailAccountId,
+    currentEmailAccountLabel
   )
 
   const pageConfig = PAGE_CONFIG[pathname] ?? null
@@ -163,8 +163,8 @@ function getBreadcrumbs(
   pathname: string,
   currentProspectId?: string | null,
   currentProspectLabel?: string,
-  currentDirectorySubmissionId?: string | null,
-  currentDirectorySubmissionLabel?: string
+  currentEmailAccountId?: string | null,
+  currentEmailAccountLabel?: string
 ) {
   const segments = pathname.split("/").filter(Boolean)
   const dashboardIndex = segments.indexOf("dashboard")
@@ -179,16 +179,16 @@ function getBreadcrumbs(
     const hrefSegments = segments.slice(0, dashboardIndex + 2 + index)
     const isCurrentProspect =
       segment === currentProspectId &&
-      visibleSegments[index - 1] === "opportunities"
-    const isCurrentDirectorySubmission =
-      segment === currentDirectorySubmissionId &&
-      visibleSegments[index - 1] === "directories"
+      visibleSegments[index - 1] === "prospects"
+    const isCurrentEmailAccount =
+      segment === currentEmailAccountId &&
+      visibleSegments[index - 1] === "email-accounts"
 
     return {
       label: isCurrentProspect
         ? (currentProspectLabel ?? "Current prospect")
-        : isCurrentDirectorySubmission
-          ? (currentDirectorySubmissionLabel ?? "Current directory")
+        : isCurrentEmailAccount
+          ? (currentEmailAccountLabel ?? titleizeSegment(segment))
           : titleizeSegment(segment),
       href: `/${hrefSegments.join("/")}`,
     }
@@ -209,16 +209,11 @@ function getCurrentProspectId(pathname: string) {
   return prospectId || null
 }
 
-function getCurrentDirectorySubmissionId(pathname: string) {
-  const directorySubmissionPath = `${directoriesHref}/`
-
-  if (!pathname.startsWith(directorySubmissionPath)) return null
-
-  const [directorySubmissionId] = pathname
-    .slice(directorySubmissionPath.length)
-    .split("/")
-
-  return directorySubmissionId || null
+function getCurrentEmailAccountId(pathname: string) {
+  const base = `${emailAccountsHref}/`
+  if (!pathname.startsWith(base)) return null
+  const [id] = pathname.slice(base.length).split("/")
+  return id || null
 }
 
 function titleizeSegment(segment: string) {

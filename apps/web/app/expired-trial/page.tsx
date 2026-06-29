@@ -1,105 +1,77 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { IconCheck, IconArrowRight } from "@tabler/icons-react"
+import { FREE_TRIAL_DAYS } from "@/consts/billing"
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
-import { FREE_TRIAL_DAYS } from "@/consts/billing"
+
+const VALUE_BULLETS = [
+  "Daily discovery runs across your niche",
+  "Ranked opportunity queue with fit scores",
+  "Outreach angles and ready-to-send drafts",
+  "No manual Google digging required",
+]
 
 export default function ExpiredTrialPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-16">
-      {/* ambient glow */}
-      <div
-        className="pointer-events-none absolute inset-0 flex items-center justify-center"
-        aria-hidden
-      >
-        <div
-          className="h-[420px] w-[520px] rounded-full opacity-20 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, var(--blaze-orange) 0%, var(--pumpkin-spice) 40%, transparent 70%)",
-          }}
-        />
+      {/* ambient blobs */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="absolute left-1/2 top-1/4 h-[480px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-princeton-orange/7 blur-[100px]" />
+        <div className="absolute bottom-0 right-1/4 h-[300px] w-[400px] rounded-full bg-blaze-orange/5 blur-[100px]" />
       </div>
 
       <div className="relative z-10 w-full max-w-lg">
-        {/* badge */}
-        <div className="mb-6 flex justify-center">
-          <span
-            className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium"
-            style={{
-              borderColor: "color-mix(in oklch, var(--blaze-orange) 40%, transparent)",
-              color: "var(--pumpkin-spice)",
-              background: "color-mix(in oklch, var(--blaze-orange) 8%, transparent)",
-            }}
-          >
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--blaze-orange)" }} />
+        {/* status badge */}
+        <div className="mb-8 flex justify-center">
+          <span className="font-ui inline-flex items-center gap-2 rounded-full border border-(--color-blaze-orange)/30 bg-(--color-blaze-orange)/8 px-3 py-1 text-xs font-semibold text-(--color-pumpkin-spice) uppercase tracking-wide">
+            <span className="h-1.5 w-1.5 rounded-full bg-(--color-blaze-orange)" />
             Free trial ended
           </span>
         </div>
 
         {/* heading */}
-        <h1 className="text-center font-heading text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-          Your {FREE_TRIAL_DAYS} days are up.
-          <br />
-          <span
-            style={{
-              background:
-                "linear-gradient(90deg, var(--crimson-carrot), var(--amber-glow))",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
+        <div className="text-center">
+          <h1 className="font-heading text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
+            Your {FREE_TRIAL_DAYS} days are up.
+          </h1>
+          <h2 className="font-heading mt-2 text-4xl font-semibold tracking-tight text-balance text-(--color-blaze-orange) sm:text-5xl">
             Keep the momentum.
-          </span>
-        </h1>
-
-        <p className="mx-auto mt-5 max-w-md text-center text-base leading-relaxed text-muted-foreground">
-          You&apos;ve seen what a daily queue of qualified backlink opportunities looks like.
-          Upgrade to keep discovering sites worth pursuing — and start turning them into links.
-        </p>
+          </h2>
+          <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
+            You&apos;ve seen what a daily queue of qualified backlink opportunities looks
+            like. Upgrade to keep discovering sites worth pursuing — and start turning
+            them into links.
+          </p>
+        </div>
 
         {/* value bullets */}
-        <ul className="mt-8 space-y-2.5">
-          {[
-            "Daily discovery runs across your niche",
-            "Ranked opportunity queue with fit scores",
-            "Outreach angles and ready-to-send drafts",
-            "No manual Google digging required",
-          ].map((item) => (
-            <li key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
-              <span
-                className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px]"
-                style={{
-                  background: "color-mix(in oklch, var(--blaze-orange) 15%, transparent)",
-                  color: "var(--blaze-orange)",
-                }}
-                aria-hidden
-              >
-                ✓
+        <ul className="mt-9 space-y-3">
+          {VALUE_BULLETS.map((item) => (
+            <li key={item} className="flex items-center gap-3 text-sm text-foreground/80">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-(--color-blaze-orange)/10">
+                <IconCheck size={12} stroke={2.5} className="text-(--color-blaze-orange)" />
               </span>
               {item}
             </li>
           ))}
         </ul>
 
+        {/* divider */}
+        <div className="my-9 h-px w-full bg-border" />
+
         {/* CTA */}
-        <div className="mt-10 flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3">
           <Link
             href="/pricing"
-            className="inline-flex w-full items-center justify-center rounded-xl px-8 py-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:opacity-90 hover:shadow-xl active:scale-[0.98] sm:w-auto sm:min-w-56"
-            style={{
-              background:
-                "linear-gradient(135deg, var(--crimson-carrot) 0%, var(--pumpkin-spice) 100%)",
-              boxShadow:
-                "0 4px 24px color-mix(in oklch, var(--blaze-orange) 35%, transparent)",
-            }}
+            className="font-ui inline-flex w-full items-center justify-center gap-2 rounded-full bg-(--color-blaze-orange) px-8 py-3.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-(--color-crimson-carrot) active:scale-[0.98] sm:w-auto sm:min-w-56"
           >
             See pricing plans
+            <IconArrowRight size={16} />
           </Link>
-          <p className="text-xs text-muted-foreground">
+          <p className="font-ui text-xs text-muted-foreground">
             Starts at $49 / month · Cancel anytime
           </p>
         </div>

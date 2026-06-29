@@ -55,7 +55,7 @@ import { usePagesStore } from "@/stores/pages-store"
 import { useProfileStore } from "@/stores/profile-store"
 import { useProspectStore } from "@/stores/prospect-store"
 
-type PagePriority = "high" | "medium" | "low"
+type PagePriority = 1 | 2 | 3 | 4 | 5
 
 type ProductPage = {
   id: string
@@ -74,13 +74,6 @@ function toPageType(t: string): PageType {
   return "article"
 }
 
-const PRIORITY_CONFIG: Record<PagePriority, { label: string; filled: number }> =
-  {
-    high: { label: "High", filled: 3 },
-    medium: { label: "Medium", filled: 2 },
-    low: { label: "Low", filled: 1 },
-  }
-
 function PriorityIcons({
   filled,
   size = "size-4",
@@ -90,21 +83,15 @@ function PriorityIcons({
 }) {
   return (
     <span className="flex items-center gap-0.5">
-      {Array.from({ length: 3 }).map((_, i) =>
+      {Array.from({ length: 5 }).map((_, i) =>
         i < filled ? (
-          <IconLinkFilled key={i} className={cn(size, "text-primary")} />
+          <IconLinkFilled key={i} className={size} style={{ color: "var(--color-blaze-orange)" }} />
         ) : (
           <IconLink key={i} className={cn(size, "text-muted-foreground/30")} />
         )
       )}
     </span>
   )
-}
-
-const PRIORITY_ORDER: Record<PagePriority, number> = {
-  high: 0,
-  medium: 1,
-  low: 2,
 }
 
 type SortKey = "page" | "type" | "priority" | "opportunities"
@@ -119,8 +106,7 @@ function sortPages(
     let cmp = 0
     if (key === "page") cmp = (a.title ?? a.url).localeCompare(b.title ?? b.url)
     else if (key === "type") cmp = a.page_type.localeCompare(b.page_type)
-    else if (key === "priority")
-      cmp = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
+    else if (key === "priority") cmp = a.priority - b.priority
     else if (key === "opportunities")
       cmp = a.opportunities_count - b.opportunities_count
     return dir === "asc" ? cmp : -cmp
@@ -188,7 +174,7 @@ function PriorityInfoPopover() {
           <IconInfoCircle className="size-3.5" />
         </button>
       </PopoverTrigger>
-      <PopoverContent side="top" align="start">
+      <PopoverContent side="top" align="start" className="rounded-xl">
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-foreground">
@@ -204,34 +190,26 @@ function PriorityInfoPopover() {
             </PopoverClose>
           </div>
           <p className="text-xs leading-5 text-muted-foreground">
-            Priority controls how aggressively we hunt backlinks for each page.
-            Higher priority pages get more discovery cycles and more outreach
+            Score from 1 to 5 controls how aggressively we hunt backlinks for
+            each page. Higher scores get more discovery cycles and more outreach
             slots.
           </p>
-          <p className="text-xs leading-5 text-muted-foreground">
-            Focus <span className="font-medium text-foreground">High</span> on
-            pages targeting your most important keywords — the ones that need
-            authority to rank and drive meaningful traffic.
-          </p>
           <div className="space-y-1.5 pt-0.5">
-            {(["high", "medium", "low"] as const).map((p) => {
-              const cfg = PRIORITY_CONFIG[p]
-              return (
-                <div key={p} className="flex items-center gap-2.5">
-                  <PriorityIcons filled={cfg.filled} size="size-3" />
-                  <span className="text-xs font-medium text-foreground">
-                    {cfg.label}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {p === "high" &&
-                      "— high-intent landing pages, pillar content"}
-                    {p === "medium" &&
-                      "— supporting blog posts, secondary features"}
-                    {p === "low" && "— about, legal, auxiliary pages"}
-                  </span>
-                </div>
-              )
-            })}
+            {(
+              [
+                [5, "high-intent landing pages, pillar content"],
+                [3, "supporting blog posts, secondary features"],
+                [1, "about, legal, auxiliary pages"],
+              ] as const
+            ).map(([score, desc]) => (
+              <div key={score} className="flex items-center gap-2.5">
+                <PriorityIcons filled={score} size="size-3" />
+                <span className="text-xs font-medium text-foreground">
+                  {score}
+                </span>
+                <span className="text-xs text-muted-foreground">— {desc}</span>
+              </div>
+            ))}
           </div>
         </div>
       </PopoverContent>
@@ -252,23 +230,21 @@ function PriorityDropdown({
         <button
           type="button"
           className="inline-flex items-center gap-1 transition-opacity hover:opacity-70"
-          aria-label={`Priority: ${PRIORITY_CONFIG[value].label}`}
+          aria-label={`Priority: ${value}`}
         >
-          <PriorityIcons filled={PRIORITY_CONFIG[value].filled} />
+          <PriorityIcons filled={value} />
           <IconChevronDown className="size-3 text-muted-foreground/50" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-40">
-        {(["high", "medium", "low"] as const).map((p) => (
+      <DropdownMenuContent align="start" className="min-w-40 rounded-xl">
+        {([5, 4, 3, 2, 1] as const).map((p) => (
           <DropdownMenuItem
             key={p}
             onSelect={() => onChange(p)}
-            className={cn(value === p && "bg-accent")}
+            className={cn("focus:bg-muted focus:text-foreground", value === p && "bg-muted")}
           >
-            <PriorityIcons filled={PRIORITY_CONFIG[p].filled} size="size-3.5" />
-            <span className="font-medium text-foreground">
-              {PRIORITY_CONFIG[p].label}
-            </span>
+            <PriorityIcons filled={p} size="size-3.5" />
+            <span className="font-medium text-foreground">{p}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -289,8 +265,8 @@ function PageRow({
   const TypeIcon = typeCfg.icon
 
   return (
-    <tr className="group border-b border-border/60 transition-colors last:border-0 hover:bg-muted/30">
-      {/* Page col — 30%, truncates */}
+    <tr className="group border-b border-border/60 transition-colors last:border-0 hover:bg-muted/20">
+      {/* Page col */}
       <td className="overflow-hidden py-4 pr-3 pl-6 align-top">
         <div className="flex min-w-0 items-start gap-2.5">
           <div className="mt-0.5 shrink-0">
@@ -336,7 +312,7 @@ function PageRow({
         </div>
       </td>
 
-      {/* Type col — 18%, icon + neutral label */}
+      {/* Type col */}
       <td className="px-3 py-4 align-top">
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <TypeIcon className="size-3.5 shrink-0" />
@@ -344,7 +320,7 @@ function PageRow({
         </div>
       </td>
 
-      {/* Priority col — 22% */}
+      {/* Priority col */}
       <td className="px-3 py-4 align-top">
         <PriorityDropdown
           value={page.priority}
@@ -352,7 +328,7 @@ function PageRow({
         />
       </td>
 
-      {/* Opportunities col — 30% */}
+      {/* Opportunities col */}
       <td className="py-4 pr-6 pl-3 align-top">
         <div className="flex items-center gap-1.5">
           <IconLink className="size-4 text-muted-foreground/50" />
@@ -369,44 +345,68 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
   const [open, setOpen] = useState(false)
   const [url, setUrl] = useState("")
   const [pageType, setPageType] = useState<PageType>("landing_page")
-  const [priority, setPriority] = useState<PagePriority>("medium")
+  const [priority, setPriority] = useState<PagePriority>(3)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!url.trim()) return
+    if (!url.trim() || submitting) return
 
-    let normalized = url.trim()
-    if (!normalized.startsWith("http")) normalized = `https://${normalized}`
+    setSubmitting(true)
+    setError(null)
 
-    onAdd({
-      id: crypto.randomUUID(),
-      url: normalized,
-      title: null,
-      description: null,
-      page_type: pageType,
-      priority,
-      opportunities_count: 0,
-    })
+    try {
+      const res = await fetch("/api/pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url.trim(), page_type: pageType, priority }),
+      })
 
-    setUrl("")
-    setPageType("landing_page")
-    setPriority("medium")
-    setOpen(false)
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error ?? "Failed to add page.")
+        return
+      }
+
+      onAdd({
+        id: data.id,
+        url: data.url,
+        title: data.title,
+        description: data.description,
+        page_type: toPageType(data.page_type),
+        priority: (data.priority as PagePriority) ?? priority,
+        opportunities_count: 0,
+      })
+
+      setUrl("")
+      setPageType("landing_page")
+      setPriority(3)
+      setOpen(false)
+    } catch {
+      setError("Failed to add page.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button
+          size="sm"
+          className="rounded-full bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot)"
+        >
           <IconPlus className="size-4" />
           Add page
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="rounded-xl">
         <DialogTitle>Add page</DialogTitle>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
+            <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
               URL
             </label>
             <Input
@@ -414,19 +414,20 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               autoFocus
+              className="rounded-md"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
+              <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
                 Page type
               </label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-9 w-full items-center justify-between rounded-full border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted"
+                    className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted/50"
                   >
                     <span className="flex items-center gap-1.5 text-muted-foreground">
                       {(() => {
@@ -438,7 +439,7 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
                     <IconChevronDown className="size-4 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
+                <DropdownMenuContent align="start" className="rounded-xl">
                   {(Object.keys(PAGE_TYPE_CONFIG) as PageType[]).map((t) => {
                     const TypeIcon = PAGE_TYPE_CONFIG[t].icon
                     return (
@@ -457,41 +458,33 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
+              <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
                 Priority
               </label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-9 w-full items-center justify-between rounded-full border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted"
+                    className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted/50"
                   >
                     <span className="flex items-center gap-1.5">
-                      <PriorityIcons
-                        filled={PRIORITY_CONFIG[priority].filled}
-                        size="size-3.5"
-                      />
+                      <PriorityIcons filled={priority} size="size-3.5" />
                       <span className="font-medium text-foreground">
-                        {PRIORITY_CONFIG[priority].label}
+                        {priority}
                       </span>
                     </span>
                     <IconChevronDown className="size-4 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  {(["high", "medium", "low"] as const).map((p) => (
+                <DropdownMenuContent align="start" className="rounded-xl">
+                  {([5, 4, 3, 2, 1] as const).map((p) => (
                     <DropdownMenuItem
                       key={p}
                       onSelect={() => setPriority(p)}
-                      className={cn(priority === p && "bg-accent")}
+                      className={cn("focus:bg-muted focus:text-foreground", priority === p && "bg-muted")}
                     >
-                      <PriorityIcons
-                        filled={PRIORITY_CONFIG[p].filled}
-                        size="size-3.5"
-                      />
-                      <span className="font-medium text-foreground">
-                        {PRIORITY_CONFIG[p].label}
-                      </span>
+                      <PriorityIcons filled={p} size="size-3.5" />
+                      <span className="font-medium text-foreground">{p}</span>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -499,13 +492,23 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
             </div>
           </div>
 
+          {error && (
+            <p className="text-xs text-destructive">{error}</p>
+          )}
+
           <div className="flex justify-end gap-2 pt-2">
             <DialogClose asChild>
-              <Button type="button" variant="ghost" size="sm">
+              <Button type="button" variant="ghost" size="sm" className="rounded-full" disabled={submitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" size="sm" disabled={!url.trim()}>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={!url.trim() || submitting}
+              className="rounded-full bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot) disabled:opacity-40"
+            >
+              {submitting ? <IconLoader2 className="size-3.5 animate-spin" /> : null}
               Add page
             </Button>
           </div>
@@ -532,14 +535,14 @@ export function PagesClient() {
       title: p.title,
       description: p.description,
       page_type: toPageType(p.page_type),
-      priority: p.priority as PagePriority,
+      priority: (p.priority as unknown as PagePriority) ?? 3,
       opportunities_count: count,
     }
   })
 
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>("priority")
-  const [sortDir, setSortDir] = useState<SortDir>("asc")
+  const [sortDir, setSortDir] = useState<SortDir>("desc")
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -565,7 +568,22 @@ export function PagesClient() {
   }
 
   function handlePriorityChange(id: string, priority: PagePriority) {
+    const prev = storePages.find((p) => p.id === id)?.priority
     updatePagePriority(id, priority as Parameters<typeof updatePagePriority>[1])
+
+    fetch("/api/pages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, priority }),
+    }).then((res) => {
+      if (!res.ok && prev !== undefined) {
+        updatePagePriority(id, prev as Parameters<typeof updatePagePriority>[1])
+      }
+    }).catch(() => {
+      if (prev !== undefined) {
+        updatePagePriority(id, prev as Parameters<typeof updatePagePriority>[1])
+      }
+    })
   }
 
   function handleAddPage(page: ProductPage) {
@@ -602,8 +620,9 @@ export function PagesClient() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Trial banner */}
       {!isPaid && !bannerDismissed && (
-        <div className="flex items-center gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
+        <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
           <IconAlertTriangle className="size-4 shrink-0 text-amber-500" />
           <p className="text-sm text-muted-foreground">
             Free trial is limited to{" "}
@@ -621,13 +640,15 @@ export function PagesClient() {
           <button
             type="button"
             onClick={dismissBanner}
-            className="shrink-0 text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+            className="ml-auto shrink-0 text-muted-foreground/50 transition-colors hover:text-muted-foreground"
             aria-label="Dismiss"
           >
             <IconX className="size-3.5" />
           </button>
         </div>
       )}
+
+      {/* Toolbar */}
       <div className="flex items-center gap-3">
         <div className="relative">
           <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground/50" />
@@ -636,7 +657,7 @@ export function PagesClient() {
             placeholder="Search pages…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-9 w-64 border-border/50 bg-white pl-8 text-sm shadow-md ring-1 ring-foreground/5"
+            className="h-9 w-64 rounded-md border-border/60 bg-white pl-8 text-sm shadow-sm"
           />
         </div>
         <div className="ml-auto shrink-0">
@@ -644,16 +665,17 @@ export function PagesClient() {
         </div>
       </div>
 
+      {/* States */}
       {pages.length === 0 && !hasCompletedRun ? (
-        <Card className="px-6 py-16 text-center">
+        <Card className="rounded-xl border border-border px-6 py-16 text-center shadow-sm">
           <div className="mx-auto flex max-w-md flex-col items-center gap-3">
-            <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-              <IconLoader2 className="size-5 animate-spin text-primary" />
+            <span className="flex size-12 items-center justify-center rounded-full bg-(--color-blaze-orange)/10">
+              <IconLoader2 className="size-5 animate-spin text-(--color-blaze-orange)" />
             </span>
             <h2 className="text-base font-semibold text-foreground">
               Scanning your site for pages
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm leading-6 text-muted-foreground">
               We&apos;re fetching your sitemap and identifying the best pages to
               target for backlinks. This usually takes a few minutes — you&apos;ll
               receive an email once done!
@@ -661,14 +683,14 @@ export function PagesClient() {
           </div>
         </Card>
       ) : pages.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-4xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
-          <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-            <IconFiles className="size-5 text-primary" />
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
+          <span className="flex size-12 items-center justify-center rounded-full bg-(--color-blaze-orange)/10">
+            <IconFiles className="size-5 text-(--color-blaze-orange)" />
           </span>
           <h2 className="text-base font-semibold text-foreground">
             No pages tracked yet
           </h2>
-          <p className="max-w-sm text-sm text-muted-foreground">
+          <p className="max-w-sm text-sm leading-6 text-muted-foreground">
             Add the pages you want to earn backlinks to. Prioritize pages
             targeting your most important keywords — they get the most discovery
             attention.
@@ -677,7 +699,8 @@ export function PagesClient() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          <div className="overflow-hidden rounded-4xl bg-card shadow-md ring-1 ring-foreground/5">
+          {/* Table card */}
+          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <TooltipProvider>
               <table className="w-full table-fixed">
                 <colgroup>
@@ -687,7 +710,7 @@ export function PagesClient() {
                   <col className="w-[30%]" />
                 </colgroup>
                 <thead>
-                  <tr className="border-b border-border/60 bg-muted/30">
+                  <tr className="border-b border-border/60 bg-muted/20">
                     <th className="py-3 pr-3 pl-6 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
                       <div className="flex items-center gap-1.5">
                         Page
@@ -760,6 +783,8 @@ export function PagesClient() {
               </table>
             </TooltipProvider>
           </div>
+
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-1">
               <p className="text-xs text-muted-foreground">
@@ -773,7 +798,7 @@ export function PagesClient() {
                   size="sm"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="h-7 px-2 text-xs"
+                  className="h-7 rounded-full px-3 text-xs"
                 >
                   Previous
                 </Button>
@@ -784,7 +809,7 @@ export function PagesClient() {
                     setCurrentPage((p) => Math.min(totalPages, p + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className="h-7 px-2 text-xs"
+                  className="h-7 rounded-full px-3 text-xs"
                 >
                   Next
                 </Button>

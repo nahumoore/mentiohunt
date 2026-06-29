@@ -118,6 +118,7 @@ export type Database = {
           discovered_at: string
           domain: string | null
           domain_rating: number | null
+          email_account_id: string | null
           email_body: string | null
           email_subject: string | null
           found_url: string | null
@@ -137,6 +138,7 @@ export type Database = {
           discovered_at?: string
           domain?: string | null
           domain_rating?: number | null
+          email_account_id?: string | null
           email_body?: string | null
           email_subject?: string | null
           found_url?: string | null
@@ -156,6 +158,7 @@ export type Database = {
           discovered_at?: string
           domain?: string | null
           domain_rating?: number | null
+          email_account_id?: string | null
           email_body?: string | null
           email_subject?: string | null
           found_url?: string | null
@@ -168,6 +171,13 @@ export type Database = {
           tier?: Database["public"]["Enums"]["prospect_tier"]
         }
         Relationships: [
+          {
+            foreignKeyName: "backlink_prospects_email_account_id_fkey"
+            columns: ["email_account_id"]
+            isOneToOne: false
+            referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "backlink_prospects_product_id_fkey"
             columns: ["product_id"]
@@ -281,62 +291,73 @@ export type Database = {
         }
         Relationships: []
       }
-      directory_submissions: {
+      email_accounts: {
         Row: {
           created_at: string
-          directory_id: string
-          discovered_at: string
-          domain: string
+          daily_send_cap: number
+          email: string
+          error_message: string | null
           id: string
-          last_checked_at: string | null
-          last_indexed_at: string | null
-          listing_url: string | null
-          notes: string | null
-          product_id: string
-          status: Database["public"]["Enums"]["directory_submission_status"]
-          submitted_at: string | null
+          imap_host: string | null
+          imap_pass: string | null
+          imap_port: number | null
+          imap_user: string | null
+          is_public: boolean
+          name: string
+          provider: Database["public"]["Enums"]["email_account_provider"]
+          smtp_host: string | null
+          smtp_pass: string | null
+          smtp_port: number | null
+          smtp_user: string | null
+          status: Database["public"]["Enums"]["email_account_status"]
+          user_id: string | null
         }
         Insert: {
           created_at?: string
-          directory_id: string
-          discovered_at?: string
-          domain: string
+          daily_send_cap?: number
+          email: string
+          error_message?: string | null
           id?: string
-          last_checked_at?: string | null
-          last_indexed_at?: string | null
-          listing_url?: string | null
-          notes?: string | null
-          product_id: string
-          status?: Database["public"]["Enums"]["directory_submission_status"]
-          submitted_at?: string | null
+          imap_host?: string | null
+          imap_pass?: string | null
+          imap_port?: number | null
+          imap_user?: string | null
+          is_public?: boolean
+          name: string
+          provider: Database["public"]["Enums"]["email_account_provider"]
+          smtp_host?: string | null
+          smtp_pass?: string | null
+          smtp_port?: number | null
+          smtp_user?: string | null
+          status?: Database["public"]["Enums"]["email_account_status"]
+          user_id?: string | null
         }
         Update: {
           created_at?: string
-          directory_id?: string
-          discovered_at?: string
-          domain?: string
+          daily_send_cap?: number
+          email?: string
+          error_message?: string | null
           id?: string
-          last_checked_at?: string | null
-          last_indexed_at?: string | null
-          listing_url?: string | null
-          notes?: string | null
-          product_id?: string
-          status?: Database["public"]["Enums"]["directory_submission_status"]
-          submitted_at?: string | null
+          imap_host?: string | null
+          imap_pass?: string | null
+          imap_port?: number | null
+          imap_user?: string | null
+          is_public?: boolean
+          name?: string
+          provider?: Database["public"]["Enums"]["email_account_provider"]
+          smtp_host?: string | null
+          smtp_pass?: string | null
+          smtp_port?: number | null
+          smtp_user?: string | null
+          status?: Database["public"]["Enums"]["email_account_status"]
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "directory_submissions_directory_id_fkey"
-            columns: ["directory_id"]
+            foreignKeyName: "email_accounts_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "directories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "directory_submissions_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -525,189 +546,56 @@ export type Database = {
         }
         Relationships: []
       }
-      reply_queue_configs: {
+      prospect_sequences: {
         Row: {
-          communities: Json | null
+          body: string | null
           created_at: string
-          custom_voice_instructions: string | null
-          email_alerts_enabled: boolean
+          email_account_id: string
           id: string
-          keywords: string[]
-          last_run_at: string | null
-          last_run_status: string | null
-          platforms: Database["public"]["Enums"]["reply_queue_platform"][]
-          product_id: string
-          status: string
-          total_mentions_found: number
-          user_id: string
+          prospect_id: string
+          scheduled_at: string
+          sent_at: string | null
+          status: Database["public"]["Enums"]["prospect_sequence_status"]
+          step: number
+          subject: string | null
         }
         Insert: {
-          communities?: Json | null
+          body?: string | null
           created_at?: string
-          custom_voice_instructions?: string | null
-          email_alerts_enabled?: boolean
+          email_account_id: string
           id?: string
-          keywords?: string[]
-          last_run_at?: string | null
-          last_run_status?: string | null
-          platforms?: Database["public"]["Enums"]["reply_queue_platform"][]
-          product_id: string
-          status?: string
-          total_mentions_found?: number
-          user_id: string
+          prospect_id: string
+          scheduled_at: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["prospect_sequence_status"]
+          step: number
+          subject?: string | null
         }
         Update: {
-          communities?: Json | null
+          body?: string | null
           created_at?: string
-          custom_voice_instructions?: string | null
-          email_alerts_enabled?: boolean
+          email_account_id?: string
           id?: string
-          keywords?: string[]
-          last_run_at?: string | null
-          last_run_status?: string | null
-          platforms?: Database["public"]["Enums"]["reply_queue_platform"][]
-          product_id?: string
-          status?: string
-          total_mentions_found?: number
-          user_id?: string
+          prospect_id?: string
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["prospect_sequence_status"]
+          step?: number
+          subject?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "reply_queue_configs_product_id_fkey"
-            columns: ["product_id"]
+            foreignKeyName: "prospect_sequences_email_account_id_fkey"
+            columns: ["email_account_id"]
             isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reply_queue_items: {
-        Row: {
-          author: string | null
-          body: string
-          comment_count: number
-          community: string | null
-          config_id: string
-          created_at: string
-          engagement: number
-          fit_category: string
-          fit_score: number
-          id: string
-          platform: Database["public"]["Enums"]["reply_queue_platform"]
-          post_created_at: string | null
-          post_id: string
-          run_id: string
-          suggested_reply: string | null
-          summary: string | null
-          title: string | null
-          url: string
-          user_id: string
-          user_status: string
-        }
-        Insert: {
-          author?: string | null
-          body: string
-          comment_count?: number
-          community?: string | null
-          config_id: string
-          created_at?: string
-          engagement?: number
-          fit_category: string
-          fit_score: number
-          id?: string
-          platform: Database["public"]["Enums"]["reply_queue_platform"]
-          post_created_at?: string | null
-          post_id: string
-          run_id: string
-          suggested_reply?: string | null
-          summary?: string | null
-          title?: string | null
-          url: string
-          user_id: string
-          user_status?: string
-        }
-        Update: {
-          author?: string | null
-          body?: string
-          comment_count?: number
-          community?: string | null
-          config_id?: string
-          created_at?: string
-          engagement?: number
-          fit_category?: string
-          fit_score?: number
-          id?: string
-          platform?: Database["public"]["Enums"]["reply_queue_platform"]
-          post_created_at?: string | null
-          post_id?: string
-          run_id?: string
-          suggested_reply?: string | null
-          summary?: string | null
-          title?: string | null
-          url?: string
-          user_id?: string
-          user_status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reply_queue_items_config_id_fkey"
-            columns: ["config_id"]
-            isOneToOne: false
-            referencedRelation: "reply_queue_configs"
+            referencedRelation: "email_accounts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "reply_queue_items_run_id_fkey"
-            columns: ["run_id"]
+            foreignKeyName: "prospect_sequences_prospect_id_fkey"
+            columns: ["prospect_id"]
             isOneToOne: false
-            referencedRelation: "reply_queue_runs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reply_queue_runs: {
-        Row: {
-          config_id: string
-          created_at: string
-          date_from: string | null
-          date_to: string | null
-          error: string | null
-          id: string
-          mentions_found: number
-          posts_scanned: number
-          status: string
-          user_id: string
-        }
-        Insert: {
-          config_id: string
-          created_at?: string
-          date_from?: string | null
-          date_to?: string | null
-          error?: string | null
-          id?: string
-          mentions_found?: number
-          posts_scanned?: number
-          status?: string
-          user_id: string
-        }
-        Update: {
-          config_id?: string
-          created_at?: string
-          date_from?: string | null
-          date_to?: string | null
-          error?: string | null
-          id?: string
-          mentions_found?: number
-          posts_scanned?: number
-          status?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reply_queue_runs_config_id_fkey"
-            columns: ["config_id"]
-            isOneToOne: false
-            referencedRelation: "reply_queue_configs"
+            referencedRelation: "backlink_prospects"
             referencedColumns: ["id"]
           },
         ]
@@ -780,12 +668,8 @@ export type Database = {
     Enums: {
       billing_tier: "free" | "pro" | "agency"
       directory_check_method: "serp_check" | "head_check"
-      directory_submission_status:
-        | "not_submitted"
-        | "submitted"
-        | "indexed"
-        | "not_indexed"
-        | "dismissed"
+      email_account_provider: "gmail" | "outlook" | "zoho" | "smtp"
+      email_account_status: "active" | "error"
       email_sequence_status: "active" | "stopped" | "completed"
       email_sequence_type: "onboarding"
       page_crawl_status: "pending" | "crawled" | "failed"
@@ -799,9 +683,9 @@ export type Database = {
         | "case_study"
         | "comparison"
         | "manual"
-      prospect_status: "new" | "contacted" | "dismissed"
+      prospect_sequence_status: "pending" | "sent" | "failed" | "skipped"
+      prospect_status: "new" | "contacted" | "dismissed" | "negotiating" | "won"
       prospect_tier: "competitor_backlink" | "unlinked_mention"
-      reply_queue_platform: "reddit" | "quora"
       run_status: "pending" | "running" | "completed" | "failed"
     }
     CompositeTypes: {
@@ -932,13 +816,8 @@ export const Constants = {
     Enums: {
       billing_tier: ["free", "pro", "agency"],
       directory_check_method: ["serp_check", "head_check"],
-      directory_submission_status: [
-        "not_submitted",
-        "submitted",
-        "indexed",
-        "not_indexed",
-        "dismissed",
-      ],
+      email_account_provider: ["gmail", "outlook", "zoho", "smtp"],
+      email_account_status: ["active", "error"],
       email_sequence_status: ["active", "stopped", "completed"],
       email_sequence_type: ["onboarding"],
       page_crawl_status: ["pending", "crawled", "failed"],
@@ -953,9 +832,9 @@ export const Constants = {
         "comparison",
         "manual",
       ],
-      prospect_status: ["new", "contacted", "dismissed"],
+      prospect_sequence_status: ["pending", "sent", "failed", "skipped"],
+      prospect_status: ["new", "contacted", "dismissed", "negotiating", "won"],
       prospect_tier: ["competitor_backlink", "unlinked_mention"],
-      reply_queue_platform: ["reddit", "quora"],
       run_status: ["pending", "running", "completed", "failed"],
     },
   },

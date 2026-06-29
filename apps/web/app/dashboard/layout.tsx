@@ -4,7 +4,7 @@ import { DashboardStoreHydrator } from "@/components/dashboard/dashboard-store-h
 import { DiscoveryProgressIsland } from "@/components/discovery/discovery-progress-island"
 import { supabaseServer } from "@/lib/supabase/server"
 import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
-import type { DirectorySubmissionListItem } from "@/stores/directory-submission-store"
+import type { DirectoryListItem } from "@/stores/directory-store"
 import type { DiscoverySettings } from "@/stores/discovery-settings-store"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import type { ProspectListItem } from "@/stores/prospect-store"
@@ -115,7 +115,7 @@ export default async function DashboardLayout({
 
   let prospects: ProspectListItem[] = []
   let hasCompletedProspectRun = false
-  let directorySubmissions: DirectorySubmissionListItem[] = []
+  let directories: DirectoryListItem[] = []
   let discoverySettings: DiscoverySettings | null = product
     ? DEFAULT_DISCOVERY_SETTINGS
     : null
@@ -129,7 +129,7 @@ export default async function DashboardLayout({
   if (product) {
     const [
       prospectsResult,
-      directorySubmissionsResult,
+      directoriesResult,
       discoverySettingsResult,
       backlinkNetworkResult,
       lastProspectRunResult,
@@ -143,12 +143,12 @@ export default async function DashboardLayout({
         .eq("product_id", product.id)
         .order("discovered_at", { ascending: false }),
       supabase
-        .from("directory_submissions")
+        .from("directories")
         .select(
-          "id, product_id, domain, listing_url, status, discovered_at, submitted_at, last_checked_at, last_indexed_at, directory:directories(is_free, domain_rating, backlinks, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at)"
+          "id, name, domain, domain_rating, backlinks, is_free, submit_url, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at"
         )
-        .eq("product_id", product.id)
-        .order("discovered_at", { ascending: false }),
+        .eq("is_active", true)
+        .order("domain_rating", { ascending: false }),
       supabase
         .from("backlink_prospects_settings")
         .select("opportunity_types, dr_min, dr_max, voice_tone, offering, discovery_status")
@@ -185,24 +185,10 @@ export default async function DashboardLayout({
     prospects = prospectRows ?? []
     hasCompletedProspectRun = !lastProspectRunResult.error && lastProspectRunResult.data !== null
 
-    if (directorySubmissionsResult.error) {
-      console.error(
-        "Error fetching directory submissions:",
-        directorySubmissionsResult.error
-      )
+    if (directoriesResult.error) {
+      console.error("Error fetching directories:", directoriesResult.error)
     } else {
-      directorySubmissions = (directorySubmissionsResult.data ?? [])
-        .map((row) => ({
-          ...row,
-          directory: Array.isArray(row.directory)
-            ? (row.directory[0] ?? null)
-            : row.directory,
-        }))
-        .sort((a, b) => {
-          const drA = a.directory?.domain_rating ?? -1
-          const drB = b.directory?.domain_rating ?? -1
-          return drB - drA
-        })
+      directories = directoriesResult.data ?? []
     }
 
     if (discoverySettingsResult.error) {
@@ -256,7 +242,7 @@ export default async function DashboardLayout({
       product={product}
       prospects={prospects}
       hasCompletedProspectRun={hasCompletedProspectRun}
-      directorySubmissions={directorySubmissions}
+      directories={directories}
       discoverySettings={discoverySettings}
       outreachSettings={outreachSettings}
       backlinkNetworkMembership={backlinkNetworkMembership}

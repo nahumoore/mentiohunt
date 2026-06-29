@@ -6,6 +6,11 @@ import type { Tables } from "@workspace/supabase/database-types"
 
 type BacklinkProspect = Tables<"backlink_prospects">
 
+export type ProspectSequence = Pick<
+  Tables<"prospect_sequences">,
+  "id" | "step" | "subject" | "body" | "status" | "scheduled_at" | "sent_at"
+>
+
 export type ProspectListItem = Pick<
   BacklinkProspect,
   | "id"

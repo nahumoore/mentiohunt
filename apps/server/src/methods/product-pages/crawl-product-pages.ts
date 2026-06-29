@@ -156,6 +156,12 @@ export async function crawlProductPages(
 
   const catByUrl = new Map(categorized.map((c) => [c.url, c]))
 
+  function priorityToScore(p: string | undefined): number {
+    if (p === "high") return 5
+    if (p === "low") return 1
+    return 3 // medium / fallback
+  }
+
   const now = new Date().toISOString()
 
   if (sitemapRows.length > 0) {
@@ -166,7 +172,7 @@ export async function crawlProductPages(
         product_id: productId,
         url: p.url,
         page_type: (cat?.pageType ?? "article") as string,
-        priority: (cat?.priority ?? "medium") as string,
+        priority: priorityToScore(cat?.priority),
         keywords: cat?.keywords ?? [],
         title: p.title || null,
         description: p.description || null,
@@ -196,7 +202,7 @@ export async function crawlProductPages(
           .from("product_pages")
           .update({
             page_type: (cat?.pageType ?? "article") as string,
-            priority: (cat?.priority ?? "medium") as string,
+            priority: priorityToScore(cat?.priority),
             keywords: cat?.keywords ?? [],
             title: p.title || null,
             description: p.description || null,

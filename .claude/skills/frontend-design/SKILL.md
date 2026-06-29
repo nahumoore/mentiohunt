@@ -13,9 +13,12 @@ Use this skill when building or improving frontend UI.
 
 ## First Step
 
-Before proposing a design direction or writing code, read `packages/ui/src/styles/globals.css`.
+Before proposing a design direction or writing code, read both of these files:
 
-Treat that file as the source of truth for:
+1. `packages/ui/src/styles/globals.css` — source of truth for design tokens, semantic color variables, inline theme exports, and the available Tailwind utilities.
+2. `DESIGN.md` — authoritative brand spec for Mentiohunt: colors, typography, spacing, shape language, component patterns, and do/don'ts. Always defer to DESIGN.md for brand decisions.
+
+Treat `packages/ui/src/styles/globals.css` as the source of truth for:
 - the current design tokens
 - the available semantic color variables
 - the inline theme exports available to Tailwind utilities
@@ -157,8 +160,11 @@ Orange is the only primary brand color — never use blue or green as hero. Seco
 
 ### Typography
 
-- **Headings:** `font-heading` (Outfit). `tracking-tight`, `text-balance`.
-- **Body:** `font-sans` (Google Sans). `leading-7`.
+See `DESIGN.md` for the full type scale. Summary:
+
+- **Headings:** `font-heading` (Figtree). `tracking-tight`, `text-balance`.
+- **Body:** `font-sans` (Bricolage Grotesque). `leading-7`.
+- **Labels / Nav / Badges:** `font-ui` (Inter).
 - **Eyebrows:** `text-[0.7rem] tracking-[0.24em] uppercase font-bold` in `text-(--color-blaze-orange)`. Always paired with a thin divider: `mx-auto mt-3 h-px w-12 bg-blaze-orange/60`.
 - **Score / numeric values:** tabular-nums, slightly heavier weight.
 

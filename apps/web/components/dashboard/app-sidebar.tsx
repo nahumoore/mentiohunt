@@ -75,7 +75,7 @@ export function AppSidebar({
               Mentiohunt
             </p>
             <p className="truncate text-xs leading-4 text-muted-foreground">
-              {productName}
+              {user.email}
             </p>
           </div>
         </Link>

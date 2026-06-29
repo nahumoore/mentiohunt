@@ -3,27 +3,36 @@
 import {
   IconArrowRight,
   IconCircleCheck,
+  IconLoader2,
   IconSparkles,
 } from "@tabler/icons-react"
 import Link from "next/link"
-import { useEffect } from "react"
+import { isRedirectError } from "next/dist/client/components/redirect-error"
+import { useEffect, useTransition, useState } from "react"
 import type { BillingTier, Plan } from "@/consts/billing"
 import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
 import { captureEvent } from "@/lib/analytics"
+import { stripeBuyPlanRedirect } from "@/actions/stripe-buy-plan-redirect"
+
+type PlanStatus = "current" | "upgrade" | "buy" | "unauthenticated"
 
 function getPlanStatus(
   plan: Plan,
   userTier: BillingTier | null,
-): "current" | "upgrade" | "unauthenticated" {
-  if (!userTier || userTier === "free") return "unauthenticated"
+  isLoggedIn: boolean,
+): PlanStatus {
+  if (!isLoggedIn) return "unauthenticated"
+  if (!userTier || userTier === "free") return "buy"
   if (plan.tier === userTier) return "current"
   return "upgrade"
 }
 
 export function PricingClientPage({
   userTier,
+  isLoggedIn,
 }: {
   userTier: BillingTier | null
+  isLoggedIn: boolean
 }) {
   useEffect(() => {
     captureEvent("pricing_page_viewed")
@@ -56,7 +65,7 @@ export function PricingClientPage({
 
         <div className="mt-14 grid gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-7">
           {PLANS.map((plan) => {
-            const status = getPlanStatus(plan, userTier)
+            const status = getPlanStatus(plan, userTier, isLoggedIn)
             const isCurrent = status === "current"
             const isFeatured = plan.popular
 
@@ -119,7 +128,7 @@ export function PricingClientPage({
                 <div className="mt-8">
                   <PlanCta
                     status={status}
-                    planName={plan.name}
+                    plan={plan}
                     featured={isFeatured}
                   />
                 </div>
@@ -139,13 +148,20 @@ export function PricingClientPage({
 
 function PlanCta({
   status,
-  planName,
+  plan,
   featured,
 }: {
-  status: "current" | "upgrade" | "unauthenticated"
-  planName: string
+  status: PlanStatus
+  plan: Plan
   featured: boolean
 }) {
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  const baseClass = `group flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98]`
+  const featuredClass = `bg-[var(--color-blaze-orange)] text-white shadow-[0_16px_38px_-20px_rgba(255,84,0,0.95)] hover:bg-[var(--color-blaze-orange-2)]`
+  const defaultClass = `border border-border bg-background text-foreground hover:border-[var(--color-blaze-orange)]/30 hover:text-[var(--color-blaze-orange)]`
+
   if (status === "current") {
     return (
       <div className="flex w-full items-center justify-center rounded-2xl border border-border bg-muted/50 py-3.5 text-sm font-semibold text-muted-foreground">
@@ -154,33 +170,53 @@ function PlanCta({
     )
   }
 
-  if (status === "upgrade") {
+  if (status === "unauthenticated") {
     return (
       <Link
-        href="/dashboard/billing"
-        className={`group flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
-          featured
-            ? "bg-[var(--color-blaze-orange)] text-white shadow-[0_16px_38px_-20px_rgba(255,84,0,0.95)] hover:bg-[var(--color-blaze-orange-2)]"
-            : "border border-border bg-background text-foreground hover:border-[var(--color-blaze-orange)]/30 hover:text-[var(--color-blaze-orange)]"
-        }`}
+        href="/signup"
+        className={`${baseClass} ${featured ? featuredClass : defaultClass}`}
       >
-        Upgrade to {planName}
+        Start free trial
         <IconArrowRight className="ml-2 h-4 w-4 transition duration-200 group-hover:translate-x-1" />
       </Link>
     )
   }
 
+  // "buy" (logged-in free/expired) or "upgrade" (switching plans) — both go to Stripe
+  function handleCheckout() {
+    setError(null)
+    startTransition(async () => {
+      try {
+        await stripeBuyPlanRedirect({ plan: plan.key as "pro" | "agency" })
+      } catch (err) {
+        if (isRedirectError(err)) throw err
+        setError("Something went wrong. Please try again.")
+      }
+    })
+  }
+
+  const label = status === "upgrade" ? `Upgrade to ${plan.name}` : `Get ${plan.name}`
+
   return (
-    <Link
-      href="/signup"
-      className={`group flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
-        featured
-          ? "bg-[var(--color-blaze-orange)] text-white shadow-[0_16px_38px_-20px_rgba(255,84,0,0.95)] hover:bg-[var(--color-blaze-orange-2)]"
-          : "border border-border bg-background text-foreground hover:border-[var(--color-blaze-orange)]/30 hover:text-[var(--color-blaze-orange)]"
-      }`}
-    >
-      Start free trial
-      <IconArrowRight className="ml-2 h-4 w-4 transition duration-200 group-hover:translate-x-1" />
-    </Link>
+    <div className="space-y-2">
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={handleCheckout}
+        className={`${baseClass} ${featured ? featuredClass : defaultClass} disabled:opacity-60 disabled:active:scale-100`}
+      >
+        {isPending ? (
+          <IconLoader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <>
+            {label}
+            <IconArrowRight className="ml-2 h-4 w-4 transition duration-200 group-hover:translate-x-1" />
+          </>
+        )}
+      </button>
+      {error && (
+        <p className="text-center text-xs text-destructive">{error}</p>
+      )}
+    </div>
   )
 }

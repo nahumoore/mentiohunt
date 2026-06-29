@@ -2,7 +2,7 @@ import { GoogleAnalytics } from "@next/third-parties/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Metadata } from "next"
-import { Google_Sans, Outfit } from "next/font/google"
+import { Bricolage_Grotesque, Figtree, Inter } from "next/font/google"
 import Script from "next/script"
 import { Toaster } from "sonner"
 
@@ -16,15 +16,22 @@ export const metadata: Metadata = {
     "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
 }
 
-const outfitHeading = Outfit({
+const figtree = Figtree({
   subsets: ["latin"],
   variable: "--font-heading",
   weight: ["400", "500", "600", "700"],
 })
 
-const inter = Google_Sans({
+const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-sans",
+  weight: ["400", "500", "600"],
+})
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-ui",
+  weight: ["400", "500", "600"],
 })
 
 export default function RootLayout({
@@ -38,9 +45,10 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn(
         "antialiased",
-        outfitHeading.variable,
-        "font-sans",
-        inter.variable
+        figtree.variable,
+        bricolageGrotesque.variable,
+        inter.variable,
+        "font-sans"
       )}
     >
       <body className="overflow-x-hidden">

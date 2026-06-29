@@ -12,6 +12,7 @@
   "exports": {
     "./admin": "./admin.ts",
     "./client": "./client.ts",
+    "./crypto": "./crypto.ts",
     "./database-types": "./database-types.ts",
     "./email-settings": "./email-settings.ts",
     "./middleware": "./middleware.ts",

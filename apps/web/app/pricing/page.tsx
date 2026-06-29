@@ -26,6 +26,7 @@ export const metadata: Metadata = {
 
 export default async function PricingPage() {
   let userTier: BillingTier | null = null
+  let isLoggedIn = false
 
   try {
     const supabase = await supabaseServer()
@@ -34,6 +35,7 @@ export default async function PricingPage() {
     } = await supabase.auth.getUser()
 
     if (user) {
+      isLoggedIn = true
       const { data: profile } = await supabase
         .from("profiles")
         .select("tier")
@@ -49,7 +51,7 @@ export default async function PricingPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <Navbar />
-      <PricingClientPage userTier={userTier} />
+      <PricingClientPage userTier={userTier} isLoggedIn={isLoggedIn} />
       <Testimonials />
       <Faq />
       <Footer />

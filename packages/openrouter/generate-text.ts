@@ -40,6 +40,7 @@ type ChatCompletionResponse = {
   choices?: Array<{
     message?: {
       content?: unknown
+      reasoning?: unknown
     }
   }>
   usage?: {
@@ -84,13 +85,18 @@ async function callModel(
     )
   }
 
-  const content = data?.choices?.[0]?.message?.content
+  const message = data?.choices?.[0]?.message
+  const content = message?.content
+  const reasoning = message?.reasoning
   const cost = data?.usage?.cost ?? 0
 
   if (typeof content === "string") {
     return { text: content, cost }
   } else if (content !== undefined && content !== null) {
     return { text: JSON.stringify(content), cost }
+  } else if (typeof reasoning === "string") {
+    // Reasoning models (e.g. z-ai/glm-5) emit output in the reasoning field, content is null
+    return { text: reasoning, cost }
   } else {
     throw new Error(
       `OpenRouter response did not include text content: ${JSON.stringify(data)}`

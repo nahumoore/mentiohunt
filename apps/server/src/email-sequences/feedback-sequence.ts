@@ -42,7 +42,7 @@ function step0Content(
           "{quick question from the founder|hey, a quick thing|a second of your time}"
         ),
         previewText: "you started signing up, wondering what happened",
-        body: `${greeting} ${name} — Nico here, founder of Mentiohunt :)
+        body: `${greeting} ${name} - Nico here, founder of Mentiohunt :)
 
 You started setting up but didn't finish. Did something feel confusing, or did life just get busy? Either way, a few words are more than enough.
 
@@ -57,7 +57,7 @@ Nico`,
           "{your results are waiting|just a heads up|quick thing from the founder}"
         ),
         previewText: "your backlink opportunities are ready to review",
-        body: `${greeting} ${name} — Nico here, founder of Mentiohunt :)
+        body: `${greeting} ${name} - Nico here, founder of Mentiohunt :)
 
 You finished onboarding but haven't checked your results yet. Your link building opportunities are ready to review.
 
@@ -74,11 +74,9 @@ Nico`,
           "{how's Mentiohunt going?|quick check-in from the founder|how's it going so far?}"
         ),
         previewText: "you've been exploring link building, a quick check-in",
-        body: `${greeting} ${name} — Nico here :)
+        body: `${greeting} ${name} - Nico here :)
 
 I can see you've been looking at your link building opportunities. Are the results relevant to your site, or is anything feeling off?
-
-Just reply here.
 
 Thanks for giving Mentiohunt a try!
 

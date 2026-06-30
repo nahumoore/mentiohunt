@@ -13,28 +13,28 @@ Topic to own: **backlink prospecting / opportunity discovery for B2B SaaS founde
 
 ### Tier 1 — KD ≤ 6, no coverage yet
 
-| Slug | Primary keyword | Vol | KD |
-|---|---|---|---|
-| `articles/unlinked-brand-mentions` | unlinked brand mentions | 140 | 3 |
-| `articles/resource-page-link-building` | resource page link building | 90 | 5 |
-| `articles/link-building-outreach-email` | email outreach link building | 50 | 3 |
+| Slug | Primary keyword | Topic | Vol | KD |
+|---|---|---|---|---|
+| `articles/unlinked-brand-mentions` | unlinked brand mentions | Reclaiming mention-based links | 140 | 3 |
+| `articles/resource-page-link-building` | resource page link building | Prospecting resource pages | 90 | 5 |
+| `articles/link-building-outreach-email` | email outreach link building | Outreach email templates and copy | 50 | 3 |
 
 ### Tier 2 — KD 9–25
 
-| Slug | Primary keyword | Vol | KD |
-|---|---|---|---|
-| `articles/link-building-outreach` | link building outreach | 140 | 17 |
-| `articles/backlink-opportunities` | backlink opportunities | 40 | 19 |
-| `articles/competitor-backlink-gap-analysis` | competitor backlink gap | — | low |
-| `articles/broken-link-building` | broken link building | verify | — |
+| Slug | Primary keyword | Topic | Vol | KD |
+|---|---|---|---|---|
+| `articles/link-building-outreach` | link building outreach | Outreach process and campaign execution | 140 | 17 |
+| `articles/backlink-opportunities` | backlink opportunities | Opportunity discovery and qualification | 40 | 19 |
+| `articles/competitor-backlink-gap-analysis` | competitor backlink gap | Competitor gap analysis workflow | — | low |
+| `articles/broken-link-building` | broken link building | Broken-link prospecting and replacement | verify | — |
 
 ### Tier 3 — verify vol/KD before building
 
-| Slug | Angle |
-|---|---|
-| `articles/guest-posting-for-saas` | Guest post prospecting for founders |
-| `articles/haro-link-building` | Journalist queries / digital PR |
-| `articles/saas-link-building-strategy` | Strategy companion to pillar |
+| Slug | Topic | Angle |
+|---|---|---|
+| `articles/guest-posting-for-saas` | Guest post prospecting | Guest post prospecting for founders |
+| `articles/haro-link-building` | Journalist queries and digital PR | Journalist queries / digital PR |
+| `articles/saas-link-building-strategy` | SaaS link-building strategy | Strategy companion to pillar |
 
 ## Avoid as primary (new-domain unwinnable)
 
@@ -45,6 +45,14 @@ Topic to own: **backlink prospecting / opportunity discovery for B2B SaaS founde
 # Expansion (AI-resistant: data, judgment, buyer intent)
 
 Note: existing `articles/how-to-find-backlink-opportunities` already covers unlinked mentions, resource pages, broken links, competitor gap, outreach as sections. Don't build thin how-to spokes that duplicate it / are answerable by AI search. Build the below instead.
+
+## Cannibalization check
+
+- `articles/saas-backlink-building` and `articles/saas-link-building-strategy` are the biggest collision risk. Both lean toward broad SaaS link-building strategy intent. Keep the pillar as the comprehensive playbook and only build the strategy page if it is repositioned around a narrower intent like planning, budgeting, or prioritization.
+- `articles/link-building-outreach` and `articles/link-building-outreach-email` can coexist, but only if intent stays separated. One should own campaign/process, the other should own templates/examples/copywriting.
+- `articles/backlink-opportunities` is close to the existing `articles/how-to-find-backlink-opportunities`. Unless the new page is clearly reframed around qualification, scoring, or workflow, this is likely cannibalization.
+- The second pillar `articles/saas-link-building-agency-vs-software` includes `link building for saas` as a primary term, which overlaps with the first pillar. Treat that term as supporting copy, not the core target, or the two pillars may compete.
+- `articles/unlinked-brand-mentions`, `articles/resource-page-link-building`, `articles/competitor-backlink-gap-analysis`, and `articles/broken-link-building` are adjacent to the existing opportunity article, but they are not direct cannibalization if each is deeper and more task-specific than the parent guide.
 
 ## Second pillar — the buying decision
 
@@ -65,11 +73,11 @@ Earn links + AI citations to the whole cluster. Use the opportunity-queue data. 
 
 Skip thin `X alternative` pages (10–70/mo). Build the **listicle hub** instead — high-intent, low KD, lists Mentiohunt + competitors:
 
-| Slug | Primary keyword | Vol | KD |
-|---|---|---|---|
-| `articles/best-link-building-tools-for-founders` | best link building tools | 320 | low |
-| (same, secondary) | best seo link building software | 90 | 5 |
-| (same, secondary) | link building software | 320 | 17 |
+| Slug | Primary keyword | Topic | Vol | KD |
+|---|---|---|---|---|
+| `articles/best-link-building-tools-for-founders` | best link building tools | Link-building tool comparison for founders | 320 | low |
+| (same, secondary) | best seo link building software | Link-building tool comparison for founders | 90 | 5 |
+| (same, secondary) | link building software | Link-building tool comparison for founders | 320 | 17 |
 
 Plus 1–2 more `compare/*` only where buyer intent is real (respona / pitchbox / buzzstream variants); competitor `alternative` head terms too thin to prioritize.
 
@@ -91,4 +99,3 @@ Existing: backlink-opportunity-finder, backlink-price-calculator, competitor-bac
 ## Skip (KD 50–81, dominated by Ahrefs/Moz/Semrush or need a backlink index we don't have)
 
 `domain authority checker` (12.1k, KD72) · `website authority checker` (12.1k, KD55) · `da pa checker` (9.9k, KD71) · `free backlink checker` (2.9k, KD81) · `email finder tool` (5.4k, KD50) · `spam score checker` (1.6k, KD30) · `backlink generator` (390, KD35 — spammy intent, conflicts with positioning).
-

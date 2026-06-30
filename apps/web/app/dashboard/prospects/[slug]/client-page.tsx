@@ -314,7 +314,7 @@ export function ProspectClientPage({
   const updateProspectStatuses = useProspectStore((s) => s.updateProspectStatuses)
   const current = storedProspect ?? prospect
 
-  const [statusLoading, setStatusLoading] = useState<"contacted" | "dismissed" | null>(null)
+  const [statusLoading, setStatusLoading] = useState<"contacted" | "dismissed" | "pausing" | null>(null)
   const [pauseModalOpen, setPauseModalOpen] = useState(false)
   const [activeEmailIdx, setActiveEmailIdx] = useState(() => {
     const now = Date.now()
@@ -362,8 +362,32 @@ export function ProspectClientPage({
       date,
     }
   })
+
+  const firstSeq = sequences[0]
+  const firstEmailPast =
+    firstSeq != null &&
+    new Date(firstSeq.sent_at ?? firstSeq.scheduled_at ?? current.created_at).getTime() < now
+  const displayStatus =
+    current.status === "new" && firstEmailPast ? ("contacted" as const) : current.status
+
   const activeEmail = emailSequence[activeEmailIdx]!
   const isNegotiating = current.status === "negotiating"
+
+  async function handlePause() {
+    setStatusLoading("pausing")
+    try {
+      const res = await fetch(`/api/link-building/opportunities/${current.id}/pause`, {
+        method: "POST",
+      })
+      if (res.ok) {
+        updateProspectStatuses([current.id], "dismissed")
+        setPauseModalOpen(false)
+        router.push("/dashboard/prospects")
+      }
+    } finally {
+      setStatusLoading(null)
+    }
+  }
 
   async function handleStatusUpdate(status: "contacted" | "dismissed") {
     setStatusLoading(status)
@@ -392,7 +416,7 @@ export function ProspectClientPage({
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
           Status
         </span>
-        <DetailStatusPipeline status={current.status} />
+        <DetailStatusPipeline status={displayStatus} />
       </div>
 
       {/* Two-panel layout */}
@@ -717,7 +741,7 @@ export function ProspectClientPage({
               </div>
 
               {/* Status actions */}
-              {current.status !== "dismissed" && current.status !== "won" && (
+              {displayStatus !== "dismissed" && displayStatus !== "won" && (
                 <button
                   type="button"
                   disabled={statusLoading !== null}
@@ -753,11 +777,12 @@ export function ProspectClientPage({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPauseModalOpen(false)}
-                    className="inline-flex items-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-semibold text-white hover:bg-destructive/90 transition-colors"
+                    disabled={statusLoading === "pausing"}
+                    onClick={handlePause}
+                    className="inline-flex items-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-semibold text-white hover:bg-destructive/90 transition-colors disabled:opacity-40"
                   >
                     <IconPlayerPause className="size-4" />
-                    Pause
+                    {statusLoading === "pausing" ? "Pausing…" : "Pause"}
                   </button>
                 </div>
               </div>

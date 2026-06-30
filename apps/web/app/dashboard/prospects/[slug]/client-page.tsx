@@ -316,7 +316,14 @@ export function ProspectClientPage({
 
   const [statusLoading, setStatusLoading] = useState<"contacted" | "dismissed" | null>(null)
   const [pauseModalOpen, setPauseModalOpen] = useState(false)
-  const [activeEmailIdx, setActiveEmailIdx] = useState(0)
+  const [activeEmailIdx, setActiveEmailIdx] = useState(() => {
+    const now = Date.now()
+    const pending = sequences.findIndex((seq) => {
+      const date = new Date(seq.sent_at ?? seq.scheduled_at ?? prospect.created_at)
+      return seq.status !== "sent" && date.getTime() >= now
+    })
+    return pending === -1 ? 0 : pending
+  })
   const [sameThread, setSameThread] = useState(true)
 
   useEffect(() => {
@@ -342,14 +349,19 @@ export function ProspectClientPage({
     return "Last follow-up"
   }
 
-  const emailSequence = sequences.map((seq) => ({
-    number: seq.step,
-    label: stepLabel(seq.step),
-    subject: seq.subject ?? "",
-    body: seq.body ?? "",
-    status: seq.status === "sent" ? ("sent" as const) : ("scheduled" as const),
-    date: new Date(seq.sent_at ?? seq.scheduled_at ?? current.created_at),
-  }))
+  const now = Date.now()
+  const emailSequence = sequences.map((seq) => {
+    const date = new Date(seq.sent_at ?? seq.scheduled_at ?? current.created_at)
+    const isPastScheduled = seq.status !== "sent" && date.getTime() < now
+    return {
+      number: seq.step,
+      label: stepLabel(seq.step),
+      subject: seq.subject ?? "",
+      body: seq.body ?? "",
+      status: (seq.status === "sent" || isPastScheduled) ? ("sent" as const) : ("scheduled" as const),
+      date,
+    }
+  })
   const activeEmail = emailSequence[activeEmailIdx]!
   const isNegotiating = current.status === "negotiating"
 
@@ -626,11 +638,12 @@ export function ProspectClientPage({
                   Subject
                 </p>
                 {activeEmailIdx > 0 && (
-                  <label className="flex cursor-pointer items-center gap-2">
+                  <label className={cn("flex items-center gap-2", isFreeUser ? "cursor-not-allowed opacity-40" : "cursor-pointer")}>
                     <span className="text-[10px] text-muted-foreground">Reply on same thread</span>
                     <Switch
                       checked={sameThread}
-                      onCheckedChange={setSameThread}
+                      onCheckedChange={isFreeUser ? undefined : setSameThread}
+                      disabled={isFreeUser}
                       aria-label="Reply on same thread"
                     />
                   </label>

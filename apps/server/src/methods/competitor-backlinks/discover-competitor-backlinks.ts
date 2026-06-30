@@ -26,7 +26,18 @@ type EnrichedColumns = {
   contact_social_links: Record<string, string> | null
   email_subject: string | null
   email_body: string | null
+  step2_body: string | null
+  step3_body: string | null
   raw_metadata: unknown
+}
+
+export type ProspectCreatedPayload = {
+  id: string
+  contactName: string | null
+  emailSubject: string | null
+  emailBody: string | null
+  step2Body: string | null
+  step3Body: string | null
 }
 
 const EMPTY_ENRICHMENT: EnrichedColumns = {
@@ -35,6 +46,8 @@ const EMPTY_ENRICHMENT: EnrichedColumns = {
   contact_social_links: null,
   email_subject: null,
   email_body: null,
+  step2_body: null,
+  step3_body: null,
   raw_metadata: null,
 }
 
@@ -61,6 +74,8 @@ async function enrichProspect(
         contact_social_links: social,
         email_subject: null,
         email_body: null,
+        step2_body: null,
+        step3_body: null,
         raw_metadata: contact.rawMetadata,
       }
     }
@@ -92,7 +107,9 @@ async function enrichProspect(
       contact_email: contact.email,
       contact_social_links: social,
       email_subject: emailResult?.subject ?? null,
-      email_body: emailResult?.body ?? null,
+      email_body: emailResult?.step1Body ?? null,
+      step2_body: emailResult?.step2Body ?? null,
+      step3_body: emailResult?.step3Body ?? null,
       raw_metadata: contact.rawMetadata,
     }
   } catch (err) {
@@ -213,7 +230,9 @@ async function processCompetitor(
   senderName: string | null,
   emailSettings: EmailSettings,
   enrichLimit: LimitFunction,
-  maxProspects: number
+  maxProspects: number,
+  budget?: { remaining: number },
+  onProspectCreated?: (p: ProspectCreatedPayload) => void
 ): Promise<{ prospectsCreated: number; costUsd: number; nextCursor: string | null }> {
   const mozCursor = await getLastMozCursor(product.id, competitorDomain)
 
@@ -319,9 +338,14 @@ async function processCompetitor(
     await Promise.allSettled(
       newItems.map((item) =>
         enrichLimit(async () => {
+          // Budget guard — claim synchronously before any expensive I/O.
+          if (budget && budget.remaining <= 0) return
+          if (budget) budget.remaining -= 1
+
           const domain = extractDomainFromUrl(item.urlFrom)
           const enriched = await enrichProspect(item, product, domain, senderName, emailSettings)
           const sr = siteRelevanceResults.get(item.urlFrom)
+          const { step2_body, step3_body, ...dbEnriched } = enriched
 
           const { data, error } = await supabaseAdmin
             .from("backlink_prospects")
@@ -335,7 +359,7 @@ async function processCompetitor(
                 tier: "competitor_backlink" as const,
                 status: "new" as const,
                 site_relevance_score: sr?.score ?? null,
-                ...enriched,
+                ...dbEnriched,
               },
               { onConflict: "product_id,found_url", ignoreDuplicates: true }
             )
@@ -345,7 +369,17 @@ async function processCompetitor(
             log.warn("prospect upsert failed", { competitorDomain, domain, error: error.message })
             return
           }
-          if ((data ?? []).length > 0) prospectsCreated += 1
+          if ((data ?? []).length > 0) {
+            prospectsCreated += 1
+            onProspectCreated?.({
+              id: (data as Array<{ id: string }>)[0]!.id,
+              contactName: enriched.contact_name,
+              emailSubject: enriched.email_subject,
+              emailBody: enriched.email_body,
+              step2Body: enriched.step2_body,
+              step3Body: enriched.step3_body,
+            })
+          }
         })
       )
     )
@@ -371,7 +405,9 @@ export async function discoverCompetitorBacklinks(
   },
   settings: FilterSettings,
   emailSettings: EmailSettings = {},
-  limits: { maxCompetitors?: number; maxProspects?: number } = {}
+  limits: { maxCompetitors?: number; maxProspects?: number } = {},
+  budget?: { remaining: number },
+  onProspectCreated?: (p: ProspectCreatedPayload) => void
 ): Promise<{ prospectsCreated: number; totalCostUsd: number }> {
   const maxCompetitors = limits.maxCompetitors ?? MAX_COMPETITORS_PER_RUN
   const maxProspects = limits.maxProspects ?? MAX_PROSPECTS_PER_RUN
@@ -403,7 +439,7 @@ export async function discoverCompetitorBacklinks(
 
   try {
     for (const competitorDomain of competitorsToProcess) {
-      const result = await processCompetitor(competitorDomain, product, settings, senderName, emailSettings, enrichLimit, maxProspects)
+      const result = await processCompetitor(competitorDomain, product, settings, senderName, emailSettings, enrichLimit, maxProspects, budget, onProspectCreated)
       totalProspectsCreated += result.prospectsCreated
       totalCostUsd += result.costUsd
       mozCursorsByDomain[competitorDomain] = result.nextCursor

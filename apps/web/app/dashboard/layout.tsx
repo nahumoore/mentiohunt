@@ -247,6 +247,7 @@ export default async function DashboardLayout({
       outreachSettings={outreachSettings}
       backlinkNetworkMembership={backlinkNetworkMembership}
       pages={pages}
+      initialDiscoveryStatus={initialDiscoveryStatus}
     >
       <SidebarProvider>
         <AppSidebar user={sidebarUser} initialProduct={product} />

@@ -1,6 +1,7 @@
 "use client"
 
 import { supabaseClient } from "@/lib/supabase/client"
+import { useProspectStore, type ProspectDetail } from "@/stores/prospect-store"
 import { useEffect, useMemo, useRef, useState } from "react"
 
 type PgInsert = { new: Record<string, unknown>; old: Record<string, unknown> }
@@ -116,6 +117,30 @@ export function useDiscoveryProgress(
         },
         (payload: PgInsert) => {
           const row = payload.new
+
+          // Populate the prospect store so the grid shows the card immediately,
+          // with full contact + email data, without waiting for router.refresh().
+          const detail: ProspectDetail = {
+            id: String(row.id),
+            product_id: String(row.product_id ?? ""),
+            domain: (row.domain as string | null) ?? null,
+            target_url: (row.target_url as string | null) ?? null,
+            tier: (row.tier as ProspectDetail["tier"]) ?? "competitor_backlink",
+            status: (row.status as ProspectDetail["status"]) ?? "new",
+            discovered_at: (row.discovered_at as string | null) ?? new Date().toISOString(),
+            contact_email: (row.contact_email as string | null) ?? null,
+            contact_name: (row.contact_name as string | null) ?? null,
+            domain_rating: (row.domain_rating as number | null) ?? null,
+            site_relevance_score: (row.site_relevance_score as number | null) ?? null,
+            email_subject: (row.email_subject as string | null) ?? null,
+            email_body: (row.email_body as string | null) ?? null,
+            created_at: (row.created_at as string | null) ?? new Date().toISOString(),
+            found_url: (row.found_url as string | null) ?? null,
+            contact_social_links: (row.contact_social_links as ProspectDetail["contact_social_links"]) ?? null,
+            raw_metadata: (row.raw_metadata as ProspectDetail["raw_metadata"]) ?? null,
+          }
+          useProspectStore.getState().upsertProspectDetail(detail)
+
           setState((prev) => ({
             ...prev,
             items: [

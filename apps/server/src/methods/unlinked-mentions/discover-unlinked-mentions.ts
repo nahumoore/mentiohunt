@@ -10,7 +10,7 @@ import {
 } from "../../helpers/actors/google-serp-scraper.js"
 import { runApifyActor } from "../../helpers/actors/run-apify-actor.js"
 import { createLogger } from "../../helpers/logger.js"
-import type { EmailSettings } from "../competitor-backlinks/discover-competitor-backlinks.js"
+import type { EmailSettings, ProspectCreatedPayload } from "../competitor-backlinks/discover-competitor-backlinks.js"
 import { resolveContactEmail } from "../competitor-backlinks/enrich-contact.js"
 import {
   extractDomainFromUrl,
@@ -110,6 +110,8 @@ type EnrichedColumns = {
   contact_social_links: Record<string, string> | null
   email_subject: string | null
   email_body: string | null
+  step2_body: string | null
+  step3_body: string | null
   raw_metadata: unknown
 }
 
@@ -119,6 +121,8 @@ const EMPTY_ENRICHMENT: EnrichedColumns = {
   contact_social_links: null,
   email_subject: null,
   email_body: null,
+  step2_body: null,
+  step3_body: null,
   raw_metadata: null,
 }
 
@@ -137,7 +141,7 @@ async function enrichMention(
       ? await resolveContactEmail(candidate.contact, candidate.domain)
       : { name: null, email: null, social_links: {}, confidence: "none" as const, rawMetadata: null }
 
-    let emailResult: { subject: string; body: string; cost: number } | null = null
+    let emailResult: { subject: string; step1Body: string; step2Body: string; step3Body: string; cost: number } | null = null
     if (contact.email) {
       emailResult = await generateMentionEmail(product, {
         title: candidate.title,
@@ -161,7 +165,9 @@ async function enrichMention(
       contact_social_links:
         Object.keys(contact.social_links).length > 0 ? contact.social_links : null,
       email_subject: emailResult?.subject ?? null,
-      email_body: emailResult?.body ?? null,
+      email_body: emailResult?.step1Body ?? null,
+      step2_body: emailResult?.step2Body ?? null,
+      step3_body: emailResult?.step3Body ?? null,
       raw_metadata: contact.rawMetadata,
     }
   } catch (err) {
@@ -174,7 +180,9 @@ export async function discoverUnlinkedMentions(
   product: Product,
   settings: FilterSettings,
   emailSettings: EmailSettings = {},
-  limits: { maxCandidates?: number; maxProspects?: number } = {}
+  limits: { maxCandidates?: number; maxProspects?: number } = {},
+  budget?: { remaining: number },
+  onProspectCreated?: (p: ProspectCreatedPayload) => void
 ): Promise<{ prospectsCreated: number; totalCostUsd: number }> {
   const maxCandidates = limits.maxCandidates ?? MAX_CANDIDATES_TO_SCRAPE
   const maxProspects = limits.maxProspects ?? MAX_PROSPECTS_PER_RUN
@@ -337,8 +345,13 @@ export async function discoverUnlinkedMentions(
     await Promise.allSettled(
       newItems.map((item) =>
         enrichLimit(async () => {
+          // Budget guard — claim synchronously before any expensive I/O.
+          if (budget && budget.remaining <= 0) return
+          if (budget) budget.remaining -= 1
+
           const enriched = await enrichMention(item, product, senderName, emailSettings)
           const sr = siteRelevanceResults.get(item.url)
+          const { step2_body, step3_body, ...dbEnriched } = enriched
 
           const { data, error } = await supabaseAdmin
             .from("backlink_prospects")
@@ -352,7 +365,7 @@ export async function discoverUnlinkedMentions(
                 tier: "unlinked_mention" as const,
                 status: "new" as const,
                 site_relevance_score: sr?.score ?? null,
-                ...enriched,
+                ...dbEnriched,
               },
               { onConflict: "product_id,found_url", ignoreDuplicates: true }
             )
@@ -362,7 +375,17 @@ export async function discoverUnlinkedMentions(
             log.warn("prospect upsert failed", { domain: item.domain, error: error.message })
             return
           }
-          if ((data ?? []).length > 0) prospectsCreated += 1
+          if ((data ?? []).length > 0) {
+            prospectsCreated += 1
+            onProspectCreated?.({
+              id: (data as Array<{ id: string }>)[0]!.id,
+              contactName: enriched.contact_name,
+              emailSubject: enriched.email_subject,
+              emailBody: enriched.email_body,
+              step2Body: step2_body,
+              step3Body: step3_body,
+            })
+          }
         })
       )
     )

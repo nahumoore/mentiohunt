@@ -8,9 +8,7 @@ import { createLogger } from "../helpers/logger.js"
 export type FunnelStage =
   | "stuck_onboarding"
   | "onboarding_done_no_action"
-  | "used_mentions_only"
   | "used_opportunities_only"
-  | "used_both"
 
 const log = createLogger("feedback-sequence-email")
 
@@ -44,9 +42,7 @@ function step0Content(
           "{quick question from the founder|hey, a quick thing|a second of your time}"
         ),
         previewText: "you started signing up, wondering what happened",
-        body: `${greeting} ${name},
-
-Nico here, founder of Mentiohunt :)
+        body: `${greeting} ${name} — Nico here, founder of Mentiohunt :)
 
 You started setting up but didn't finish. Did something feel confusing, or did life just get busy? Either way, a few words are more than enough.
 
@@ -60,33 +56,12 @@ Nico`,
         subject: spin(
           "{your results are waiting|just a heads up|quick thing from the founder}"
         ),
-        previewText: "your reply queue and backlink opportunities are ready",
-        body: `${greeting} ${name},
+        previewText: "your backlink opportunities are ready to review",
+        body: `${greeting} ${name} — Nico here, founder of Mentiohunt :)
 
-Nico here, founder of Mentiohunt :)
-
-You finished onboarding but haven't checked your results yet. Your reply queue and link building opportunities are ready to review.
+You finished onboarding but haven't checked your results yet. Your link building opportunities are ready to review.
 
 Anything getting in the way? One line is enough.
-
-Thanks for giving Mentiohunt a try!
-
-${signoff} <3
-Nico`,
-      }
-    case "used_mentions_only":
-      return {
-        subject: spin(
-          "{how's Mentiohunt going?|quick check-in from the founder|how's it going so far?}"
-        ),
-        previewText: "you've been monitoring mentions, a quick check-in",
-        body: `${greeting} ${name},
-
-Nico here :)
-
-I can see you've been using the community reply queue. Have you also checked the link building side? There should be directory and backlink opportunities waiting for you.
-
-Anything confusing so far? Just reply.
 
 Thanks for giving Mentiohunt a try!
 
@@ -99,32 +74,11 @@ Nico`,
           "{how's Mentiohunt going?|quick check-in from the founder|how's it going so far?}"
         ),
         previewText: "you've been exploring link building, a quick check-in",
-        body: `${greeting} ${name},
+        body: `${greeting} ${name} — Nico here :)
 
-Nico here :)
+I can see you've been looking at your link building opportunities. Are the results relevant to your site, or is anything feeling off?
 
-I can see you've been looking at your link building opportunities. Have you also checked the community reply queue? Mentiohunt tracks posts that mention your product so you can reply while threads are still active.
-
-Anything confusing so far? Just reply.
-
-Thanks for giving Mentiohunt a try!
-
-${signoff} <3
-Nico`,
-      }
-    case "used_both":
-      return {
-        subject: spin(
-          "{how's your first day going?|how's Mentiohunt going?|quick check-in from the founder}"
-        ),
-        previewText: "you've been exploring both sides, how's it feeling?",
-        body: `${greeting} ${name},
-
-Nico here :)
-
-I can see you've been exploring both the reply queue and the link building side. How's it going so far? Anything working well or anything that seems off?
-
-Just reply here, I read everything.
+Just reply here.
 
 Thanks for giving Mentiohunt a try!
 
@@ -174,21 +128,6 @@ If something looked wrong, reply and tell me. That directly helps me improve the
 ${signoff},
 Nicolas`,
       }
-    case "used_mentions_only":
-      return {
-        subject: spin(
-          "{what's the reply queue like for you?|honest question|quick one}"
-        ),
-        previewText: "are the community matches actually relevant?",
-        body: `${greeting} ${name},
-
-You've been using the community reply queue for a few days. Are the matches relevant? Too many, too few?
-
-I want to know what's actually useful vs. what's noise. Just reply.
-
-${signoff},
-Nicolas`,
-      }
     case "used_opportunities_only":
       return {
         subject: spin(
@@ -200,21 +139,6 @@ Nicolas`,
 You've been looking at the link building side for a few days. Are the opportunities a good fit for your site, or are too many of them off-target?
 
 Honest feedback helps me tune the discovery logic. Just reply.
-
-${signoff},
-Nicolas`,
-      }
-    case "used_both":
-      return {
-        subject: spin(
-          "{what's working for you?|a few days in, curious|honest question}"
-        ),
-        previewText: "which side has been most useful so far?",
-        body: `${greeting} ${name},
-
-You've been using both the reply queue and the link building side. Which one feels more useful for where you are right now? And what's the biggest thing missing?
-
-Reply here, I read everything.
 
 ${signoff},
 Nicolas`,

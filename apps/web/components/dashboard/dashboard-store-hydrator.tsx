@@ -18,6 +18,8 @@ import type { DirectoryListItem } from "@/stores/directory-store"
 import { useDirectoryStore } from "@/stores/directory-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
 import { usePagesStore } from "@/stores/pages-store"
+import type { DiscoveryStatus } from "@/hooks/use-discovery-progress"
+import { useDiscoveryStatusStore } from "@/stores/discovery-status-store"
 
 type DashboardStoreHydratorProps = {
   profile: DashboardProfile | null
@@ -29,6 +31,7 @@ type DashboardStoreHydratorProps = {
   outreachSettings: OutreachSettings | null
   backlinkNetworkMembership: BacklinkNetworkMembership | null
   pages: ProductPageListItem[]
+  initialDiscoveryStatus: DiscoveryStatus | null
   children: ReactNode
 }
 
@@ -42,6 +45,7 @@ export function DashboardStoreHydrator({
   outreachSettings,
   backlinkNetworkMembership,
   pages,
+  initialDiscoveryStatus,
   children,
 }: DashboardStoreHydratorProps) {
   useEffect(() => {
@@ -54,7 +58,8 @@ export function DashboardStoreHydrator({
     useOutreachSettingsStore.getState().setSettings(outreachSettings)
     useBacklinkNetworkStore.getState().setMembership(backlinkNetworkMembership)
     usePagesStore.getState().setPages(pages)
-  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages])
+    useDiscoveryStatusStore.getState().setStatus(initialDiscoveryStatus)
+  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, initialDiscoveryStatus])
 
   return children
 }

@@ -53,7 +53,7 @@ export async function runFeedbackEmailSequence() {
         continue
       }
 
-      const stage: FunnelStage = "used_both"
+      const stage: FunnelStage = "used_opportunities_only"
 
       await sendFeedbackSequenceEmail({
         to: profile.email,

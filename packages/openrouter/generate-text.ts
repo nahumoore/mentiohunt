@@ -95,7 +95,7 @@ async function callModel(
   } else if (content !== undefined && content !== null) {
     return { text: JSON.stringify(content), cost }
   } else if (typeof reasoning === "string") {
-    // Reasoning models (e.g. z-ai/glm-5) emit output in the reasoning field, content is null
+    // Reasoning models (e.g. z-ai/glm-4.7-flash) emit output in the reasoning field, content is null
     return { text: reasoning, cost }
   } else {
     throw new Error(

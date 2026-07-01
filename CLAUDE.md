@@ -10,9 +10,14 @@ ICP is founder-led B2B SaaS companies (seed to Series A/B, 2–30 people) who be
 
 ## Current Repo Shape
 
-This repository is a pnpm monorepo.
+This repository is a pnpm monorepo with three apps and shared packages.
 
+**Apps:**
 - `apps/web`: main Next.js app using the App Router
+- `apps/server`: Express API server — background jobs, onboarding pipeline, discovery methods, outreach generation
+- `apps/scraper`: Python scraper service — LLM-driven contact enrichment agent (`agent_enrich.py`), page fetching, email extraction
+
+**Packages:**
 - `packages/ui`: shared UI package
 - `packages/eslint-config`: shared lint config
 - `packages/typescript-config`: shared TypeScript config

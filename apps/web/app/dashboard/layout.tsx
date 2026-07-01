@@ -1,7 +1,6 @@
 import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardStoreHydrator } from "@/components/dashboard/dashboard-store-hydrator"
-import { DiscoveryProgressIsland } from "@/components/discovery/discovery-progress-island"
 import { supabaseServer } from "@/lib/supabase/server"
 import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
 import type { DirectoryListItem } from "@/stores/directory-store"
@@ -9,7 +8,6 @@ import type { DiscoverySettings } from "@/stores/discovery-settings-store"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import type { ProspectListItem } from "@/stores/prospect-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
-import type { DiscoveryStatus } from "@/hooks/use-discovery-progress"
 import type { Tables } from "@workspace/supabase/database-types"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { redirect } from "next/navigation"
@@ -123,7 +121,6 @@ export default async function DashboardLayout({
     ? mapOutreachSettings(null)
     : null
   let backlinkNetworkMembership: BacklinkNetworkMembership | null = null
-  let initialDiscoveryStatus: DiscoveryStatus | null = null
   let pages: ProductPageListItem[] = []
 
   if (product) {
@@ -151,7 +148,7 @@ export default async function DashboardLayout({
         .order("domain_rating", { ascending: false }),
       supabase
         .from("backlink_prospects_settings")
-        .select("opportunity_types, dr_min, dr_max, voice_tone, offering, discovery_status")
+        .select("opportunity_types, dr_min, dr_max, voice_tone, offering")
         .eq("product_id", product.id)
         .maybeSingle(),
       supabase
@@ -201,11 +198,6 @@ export default async function DashboardLayout({
       outreachSettings = mapOutreachSettings(discoverySettingsResult.data)
     }
 
-    const rawDiscoveryStatus = discoverySettingsResult.data?.discovery_status
-    initialDiscoveryStatus = rawDiscoveryStatus && typeof rawDiscoveryStatus === "object"
-      ? (rawDiscoveryStatus as DiscoveryStatus)
-      : null
-
     if (backlinkNetworkResult.error) {
       console.error(
         "Error fetching backlink network membership:",
@@ -247,7 +239,6 @@ export default async function DashboardLayout({
       outreachSettings={outreachSettings}
       backlinkNetworkMembership={backlinkNetworkMembership}
       pages={pages}
-      initialDiscoveryStatus={initialDiscoveryStatus}
     >
       <SidebarProvider>
         <AppSidebar user={sidebarUser} initialProduct={product} />
@@ -256,14 +247,6 @@ export default async function DashboardLayout({
           <div className="p-6">{children}</div>
         </SidebarInset>
       </SidebarProvider>
-      {product && (
-        <DiscoveryProgressIsland
-          productId={product.id}
-          userId={user.id}
-          initialStatus={initialDiscoveryStatus}
-          productName={product.product_name}
-        />
-      )}
     </DashboardStoreHydrator>
   )
 }

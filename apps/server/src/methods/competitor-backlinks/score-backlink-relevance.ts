@@ -2,6 +2,7 @@ import pLimit from "p-limit"
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../helpers/logger.js"
+import { parseLlmJson } from "../../helpers/parse-llm-json.js"
 import type { TaggedBacklinkItem } from "./filter-backlinks.js"
 
 const log = createLogger("score-backlink-relevance")
@@ -131,7 +132,7 @@ async function scoreBatch(
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
     try {
       const { text, cost } = await generateTextWithUsage({
-        model: OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH_LITE,
+        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
         fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
         systemInstructions: SYSTEM_INSTRUCTIONS(product),
         thinkingBudget: 2000,
@@ -141,9 +142,9 @@ async function scoreBatch(
 
       let parsed: { results: { id: string; score: number; reason: string; pageType: string }[] }
       try {
-        parsed = JSON.parse(text) as typeof parsed
+        parsed = parseLlmJson<typeof parsed>(text)
       } catch (parseErr) {
-        log.warn("json parse failed", { error: String(parseErr) })
+        log.warn("json parse failed", { error: String(parseErr), rawResponse: text })
         return { results: [], cost: 0 }
       }
 

@@ -61,6 +61,7 @@ export function sanitizeContactName(name: string | null | undefined): string | n
   if (trimmed.length > 60) return null
   if (!/[a-zA-Z]/.test(trimmed)) return null
   if (NAME_BLOCKLIST.has(trimmed.toLowerCase())) return null
+  if (trimmed.split(/\s+/).length > 5) return null
   return trimmed
 }
 

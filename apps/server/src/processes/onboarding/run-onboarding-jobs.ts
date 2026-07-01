@@ -4,7 +4,6 @@ import { createLogger } from "../../helpers/logger.js"
 import { discoverCompetitorBacklinks, type ProspectCreatedPayload } from "../../methods/competitor-backlinks/discover-competitor-backlinks.js"
 import { crawlProductPages } from "../../methods/product-pages/crawl-product-pages.js"
 import { discoverUnlinkedMentions } from "../../methods/unlinked-mentions/discover-unlinked-mentions.js"
-import { setEngineStatus, setInitialDiscoveryStatus } from "./discovery-status.js"
 import { createSequencesForProspect, assignSequences } from "./prospect-sequences.js"
 import { resolveEmailAccount } from "./resolve-email-account.js"
 import { sendOnboardingSummaryEmail } from "./summary-email.js"
@@ -13,7 +12,7 @@ const log = createLogger("onboarding-jobs")
 
 // Light cap for the first (onboarding) discovery run — keep it fast and cheap.
 // Daily jobs call the discovery methods without limits (full defaults).
-const ONBOARDING_BACKLINK_LIMITS = { maxCompetitors: 1, maxProspects: 10 }
+const ONBOARDING_BACKLINK_LIMITS = { maxCompetitors: 1, maxProspects: 10, fetchLimit: 35 }
 const ONBOARDING_MENTION_LIMITS = { maxCandidates: 8, maxProspects: 10 }
 const ONBOARDING_PROSPECT_BUDGET = 5
 
@@ -24,8 +23,6 @@ export async function runOnboardingJobs(
 ): Promise<void> {
   const t0 = Date.now()
   log.info("jobs START", { userId, productId })
-
-  await setInitialDiscoveryStatus(productId)
 
   // Fetch product + settings once, shared across both discovery branches.
   const { data: product, error: productError } = await supabaseAdmin
@@ -72,7 +69,6 @@ export async function runOnboardingJobs(
       }
       const t = Date.now()
       log.info("discoverCompetitorBacklinks START", { productId })
-      let failed = false
       try {
         const result = await discoverCompetitorBacklinks(
           { ...product, competitors: (product.competitors as string[]) ?? [] },
@@ -85,12 +81,8 @@ export async function runOnboardingJobs(
         log.success("discoverCompetitorBacklinks done", { durationMs: Date.now() - t, ...result })
         return result
       } catch (err) {
-        failed = true
         log.error("discoverCompetitorBacklinks FAILED", { durationMs: Date.now() - t, error: String(err) })
-        await setEngineStatus(productId, "backlinks", "failed")
         throw err
-      } finally {
-        if (!failed) await setEngineStatus(productId, "backlinks", "done")
       }
     })(),
     (async () => {
@@ -119,18 +111,13 @@ export async function runOnboardingJobs(
     (async () => {
       const t = Date.now()
       log.info("crawlProductPages START", { productId, pageLimit })
-      let failed = false
       try {
         const result = await crawlProductPages(productId, pageLimit)
         log.success("crawlProductPages done", { durationMs: Date.now() - t, ...result })
         return result
       } catch (err) {
-        failed = true
         log.error("crawlProductPages FAILED", { durationMs: Date.now() - t, error: String(err) })
-        await setEngineStatus(productId, "pages", "failed")
         throw err
-      } finally {
-        if (!failed) await setEngineStatus(productId, "pages", "done")
       }
     })(),
   ])

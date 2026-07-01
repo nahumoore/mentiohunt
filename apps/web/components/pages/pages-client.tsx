@@ -54,7 +54,7 @@ import { PAGE_TYPE_CONFIG, type PageType } from "@/consts/page-types"
 import { usePagesStore } from "@/stores/pages-store"
 import { useProfileStore } from "@/stores/profile-store"
 import { useProspectStore } from "@/stores/prospect-store"
-import { useDiscoveryStatusStore } from "@/stores/discovery-status-store"
+
 
 type PagePriority = 1 | 2 | 3 | 4 | 5
 
@@ -527,9 +527,6 @@ export function PagesClient() {
   const addPage = usePagesStore((s) => s.addPage)
   const prospects = useProspectStore((s) => s.prospects)
   const hasCompletedRun = useProspectStore((s) => s.hasCompletedRun)
-  const discoveryStatus = useDiscoveryStatusStore((s) => s.status)
-  const isPagesScanning = discoveryStatus?.pages === "running" || discoveryStatus?.pages === "pending"
-
   const pages: ProductPage[] = storePages.map((p) => {
     const count = prospects.filter((pr) => pr.target_url === p.url).length
     return {
@@ -669,7 +666,7 @@ export function PagesClient() {
       </div>
 
       {/* States */}
-      {isPagesScanning || (pages.length === 0 && !hasCompletedRun) ? (
+      {pages.length === 0 && !hasCompletedRun ? (
         <Card className="rounded-xl border border-border px-6 py-16 text-center shadow-sm">
           <div className="mx-auto flex max-w-md flex-col items-center gap-3">
             <span className="flex size-12 items-center justify-center rounded-full bg-(--color-blaze-orange)/10">

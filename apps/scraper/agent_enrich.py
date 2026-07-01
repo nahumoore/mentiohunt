@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 from urllib.parse import urljoin, urlparse
 
 from openai import OpenAI
@@ -18,6 +19,9 @@ _PLACEHOLDER_EMAIL_DOMAINS = {"example.com", "example.org", "example.net", "test
 
 _NAME_BLOCKLIST = {"null", "none", "n/a", "na", "undefined", "unknown", "finish", "scrape_page", "anonymous", "author", "admin", "editor", "staff", "team"}
 
+# Substrings that indicate the LLM returned a scraper failure description instead of a real name.
+_NAME_FAILURE_SUBSTRINGS = ["unable", "cannot", "could not", "access denied", "site could", "error"]
+
 
 def _clean_name(name: str | None) -> str | None:
     """Sanitize LLM-produced contact name; returns None for garbage values."""
@@ -29,6 +33,11 @@ def _clean_name(name: str | None) -> str | None:
     if not any(c.isalpha() for c in trimmed):
         return None
     if trimmed.lower() in _NAME_BLOCKLIST:
+        return None
+    lower = trimmed.lower()
+    if any(s in lower for s in _NAME_FAILURE_SUBSTRINGS):
+        return None
+    if len(trimmed.split()) > 5:
         return None
     return trimmed
 
@@ -67,7 +76,7 @@ _FINISH_TOOL = {
         "parameters": {
             "type": "object",
             "properties": {
-                "name": {"type": "string", "description": "Cleaned full name of the article author or site founder/owner — must be a real human person's name (e.g. 'John Smith'). NEVER set this to a company name, brand name, or platform name. If no individual person is identified, set to null."},
+                "name": {"type": "string", "description": "Cleaned full name of the article author or site founder/owner — must be a real human person's name (e.g. 'John Smith'). NEVER set this to a company name, brand name, platform name, or any description of a page error or access failure. If the page shows an error (WordPress error, 404, 500, timeout, blocked), set to null. If no individual person is identified, set to null."},
                 "emails": {
                     "type": "array",
                     "items": {
@@ -133,6 +142,39 @@ def _confidence(name: str | None, emails: list[EmailEntry]) -> str:
     return "none"
 
 
+def _extract_author_hints(page) -> list[str]:
+    hints: list[str] = []
+
+    for meta_sel in ('meta[name="author"]', 'meta[property="article:author"]'):
+        el = page.css_first(meta_sel)
+        if el:
+            val = el.attrib.get("content", "").strip()
+            if val and val not in hints:
+                hints.append(val)
+
+    for match in re.finditer(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        page.html_content or "",
+        re.DOTALL | re.IGNORECASE,
+    ):
+        try:
+            data = json.loads(match.group(1))
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                for node in (item.get("@graph") or [item]):
+                    author = node.get("author")
+                    candidates = [author] if not isinstance(author, list) else author
+                    for a in candidates:
+                        name = (a.get("name") if isinstance(a, dict) else a) or ""
+                        name = name.strip()
+                        if name and name not in hints:
+                            hints.append(name)
+        except Exception:
+            pass
+
+    return hints
+
+
 def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dict) -> dict:
     fetch_page = helpers["fetch_page"]
     extract_social_links = helpers["extract_social_links"]
@@ -189,6 +231,8 @@ def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dic
     article_el = _first_el(page, "article", "main", '[role="main"]')
     raw = strip_html_attrs(article_el.html_content or "") if article_el else strip_html_attrs(page.html_content or "")
 
+    author_hints = _extract_author_hints(page)
+
     result = {
         "url": url,
         "emails": emails,
@@ -198,8 +242,11 @@ def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dic
         "internal_links": internal_links[:20],
     }
 
+    if author_hints:
+        result["author_hints"] = author_hints
+
     log.info(
-        f"agent tool result: emails={emails} "
+        f"agent tool result: emails={emails} author_hints={author_hints} "
         f"socials={list(page_social.keys())} contact_form={contact_form_url!r} "
         f"internal_links_available={len(internal_links)}"
     )
@@ -239,7 +286,8 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 "- Stop early ONLY if you have a personal email\n"
                 "- Call finish() with the best data found\n"
                 "- ALWAYS return name and bio fields in English, regardless of the site's language\n"
-                "- name must be a real human person's name only — NEVER a company, brand, or platform name. If you cannot identify a real person, set name to null"
+                "- name must be a real human person's name only — NEVER a company, brand, platform name, or description of an error/access failure. If you cannot identify a real person, set name to null\n"
+                "- If a page returns an error (WordPress error, database error, 404, 500, access denied, timeout), treat it as empty and do not describe the error in any field — set name to null"
             ),
         },
         {

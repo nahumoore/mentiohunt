@@ -1,9 +1,7 @@
-import { runApifyActor } from "../../helpers/actors/run-apify-actor.js"
-import { AHREFS_SEO_TOOLS, type AhrefsBacklinkItem, type AhrefsBacklinksResponse } from "../../helpers/actors/ahrefs-seo-tools.js"
+import { getBacklinks } from "../../helpers/data-for-seo/get-backlinks.js"
 import { createLogger } from "../../helpers/logger.js"
 
 const log = createLogger("extract-competitor-backlinks")
-const BACKLINK_FETCH_TIMEOUT_SEC = 60
 
 export function extractCompetitorDomain(competitorUrl: string): string {
   try {
@@ -17,31 +15,51 @@ export function extractCompetitorDomain(competitorUrl: string): string {
   }
 }
 
+export type BacklinkItem = {
+  urlFrom: string
+  urlTo: string
+  anchor: string
+  domainRating: number
+  title: string
+  textPre: string
+  textPost: string
+}
+
 export type ExtractBacklinksResult = {
-  items: AhrefsBacklinkItem[]
+  items: BacklinkItem[]
   nextCursor: string | null
+  costUsd: number
 }
 
 export async function extractBacklinks(
   competitorDomain: string,
-  filters: { dr_min: number; dr_max: number | null; mozCursor: string | null }
+  filters: { dr_min: number; dr_max: number | null; mozCursor: string | null; limit?: number }
 ): Promise<ExtractBacklinksResult> {
   log.info("fetching backlinks", { competitorDomain })
 
   try {
-    const response = await runApifyActor<AhrefsBacklinksResponse[]>(AHREFS_SEO_TOOLS, {
-      searchType: "backlinks_list",
-      urls: [`https://${competitorDomain}/`],
-      mode: "subdomains",
-    }, BACKLINK_FETCH_TIMEOUT_SEC)
+    const { items: raw, searchAfterToken, costUsd } = await getBacklinks({
+      target: competitorDomain,
+      drMin: filters.dr_min,
+      searchAfterToken: filters.mozCursor,
+      limit: filters.limit,
+    })
 
-    const items = response[0]?.backlinks ?? []
+    const items: BacklinkItem[] = raw.map((item) => ({
+      urlFrom: item.url_from ?? "",
+      urlTo: item.url_to ?? "",
+      anchor: item.anchor ?? "",
+      domainRating: item.domain_from_rank ?? 0,
+      title: item.page_from_title ?? "",
+      textPre: item.text_pre ?? "",
+      textPost: item.text_post ?? "",
+    }))
 
-    log.info("backlinks fetched", { competitorDomain, count: items.length })
+    log.info("backlinks fetched", { competitorDomain, count: items.length, costUsd })
 
-    return { items, nextCursor: null }
+    return { items, nextCursor: searchAfterToken, costUsd }
   } catch (err) {
     log.warn("backlink fetch failed", { competitorDomain, error: String(err) })
-    return { items: [], nextCursor: null }
+    return { items: [], nextCursor: null, costUsd: 0 }
   }
 }

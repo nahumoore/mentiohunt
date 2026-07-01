@@ -12,7 +12,6 @@ import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunitie
 import { googleIndexCheckerRouter } from "./google-index-checker.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
 import { resendInboundWebhookRouter } from "./resend-inbound-webhook.js"
-import { redditUserAnalyzerRouter } from "./reddit-user-analyzer.js"
 import { verifyDirectoryUrlsRouter } from "./verify-directory-urls.js"
 
 export function registerRoutes(app: Application, isDev: boolean): void {
@@ -22,7 +21,6 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(onboardingCompleteRouter)
   app.use(crawlSinglePageRouter)
   app.use(resendInboundWebhookRouter)
-  app.use(redditUserAnalyzerRouter)
   app.use(googleIndexCheckerRouter)
 
   if (isDev) {

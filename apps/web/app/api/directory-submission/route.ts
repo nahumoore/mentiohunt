@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { error } = await resend.emails.send({
-    from: "Mentiohunt <submissions@mentiohunt.com>",
+    from: "Mentiohunt <contact@mentiohunt.com>",
     to: PRIMARY_EMAIL,
     replyTo: contactEmail,
     subject: `New directory submission: ${directoryName}`,

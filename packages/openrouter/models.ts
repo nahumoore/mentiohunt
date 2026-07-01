@@ -36,12 +36,12 @@ export const OPENROUTER_MODELS = {
   // Context window: see OpenRouter model page.
   DEEPSEEK_DEEPSEEK_V4_PRO: "deepseek/deepseek-v4-pro",
 
-  // Z AI GLM-5.
-  // OpenRouter page: https://openrouter.ai/z-ai/glm-5
-  // Description: Z AI's GLM-5 language model.
-  // Pricing: see OpenRouter model page.
-  // Context window: see OpenRouter model page.
-  Z_AI_GLM_5: "z-ai/glm-5",
+  // Z AI GLM 4.7 Flash.
+  // OpenRouter page: https://openrouter.ai/z-ai/glm-4.7-flash
+  // Description: 30B model balancing performance and efficiency, optimized for agentic coding and long-horizon tasks. Supports reasoning + structured output simultaneously.
+  // Pricing: $0.06 / 1M input tokens, $0.40 / 1M output tokens.
+  // Context window: 202,752 tokens.
+  Z_AI_GLM_4_7_FLASH: "z-ai/glm-4.7-flash",
 } as const
 
 export type OpenRouterModel =

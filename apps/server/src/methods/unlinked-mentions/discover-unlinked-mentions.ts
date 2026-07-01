@@ -350,6 +350,12 @@ export async function discoverUnlinkedMentions(
           if (budget) budget.remaining -= 1
 
           const enriched = await enrichMention(item, product, senderName, emailSettings)
+
+          if (!enriched.contact_email) {
+            log.info("skipping prospect, no email found", { domain: item.domain })
+            return
+          }
+
           const sr = siteRelevanceResults.get(item.url)
           const { step2_body, step3_body, ...dbEnriched } = enriched
 

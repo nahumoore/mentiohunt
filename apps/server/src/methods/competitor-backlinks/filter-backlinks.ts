@@ -1,4 +1,4 @@
-import type { AhrefsBacklinkItem } from "../../helpers/actors/ahrefs-seo-tools.js"
+import type { BacklinkItem } from "./extract-backlinks.js"
 import { createLogger } from "../../helpers/logger.js"
 
 const log = createLogger("filter-backlinks")
@@ -34,7 +34,7 @@ export const NOISE_DOMAINS = new Set([
 
 const NOISE_PATH_SEGMENTS = ["/user/", "/profile/", "/members/", "/author/"]
 
-export type TaggedBacklinkItem = AhrefsBacklinkItem & {
+export type TaggedBacklinkItem = BacklinkItem & {
   competitorDomain: string
 }
 

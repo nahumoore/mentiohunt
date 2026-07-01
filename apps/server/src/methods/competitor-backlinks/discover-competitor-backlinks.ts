@@ -232,14 +232,15 @@ async function processCompetitor(
   enrichLimit: LimitFunction,
   maxProspects: number,
   budget?: { remaining: number },
-  onProspectCreated?: (p: ProspectCreatedPayload) => void
+  onProspectCreated?: (p: ProspectCreatedPayload) => void,
+  fetchLimit?: number
 ): Promise<{ prospectsCreated: number; costUsd: number; nextCursor: string | null }> {
   const mozCursor = await getLastMozCursor(product.id, competitorDomain)
 
   log.info("processing competitor", { productId: product.id, competitorDomain, hasCursor: !!mozCursor })
 
   try {
-    const { items: rawItems, nextCursor } = await extractBacklinks(competitorDomain, { ...settings, mozCursor })
+    const { items: rawItems, nextCursor, costUsd: fetchCost } = await extractBacklinks(competitorDomain, { ...settings, mozCursor, limit: fetchLimit })
     const tagged: TaggedBacklinkItem[] = rawItems.map((item) => ({ ...item, competitorDomain }))
 
     const filtered = filterBacklinks(tagged, settings)
@@ -254,11 +255,11 @@ async function processCompetitor(
         kept: 0,
         inserted: 0,
       })
-      return { prospectsCreated: 0, costUsd: 0, nextCursor }
+      return { prospectsCreated: 0, costUsd: fetchCost, nextCursor }
     }
 
     const { results: scored, totalCost: pageScoringCost } = await scoreBacklinkRelevance(filtered, product)
-    let totalCost = pageScoringCost
+    let totalCost = fetchCost + pageScoringCost
     const belowThreshold = scored.filter((r) => r.relevanceScore < MIN_RELEVANCE_SCORE)
     const passing = scored
       .filter((r) => r.relevanceScore >= MIN_RELEVANCE_SCORE)
@@ -339,11 +340,20 @@ async function processCompetitor(
       newItems.map((item) =>
         enrichLimit(async () => {
           // Budget guard — claim synchronously before any expensive I/O.
-          if (budget && budget.remaining <= 0) return
+          if (budget && budget.remaining <= 0) {
+            log.info("budget exhausted, skipping", { domain: extractDomainFromUrl(item.urlFrom) })
+            return
+          }
           if (budget) budget.remaining -= 1
 
           const domain = extractDomainFromUrl(item.urlFrom)
           const enriched = await enrichProspect(item, product, domain, senderName, emailSettings)
+
+          if (!enriched.contact_email) {
+            log.info("skipping prospect, no email found", { domain })
+            return
+          }
+
           const sr = siteRelevanceResults.get(item.urlFrom)
           const { step2_body, step3_body, ...dbEnriched } = enriched
 
@@ -405,12 +415,13 @@ export async function discoverCompetitorBacklinks(
   },
   settings: FilterSettings,
   emailSettings: EmailSettings = {},
-  limits: { maxCompetitors?: number; maxProspects?: number } = {},
+  limits: { maxCompetitors?: number; maxProspects?: number; fetchLimit?: number } = {},
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void
 ): Promise<{ prospectsCreated: number; totalCostUsd: number }> {
   const maxCompetitors = limits.maxCompetitors ?? MAX_COMPETITORS_PER_RUN
   const maxProspects = limits.maxProspects ?? MAX_PROSPECTS_PER_RUN
+  const fetchLimit = limits.fetchLimit
 
   log.info("discovery started", { productId: product.id, competitors: product.competitors.length })
 
@@ -439,7 +450,7 @@ export async function discoverCompetitorBacklinks(
 
   try {
     for (const competitorDomain of competitorsToProcess) {
-      const result = await processCompetitor(competitorDomain, product, settings, senderName, emailSettings, enrichLimit, maxProspects, budget, onProspectCreated)
+      const result = await processCompetitor(competitorDomain, product, settings, senderName, emailSettings, enrichLimit, maxProspects, budget, onProspectCreated, fetchLimit)
       totalProspectsCreated += result.prospectsCreated
       totalCostUsd += result.costUsd
       mozCursorsByDomain[competitorDomain] = result.nextCursor

@@ -68,7 +68,8 @@ export async function scoreSiteRelevance(
     }))
 
     const { text, cost } = await generateTextWithUsage({
-      model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
+      model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+      fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
       systemInstructions: SYSTEM_INSTRUCTIONS(product),
       input: `Sites:\n${JSON.stringify(payload, null, 2)}`,
       responseFormat: RESPONSE_FORMAT,

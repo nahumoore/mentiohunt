@@ -1,42 +1,33 @@
-The service is well-structured (tiered fetching, seeded agent, sanitization of LLM output are all good ideas), but there are two confirmed production bugs — a timeout that's effectively 4 hours instead of 15 seconds, and a stealth tier that can't work in Docker at all — plus you're on Scrapling 0.2.9, three minor versions behind an API that would remove your biggest performance bottleneck (browser launch per request).
+Must fix
 
-Confirmed bugs
+1. The venv was never actually upgraded — the app can't start. requirements.txt says scrapling[fetchers]>=0.4.8, but the installed package in apps/scraper/.venv is still 0.2.9 (pip show confirms). main.py:5 imports AsyncDynamicSession, AsyncStealthySession, which don't exist in 0.2.9, so the service dies at import time locally. Run:
 
-1. timeout=15000 on the light fetcher is 15,000 seconds, not milliseconds — core.py:192. I checked the installed 0.2.9 source: Fetcher.get(url, timeout=...) is httpx-based and documented as "time to wait for the request to finish in seconds. The default is 10". Browser fetchers use milliseconds, the HTTP fetcher uses seconds — the code copied the ms convention. A hanging or slow-dripping server holds a threadpool worker for up to ~4.2 hours per request. It should be timeout=15.
+apps/scraper/.venv/Scripts/pip install -U -r apps/scraper/requirements.txt
+apps/scraper/.venv/Scripts/scrapling install --force
 
-2. The stealthy tier is dead in Docker — Dockerfile:12-13 installs Playwright Chromium and rebrowser Chromium, but StealthyFetcher in 0.2.9 runs Camoufox (Firefox-based), whose browser binary must be downloaded separately (python -m camoufox fetch). The pip package is installed, the browser isn't. So in production the final escalation tier in fetch_page always throws, and every Cloudflare/anti-bot site silently returns fetch_failed. Add RUN python -m camoufox fetch (or migrate to 0.4.x where scrapling install handles all browsers).
+This also means I could only review the 0.4.x API usage against the docs, not against an installed copy — worth a smoke test of all three tiers after the upgrade.
 
-3. HTTP status is never checked — fetch_page (core.py:189-220) only checks text length ≥ 500 chars. Scrapling's response exposes .status, but a 404, 410, or a wordy 403 block page with enough text passes as a successful fetch. For check-mention this is a correctness issue: a deleted article (404 with a chatty error page) that happens to still contain the brand name in boilerplate would be reported as a qualified unlinked mention. Check page.status and escalate/fail on non-2xx.
+2. The SSRF guard crashes the whole request from inside the agent loop. _ssrf_check raises HTTPException(400) on DNS failure or private-IP resolution, and fetch_page calls it outside any try block (core.py:280). When the route calls fetch_page, a 400 is reasonable. But when the agent tool calls it g catches it: one dead internal link — say atypo'd subdomain that passes _host_matches_target but doesn't resolve — propagates up through run_agent_scrape and turns an entire /check-mention request into a 400, discarding the already-computed qualification result. Catch exceptions around
+fetch_page in _execute_scrape_page and return {" instead.
 
-4. Brand matching is raw substring matching — ch().lower() in text means a brand term like"mentio" matches "mentioned", "attentio n"…, and short brands or brands that are dictionary words will produce false-positive qualified mentions — the exact signal the product sells. Use word-boundary regex (\b with re.escape) per term.
-5. Agent domain check breaks on www/non-www — agurlparse(url).netloc != domain. You already have_normalize_host/\_host_matches_target in core.py:260-268 but don't use them here. If the seed URL is https://www.example.com/post, the LLM proposing https://example.com/about gets "URL must be on www.example.com" — and the internal-links filter at agent_enrich.py:223 drops those links too, so on sites that mix www and bare-domain links the agent can be unable to navigate at all.
+3. scrapling install in the Dockerfile needs --force. Per the Scrapling docs, non-interactive installs should use scrapling install --force — without it the build can hang or fail on the interactive prompt in Docker (Dockerfile:12).
 
-6. Failed tool calls burn the page budget — agent_enrich.py:367-374: pages_scraped += 1 runs even when \_execute_scrape_page returned an error (blocked external URL, already-visited, fetch failure). And since failed fetches are not added to visited, the model can retry the same broken URL repeatedly, spending the whole MAX_PAGES budget on nothing. Only count successful scrapes; add failed URLs to a "don't retry" set.  
+Worth fixing
 
-7. \_execution_log interleaves concurrent requests — core.py:34-44 attaches a FileHandler to the single shared scraper logger. Two overlapping requests write each other's lines into both files, and second-resolution timestamps in the filename cacollide (the second handler appends to the firstis serialized, misleading the moment it isn't.Also nothing ever prunes .logs/ — one file per request grows unbounded in the container.
+- _cf_blocked_domains compares unnormalized hostlparse(url).netloc (core.py:328), but the agent
+checks domain in cf_blocked_domains with the seepy:204). If the challenge fired on example.comwhile the seed is www.example.com, the short-circuit misses. Run both through _normalize_host. Also note the set never expires and grows for the process lifetime — a transient challenge blocks the domain forever until restart.
+- AGENT_BUDGET_SECONDS = 180 while its own comment says the caller times out at 120s. As written, the budget never saves the
+caller — the response arrives after they've give's timeout (~100s) so partial data actually getsreturned. Also, the deadline is only checked between iterations, and one iteration can run 90s of LLM + 120s+ of tiered fetches, so real overshoot is large; checking the deadline before each scrape_page execution would tighten it.
+- visited and internal_links use different URL forms, so a page can be scraped twice. visited stores the raw URL from the LLM
+(agent_enrich.py:219) while internal links are n. If the agent fetched /about/ with a slash, thenormalized /about still appears in internal_links and passes the url in visited check. Store and compare _normalize_url(url) in visited/failed.
+- Terminal statuses waste two browser fetches. A plain 404/410 from the light tier now escalates through dynamic and stealthy (up to ~2 minutes) before returning None. Dead URLs are common in mention checking; treat 404/410 as final at any tier and only escalate on block-ish signals (403, 429, 503, challenge pages, thin content).
+- socket.getaddrinfo blocks the event loop. Routes are async now, and _ssrf_check does synchronous DNS in the event loop thread (core.py:121) — slow DNS stalls every concurrent request. Wrap it in asyncio.to_thread (and note the existing check is fetch-time-TOCTOU/redirect-blind anyway — acceptable given API-key gating, but don't treat it as a hard boundary).
 
-Biggest improvement: migrate to Scrapling 0.4.x and use sessions
+Minor
 
-You're on 0.2.9; current is 0.4.8+. Beyond bugfixes, the API changed in ways that directly address this service's design:
+- The word-boundary brand regex breaks for terms that start or end with non-word characters (\bc\+\+\b can never match) and
+multi-word terms won't match across line breaks and terms are always plain words this is fine;otherwise replace inner whitespace with \s+ and skip \b next to non-word chars.
+- The fallback LLM call (agent_enrich.py:371) is still unwrapped — if both models fail, the whole request 500s instead of returning the data gathered so far.
+- Sessions live for the process lifetime with no recovery: if the Chromium/Camoufox process crashes mid-run, every subsequent browser fetch fails until restart. Scrapling sessions handle some of this internally, but a periodic health check or a restart-on-repeated-failure wrapper would make the escalation tiers self-healing.
 
-- PlayWrightFetcher → DynamicFetcher, and one-ofar down a full browser per request. That's whyyou need \_browser_semaphore(1) — total serialization of every browser fetch behind ~1–3s of Chromium startup each time. 0.4.x DynamicSession / StealthySession keep a browser alive with a tab pool (max_pages=N), giving you safe concurrency and removing the startup cost. For a service whose agent fetches up to 6 pages per request, this is the single largest latency win available.
-- solve_cloudflare=True on the stealthy session llenges rather than just fingerprint-masking.
-- scrapling install sets up all browser deps in one step — fixes the Dockerfile fragility from bug #2.
-- disable_resources=True on your dynamic tier is good; 0.4.x also adds block_ads to cut noise further.
-
-The migration is mechanical for your usage surfarst, .attrib, get_all_text, html_content allsurvive), but do it deliberately — pin scrapling[fetchers]>=0.4.8 and smoke-test the three tiers.
-
-Smaller improvements
-
-- No SSRF guard: the service fetches any URL callers send, including http://169.254.169.254/ or internal hosts. It's API-key gated so exposure is limited, but if API_KEY is unset the guard in core.py:57 silently disables auth entirely — I'd fail fast at startup instead. (Note Scrapling 0.4's CLI defaults to rejecting redirects to private IPs; your version does nothing.)
-- \_is_personal is dead code (agent_enrich.py:130): you trust the LLM's personal/general classification in finish, while a
-  deterministic classifier sits unused. Use it to ype — confidence: "personalized" drives outreach
-  decisions, so don't let the model self-grade it.
-- Seeded-page cache misses on trivial URL differences (core.py:294): url == seed_url is exact-string, and the first URL the agent fetches comes from the LLM, which often normalizes trailing slashes — a miss means re-fetching the page you already have. Compare normalized URLs.
-- mailto-extracted emails skip the placeholder f1) and dedupe case-sensitively, unlike
-  extract_emails_from_text.
-- No overall deadline on /check-mention: worst case is a serialized chain of tiered fetches (60s+60s each) × 6 agent pages × LLM calls with 90s timeouts — the caller has long since timed out but the worker keeps grinding. Add a wall-clock budget to the agent loop.
-- Internal-link normalization strips query strinch makes sites using ?page_id= navigation (old
-  WordPress) invisible to the agent.
-- social_links from the LLM's finish are returned unvalidated — everything else (name, emails) is sanitized, but a hallucinated LinkedIn URL flows straight to outreach. Cross-check against links actually seen by extract_social_links during the crawl.
-- CORSMiddleware with allow_origins=["*"] on a seight — no browser calls this; you can drop it.
+The pattern across #1, #2, and the budget comment is that none of this has been exercised end-to-end yet — I'd upgrade thevenv, then run a live smoke test against one plain site, one JS-heavy site, and one Cloudflare-protected site before deploying.

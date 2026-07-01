@@ -15,18 +15,13 @@ Topic to own: **backlink prospecting / opportunity discovery for B2B SaaS founde
 
 | Slug | Primary keyword | Topic | Vol | KD |
 |---|---|---|---|---|
-| `articles/unlinked-brand-mentions` | unlinked brand mentions | Reclaiming mention-based links | 140 | 3 |
-| `articles/resource-page-link-building` | resource page link building | Prospecting resource pages | 90 | 5 |
 | `articles/link-building-outreach-email` | email outreach link building | Outreach email templates and copy | 50 | 3 |
 
 ### Tier 2 — KD 9–25
 
 | Slug | Primary keyword | Topic | Vol | KD |
 |---|---|---|---|---|
-| `articles/link-building-outreach` | link building outreach | Outreach process and campaign execution | 140 | 17 |
-| `articles/backlink-opportunities` | backlink opportunities | Opportunity discovery and qualification | 40 | 19 |
-| `articles/competitor-backlink-gap-analysis` | competitor backlink gap | Competitor gap analysis workflow | — | low |
-| `articles/broken-link-building` | broken link building | Broken-link prospecting and replacement | verify | — |
+| None - roll these keywords into existing pages | `link building outreach`, `backlink opportunities`, `competitor backlink gap`, `broken link building` | Consolidate into existing articles | — | — |
 
 ### Tier 3 — verify vol/KD before building
 
@@ -34,7 +29,6 @@ Topic to own: **backlink prospecting / opportunity discovery for B2B SaaS founde
 |---|---|---|
 | `articles/guest-posting-for-saas` | Guest post prospecting | Guest post prospecting for founders |
 | `articles/haro-link-building` | Journalist queries and digital PR | Journalist queries / digital PR |
-| `articles/saas-link-building-strategy` | SaaS link-building strategy | Strategy companion to pillar |
 
 ## Avoid as primary (new-domain unwinnable)
 
@@ -46,13 +40,14 @@ Topic to own: **backlink prospecting / opportunity discovery for B2B SaaS founde
 
 Note: existing `articles/how-to-find-backlink-opportunities` already covers unlinked mentions, resource pages, broken links, competitor gap, outreach as sections. Don't build thin how-to spokes that duplicate it / are answerable by AI search. Build the below instead.
 
-## Cannibalization check
+## Review: consolidate missing keywords into existing or merged articles
 
-- `articles/saas-backlink-building` and `articles/saas-link-building-strategy` are the biggest collision risk. Both lean toward broad SaaS link-building strategy intent. Keep the pillar as the comprehensive playbook and only build the strategy page if it is repositioned around a narrower intent like planning, budgeting, or prioritization.
-- `articles/link-building-outreach` and `articles/link-building-outreach-email` can coexist, but only if intent stays separated. One should own campaign/process, the other should own templates/examples/copywriting.
-- `articles/backlink-opportunities` is close to the existing `articles/how-to-find-backlink-opportunities`. Unless the new page is clearly reframed around qualification, scoring, or workflow, this is likely cannibalization.
-- The second pillar `articles/saas-link-building-agency-vs-software` includes `link building for saas` as a primary term, which overlaps with the first pillar. Treat that term as supporting copy, not the core target, or the two pillars may compete.
-- `articles/unlinked-brand-mentions`, `articles/resource-page-link-building`, `articles/competitor-backlink-gap-analysis`, and `articles/broken-link-building` are adjacent to the existing opportunity article, but they are not direct cannibalization if each is deeper and more task-specific than the parent guide.
+- Add `unlinked brand mentions`, `resource page link building`, `competitor backlink gap`, and `broken link building` into existing `articles/how-to-find-backlink-opportunities`. Those topics already exist there as sections, so the win is to expand and sharpen those sections instead of creating separate thin articles.
+- Add `link building outreach` into `articles/link-building-outreach-email` since that article is already being created. Use it to cover both outreach process and outreach email templates/examples.
+- Merge `backlink opportunities` into existing `articles/how-to-find-backlink-opportunities`. The keyword match and intent are too close to justify a second article.
+- Merge `saas link building strategy` into the pillar `articles/saas-backlink-building`. Keep the pillar as the single strategy page for this cluster.
+- If `articles/saas-link-building-agency-vs-software` is built, keep it focused on buying-model comparison keywords only. Treat `link building for saas` as supporting copy, not a primary target, because that belongs to the main pillar.
+- Keep `articles/guest-posting-for-saas` and `articles/haro-link-building` separate only if they are built as deeper, opinionated workflows with distinct founder intent. Otherwise, fold them into the pillar until there is enough unique depth to justify standalone pages.
 
 ## Second pillar — the buying decision
 

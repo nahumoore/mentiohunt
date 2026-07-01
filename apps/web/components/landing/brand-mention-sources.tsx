@@ -58,7 +58,7 @@ function getLabelClass(index: number): string {
   return "text-muted-foreground/70"
 }
 
-const maxValue = factors[0].value
+const maxValue = factors[0]?.value ?? 1
 
 function FactorRow({ factor, index }: { factor: Factor; index: number }) {
   const pct = Math.round((factor.value / maxValue) * 100)

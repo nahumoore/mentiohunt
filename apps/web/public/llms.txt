@@ -1,0 +1,31 @@
+# Mentiohunt
+
+> Mentiohunt is a backlink placement autopilot for founder-led B2B SaaS companies. It turns article URLs into a scored opportunity queue — surfacing fit-matched websites, contact details, and outreach drafts so founders can approve placements without running outreach as a full-time job.
+
+## Primary Pages
+
+- [Homepage](https://mentiohunt.com): What Mentiohunt is, who it's for, and the core workflow — article URLs in, backlink opportunity queue out.
+- [Features](https://mentiohunt.com/features): Overview of the full feature set — opportunity discovery, fit scoring, contact enrichment, and outreach draft generation.
+- [Pricing](https://mentiohunt.com/pricing): Plan tiers, what's included, and how to get started; transparent pricing with a free entry point.
+- [About](https://mentiohunt.com/about): Founder note from Nicolas More explaining why Mentiohunt exists and what problem it solves.
+
+## Product
+
+- [Blog](https://mentiohunt.com/blog): Practical guides on backlink prospecting, opportunity scoring, and founder-led distribution — written to match Mentiohunt's ICP.
+- [Free Tools](https://mentiohunt.com/free-tools): A collection of free utilities for checking backlink fit, discovering placement opportunities, and running competitor gap analysis.
+- [Alternatives](https://mentiohunt.com/alternatives): Honest comparisons between Mentiohunt and other link-building tools — Ahrefs, Respona, Pitchbox, Buzzstream, and more.
+- [Compare](https://mentiohunt.com/compare): Head-to-head breakdowns of competing tools (Buzzstream vs Pitchbox, Respona vs Buzzstream, etc.) for founders evaluating their options.
+
+## Resources
+
+- [How to Find Unlinked Brand Mentions and Turn Them Into Backlinks](https://mentiohunt.com/blog/unlinked-brand-mentions): Flagship guide explaining what unlinked mentions are, how to find them at scale, and how to convert them into backlinks — the core use case Mentiohunt automates.
+- [Backlink Building for B2B SaaS Founders](https://mentiohunt.com/blog/saas-backlink-building): An opportunity-first playbook covering which pages to prioritize, which tactics fit early-stage SaaS, and how to build a repeatable link-building workflow.
+- [How to Find Backlink Opportunities](https://mentiohunt.com/blog/how-to-find-backlink-opportunities): Practical walkthrough of competitor gap analysis, Google operators, resource pages, and unlinked mentions — with a prioritization framework.
+- [Email Outreach for Link Building](https://mentiohunt.com/blog/link-building-outreach-email): Templates, follow-up sequences, and deliverability checklist for founders sending personalized link-building emails at 20–50 per week.
+- [HARO Link Building in 2026](https://mentiohunt.com/blog/haro-link-building): Current guide to journalist query platforms (HARO/Connectively and alternatives) for earning editorial backlinks through expert sourcing.
+- [Guest Post Prospecting for SaaS Founders](https://mentiohunt.com/blog/guest-posting-for-saas): Repeatable system for finding qualified guest post targets, filtering out low-value sites, and building a placement pipeline.
+
+## Free Tools
+
+- [Backlink Opportunity Finder](https://mentiohunt.com/free-tools/backlink-opportunity-finder): Enter a URL and surface relevant websites where a backlink would be a strong topical fit — useful for seeding a prospecting list.
+- [Competitor Backlink Gap Analysis](https://mentiohunt.com/free-tools/competitor-backlink-gap): Identify sites that link to your competitors but not to you, and turn the gap into a prioritized outreach list.

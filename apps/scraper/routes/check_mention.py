@@ -2,6 +2,8 @@
 # If brand is mentioned but no link exists (unlinked mention), runs agent-scrape to enrich contact.
 # Returns qualified=True only for unlinked brand mentions — the signal worth acting on.
 
+import re
+
 from fastapi import Depends
 from fastapi.routing import APIRouter
 
@@ -23,18 +25,22 @@ router = APIRouter()
 
 
 @router.post("/check-mention", response_model=CheckMentionResponse, dependencies=[Depends(_require_api_key)])
-def check_mention(request: CheckMentionRequest):
+async def check_mention(request: CheckMentionRequest):
     with _execution_log("check-mention"):
         log.info(f"check-mention request: {request.url} terms={request.brand_terms}")
 
-        page = fetch_page(request.url)
+        page = await fetch_page(request.url)
         if not page:
             return CheckMentionResponse(
                 qualified=False, brand_present=False, links_to_target=[], reason="fetch_failed"
             )
 
         text = str(page.get_all_text()).lower()
-        brand_present = any(term.strip().lower() in text for term in request.brand_terms if term.strip())
+        brand_present = any(
+            bool(re.search(rf"\b{re.escape(term.strip().lower())}\b", text))
+            for term in request.brand_terms
+            if term.strip()
+        )
 
         base_url = get_base_url(request.url)
         links = _links_to_target(page, base_url, request.target_domain)
@@ -55,7 +61,7 @@ def check_mention(request: CheckMentionRequest):
 
         # Qualified unlinked mention — enrich contact reusing the fetched page as the agent seed.
         helpers = _seeded_helpers(request.url, page, _get_agent_helpers())
-        contact = run_agent_scrape(url=request.url, helpers=helpers)
+        contact = await run_agent_scrape(url=request.url, helpers=helpers)
 
         return CheckMentionResponse(
             qualified=True,

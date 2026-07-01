@@ -1,9 +1,13 @@
+import asyncio
+import contextvars
+import ipaddress
 import logging
+import logging.handlers
 import os
 import re
-import threading
+import socket
+import uuid
 from contextlib import contextmanager
-from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
@@ -12,7 +16,7 @@ from dotenv import load_dotenv
 from fastapi import HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
-from scrapling.fetchers import Fetcher, PlayWrightFetcher, StealthyFetcher
+from scrapling.fetchers import Fetcher
 
 from agent_enrich import AgentScrapeResponse, run_agent_scrape
 
@@ -21,41 +25,106 @@ load_dotenv()
 LOGS_DIR = Path(__file__).parent / ".logs"
 LOGS_DIR.mkdir(exist_ok=True)
 
-_LOG_FORMAT = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+# --- Logging setup -----------------------------------------------------------
+# request_id contextvar: set per request so concurrent log lines are attributable
+# even though they all go to a single rotating file + stdout.
+_request_id: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="-")
 
+_SCRAPER_LOG_FORMAT = logging.Formatter("%(asctime)s %(levelname)s [%(request_id)s] %(message)s")
+
+
+class _RequestIdFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.request_id = _request_id.get("-")  # type: ignore[attr-defined]
+        return True
+
+
+# Root logger: plain format — other libs (uvicorn, starlette) log here and
+# don't have request_id; using it in the root format causes KeyError.
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
     handlers=[logging.StreamHandler()],
 )
+
+# scraper logger: own handlers with request_id; don't propagate to root to
+# avoid double-logging every scraper line.
 log = logging.getLogger("scraper")
+log.propagate = False
+log.setLevel(logging.INFO)
+
+_stdout_handler = logging.StreamHandler()
+_stdout_handler.setFormatter(_SCRAPER_LOG_FORMAT)
+_stdout_handler.addFilter(_RequestIdFilter())
+log.addHandler(_stdout_handler)
+
+# Rotating file handler — single shared file, capped at 20 MB, 3 backups.
+_file_handler = logging.handlers.RotatingFileHandler(
+    LOGS_DIR / "scraper.log", maxBytes=20 * 1024 * 1024, backupCount=3, encoding="utf-8"
+)
+_file_handler.setFormatter(_SCRAPER_LOG_FORMAT)
+_file_handler.addFilter(_RequestIdFilter())
+log.addHandler(_file_handler)
 
 
 @contextmanager
 def _execution_log(route: str):
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
-    handler = logging.FileHandler(LOGS_DIR / f"{route}-{ts}.log")
-    handler.setFormatter(_LOG_FORMAT)
-    log.addHandler(handler)
+    """Set a unique request ID for the duration of the request so log lines from
+    concurrent requests remain attributable without per-request file handlers."""
+    token = _request_id.set(f"{route}-{uuid.uuid4().hex[:8]}")
     try:
         yield
     finally:
-        log.removeHandler(handler)
-        handler.close()
+        _request_id.reset(token)
 
 
-_light_fetcher = Fetcher()
-_dynamic_fetcher = PlayWrightFetcher()
-_stealthy_fetcher = StealthyFetcher()
-_browser_semaphore = threading.Semaphore(1)
+# --- Browser sessions (set by lifespan in main.py) ---------------------------
+# Fetcher is classmethods-only in 0.4.x; use Fetcher.get(...) directly.
 
+# Set at startup by the FastAPI lifespan in main.py; never None when a request
+# actually runs.  Typed as Any to avoid a circular import with scrapling.
+_dynamic_session = None
+_stealthy_session = None
+
+_cf_blocked_domains: set[str] = set()
+
+# --- Auth --------------------------------------------------------------------
 API_KEY = os.getenv("API_KEY")
 _api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
 
 def _require_api_key(key: str | None = Security(_api_key_header)):
-    if API_KEY and key != API_KEY:
+    if not API_KEY:
+        raise HTTPException(status_code=500, detail="Server misconfiguration: API_KEY not set")
+    if key != API_KEY:
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
+
+
+# --- SSRF guard --------------------------------------------------------------
+_PRIVATE_NETWORKS = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("169.254.0.0/16"),  # link-local / AWS metadata
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fc00::/7"),
+]
+
+
+def _ssrf_check(url: str) -> None:
+    """Raise HTTPException 400 if the URL resolves to a private/internal address."""
+    host = urlparse(url).hostname
+    if not host:
+        raise HTTPException(status_code=400, detail="Invalid URL: no host")
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except socket.gaierror as e:
+        raise HTTPException(status_code=400, detail=f"Cannot resolve host: {e}")
+    for _, _, _, _, sockaddr in infos:
+        ip = ipaddress.ip_address(sockaddr[0])
+        if any(ip in net for net in _PRIVATE_NETWORKS):
+            raise HTTPException(status_code=400, detail="URL resolves to a private/internal address")
 
 
 class _TextLinksExtractor(HTMLParser):
@@ -186,38 +255,85 @@ def get_base_url(url: str) -> str:
     return f"{parsed.scheme}://{parsed.netloc}"
 
 
-def fetch_page(url: str):
+def _normalize_url(url: str) -> str:
+    """Normalize URL for cache comparisons: lowercase scheme+host, strip trailing slash."""
+    try:
+        p = urlparse(url)
+        path = p.path.rstrip("/") or "/"
+        normalized = f"{p.scheme.lower()}://{p.netloc.lower()}{path}"
+        if p.query:
+            normalized += f"?{p.query}"
+        return normalized
+    except Exception:
+        return url
+
+
+def _is_ok_status(page) -> bool:
+    """True if the page has a 2xx HTTP status (or status is unavailable)."""
+    status = getattr(page, "status", None)
+    if status is None:
+        return True
+    return 200 <= status < 300
+
+
+async def fetch_page(url: str):
+    _ssrf_check(url)
     try:
         log.info(f"fetching lightweight {url}")
-        page = _light_fetcher.get(url, timeout=15000, stealthy_headers=True)
+        page = await asyncio.to_thread(
+            Fetcher.get, url, timeout=15, stealthy_headers=True
+        )
         text = str(page.get_all_text()).strip()
-        if len(text) >= 500:
-            log.info(f"fetched ok (light) {url}")
+        status = getattr(page, "status", None)
+        if not _is_ok_status(page):
+            log.info(f"light fetch non-2xx status={status}, escalating to dynamic {url}")
+        elif len(text) >= 500:
+            log.info(f"fetched ok (light) status={status} {url}")
             return page
-        log.info(f"light fetch thin content ({len(text)} chars), escalating to playwright {url}")
+        else:
+            log.info(f"light fetch thin content ({len(text)} chars), escalating to dynamic {url}")
     except Exception as e:
-        log.warning(f"light fetch failed {url}: {e}, escalating to playwright")
+        log.warning(f"light fetch failed {url}: {e}, escalating to dynamic")
 
-    with _browser_semaphore:
-        try:
-            log.info(f"fetching playwright {url}")
-            page = _dynamic_fetcher.fetch(url, headless=True, disable_resources=True, timeout=60000)
-            text = str(page.get_all_text()).strip()
-            if len(text) >= 500:
-                log.info(f"fetched ok (playwright) {url}")
-                return page
-            log.info(f"playwright fetch thin content ({len(text)} chars), escalating to stealthy {url}")
-        except Exception as e:
-            log.warning(f"playwright fetch failed {url}: {e}, escalating to stealthy")
-
-        try:
-            log.info(f"fetching stealthy {url}")
-            page = _stealthy_fetcher.fetch(url, headless=True, disable_resources=True, timeout=60000)
-            log.info(f"fetched ok (stealthy) {url}")
+    try:
+        log.info(f"fetching dynamic {url}")
+        page = await _dynamic_session.fetch(url)
+        text = str(page.get_all_text()).strip()
+        status = getattr(page, "status", None)
+        if not _is_ok_status(page):
+            log.info(f"dynamic fetch non-2xx status={status}, escalating to stealthy {url}")
+        elif len(text) >= 500:
+            log.info(f"fetched ok (dynamic) status={status} {url}")
             return page
-        except Exception as e:
-            log.error(f"stealthy fetch failed {url}: {e}")
+        else:
+            log.info(f"dynamic fetch thin content ({len(text)} chars), escalating to stealthy {url}")
+    except Exception as e:
+        log.warning(f"dynamic fetch failed {url}: {e}, escalating to stealthy")
+
+    try:
+        log.info(f"fetching stealthy {url}")
+        page = await _stealthy_session.fetch(url)
+        stealthy_text = str(page.get_all_text()).strip()
+        stealthy_html = (page.html_content or "")
+        stealthy_status = getattr(page, "status", None)
+        is_cf_challenge = "<title>Just a moment" in stealthy_html
+        log.info(
+            f"stealthy result: status={stealthy_status} "
+            f"text_len={len(stealthy_text)} html_len={len(stealthy_html)} "
+            f"cf_challenge={is_cf_challenge} url={url}"
+        )
+        log.info(f"stealthy html snippet: {stealthy_html[:400]!r}")
+        if is_cf_challenge:
+            log.warning(f"stealthy: CF challenge not bypassed {url} — marking domain blocked")
+            _cf_blocked_domains.add(urlparse(url).netloc)
             return None
+        if not _is_ok_status(page):
+            log.warning(f"stealthy: non-2xx status={stealthy_status} {url}")
+            return None
+        return page
+    except Exception as e:
+        log.error(f"stealthy fetch failed {url}: {e}")
+        return None
 
 
 def find_contact_form_url(page, base_url: str) -> str | None:
@@ -233,7 +349,7 @@ def find_contact_form_url(page, base_url: str) -> str | None:
 
 def _first_el(page, *selectors):
     for sel in selectors:
-        el = page.css_first(sel)
+        el = page.css(sel).first
         if el:
             return el
     return None
@@ -253,6 +369,8 @@ def _get_agent_helpers() -> dict:
             "strip_html_attrs": strip_html_attrs,
             "_first_el": _first_el,
             "find_contact_form_url": find_contact_form_url,
+            "_host_matches_target": _host_matches_target,
+            "cf_blocked_domains": _cf_blocked_domains,
         }
     return _AGENT_HELPERS
 
@@ -289,13 +407,14 @@ def _links_to_target(page, base_url: str, target_domain: str) -> list[str]:
 def _seeded_helpers(seed_url: str, seed_page, helpers: dict) -> dict:
     """Reuse the already-fetched seed page so the contact agent doesn't re-fetch it."""
     real_fetch = helpers["fetch_page"]
+    normalized_seed = _normalize_url(seed_url)
     state = {"used": False}
 
-    def cached_fetch(url: str):
-        if not state["used"] and url == seed_url:
+    async def cached_fetch(url: str):
+        if not state["used"] and _normalize_url(url) == normalized_seed:
             state["used"] = True
             return seed_page
-        return real_fetch(url)
+        return await real_fetch(url)
 
     return {**helpers, "fetch_page": cached_fetch}
 

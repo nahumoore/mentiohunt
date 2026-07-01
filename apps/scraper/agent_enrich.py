@@ -1,7 +1,9 @@
+import asyncio
 import json
 import logging
 import os
 import re
+import time
 from urllib.parse import urljoin, urlparse
 
 from openai import OpenAI
@@ -12,6 +14,7 @@ log = logging.getLogger("scraper")
 MODEL = "deepseek/deepseek-v4-pro"
 FALLBACK_MODEL = "google/gemini-2.5-flash"
 MAX_PAGES = 6
+AGENT_BUDGET_SECONDS = 180  # wall-clock cap; caller typically times out at 120s
 
 _GENERIC_PREFIXES = {"noreply", "no-reply", "support", "team", "hello", "info", "contact", "admin", "enquiries", "enquiry", "mail", "office", "sales", "marketing", "press", "media", "billing", "accounts", "hr", "jobs", "careers", "legal", "privacy", "abuse", "postmaster", "webmaster", "newsletter", "notifications"}
 
@@ -146,7 +149,7 @@ def _extract_author_hints(page) -> list[str]:
     hints: list[str] = []
 
     for meta_sel in ('meta[name="author"]', 'meta[property="article:author"]'):
-        el = page.css_first(meta_sel)
+        el = page.css(meta_sel).first
         if el:
             val = el.attrib.get("content", "").strip()
             if val and val not in hints:
@@ -175,7 +178,7 @@ def _extract_author_hints(page) -> list[str]:
     return hints
 
 
-def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dict) -> dict:
+async def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dict, failed: set | None = None) -> dict:
     fetch_page = helpers["fetch_page"]
     extract_social_links = helpers["extract_social_links"]
     extract_emails_from_text = helpers["extract_emails_from_text"]
@@ -183,8 +186,9 @@ def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dic
     strip_html_attrs = helpers["strip_html_attrs"]
     _first_el = helpers["_first_el"]
     find_contact_form_url = helpers["find_contact_form_url"]
+    _host_matches_target = helpers["_host_matches_target"]
 
-    if urlparse(url).netloc != domain:
+    if not _host_matches_target(urlparse(url).netloc, domain):
         log.warning(f"agent tool: blocked external URL {url}")
         return {"error": f"URL must be on {domain}"}
 
@@ -192,23 +196,52 @@ def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dic
         log.warning(f"agent tool: already visited {url}")
         return {"error": "Already visited this URL"}
 
+    if failed is not None and url in failed:
+        log.warning(f"agent tool: previously failed, skipping {url}")
+        return {"error": "Previously failed to fetch this URL"}
+
+    cf_blocked_domains = helpers.get("cf_blocked_domains", set())
+    if domain in cf_blocked_domains:
+        log.warning(f"agent tool: domain CF-blocked, skipping {url}")
+        return {"error": "CF-blocked", "cf_blocked": True}
+
     log.info(f"agent tool scrape_page: {url}")
-    page = fetch_page(url)
+    page = await fetch_page(url)
     if not page:
+        if failed is not None:
+            failed.add(url)
+        if domain in cf_blocked_domains:
+            log.warning(f"agent tool: CF-blocked on fetch {url}")
+            return {"error": "CF-blocked", "cf_blocked": True}
         log.warning(f"agent tool: fetch failed {url}")
         return {"error": "Failed to fetch URL"}
 
     visited.append(url)
     base_url = get_base_url(url)
 
+    raw_html = page.html_content or ""
+    raw_text = str(page.get_all_text())
+    cf_obfuscated_emails = [el.attrib.get("data-cfemail", "") for el in page.css("[data-cfemail]")]
+    cf_protection_hrefs = [el.attrib.get("href", "") for el in page.css('a[href*="cdn-cgi/l/email-protection"]')]
+    all_mailto_hrefs = [el.attrib.get("href", "") for el in page.css('a[href^="mailto:"]')]
+    log.info(
+        f"page raw_text_len={len(raw_text)} cf_obfuscated_emails={cf_obfuscated_emails} "
+        f"cf_protection_hrefs={cf_protection_hrefs} all_mailto_hrefs={all_mailto_hrefs}"
+    )
+    log.info(f"page raw_text snippet: {raw_text[:600]!r}")
+
     page_social = extract_social_links(page)
-    emails = extract_emails_from_text(str(page.get_all_text()))
+    emails = extract_emails_from_text(raw_text)
+    # Merge mailto: hrefs; filter placeholders and dedupe case-insensitively.
+    emails_lower: set[str] = {e.lower() for e in emails}
     for el in page.css("a[href]"):
         href = el.attrib.get("href", "")
         if href.lower().startswith("mailto:"):
             addr = href[7:].split("?")[0].strip()
-            if addr and "@" in addr and addr not in emails:
-                emails.append(addr)
+            if addr and "@" in addr and addr.lower() not in emails_lower:
+                if not _is_placeholder_email(addr):
+                    emails.append(addr)
+                    emails_lower.add(addr.lower())
     contact_form_url = find_contact_form_url(page, base_url)
 
     visited_set = set(visited)
@@ -220,9 +253,13 @@ def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dic
             continue
         full = urljoin(base_url, href)
         parsed = urlparse(full)
-        if parsed.netloc != domain:
+        if not _host_matches_target(parsed.netloc, domain):
             continue
-        normalized = f"{parsed.scheme}://{parsed.netloc}{parsed.path}".rstrip("/") or f"{parsed.scheme}://{parsed.netloc}/"
+        # Preserve query string so ?page_id= navigation (old WordPress) is visible.
+        path_part = parsed.path.rstrip("/") or "/"
+        normalized = f"{parsed.scheme}://{parsed.netloc}{path_part}"
+        if parsed.query:
+            normalized += f"?{parsed.query}"
         if normalized in visited_set or normalized in seen:
             continue
         seen.add(normalized)
@@ -232,6 +269,10 @@ def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dic
     raw = strip_html_attrs(article_el.html_content or "") if article_el else strip_html_attrs(page.html_content or "")
 
     author_hints = _extract_author_hints(page)
+
+    all_anchors = page.css("a")
+    log.info(f"agent tool page stats: total_anchors={len(all_anchors)} raw_markdown_len={len(raw)} html_len={len(page.html_content or '')}")
+    log.info(f"agent tool page_markdown snippet: {raw[:500]!r}")
 
     result = {
         "url": url,
@@ -253,7 +294,7 @@ def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dic
     return result
 
 
-def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
+async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
     base_url = helpers["get_base_url"](url)
     domain = urlparse(base_url).netloc
     log.info(f"agent-scrape start: url={url} domain={domain} model={MODEL}")
@@ -264,7 +305,10 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
     )
 
     visited_urls: list[str] = []
+    failed_urls: set[str] = set()
     pages_scraped = 0
+    seen_socials: dict[str, str] = {}  # accumulates socials actually seen during crawl
+    deadline = time.monotonic() + AGENT_BUDGET_SECONDS
 
     messages: list[dict] = [
         {
@@ -284,6 +328,7 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 "- If you only found a generic email: visit the author's profile page and /contact before calling finish\n"
                 "- When calling finish(), set type='personal' for personal emails and type='general' for generic inbox emails\n"
                 "- Stop early ONLY if you have a personal email\n"
+                "- If any page returns {\"cf_blocked\": true}, the entire domain is protected by Cloudflare bot management — call finish() immediately with null/empty data, do not try other pages\n"
                 "- Call finish() with the best data found\n"
                 "- ALWAYS return name and bio fields in English, regardless of the site's language\n"
                 "- name must be a real human person's name only — NEVER a company, brand, platform name, or description of an error/access failure. If you cannot identify a real person, set name to null\n"
@@ -299,6 +344,10 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
     finish_result: dict | None = None
 
     for iteration in range(MAX_PAGES + 3):
+        if time.monotonic() >= deadline:
+            log.warning(f"agent: wall-clock budget ({AGENT_BUDGET_SECONDS}s) exceeded at iteration {iteration + 1}, stopping")
+            break
+
         tools = [_SCRAPE_PAGE_TOOL, _FINISH_TOOL] if pages_scraped < MAX_PAGES else [_FINISH_TOOL]
 
         log.info(
@@ -307,7 +356,8 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
         )
 
         try:
-            resp = client.chat.completions.create(
+            resp = await asyncio.to_thread(
+                client.chat.completions.create,
                 model=MODEL,
                 messages=messages,
                 tools=tools,
@@ -318,7 +368,8 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
             )
         except Exception as e:
             log.warning(f"agent: primary model failed ({e}), retrying with fallback {FALLBACK_MODEL}")
-            resp = client.chat.completions.create(
+            resp = await asyncio.to_thread(
+                client.chat.completions.create,
                 model=FALLBACK_MODEL,
                 messages=messages,
                 tools=tools,
@@ -365,13 +416,16 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
             log.info(f"agent executing: {fn}({list(args.keys())})")
 
             if fn == "scrape_page":
-                tool_result = _execute_scrape_page(
+                tool_result = await _execute_scrape_page(
                     url=args.get("url", ""),
                     domain=domain,
                     visited=visited_urls,
                     helpers=helpers,
+                    failed=failed_urls,
                 )
-                pages_scraped += 1
+                if "error" not in tool_result:
+                    pages_scraped += 1
+                    seen_socials.update(tool_result.get("social_links") or {})
                 messages.append({
                     "role": "tool",
                     "tool_call_id": tc.id,
@@ -402,23 +456,37 @@ def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
     if final_name != finish_result.get("name"):
         log.info(f"agent: name sanitized from {finish_result.get('name')!r} to {final_name!r}")
     raw_emails: list[dict] = finish_result.get("emails") or []
-    final_social: dict = finish_result.get("social_links") or {}
     final_bio = finish_result.get("bio")
     final_contact_form = finish_result.get("contact_form_url")
 
+    # Use deterministic _is_personal classifier instead of LLM's self-graded type.
     seen_e: set[str] = set()
     deduped: list[EmailEntry] = []
     for item in raw_emails:
         if not isinstance(item, dict):
             continue
         val = item.get("value", "")
-        typ = item.get("type", "general")
-        if val and val not in seen_e:
+        if val and val.lower() not in seen_e:
             if _is_placeholder_email(val):
                 log.info(f"agent: dropping placeholder email {val!r}")
                 continue
-            seen_e.add(val)
+            seen_e.add(val.lower())
+            typ = "personal" if _is_personal(val) else "general"
             deduped.append(EmailEntry(value=val, type=typ))
+
+    # Cross-check: only keep social links actually seen during the crawl.
+    # Drops hallucinated LinkedIn/Twitter URLs that never appeared on the site.
+    llm_socials: dict = finish_result.get("social_links") or {}
+    final_social: dict = {}
+    for platform, link in llm_socials.items():
+        if platform in seen_socials:
+            final_social[platform] = seen_socials[platform]
+        else:
+            log.info(f"agent: dropping hallucinated social {platform}={link!r} (not seen in crawl)")
+    # Merge any socials we found during crawl that the LLM didn't include.
+    for platform, link in seen_socials.items():
+        if platform not in final_social:
+            final_social[platform] = link
 
     confidence = _confidence(final_name, deduped)
 

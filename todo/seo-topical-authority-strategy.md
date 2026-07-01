@@ -9,19 +9,23 @@ Topic to own: **backlink prospecting / opportunity discovery for B2B SaaS founde
 **Primary:** `saas link building` (320/mo, low KD) · `link building for saas` (110/mo, low KD)
 **Role:** comprehensive hub. Links down to every supporting article + existing clusters (`backlinks-from/`, `alternatives/`, `compare/`, `free-tools/`); each links back up.
 
-## Supporting articles (missing — build these)
+## Supporting articles
 
-### Tier 1 — KD ≤ 6, no coverage yet
+### Tier 1 — KD ≤ 6, no coverage yet — DONE
 
 | Slug | Primary keyword | Topic | Vol | KD |
 |---|---|---|---|---|
 | `articles/link-building-outreach-email` | email outreach link building | Outreach email templates and copy | 50 | 3 |
 
-### Tier 2 — KD 9–25
+Built. Also covers `link building outreach` per tier 2 merge instruction below.
+
+### Tier 2 — KD 9–25 — DONE (consolidated)
 
 | Slug | Primary keyword | Topic | Vol | KD |
 |---|---|---|---|---|
 | None - roll these keywords into existing pages | `link building outreach`, `backlink opportunities`, `competitor backlink gap`, `broken link building` | Consolidate into existing articles | — | — |
+
+`link building outreach` → covered in `articles/link-building-outreach-email`. `backlink opportunities`, `competitor backlink gap`, `broken link building`, `unlinked brand mentions`, `resource page link building` → all present as sections in `articles/how-to-find-backlink-opportunities`.
 
 ### Tier 3 — verify vol/KD before building
 
@@ -29,6 +33,18 @@ Topic to own: **backlink prospecting / opportunity discovery for B2B SaaS founde
 |---|---|---|
 | `articles/guest-posting-for-saas` | Guest post prospecting | Guest post prospecting for founders |
 | `articles/haro-link-building` | Journalist queries and digital PR | Journalist queries / digital PR |
+
+**Keyword verification (DataForSEO, US/en, June 2026):**
+
+Primary: `haro link building` (210, KD18, navigational) · `haro backlinks` (210, KD19, navigational)
+
+Supporting/secondary: `digital pr` (720, KD23) · `haro alternatives` (90, no KD) · `connectively` (390, KD11) · `sourcebottle` (210, KD14) · `terkel` (260, no KD) · `haro journalist` (70, KD21) · `haro seo` (90, KD34) · `help a b2b writer` (110, no KD) · `media pitch template` (260, no KD, yearly trend +333%)
+
+Mention-only (branded/navigational, too broad to target): `haro` bare (18,100, KD9) · `qwoted` (9,900, KD29) · `help a reporter out` (1,600, KD9)
+
+Skip as primary: `haro` bare, `qwoted` — brand-dominated SERP, no realistic ranking path for new domain.
+
+Recommendation: primary `haro link building`, secondary `haro backlinks` + `digital pr`. Add alternatives-comparison section (Connectively, Qwoted, SourceBottle, Terkel, Help a B2B Writer) — low KD, real intent. Add pitch-template section using `media pitch template`.
 
 ## Avoid as primary (new-domain unwinnable)
 

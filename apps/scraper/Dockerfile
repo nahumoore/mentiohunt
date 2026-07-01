@@ -9,8 +9,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN python -m playwright install --with-deps chromium
-RUN python -m rebrowser_playwright install --with-deps chromium
+RUN scrapling install
 
 COPY . .
 

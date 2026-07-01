@@ -1,5 +1,5 @@
 # Returns structured page content (title, description, text) using the tiered fetcher.
-# Lightweight httpx first; escalates to Playwright if content is thin.
+# Lightweight httpx first; escalates to dynamic session if content is thin.
 
 from fastapi import Depends, HTTPException
 from fastapi.routing import APIRouter
@@ -26,12 +26,12 @@ class FetchContentResponse(BaseModel):
 
 
 def _extract_content(page, url: str) -> FetchContentResponse:
-    title_el = page.css_first("title")
+    title_el = page.css("title").first
     title = str(title_el.text).strip() if title_el else ""
 
-    desc_el = page.css_first('meta[name="description"]') or page.css_first(
+    desc_el = page.css('meta[name="description"]').first or page.css(
         'meta[property="og:description"]'
-    )
+    ).first
     description = (desc_el.attrib.get("content") or "").strip() if desc_el else ""
 
     text = str(page.get_all_text()).strip()[:TEXT_CHAR_LIMIT]
@@ -40,10 +40,10 @@ def _extract_content(page, url: str) -> FetchContentResponse:
 
 
 @router.post("/fetch-content", response_model=FetchContentResponse, dependencies=[Depends(_require_api_key)])
-def fetch_content(request: ScrapeRequest):
+async def fetch_content(request: ScrapeRequest):
     with _execution_log("fetch-content"):
         log.info(f"fetch-content request: {request.url}")
-        page = fetch_page(request.url)
+        page = await fetch_page(request.url)
         if not page:
             raise HTTPException(status_code=502, detail="fetch failed")
         return _extract_content(page, request.url)

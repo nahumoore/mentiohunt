@@ -1,9 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
-import { cn } from "@/lib/utils"
 import { createHeadingId } from "@/lib/mdx-headings"
+import { cn } from "@/lib/utils"
 import type { MDXComponents } from "mdx/types"
 import Link from "next/link"
 import type { ReactElement } from "react"
+import { CodeBlock } from "./code-block"
 import {
   PricingComparison,
   PricingNote,
@@ -13,7 +14,6 @@ import {
   UserOpinion,
   WhenToChoose,
 } from "./comparison-components"
-import { CodeBlock } from "./code-block"
 import { EmailDraft } from "./email-draft"
 import { YoutubeVideo } from "./youtube-video"
 
@@ -135,7 +135,7 @@ export default function BlogStylings(): MDXComponents {
           {...props}
           href={hrefValue}
           className={cn(
-            "text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-muted-foreground/50",
+            "text-primary/80 underline decoration-primary/80 underline-offset-4 transition-colors hover:opacity-80",
             className
           )}
           target={target ?? (isExternal ? "_blank" : undefined)}
@@ -173,7 +173,7 @@ export default function BlogStylings(): MDXComponents {
       <th
         {...props}
         className={cn(
-          "h-10 px-4 text-left align-middle text-xs font-medium uppercase tracking-wide text-muted-foreground [&[align=center]]:text-center [&[align=right]]:text-right",
+          "h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase [&[align=center]]:text-center [&[align=right]]:text-right",
           props.className
         )}
       />

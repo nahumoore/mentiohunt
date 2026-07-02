@@ -83,6 +83,11 @@ export async function scoreSiteRelevance(
       return { results: new Map(), cost: 0 }
     }
 
+    if (!Array.isArray(parsed?.results)) {
+      log.warn("unexpected response shape", { keys: Object.keys(parsed ?? {}) })
+      return { results: new Map(), cost: 0 }
+    }
+
     const results = new Map(
       parsed.results.map((r) => [r.id, { score: Math.round(r.score) }])
     )

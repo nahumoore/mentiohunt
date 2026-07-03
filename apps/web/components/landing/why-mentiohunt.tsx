@@ -1,4 +1,4 @@
-import { IconCheck, IconX } from "@tabler/icons-react"
+import { IconCheck, IconDatabase, IconX } from "@tabler/icons-react"
 import { type ComponentType } from "react"
 
 type Benefit = {
@@ -178,6 +178,97 @@ function AgencyIllustration() {
   )
 }
 
+const CRAWL_PATHS = [
+  { path: "/about", result: "founder name found" },
+  { path: "/contact", result: "email verified" },
+  { path: "/blog/growth-guide", result: "fit angle scored" },
+  { path: "/pricing", result: "scanning…", pending: true },
+]
+
+function LiveScrapingIllustration() {
+  return (
+    <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-card p-5 shadow-[0_18px_60px_-32px_rgba(0,0,0,0.45)] sm:p-6">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-blaze-orange)]/60 to-transparent" />
+      <div className="pointer-events-none absolute -top-12 -left-12 h-36 w-36 rounded-full bg-[var(--color-princeton-orange)]/10 blur-3xl" />
+
+      <div className="relative space-y-4">
+        {/* Stale-database comparison strip */}
+        <div className="flex items-center gap-2.5 rounded-xl border border-dashed border-border bg-muted/40 px-3.5 py-2.5">
+          <IconDatabase className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <span className="text-[0.68rem] text-muted-foreground">
+            Old B2B database record:{" "}
+            <span className="font-semibold text-foreground/70 line-through decoration-muted-foreground/50">
+              synced 9 months ago
+            </span>
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-[0.6rem] font-bold text-muted-foreground/50 uppercase">
+            vs. Mentiohunt
+          </span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        {/* Header: site + live badge */}
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://www.google.com/s2/favicons?domain=saastr.com&sz=32"
+            alt=""
+            width={18}
+            height={18}
+            className="h-[18px] w-[18px] shrink-0 rounded-sm"
+          />
+          <span className="flex-1 truncate text-sm font-semibold text-foreground">
+            saastr.com
+          </span>
+          <span className="flex items-center gap-1.5 rounded-full bg-[var(--color-blaze-orange)]/10 px-2.5 py-1 text-[0.58rem] font-bold text-[var(--color-blaze-orange)] uppercase">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-blaze-orange)] opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--color-blaze-orange)]" />
+            </span>
+            Live · just now
+          </span>
+        </div>
+
+        {/* Terminal-style crawl log */}
+        <div className="rounded-xl border border-border/70 bg-background/60 p-3.5 font-mono">
+          {CRAWL_PATHS.map((crawl) => (
+            <div
+              key={crawl.path}
+              className="flex items-center gap-2.5 py-1 first:pt-0 last:pb-0"
+            >
+              {crawl.pending ? (
+                <span className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
+                  <span className="absolute inline-flex h-1.5 w-1.5 animate-ping rounded-full bg-[var(--color-blaze-orange)]/70" />
+                  <span className="relative inline-flex h-1 w-1 rounded-full bg-[var(--color-blaze-orange)]" />
+                </span>
+              ) : (
+                <IconCheck className="h-2.5 w-2.5 shrink-0 text-[var(--color-blaze-orange)]" />
+              )}
+              <span className="text-[0.68rem] font-medium text-foreground/80">
+                {crawl.path}
+              </span>
+              <span
+                className={
+                  "ml-auto text-[0.62rem] " +
+                  (crawl.pending
+                    ? "text-muted-foreground/50 italic"
+                    : "text-muted-foreground")
+                }
+              >
+                {crawl.result}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const BLOCKED = [
   { domain: "backlinkshop.shop", tag: "PBN" },
   { domain: "high-quality-backlinks.site", tag: "link farm" },
@@ -349,10 +440,17 @@ const BENEFITS: Benefit[] = [
     Illustration: AgencyIllustration,
   },
   {
+    eyebrow: "Live, not stale",
+    title: "Scraped in real time. Never pulled from an old database.",
+    description:
+      "Most tools sell you contact records synced months ago — half of them dead by the time you email them. Mentiohunt scrapes your best backlink opportunities live, every run, so traffic, DR, and contact details reflect the site as it is today, not as it was last year.",
+    Illustration: LiveScrapingIllustration,
+  },
+  {
     eyebrow: "Quality filter",
     title: "Only real sites with real traffic.",
     description:
-      "PBNs, generic directories, and low-DR farms are filtered before you ever see them. Every opportunity is a genuine editorial placement.",
+      "PBNs, generic directories, and low-DR farms are filtered before you ever see them. Every site in your queue is checked for real organic traffic, topical relevance, and an editorial track record — not just a DR number. Every opportunity is a genuine editorial placement, not a paid link farm dressed up to look like one.",
     Illustration: RealSitesIllustration,
   },
   {

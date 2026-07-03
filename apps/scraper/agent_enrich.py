@@ -14,7 +14,7 @@ log = logging.getLogger("scraper")
 MODEL = "deepseek/deepseek-v4-pro"
 FALLBACK_MODEL = "google/gemini-2.5-flash"
 MAX_PAGES = 6
-AGENT_BUDGET_SECONDS = 180  # wall-clock cap; caller typically times out at 120s
+AGENT_BUDGET_SECONDS = 100  # wall-clock cap; must land under the server's 120s AbortSignal
 
 _GENERIC_PREFIXES = {"noreply", "no-reply", "support", "team", "hello", "info", "contact", "admin", "enquiries", "enquiry", "mail", "office", "sales", "marketing", "press", "media", "billing", "accounts", "hr", "jobs", "careers", "legal", "privacy", "abuse", "postmaster", "webmaster", "newsletter", "notifications"}
 
@@ -120,6 +120,11 @@ class EmailEntry(BaseModel):
     type: str  # "personal" | "general"
 
 
+class NamedEmail(BaseModel):
+    name: str
+    email: str
+
+
 class AgentScrapeResponse(BaseModel):
     name: str | None
     emails: list[EmailEntry]
@@ -128,11 +133,17 @@ class AgentScrapeResponse(BaseModel):
     contact_form_url: str | None
     confidence: str  # "personalized" | "email-only" | "generic" | "none"
     visited_urls: list[str]
+    author_hints: list[str] = []
+    author_url: str | None = None
+    known_pairs: list[NamedEmail] = []
 
 
 def _is_personal(email: str) -> bool:
     prefix = email.split("@")[0].lower()
-    return not any(p in prefix for p in _GENERIC_PREFIXES)
+    for p in _GENERIC_PREFIXES:
+        if prefix == p or prefix.startswith(f"{p}.") or prefix.startswith(f"{p}-") or prefix.startswith(f"{p}_"):
+            return False
+    return True
 
 
 def _confidence(name: str | None, emails: list[EmailEntry]) -> str:
@@ -145,43 +156,199 @@ def _confidence(name: str | None, emails: list[EmailEntry]) -> str:
     return "none"
 
 
-def _extract_author_hints(page) -> list[str]:
-    hints: list[str] = []
+_AUTHOR_URL_RE = re.compile(r"/author/([a-z0-9\-_.]+)/?$", re.IGNORECASE)
+
+_BYLINE_RE = re.compile(
+    r"\b(?:by|written by|words by|author)\s*:?\s+([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+){0,3})"
+)
+
+_NAME_LIKE_RE = re.compile(r"^[A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+){1,3}$")
+
+_NAME_LIKE_BLOCKLIST_WORDS = {"email", "contact", "send", "click", "here", "mailto", "subscribe", "newsletter"}
+
+
+def _slug_to_name(slug: str) -> str | None:
+    """Humanize a URL slug (e.g. 'jane-doe' -> 'Jane Doe') if it looks like a real name."""
+    cleaned = re.sub(r"[-_.]+", " ", slug).strip()
+    if not cleaned or not any(c.isalpha() for c in cleaned):
+        return None
+    words = [w for w in cleaned.split() if w]
+    if not (1 <= len(words) <= 4) or any(w.isdigit() for w in words):
+        return None
+    return " ".join(w.capitalize() for w in words)
+
+
+def _looks_like_name(text: str) -> bool:
+    text = text.strip()
+    if not text or len(text) > 50:
+        return False
+    if not _NAME_LIKE_RE.match(text):
+        return False
+    lower = text.lower()
+    return not any(w in lower for w in _NAME_LIKE_BLOCKLIST_WORDS)
+
+
+def _resolve_jsonld_author(node, graph_by_id: dict) -> tuple[str | None, str | None]:
+    """Resolve a JSON-LD `author` entry (string, Person dict, or @id ref) to (name, url)."""
+    if isinstance(node, str):
+        return node.strip() or None, None
+    if isinstance(node, dict):
+        if "@id" in node and "name" not in node:
+            resolved = graph_by_id.get(node["@id"])
+            if isinstance(resolved, dict):
+                node = resolved
+        name = (node.get("name") or "").strip() or None
+        url = node.get("url") if isinstance(node.get("url"), str) else None
+        if not url:
+            same_as = node.get("sameAs")
+            candidates = same_as if isinstance(same_as, list) else ([same_as] if same_as else [])
+            url = next((u for u in candidates if isinstance(u, str) and "linkedin.com" in u.lower()), None)
+        return name, url
+    return None, None
+
+
+def _iter_jsonld_blocks(html: str):
+    for match in re.finditer(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        html or "",
+        re.DOTALL | re.IGNORECASE,
+    ):
+        try:
+            yield json.loads(match.group(1))
+        except Exception:
+            continue
+
+
+def _extract_author_hints(page) -> dict:
+    """Deterministic name/profile-URL extraction. Returns {"names": [...], "urls": [...]}."""
+    names: list[str] = []
+    urls: list[str] = []
+
+    def _add_name(n: str | None) -> None:
+        if n and n not in names:
+            names.append(n)
+
+    def _add_url(u: str | None) -> None:
+        if u and u not in urls:
+            urls.append(u)
 
     for meta_sel in ('meta[name="author"]', 'meta[property="article:author"]'):
         el = page.css(meta_sel).first
         if el:
             val = el.attrib.get("content", "").strip()
-            if val and val not in hints:
-                hints.append(val)
+            if val.startswith("http"):
+                _add_url(val)
+                m = _AUTHOR_URL_RE.search(val)
+                if m:
+                    _add_name(_slug_to_name(m.group(1)))
+            elif val:
+                _add_name(val)
 
-    for match in re.finditer(
-        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
-        page.html_content or "",
-        re.DOTALL | re.IGNORECASE,
-    ):
-        try:
-            data = json.loads(match.group(1))
-            items = data if isinstance(data, list) else [data]
-            for item in items:
-                for node in (item.get("@graph") or [item]):
-                    author = node.get("author")
-                    candidates = [author] if not isinstance(author, list) else author
-                    for a in candidates:
-                        name = (a.get("name") if isinstance(a, dict) else a) or ""
-                        name = name.strip()
-                        if name and name not in hints:
-                            hints.append(name)
-        except Exception:
-            pass
+    first_el = page.css('meta[property="profile:first_name"]').first
+    last_el = page.css('meta[property="profile:last_name"]').first
+    if first_el:
+        first = first_el.attrib.get("content", "").strip()
+        last = last_el.attrib.get("content", "").strip() if last_el else ""
+        _add_name(f"{first} {last}".strip() or None)
 
-    return hints
+    for el in page.css('a[rel="author"]'):
+        text = str(getattr(el, "text", "") or "").strip()
+        _add_name(text or None)
+        href = el.attrib.get("href", "")
+        if href:
+            _add_url(href)
+            m = _AUTHOR_URL_RE.search(href)
+            if m:
+                _add_name(_slug_to_name(m.group(1)))
+
+    # WordPress-style author archive links anywhere on the page.
+    for el in page.css("a[href]"):
+        href = el.attrib.get("href", "")
+        m = _AUTHOR_URL_RE.search(href)
+        if m:
+            _add_url(href)
+            _add_name(_slug_to_name(m.group(1)))
+
+    # JSON-LD: resolve @graph refs, read author name/url + sameAs (LinkedIn).
+    for data in _iter_jsonld_blocks(page.html_content or ""):
+        items = data if isinstance(data, list) else [data]
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            graph = item.get("@graph")
+            graph_by_id = (
+                {n["@id"]: n for n in graph if isinstance(n, dict) and "@id" in n} if isinstance(graph, list) else {}
+            )
+            for node in (graph if isinstance(graph, list) else [item]):
+                if not isinstance(node, dict):
+                    continue
+                author = node.get("author")
+                if not author:
+                    continue
+                candidates = author if isinstance(author, list) else [author]
+                for a in candidates:
+                    name, url = _resolve_jsonld_author(a, graph_by_id)
+                    _add_name(name)
+                    _add_url(url)
+
+    # Byline fallback: "By Jane Doe", "Written by Jane Doe", etc.
+    text = str(page.get_all_text())[:3000]
+    for m in _BYLINE_RE.finditer(text):
+        _add_name(m.group(1).strip())
+
+    return {"names": names, "urls": urls}
+
+
+def _extract_email_name_pairs(page) -> list[dict]:
+    """Deterministic name<->email pairing (team/about pages, JSON-LD Person nodes).
+    Shared building block for domain email-format inference."""
+    pairs: list[dict] = []
+    seen: set[str] = set()
+
+    def _add(name: str, email: str) -> None:
+        name = name.strip()
+        email = email.strip()
+        key = email.lower()
+        if name and email and "@" in email and key not in seen:
+            seen.add(key)
+            pairs.append({"name": name, "email": email})
+
+    def _find_person_dicts(node, depth: int = 0) -> list[dict]:
+        found: list[dict] = []
+        if depth > 3:
+            return found
+        if isinstance(node, dict):
+            if node.get("name") and node.get("email"):
+                found.append(node)
+            for value in node.values():
+                found.extend(_find_person_dicts(value, depth + 1))
+        elif isinstance(node, list):
+            for item in node:
+                found.extend(_find_person_dicts(item, depth + 1))
+        return found
+
+    for data in _iter_jsonld_blocks(page.html_content or ""):
+        for node in _find_person_dicts(data):
+            name = str(node.get("name") or "")
+            email = str(node.get("email") or "").replace("mailto:", "")
+            _add(name, email)
+
+    for el in page.css("a[href]"):
+        href = el.attrib.get("href", "")
+        if not href.lower().startswith("mailto:"):
+            continue
+        text = str(getattr(el, "text", "") or "")
+        if _looks_like_name(text):
+            _add(text, href[7:].split("?")[0])
+
+    return pairs
 
 
 async def _execute_scrape_page(url: str, domain: str, visited: list[str], helpers: dict, failed: set | None = None) -> dict:
     fetch_page = helpers["fetch_page"]
     extract_social_links = helpers["extract_social_links"]
     extract_emails_from_text = helpers["extract_emails_from_text"]
+    decode_cf_email = helpers["decode_cf_email"]
     get_base_url = helpers["get_base_url"]
     strip_html_attrs = helpers["strip_html_attrs"]
     _first_el = helpers["_first_el"]
@@ -242,16 +409,28 @@ async def _execute_scrape_page(url: str, domain: str, visited: list[str], helper
 
     page_social = extract_social_links(page)
     emails = extract_emails_from_text(raw_text)
-    # Merge mailto: hrefs; filter placeholders and dedupe case-insensitively.
+    # Merge mailto: hrefs, decoded Cloudflare email-protection addresses; filter
+    # placeholders and dedupe case-insensitively.
     emails_lower: set[str] = {e.lower() for e in emails}
+
+    def _add_email(addr: str) -> None:
+        if addr and "@" in addr and addr.lower() not in emails_lower and not _is_placeholder_email(addr):
+            emails.append(addr)
+            emails_lower.add(addr.lower())
+
     for el in page.css("a[href]"):
         href = el.attrib.get("href", "")
         if href.lower().startswith("mailto:"):
-            addr = href[7:].split("?")[0].strip()
-            if addr and "@" in addr and addr.lower() not in emails_lower:
-                if not _is_placeholder_email(addr):
-                    emails.append(addr)
-                    emails_lower.add(addr.lower())
+            _add_email(href[7:].split("?")[0].strip())
+
+    for encoded in cf_obfuscated_emails:
+        decoded = decode_cf_email(encoded)
+        if decoded:
+            _add_email(decoded)
+    for href in cf_protection_hrefs:
+        decoded = decode_cf_email(href)
+        if decoded:
+            _add_email(decoded)
     contact_form_url = find_contact_form_url(page, base_url)
 
     visited_set = set(visited)
@@ -279,6 +458,7 @@ async def _execute_scrape_page(url: str, domain: str, visited: list[str], helper
     raw = strip_html_attrs(article_el.html_content or "") if article_el else strip_html_attrs(page.html_content or "")
 
     author_hints = _extract_author_hints(page)
+    email_name_pairs = _extract_email_name_pairs(page)
 
     all_anchors = page.css("a")
     log.info(f"agent tool page stats: total_anchors={len(all_anchors)} raw_markdown_len={len(raw)} html_len={len(page.html_content or '')}")
@@ -293,15 +473,41 @@ async def _execute_scrape_page(url: str, domain: str, visited: list[str], helper
         "internal_links": internal_links[:20],
     }
 
-    if author_hints:
-        result["author_hints"] = author_hints
+    if author_hints["names"]:
+        result["author_hints"] = author_hints["names"]
+    if author_hints["urls"]:
+        result["author_url"] = author_hints["urls"][0]
+    if email_name_pairs:
+        result["email_name_pairs"] = email_name_pairs
 
     log.info(
-        f"agent tool result: emails={emails} author_hints={author_hints} "
+        f"agent tool result: emails={emails} author_hints={author_hints} email_name_pairs={email_name_pairs} "
         f"socials={list(page_social.keys())} contact_form={contact_form_url!r} "
         f"internal_links_available={len(internal_links)}"
     )
     return result
+
+
+_PRIORITY_PATH_PATTERNS = [
+    re.compile(r"/author/", re.IGNORECASE),
+    re.compile(r"/(team|about-us|about|people|our-team|staff|editorial-team|contributors)/?$", re.IGNORECASE),
+    re.compile(r"/(press|media-kit)/?$", re.IGNORECASE),
+]
+
+_PRE_CRAWL_PAGE_BUDGET = 2  # extra pages fetched deterministically before the LLM loop starts
+
+
+def _rank_candidate_urls(internal_links: list[str], author_url: str | None) -> list[str]:
+    """Order candidate URLs by expected personal-email yield: author profile first,
+    then team/about pages, then press/media-kit. Feeds the deterministic pre-crawl (A9)."""
+    ranked: list[str] = []
+    if author_url and author_url not in ranked:
+        ranked.append(author_url)
+    for pattern in _PRIORITY_PATH_PATTERNS:
+        for link in internal_links:
+            if link not in ranked and pattern.search(urlparse(link).path):
+                ranked.append(link)
+    return ranked
 
 
 async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
@@ -318,7 +524,72 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
     failed_urls: set[str] = set()
     pages_scraped = 0
     seen_socials: dict[str, str] = {}  # accumulates socials actually seen during crawl
+    seen_author_hints: list[str] = []
+    seen_author_urls: list[str] = []
+    seen_pairs: list[dict] = []
+    pre_crawl_contact_form: str | None = None
     deadline = time.monotonic() + AGENT_BUDGET_SECONDS
+
+    def _merge_page_result(res: dict) -> None:
+        nonlocal pre_crawl_contact_form
+        seen_socials.update(res.get("social_links") or {})
+        for hint in res.get("author_hints") or []:
+            if hint not in seen_author_hints:
+                seen_author_hints.append(hint)
+        author_url = res.get("author_url")
+        if author_url and author_url not in seen_author_urls:
+            seen_author_urls.append(author_url)
+        pair_emails = {p["email"].lower() for p in seen_pairs}
+        for pair in res.get("email_name_pairs") or []:
+            if pair["email"].lower() not in pair_emails:
+                seen_pairs.append(pair)
+                pair_emails.add(pair["email"].lower())
+        if not pre_crawl_contact_form and res.get("contact_form_url"):
+            pre_crawl_contact_form = res["contact_form_url"]
+
+    # --- A9: deterministic seeding — crawl the highest-yield pages (author profile,
+    # /team, /about, ...) before the LLM spends iterations discovering them itself.
+    # Results are replayed into the conversation as prior tool calls (below) so the
+    # LLM still sees full page content for bio/context — it never loses information
+    # it would have gotten by fetching these pages itself, it just doesn't have to
+    # spend iterations deciding to visit them.
+    collected_emails: list[str] = []
+    collected_emails_lower: set[str] = set()
+    precrawled_results: list[tuple[str, dict]] = []
+
+    def _collect_emails(vals: list[str]) -> None:
+        for v in vals:
+            if v.lower() not in collected_emails_lower:
+                collected_emails_lower.add(v.lower())
+                collected_emails.append(v)
+
+    seed_result = await _execute_scrape_page(url, domain, visited_urls, helpers, failed_urls)
+    if "error" not in seed_result:
+        pages_scraped += 1
+        _merge_page_result(seed_result)
+        _collect_emails(seed_result.get("emails") or [])
+        precrawled_results.append((url, seed_result))
+
+        candidate_urls = _rank_candidate_urls(
+            seed_result.get("internal_links") or [],
+            seen_author_urls[0] if seen_author_urls else None,
+        )
+        pre_crawl_remaining = min(_PRE_CRAWL_PAGE_BUDGET, MAX_PAGES - pages_scraped)
+        for candidate in candidate_urls:
+            if pre_crawl_remaining <= 0 or time.monotonic() >= deadline:
+                break
+            if any(_is_personal(e) for e in collected_emails):
+                break  # already have a personal email, stop spending pre-crawl budget
+            res = await _execute_scrape_page(candidate, domain, visited_urls, helpers, failed_urls)
+            if "error" in res:
+                continue
+            pages_scraped += 1
+            pre_crawl_remaining -= 1
+            _merge_page_result(res)
+            _collect_emails(res.get("emails") or [])
+            precrawled_results.append((candidate, res))
+
+    finish_result: dict | None = None
 
     messages: list[dict] = [
         {
@@ -351,7 +622,18 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
         },
     ]
 
-    finish_result: dict | None = None
+    if precrawled_results:
+        replay_tool_calls = [
+            {
+                "id": f"precrawl-{i}",
+                "type": "function",
+                "function": {"name": "scrape_page", "arguments": json.dumps({"url": page_url})},
+            }
+            for i, (page_url, _res) in enumerate(precrawled_results)
+        ]
+        messages.append({"role": "assistant", "tool_calls": replay_tool_calls})
+        for i, (_page_url, res) in enumerate(precrawled_results):
+            messages.append({"role": "tool", "tool_call_id": f"precrawl-{i}", "content": json.dumps(res)})
 
     for iteration in range(MAX_PAGES + 3):
         if time.monotonic() >= deadline:
@@ -443,7 +725,7 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 )
                 if "error" not in tool_result:
                     pages_scraped += 1
-                    seen_socials.update(tool_result.get("social_links") or {})
+                    _merge_page_result(tool_result)
                 messages.append({
                     "role": "tool",
                     "tool_call_id": tc.id,
@@ -471,11 +753,19 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
         finish_result = {}
 
     final_name = _clean_name(finish_result.get("name"))
-    if final_name != finish_result.get("name"):
+    if not final_name:
+        # Deterministic fallback: adopt the first valid human-looking hint the LLM missed/dropped.
+        for hint in seen_author_hints:
+            candidate = _clean_name(hint)
+            if candidate:
+                final_name = candidate
+                log.info(f"agent: adopted deterministic author hint as name: {candidate!r}")
+                break
+    elif final_name != finish_result.get("name"):
         log.info(f"agent: name sanitized from {finish_result.get('name')!r} to {final_name!r}")
     raw_emails: list[dict] = finish_result.get("emails") or []
     final_bio = finish_result.get("bio")
-    final_contact_form = finish_result.get("contact_form_url")
+    final_contact_form = finish_result.get("contact_form_url") or pre_crawl_contact_form
 
     # Use deterministic _is_personal classifier instead of LLM's self-graded type.
     seen_e: set[str] = set()
@@ -522,4 +812,7 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
         contact_form_url=final_contact_form,
         confidence=confidence,
         visited_urls=visited_urls,
+        author_hints=seen_author_hints,
+        author_url=seen_author_urls[0] if seen_author_urls else None,
+        known_pairs=[NamedEmail(**p) for p in seen_pairs],
     )

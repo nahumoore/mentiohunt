@@ -18,7 +18,7 @@ from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
 from scrapling.fetchers import Fetcher
 
-from agent_enrich import AgentScrapeResponse, run_agent_scrape
+from agent_enrich import AgentScrapeResponse, _clean_name, _extract_author_hints, run_agent_scrape
 
 load_dotenv()
 
@@ -213,10 +213,64 @@ class CheckMentionResponse(BaseModel):
 
 _PLACEHOLDER_EMAIL_DOMAINS_CORE = {"example.com", "example.org", "example.net", "test.com", "domain.com", "email.com", "yourdomain.com", "sample.com", "acme.com", "placeholder.com", "fakeemail.com"}
 
+_EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}")
+
+# Matches obfuscated emails using bracket/paren "at"/"dot" tokens or HTML entities
+# (e.g. "jane [at] company [dot] com"). Deliberately excludes plain "@"/"." — those
+# already match via _EMAIL_RE, and re-matching them here with `\s*` padding produces
+# false positives on ordinary prose (a "@handle" mention followed by a sentence-ending
+# period reads as "handle@word.NextWord").
+_AT_VARIANTS = r"(?:\[at\]|\(at\)|&#0*64;|&commat;)"
+_DOT_VARIANTS = r"(?:\[dot\]|\(dot\)|&#0*46;|&period;)"
+_OBFUSCATED_EMAIL_RE = re.compile(
+    rf"[a-zA-Z0-9._%+\-]+\s*{_AT_VARIANTS}\s*[a-zA-Z0-9\-]+(?:\s*{_DOT_VARIANTS}\s*[a-zA-Z0-9\-]+)+",
+    re.IGNORECASE,
+)
+_AT_SUB_RE = re.compile(_AT_VARIANTS, re.IGNORECASE)
+_DOT_SUB_RE = re.compile(_DOT_VARIANTS, re.IGNORECASE)
+
+
+def _normalize_obfuscated_email(raw: str) -> str:
+    normalized = _AT_SUB_RE.sub("@", raw)
+    normalized = _DOT_SUB_RE.sub(".", normalized)
+    return re.sub(r"\s+", "", normalized)
+
 
 def extract_emails_from_text(text: str) -> list[str]:
-    found = re.findall(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}", text)
-    return [e for e in found if e.rsplit("@", 1)[-1].lower() not in _PLACEHOLDER_EMAIL_DOMAINS_CORE]
+    found = _EMAIL_RE.findall(text)
+    for match in _OBFUSCATED_EMAIL_RE.finditer(text):
+        normalized = _normalize_obfuscated_email(match.group(0))
+        if _EMAIL_RE.fullmatch(normalized):
+            found.append(normalized)
+
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for e in found:
+        key = e.lower()
+        if key not in seen:
+            seen.add(key)
+            deduped.append(e)
+
+    return [e for e in deduped if e.rsplit("@", 1)[-1].lower() not in _PLACEHOLDER_EMAIL_DOMAINS_CORE]
+
+
+def decode_cf_email(encoded: str) -> str | None:
+    """Decode a Cloudflare email-protection payload: first byte is the XOR key,
+    applied to every subsequent byte to recover the ASCII address. Same encoding
+    backs both `data-cfemail` attributes and `cdn-cgi/l/email-protection#<hex>` hrefs."""
+    encoded = encoded.strip()
+    hash_idx = encoded.rfind("#")
+    if hash_idx != -1:
+        encoded = encoded[hash_idx + 1 :]
+    if len(encoded) < 4 or len(encoded) % 2 != 0:
+        return None
+    try:
+        key = int(encoded[:2], 16)
+        decoded = bytes(int(encoded[i : i + 2], 16) ^ key for i in range(2, len(encoded), 2))
+        email = decoded.decode("utf-8")
+        return email if _EMAIL_RE.fullmatch(email) else None
+    except (ValueError, UnicodeDecodeError):
+        return None
 
 
 SOCIAL_DOMAINS = {
@@ -374,6 +428,7 @@ def _get_agent_helpers() -> dict:
             "fetch_page": fetch_page,
             "extract_social_links": extract_social_links,
             "extract_emails_from_text": extract_emails_from_text,
+            "decode_cf_email": decode_cf_email,
             "get_base_url": get_base_url,
             "strip_html_attrs": strip_html_attrs,
             "_first_el": _first_el,
@@ -444,4 +499,6 @@ __all__ = [
     "CheckMentionResponse",
     "AgentScrapeResponse",
     "run_agent_scrape",
+    "_clean_name",
+    "_extract_author_hints",
 ]

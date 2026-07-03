@@ -15,11 +15,9 @@ Note on slugs: article MDX lives in `apps/web/resources/articles/` but serves at
 
 ## Priority order
 
-1. **Strike-distance wins:** strengthen + internally link `articles/resource-page-link-building` (pos 20) and `articles/how-to-find-backlink-opportunities` (412 impr, pos 49.6).
-2. **`backlinks-from` refresh + expansion:** push Pinterest/Quora/Reddit/Wikipedia to page 1; add new platform pages.
-3. **Second pillar** (agency-vs-software) + **tools listicle** — as planned.
-4. **New entries:** AI-citations article, Pitchbox pricing content.
-5. **Housekeeping:** remove/redirect monitoring-era pages, tighten `/alternatives` hub.
+1. **Second pillar** (agency-vs-software) + **tools listicle** — as planned.
+2. **New entries:** AI-citations article, Pitchbox pricing content.
+3. **Housekeeping:** remove/redirect monitoring-era pages, tighten `/alternatives` hub.
 
 ---
 
@@ -35,9 +33,9 @@ Note on slugs: article MDX lives in `apps/web/resources/articles/` but serves at
 
 ### Tier 1 — DONE
 
-| Slug | Primary keyword | Vol | KD | GSC status |
-|---|---|---|---|---|
-| `articles/link-building-outreach-email` | email outreach link building | 50 | 3 | Live, 24 impr, pos 20.7 — needs internal links |
+| Slug                                    | Primary keyword              | Vol | KD  | GSC status                                     |
+| --------------------------------------- | ---------------------------- | --- | --- | ---------------------------------------------- |
+| `articles/link-building-outreach-email` | email outreach link building | 50  | 3   | Live, 24 impr, pos 20.7 — needs internal links |
 
 Also covers `link building outreach` per tier 2 merge instruction.
 
@@ -51,10 +49,10 @@ Also covers `link building outreach` per tier 2 merge instruction.
 
 ### Tier 3 — DONE (built; doc previously said "verify first")
 
-| Slug | Primary keyword | Status |
-|---|---|---|
-| `articles/guest-posting-for-saas` | (guest post prospecting) | Live. No GSC impressions yet — too new. |
-| `articles/haro-link-building` | `haro link building` (210, KD18) | Live. No GSC impressions yet. One related query seen: `qwoted ai source request`. |
+| Slug                              | Primary keyword                  | Status                                                                            |
+| --------------------------------- | -------------------------------- | --------------------------------------------------------------------------------- |
+| `articles/guest-posting-for-saas` | (guest post prospecting)         | Live. No GSC impressions yet — too new.                                           |
+| `articles/haro-link-building`     | `haro link building` (210, KD18) | Live. No GSC impressions yet. One related query seen: `qwoted ai source request`. |
 
 HARO keyword verification retained: secondary `haro backlinks` (210, KD19) + `digital pr` (720, KD23). Alternatives-comparison section (Connectively, Qwoted, SourceBottle, Terkel, Help a B2B Writer) — low KD, real intent. Pitch-template section using `media pitch template` (260, +333% trend). Skip `haro` bare / `qwoted` as primaries — brand-dominated SERPs.
 
@@ -68,15 +66,15 @@ HARO keyword verification retained: secondary `haro backlinks` (210, KD19) + `di
 
 The "how to get backlinks from X" pattern has proven demand and Mentiohunt already ranks. GSC 2026-07-02:
 
-| Page | Clicks | Impr | Pos | Action |
-|---|---|---|---|---|
-| `backlinks-from/forbes` | 4 | 101 | 9.2 | Best performer. Queries incl. `buy forbes backlink` (careful: answer the intent, never promise/sell placements). Keep fresh. |
-| `backlinks-from/pinterest` | 0 | 233 | 24.9 | **Biggest single traffic win available.** ~150+ combined impr across query variants (`pinterest backlinks`, `pinterest dofollow backlinks`, `how to get backlinks from pinterest` pos 9.9). Refresh: nofollow reality, dofollow paths, examples. |
-| `backlinks-from/quora` | 0 | 75 | 18.8 | Refresh for page 1. |
-| `backlinks-from/reddit` | 2 | 72 | 16.6 | Refresh for page 1. |
-| `backlinks-from/medium` | 2 | 50 | 8.1 | Already page 1 — keep fresh. |
-| `backlinks-from/wikipedia` | 0 | 51 | 40.2 | Refresh; queries incl. `are wikipedia links nofollow`. |
-| `backlinks-from/chatgpt` | 1 | 11 | 48.7 | Feeds the AI-citations article below; interlink. |
+| Page                       | Clicks | Impr | Pos  | Action                                                                                                                                                                                                                                           |
+| -------------------------- | ------ | ---- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `backlinks-from/forbes`    | 4      | 101  | 9.2  | Best performer. Queries incl. `buy forbes backlink` (careful: answer the intent, never promise/sell placements). Keep fresh.                                                                                                                     |
+| `backlinks-from/pinterest` | 0      | 233  | 24.9 | **Biggest single traffic win available.** ~150+ combined impr across query variants (`pinterest backlinks`, `pinterest dofollow backlinks`, `how to get backlinks from pinterest` pos 9.9). Refresh: nofollow reality, dofollow paths, examples. |
+| `backlinks-from/quora`     | 0      | 75   | 18.8 | Refresh for page 1.                                                                                                                                                                                                                              |
+| `backlinks-from/reddit`    | 2      | 72   | 16.6 | Refresh for page 1.                                                                                                                                                                                                                              |
+| `backlinks-from/medium`    | 2      | 50   | 8.1  | Already page 1 — keep fresh.                                                                                                                                                                                                                     |
+| `backlinks-from/wikipedia` | 0      | 51   | 40.2 | Refresh; queries incl. `are wikipedia links nofollow`.                                                                                                                                                                                           |
+| `backlinks-from/chatgpt`   | 1      | 11   | 48.7 | Feeds the AI-citations article below; interlink.                                                                                                                                                                                                 |
 
 **New platform pages** (proven template — verify vol/KD per platform before building): GitHub, Substack, Product Hunt, G2/Capterra, Crunchbase, podcasts, newsletters. Prioritize by DataForSEO check; the pattern itself is validated.
 
@@ -118,11 +116,11 @@ Earn links + AI citations to the whole cluster. Use the opportunity-queue data. 
 
 Skip thin `X alternative` pages (10–70/mo). Build the **listicle hub** — high-intent, low KD, lists Mentiohunt + competitors:
 
-| Slug | Primary keyword | Vol | KD |
-|---|---|---|---|
-| `articles/best-link-building-tools-for-founders` | best link building tools | 320 | low |
-| (same, secondary) | best seo link building software | 90 | 5 |
-| (same, secondary) | link building software | 320 | 17 |
+| Slug                                             | Primary keyword                 | Vol | KD  |
+| ------------------------------------------------ | ------------------------------- | --- | --- |
+| `articles/best-link-building-tools-for-founders` | best link building tools        | 320 | low |
+| (same, secondary)                                | best seo link building software | 90  | 5   |
+| (same, secondary)                                | link building software          | 320 | 17  |
 
 GSC support: `linkbuilding software`, `link building resources` queries already appearing (deep positions — no page targets them yet).
 
@@ -136,11 +134,11 @@ Existing: anchor-text-generator, backlink-opportunity-finder, backlink-price-cal
 
 ## Build (low KD, buildable, product-aligned)
 
-| Slug | Primary keyword | Vol | KD | Notes |
-|---|---|---|---|---|
-| `free-tools/guest-post-sites-finder` | guest posting sites | 390 | 3 | + `guest post sites list` (90, KD16). Pairs with `articles/guest-posting-for-saas` (now live — interlink). |
-| `free-tools/outreach-email-generator` | outreach email template | 170 | low | + `cold email generator` (70) · `link building outreach email` (50, KD3). Product already drafts outreach — direct CTA. |
-| `free-tools/dofollow-link-checker` | do-follow backlink checker | 320 | 22 | Dofollow/nofollow checker for qualifying prospects. Slightly harder SERP. |
+| Slug                                  | Primary keyword            | Vol | KD  | Notes                                                                                                                   |
+| ------------------------------------- | -------------------------- | --- | --- | ----------------------------------------------------------------------------------------------------------------------- |
+| `free-tools/guest-post-sites-finder`  | guest posting sites        | 390 | 3   | + `guest post sites list` (90, KD16). Pairs with `articles/guest-posting-for-saas` (now live — interlink).              |
+| `free-tools/outreach-email-generator` | outreach email template    | 170 | low | + `cold email generator` (70) · `link building outreach email` (50, KD3). Product already drafts outreach — direct CTA. |
+| `free-tools/dofollow-link-checker`    | do-follow backlink checker | 320 | 22  | Dofollow/nofollow checker for qualifying prospects. Slightly harder SERP.                                               |
 
 `anchor-text-generator` — built. ✓
 

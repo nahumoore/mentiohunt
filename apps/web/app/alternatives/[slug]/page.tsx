@@ -9,16 +9,16 @@ import type { Metadata } from "next"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import Image from "next/image"
 import Link from "next/link"
-import Script from "next/script"
 import { notFound } from "next/navigation"
+import Script from "next/script"
 import remarkGfm from "remark-gfm"
 
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
 import { ArticleTableOfContents } from "@/components/resources/article-table-of-contents"
 import BlogStylings from "@/components/resources/blog-stylings"
-import { getArticleHeadings } from "@/lib/mdx-headings"
 import { getPostBySlug, getResourceSlugs, type BlogPostMeta } from "@/lib/mdx"
+import { getArticleHeadings } from "@/lib/mdx-headings"
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -91,7 +91,8 @@ export default async function AlternativePage({ params }: Props) {
 
   const { meta, content } = post
   const headings = getArticleHeadings(content)
-  const author = meta.author === "Unknown" ? "Nicolas More" : (meta.author ?? "Nicolas More")
+  const author =
+    meta.author === "Unknown" ? "Nicolas More" : (meta.author ?? "Nicolas More")
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -242,7 +243,7 @@ export default async function AlternativePage({ params }: Props) {
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     Founder at Mentiohunt. Building distribution tools for
                     founders and small marketing teams. Writes about backlink
-                    building, community monitoring, and founder-led growth.
+                    building and founder-led growth.
                   </p>
                   <a
                     href="https://x.com/nicolasmore_"

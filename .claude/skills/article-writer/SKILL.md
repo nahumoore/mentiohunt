@@ -19,7 +19,6 @@ Write like a smart founder talking to another founder: simple, practical, direct
 
 - Mentiohunt is a self-serve distribution tool for founders and small marketing teams.
 - Backlink Building: users provide sitemap or article URLs, and Mentiohunt helps find relevant websites where each article fits, surfaces contact details when available, and prepares a ready-to-send outreach draft.
-- Community Monitoring: Mentiohunt watches relevant communities for posts that match the user's product and prepares suggested replies or alerts so the user can respond while the thread is active.
 - Mentiohunt helps users find opportunities and prepare better outreach. It does not guarantee backlinks, placements, rankings, replies, or community acceptance.
 - Mentiohunt does not post, comment, submit forms, or send outreach on the user's behalf unless a future feature explicitly supports that.
 

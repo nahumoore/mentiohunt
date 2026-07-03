@@ -15,26 +15,6 @@
 - Mailshake — Cold email and sales engagement platform used for link building outreach, with sequences and A/B testing.
 - Lemlist — Cold outreach tool with personalized email, LinkedIn, and call steps; used by some teams for link building campaigns.
 
-### Community monitoring / Reddit intent tools
-
-- PainOnSocial — Reddit pain point discovery tool that analyzes communities, finds recurring problems, and scores pain intensity.
-- F5Bot — Free keyword alert tool for Reddit and Hacker News mentions.
-- TrackReddit — Reddit monitoring tool for tracking keywords, brand mentions, and subreddit conversations.
-- Noisely — Reddit alerting tool for monitoring keywords and relevant conversations in real time.
-- Syften — Fast keyword monitoring tool across Reddit, Hacker News, Twitter/X, Stack Overflow, GitHub, and other communities.
-- ReplyGuy — AI social monitoring tool that finds relevant conversations and suggests natural replies.
-- Okara.ai — Reddit marketing agent that finds relevant threads, checks subreddit rules, and drafts context-aware replies.
-- ReplyAgent.ai — Reddit automation service/tool that finds threads and generates or posts AI-assisted comments using managed accounts.
-- Octolens — B2B social listening tool that monitors Reddit, X, LinkedIn, GitHub, newsletters, and podcasts with AI noise filtering.
-- Subreddit Signals — Reddit lead discovery tool focused on buyer intent classification and identifying purchase-ready users.
-- Redreach — Reddit monitoring and lead-gen tool focused on finding relevant threads, especially ones with SEO/search visibility.
-- Brand24 — Broader social listening platform for web-wide brand mentions, sentiment tracking, and reputation monitoring.
-- Awario — Social listening and brand monitoring tool for tracking mentions across web, social, and news with competitor comparison features.
-- Mention — Real-time brand monitoring tool covering social media, news, and the web, with team collaboration and response features.
-- Reddinbox — AI audience intelligence and Reddit monitoring tool for finding leads, pain points, and market research insights.
-- AppLauncher Reddit Brand Monitor — Reddit brand monitoring tool for tracking mentions and conversations around a product or company.
-- Socialhose - **Ranking in GSC**
-
 ---
 
 ## X vs Y Comparison Pages

@@ -160,7 +160,7 @@ When the user asks for an SEO strategy, structure the response like this:
 ## Priority Themes
 
 | Theme | Intent | Example keywords | Recommended page type | Priority |
-| --- | --- | --- | --- | --- |
+| ----- | ------ | ---------------- | --------------------- | -------- |
 
 ## Cluster Recommendations
 
@@ -202,6 +202,5 @@ For Mentiohunt-adjacent strategy work, prefer themes around:
 - link prospecting and qualified outreach opportunities
 - competitor backlinks and mention opportunities
 - founder-led SEO and distribution workflows
-- community monitoring tied to product discovery and response timing
 
 Keep the language practical. The point is to help the user decide what to build next, not to dump raw autocomplete suggestions.

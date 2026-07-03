@@ -1,6 +1,6 @@
 import {
-  IconArrowRight,
   IconArrowLeft,
+  IconArrowRight,
   IconBrandX,
   IconCalendar,
   IconClock,
@@ -10,16 +10,15 @@ import type { Metadata } from "next"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import Image from "next/image"
 import Link from "next/link"
-import Script from "next/script"
 import { notFound } from "next/navigation"
+import Script from "next/script"
 import remarkGfm from "remark-gfm"
 
+import { getPlatformCardIcon } from "@/components/backlinks-from/data"
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
-import { getPlatformCardIcon } from "@/components/backlinks-from/data"
 import { ArticleTableOfContents } from "@/components/resources/article-table-of-contents"
 import BlogStylings from "@/components/resources/blog-stylings"
-import { getArticleHeadings } from "@/lib/mdx-headings"
 import {
   getAllResources,
   getPostBySlug,
@@ -27,6 +26,7 @@ import {
   getResourceSlugs,
   type BlogPostMeta,
 } from "@/lib/mdx"
+import { getArticleHeadings } from "@/lib/mdx-headings"
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -268,9 +268,9 @@ export default async function BacklinksFromArticlePage({ params }: Props) {
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     Founder of Mentiohunt. Built the company&apos;s own backlink
                     pipeline using the same methods covered here — expert quote
-                    outreach, journalist sourcing platforms, and
-                    citation-worthy assets. Writes about link prospecting,
-                    community monitoring, and founder-led distribution.
+                    outreach, journalist sourcing platforms, and citation-worthy
+                    assets. Writes about link prospecting and founder-led
+                    distribution.
                   </p>
                   <a
                     href="https://x.com/nicolasmore_"

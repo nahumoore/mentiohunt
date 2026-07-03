@@ -1,6 +1,3 @@
-import Image from "next/image"
-import Link from "next/link"
-import type { Metadata } from "next"
 import {
   IconArrowRight,
   IconBolt,
@@ -10,6 +7,9 @@ import {
   IconSend,
   IconTargetArrow,
 } from "@tabler/icons-react"
+import type { Metadata } from "next"
+import Image from "next/image"
+import Link from "next/link"
 
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
@@ -44,18 +44,17 @@ const principles = [
   {
     icon: IconSearch,
     title: "Rationale included",
-    text: "Every suggestion should explain why it belongs, so you can decide quickly without becoming a distribution expert.",
+    text: "Every opportunity explains why it fits, so you can decide fast without becoming a link building expert.",
   },
   {
     icon: IconSend,
-    title: "Prep, not promises",
-    text: "Mentiohunt helps prepare outreach and replies. It should never pretend that a backlink or mention is guaranteed.",
+    title: "Outreach, not promises",
+    text: "Mentiohunt finds the fit and runs the outreach. It never pretends a backlink is guaranteed.",
   },
 ]
 
 const timeline = [
   "Backlink prospecting starts from your own content, competitors, and keywords.",
-  "Community monitoring watches for threads where your product can be useful now.",
   "The product is early, bootstrapped, and shaped by the recurring work founders actually do.",
 ]
 
@@ -65,7 +64,7 @@ export default function AboutPage() {
       <Navbar />
 
       <main>
-        <section className="relative overflow-hidden border-b border-border/70 px-4 pb-16 pt-12 sm:px-6 sm:pb-20 sm:pt-16 lg:px-8 lg:pb-24">
+        <section className="relative overflow-hidden border-b border-border/70 px-4 pt-12 pb-16 sm:px-6 sm:pt-16 sm:pb-20 lg:px-8 lg:pb-24">
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.028]"
             style={{
@@ -73,27 +72,26 @@ export default function AboutPage() {
               backgroundSize: "44px 44px",
             }}
           />
-          <div className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rounded-full bg-[var(--color-amber-glow)]/10 blur-3xl" />
-          <div className="pointer-events-none absolute right-0 top-0 h-[32rem] w-[32rem] translate-x-1/3 rounded-full bg-[var(--color-blaze-orange)]/10 blur-3xl" />
+          <div className="pointer-events-none absolute top-20 -left-28 h-72 w-72 rounded-full bg-[var(--color-amber-glow)]/10 blur-3xl" />
+          <div className="pointer-events-none absolute top-0 right-0 h-[32rem] w-[32rem] translate-x-1/3 rounded-full bg-[var(--color-blaze-orange)]/10 blur-3xl" />
 
-          <div className="container relative mx-auto max-w-6xl">
+          <div className="relative container mx-auto max-w-6xl">
             <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
               <div className="max-w-3xl">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold uppercase text-[var(--color-princeton-orange)]">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/25 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.65rem] font-semibold text-[var(--color-princeton-orange)] uppercase">
                   <IconBolt size={13} stroke={2.5} />
                   Founder note
                 </div>
 
                 <h1 className="mt-6 font-heading text-5xl font-semibold tracking-[-0.06em] text-balance sm:text-6xl lg:text-[5.5rem] lg:leading-[0.9]">
-                  I&apos;m building the distribution queue I wanted to use.
+                  I built the backlink queue I wish I had.
                 </h1>
 
                 <p className="mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-                  I&apos;m Nicolas More, the founder of Mentiohunt. The product is
-                  early, bootstrapped, and built around a simple idea: founders
-                  should know what distribution opportunity to work on next
-                  without losing the day to searching, sorting, and second
-                  guessing.
+                  I&apos;m Nicolas, founder of Mentiohunt. I built backlinks
+                  manually for my own product and it worked — but the
+                  prospecting and outreach ate my whole day. So I built the
+                  tool that does that part for me, and now for you too.
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -122,8 +120,8 @@ export default function AboutPage() {
               </div>
 
               <div className="relative mx-auto w-full max-w-md lg:mx-0 lg:justify-self-end">
-                <div className="absolute -left-5 -top-5 h-28 w-28 rounded-full border border-[var(--color-amber-glow)]/35 bg-[var(--color-amber-glow)]/10" />
-                <div className="absolute -bottom-6 -right-6 h-36 w-36 rounded-[2rem] bg-[var(--color-blaze-orange)]/10 blur-sm" />
+                <div className="absolute -top-5 -left-5 h-28 w-28 rounded-full border border-[var(--color-amber-glow)]/35 bg-[var(--color-amber-glow)]/10" />
+                <div className="absolute -right-6 -bottom-6 h-36 w-36 rounded-[2rem] bg-[var(--color-blaze-orange)]/10 blur-sm" />
 
                 <div className="relative overflow-hidden rounded-[2.25rem] border border-[var(--color-blaze-orange)]/25 bg-card p-3 shadow-[0_30px_90px_-34px_rgba(255,96,0,0.55)]">
                   <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/70 to-transparent" />
@@ -135,7 +133,7 @@ export default function AboutPage() {
                     priority
                     className="aspect-[4/5] rounded-[1.65rem] object-cover object-center"
                   />
-                  <div className="absolute bottom-6 left-6 right-6 rounded-3xl border border-white/35 bg-background/80 p-4 shadow-2xl shadow-black/10 backdrop-blur-xl dark:border-white/10">
+                  <div className="absolute right-6 bottom-6 left-6 rounded-3xl border border-white/35 bg-background/80 p-4 shadow-2xl shadow-black/10 backdrop-blur-xl dark:border-white/10">
                     <p className="font-heading text-lg font-semibold tracking-[-0.03em]">
                       Nicolas More
                     </p>
@@ -164,36 +162,31 @@ export default function AboutPage() {
           <div className="container mx-auto max-w-6xl">
             <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16">
               <div>
-                <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
+                <p className="text-[0.65rem] font-semibold text-muted-foreground/60 uppercase">
                   Why it exists
                 </p>
                 <h2 className="mt-4 font-heading text-3xl font-semibold tracking-[-0.04em] text-balance sm:text-4xl">
-                  Distribution work should feel like a clear queue, not a foggy
-                  research project.
+                  Link building should feel like a queue, not a second job.
                 </h2>
               </div>
 
               <div className="space-y-5 text-base leading-8 text-muted-foreground">
                 <p>
-                  A lot of founder-led distribution breaks down at the same
-                  point: you know you should earn more relevant backlinks, show
-                  up in the right communities, and respond while the window is
-                  still open. But the work gets scattered across search tabs,
-                  social feeds, cold lists, and half-written drafts.
+                  Most founder-led link building breaks down at the same
+                  point: you know backlinks compound, but prospecting sites,
+                  finding the right contact, writing the email, and following
+                  up is a full-time job you don&apos;t have time for.
                 </p>
                 <p>
-                  Mentiohunt is meant to compress that mess into a daily set of
-                  opportunities. For backlink building, it looks at your
-                  content and surfaces websites where an article fits, with
-                  outreach prep attached. For community monitoring, it watches
-                  for posts where your product can be mentioned naturally and
-                  alerts you while the thread is active.
+                  Mentiohunt does that work for you. Give it your content and
+                  it finds websites where an article fits, surfaces the
+                  contact, drafts the outreach, and manages the placement end
+                  to end. You just approve or reject what lands in your queue.
                 </p>
                 <p>
-                  The goal is not to automate trust or guarantee outcomes. The
-                  goal is to remove the repetitive discovery work so founders
-                  can spend more time making useful asks, writing thoughtful
-                  replies, and building relationships that compound.
+                  The goal isn&apos;t to guarantee a backlink on every send. It&apos;s
+                  to remove the repetitive prospecting and outreach work so you
+                  can spend your time running the business, not chasing links.
                 </p>
               </div>
             </div>
@@ -226,14 +219,14 @@ export default function AboutPage() {
         <section className="px-4 pb-20 sm:px-6 lg:px-8 lg:pb-28">
           <div className="container mx-auto max-w-6xl">
             <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/20 bg-[linear-gradient(135deg,var(--color-background)_0%,color-mix(in_oklab,var(--color-background)_76%,var(--color-amber-glow)_24%)_100%)] p-6 shadow-[0_30px_100px_-45px_rgba(255,133,0,0.42)] sm:p-8 lg:p-10">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-[var(--color-princeton-orange)]/12 blur-3xl" />
-              <div className="pointer-events-none absolute right-8 top-1/2 hidden -translate-y-1/2 select-none font-heading text-[12rem] font-bold leading-none tracking-[-0.08em] text-[var(--color-amber-glow)]/[0.08] lg:block">
+              <div className="pointer-events-none absolute -top-16 -right-16 h-72 w-72 rounded-full bg-[var(--color-princeton-orange)]/12 blur-3xl" />
+              <div className="pointer-events-none absolute top-1/2 right-8 hidden -translate-y-1/2 font-heading text-[12rem] leading-none font-bold tracking-[-0.08em] text-[var(--color-amber-glow)]/[0.08] select-none lg:block">
                 M
               </div>
 
               <div className="relative grid gap-9 lg:grid-cols-[1fr_0.9fr] lg:items-center">
                 <div>
-                  <p className="text-[0.65rem] font-semibold uppercase text-[var(--color-princeton-orange)]">
+                  <p className="text-[0.65rem] font-semibold text-[var(--color-princeton-orange)] uppercase">
                     Current direction
                   </p>
                   <h2 className="mt-4 max-w-2xl font-heading text-3xl font-semibold tracking-[-0.04em] text-balance sm:text-4xl">
@@ -241,9 +234,9 @@ export default function AboutPage() {
                     enough to be useful.
                   </h2>
                   <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
-                    If you are trying to turn content and community activity
-                    into a repeatable acquisition habit, I want Mentiohunt to
-                    feel like the practical next step each morning.
+                    If you&apos;re trying to turn your content into a repeatable
+                    backlink habit, I want Mentiohunt to feel like the
+                    practical next step every morning.
                   </p>
 
                   <div className="mt-7 flex flex-col gap-3 sm:flex-row">

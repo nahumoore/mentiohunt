@@ -112,13 +112,13 @@ _PRIVATE_NETWORKS = [
 ]
 
 
-def _ssrf_check(url: str) -> None:
+async def _ssrf_check(url: str) -> None:
     """Raise HTTPException 400 if the URL resolves to a private/internal address."""
     host = urlparse(url).hostname
     if not host:
         raise HTTPException(status_code=400, detail="Invalid URL: no host")
     try:
-        infos = socket.getaddrinfo(host, None)
+        infos = await asyncio.to_thread(socket.getaddrinfo, host, None)
     except socket.gaierror as e:
         raise HTTPException(status_code=400, detail=f"Cannot resolve host: {e}")
     for _, _, _, _, sockaddr in infos:
@@ -276,8 +276,11 @@ def _is_ok_status(page) -> bool:
     return 200 <= status < 300
 
 
+_TERMINAL_STATUSES = {404, 410}
+
+
 async def fetch_page(url: str):
-    _ssrf_check(url)
+    await _ssrf_check(url)
     try:
         log.info(f"fetching lightweight {url}")
         page = await asyncio.to_thread(
@@ -286,6 +289,9 @@ async def fetch_page(url: str):
         text = str(page.get_all_text()).strip()
         status = getattr(page, "status", None)
         if not _is_ok_status(page):
+            if status in _TERMINAL_STATUSES:
+                log.info(f"light fetch terminal status={status}, giving up {url}")
+                return None
             log.info(f"light fetch non-2xx status={status}, escalating to dynamic {url}")
         elif len(text) >= 500:
             log.info(f"fetched ok (light) status={status} {url}")
@@ -301,6 +307,9 @@ async def fetch_page(url: str):
         text = str(page.get_all_text()).strip()
         status = getattr(page, "status", None)
         if not _is_ok_status(page):
+            if status in _TERMINAL_STATUSES:
+                log.info(f"dynamic fetch terminal status={status}, giving up {url}")
+                return None
             log.info(f"dynamic fetch non-2xx status={status}, escalating to stealthy {url}")
         elif len(text) >= 500:
             log.info(f"fetched ok (dynamic) status={status} {url}")
@@ -325,7 +334,7 @@ async def fetch_page(url: str):
         log.info(f"stealthy html snippet: {stealthy_html[:400]!r}")
         if is_cf_challenge:
             log.warning(f"stealthy: CF challenge not bypassed {url} — marking domain blocked")
-            _cf_blocked_domains.add(urlparse(url).netloc)
+            _cf_blocked_domains.add(_normalize_host(urlparse(url).netloc))
             return None
         if not _is_ok_status(page):
             log.warning(f"stealthy: non-2xx status={stealthy_status} {url}")
@@ -370,6 +379,8 @@ def _get_agent_helpers() -> dict:
             "_first_el": _first_el,
             "find_contact_form_url": find_contact_form_url,
             "_host_matches_target": _host_matches_target,
+            "_normalize_url": _normalize_url,
+            "_normalize_host": _normalize_host,
             "cf_blocked_domains": _cf_blocked_domains,
         }
     return _AGENT_HELPERS

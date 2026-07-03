@@ -192,31 +192,41 @@ async def _execute_scrape_page(url: str, domain: str, visited: list[str], helper
         log.warning(f"agent tool: blocked external URL {url}")
         return {"error": f"URL must be on {domain}"}
 
-    if url in visited:
+    _normalize_url = helpers.get("_normalize_url", lambda u: u)
+    _normalize_host = helpers.get("_normalize_host", lambda h: h)
+    norm_url = _normalize_url(url)
+
+    if norm_url in visited:
         log.warning(f"agent tool: already visited {url}")
         return {"error": "Already visited this URL"}
 
-    if failed is not None and url in failed:
+    if failed is not None and norm_url in failed:
         log.warning(f"agent tool: previously failed, skipping {url}")
         return {"error": "Previously failed to fetch this URL"}
 
     cf_blocked_domains = helpers.get("cf_blocked_domains", set())
-    if domain in cf_blocked_domains:
+    if _normalize_host(domain) in cf_blocked_domains:
         log.warning(f"agent tool: domain CF-blocked, skipping {url}")
         return {"error": "CF-blocked", "cf_blocked": True}
 
     log.info(f"agent tool scrape_page: {url}")
-    page = await fetch_page(url)
+    try:
+        page = await fetch_page(url)
+    except Exception as e:
+        log.warning(f"agent tool: fetch_page raised {type(e).__name__} for {url}: {e}")
+        if failed is not None:
+            failed.add(norm_url)
+        return {"error": f"Fetch error: {e}"}
     if not page:
         if failed is not None:
-            failed.add(url)
-        if domain in cf_blocked_domains:
+            failed.add(norm_url)
+        if _normalize_host(domain) in cf_blocked_domains:
             log.warning(f"agent tool: CF-blocked on fetch {url}")
             return {"error": "CF-blocked", "cf_blocked": True}
         log.warning(f"agent tool: fetch failed {url}")
         return {"error": "Failed to fetch URL"}
 
-    visited.append(url)
+    visited.append(norm_url)
     base_url = get_base_url(url)
 
     raw_html = page.html_content or ""
@@ -368,16 +378,20 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
             )
         except Exception as e:
             log.warning(f"agent: primary model failed ({e}), retrying with fallback {FALLBACK_MODEL}")
-            resp = await asyncio.to_thread(
-                client.chat.completions.create,
-                model=FALLBACK_MODEL,
-                messages=messages,
-                tools=tools,
-                tool_choice="required",
-                temperature=0,
-                max_tokens=2048,
-                timeout=90,
-            )
+            try:
+                resp = await asyncio.to_thread(
+                    client.chat.completions.create,
+                    model=FALLBACK_MODEL,
+                    messages=messages,
+                    tools=tools,
+                    tool_choice="required",
+                    temperature=0,
+                    max_tokens=2048,
+                    timeout=90,
+                )
+            except Exception as e2:
+                log.error(f"agent: fallback model also failed ({e2}), stopping with data gathered so far")
+                break
 
         msg = resp.choices[0].message
         tool_names = [tc.function.name for tc in (msg.tool_calls or [])]
@@ -416,6 +430,10 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
             log.info(f"agent executing: {fn}({list(args.keys())})")
 
             if fn == "scrape_page":
+                if time.monotonic() >= deadline:
+                    log.warning(f"agent: budget exceeded before scrape_page, skipping {args.get('url')}")
+                    messages.append({"role": "tool", "tool_call_id": tc.id, "content": json.dumps({"error": "Budget exceeded"})})
+                    continue
                 tool_result = await _execute_scrape_page(
                     url=args.get("url", ""),
                     domain=domain,

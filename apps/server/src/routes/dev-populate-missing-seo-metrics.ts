@@ -6,8 +6,8 @@ export const devPopulateMissingSeoMetricsRouter: IRouter = Router()
 devPopulateMissingSeoMetricsRouter.post(
   "/dev-populate-missing-seo-metrics",
   async (_req, res) => {
-    if (!process.env.APIFY_TOKEN) {
-      res.status(500).json({ error: "APIFY_TOKEN not set" })
+    if (!process.env.DATAFORSEO_LOGIN || !process.env.DATAFORSEO_PASSWORD) {
+      res.status(500).json({ error: "DATAFORSEO_LOGIN/DATAFORSEO_PASSWORD not set" })
       return
     }
 

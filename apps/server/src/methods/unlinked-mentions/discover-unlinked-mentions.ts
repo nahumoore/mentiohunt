@@ -1,14 +1,11 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
 import {
-  AHREFS_AUTHORITY_CHECKER,
-  type AhrefsAuthorityResult,
-} from "../../helpers/actors/ahrefs-authority-checker.js"
-import {
   SCRAPERLINK_GOOGLE_SERP,
   type GoogleSerpItem,
 } from "../../helpers/actors/google-serp-scraper.js"
 import { runApifyActor } from "../../helpers/actors/run-apify-actor.js"
+import { getDomainRating } from "../../helpers/ahrefs/get-domain-rating.js"
 import { createLogger } from "../../helpers/logger.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../competitor-backlinks/discover-competitor-backlinks.js"
 import { resolveContactEmail } from "../competitor-backlinks/enrich-contact.js"
@@ -87,17 +84,15 @@ async function enrichDomainRatings(domains: string[]): Promise<Map<string, numbe
   if (domains.length === 0) return map
 
   try {
-    const results = await runApifyActor<AhrefsAuthorityResult[]>(
-      AHREFS_AUTHORITY_CHECKER,
-      { start_urls: domains.map((d) => ({ url: `https://${d}` })) },
-      300
+    const limit = pLimit(5)
+    await Promise.all(
+      domains.map((domain) =>
+        limit(async () => {
+          const rating = await getDomainRating(domain)
+          map.set(domain, rating)
+        })
+      )
     )
-    for (const r of results) {
-      const host = extractDomainFromUrl(r.normalized_url || r.url || "")
-      if (!host) continue
-      const raw = typeof r.domainRating === "string" ? parseFloat(r.domainRating) : r.domainRating
-      map.set(host, typeof raw === "number" && Number.isFinite(raw) ? raw : null)
-    }
   } catch (err) {
     log.warn("DR enrichment failed", { error: String(err) })
   }

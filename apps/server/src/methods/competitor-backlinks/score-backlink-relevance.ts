@@ -180,9 +180,13 @@ async function scoreBatch(
       lastErr = err
       const msg = String(err)
       const isRateLimit = msg.includes("rate_limit_exceeded") || msg.includes('"code":429') || msg.includes("429")
-      if (isRateLimit && attempt < RETRY_DELAYS_MS.length) {
+      const isEmptyCompletion = msg.includes("did not include text content")
+      if ((isRateLimit || isEmptyCompletion) && attempt < RETRY_DELAYS_MS.length) {
         const delay = RETRY_DELAYS_MS[attempt]!
-        log.warn("rate limited, retrying", { attempt: attempt + 1, delay_ms: delay })
+        log.warn(isEmptyCompletion ? "empty completion, retrying" : "rate limited, retrying", {
+          attempt: attempt + 1,
+          delay_ms: delay,
+        })
         await new Promise((resolve) => setTimeout(resolve, delay))
         continue
       }

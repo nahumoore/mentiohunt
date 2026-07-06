@@ -6,15 +6,17 @@ import re
 import time
 from urllib.parse import urljoin, urlparse
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 log = logging.getLogger("scraper")
 
 MODEL = "deepseek/deepseek-v4-pro"
 FALLBACK_MODEL = "google/gemini-2.5-flash"
+EMPTY_RESPONSE_FALLBACK_MODEL = "z-ai/glm-4.7-flash"  # retried when a model returns 200 OK with no tool_calls (OpenRouter "zero completion" glitch), distinct from FALLBACK_MODEL used for hard exceptions
 MAX_PAGES = 6
 AGENT_BUDGET_SECONDS = 100  # wall-clock cap; must land under the server's 120s AbortSignal
+MODEL_CALL_TIMEOUT_SECONDS = 30  # hard backstop — the SDK's `timeout=` kwarg only bounds gaps between chunks, not total call duration, and deepseek-v4-pro has been observed taking 150s+ on OpenRouter; the fast fallback model makes bailing out early worth it
 
 _GENERIC_PREFIXES = {"noreply", "no-reply", "support", "team", "hello", "info", "contact", "admin", "enquiries", "enquiry", "mail", "office", "sales", "marketing", "press", "media", "billing", "accounts", "hr", "jobs", "careers", "legal", "privacy", "abuse", "postmaster", "webmaster", "newsletter", "notifications"}
 
@@ -41,6 +43,19 @@ def _clean_name(name: str | None) -> str | None:
     if any(s in lower for s in _NAME_FAILURE_SUBSTRINGS):
         return None
     if len(trimmed.split()) > 5:
+        return None
+    return trimmed
+
+
+def _clean_bio(bio: str | None) -> str | None:
+    """Drop LLM-produced bio text that actually describes a scrape/access failure."""
+    if not bio:
+        return None
+    trimmed = bio.strip()
+    if not trimmed:
+        return None
+    lower = trimmed.lower()
+    if any(s in lower for s in _NAME_FAILURE_SUBSTRINGS):
         return None
     return trimmed
 
@@ -515,7 +530,7 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
     domain = urlparse(base_url).netloc
     log.info(f"agent-scrape start: url={url} domain={domain} model={MODEL}")
 
-    client = OpenAI(
+    client = AsyncOpenAI(
         api_key=os.environ["OPENROUTER_API_KEY"],
         base_url="https://openrouter.ai/api/v1",
     )
@@ -648,31 +663,38 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
         )
 
         try:
-            resp = await asyncio.to_thread(
-                client.chat.completions.create,
-                model=MODEL,
-                messages=messages,
-                tools=tools,
-                tool_choice="required",
-                temperature=0,
-                max_tokens=2048,
-                timeout=90,
-            )
-        except Exception as e:
-            log.warning(f"agent: primary model failed ({e}), retrying with fallback {FALLBACK_MODEL}")
-            try:
-                resp = await asyncio.to_thread(
-                    client.chat.completions.create,
-                    model=FALLBACK_MODEL,
+            resp = await asyncio.wait_for(
+                client.chat.completions.create(
+                    model=MODEL,
                     messages=messages,
                     tools=tools,
                     tool_choice="required",
                     temperature=0,
                     max_tokens=2048,
-                    timeout=90,
+                    timeout=MODEL_CALL_TIMEOUT_SECONDS,
+                ),
+                timeout=MODEL_CALL_TIMEOUT_SECONDS,
+            )
+        except Exception as e:
+            log.warning(f"agent: primary model failed ({type(e).__name__}: {e}), retrying with fallback {FALLBACK_MODEL}")
+            if time.monotonic() >= deadline:
+                log.warning("agent: budget exceeded before fallback attempt, stopping with data gathered so far")
+                break
+            try:
+                resp = await asyncio.wait_for(
+                    client.chat.completions.create(
+                        model=FALLBACK_MODEL,
+                        messages=messages,
+                        tools=tools,
+                        tool_choice="required",
+                        temperature=0,
+                        max_tokens=2048,
+                        timeout=MODEL_CALL_TIMEOUT_SECONDS,
+                    ),
+                    timeout=MODEL_CALL_TIMEOUT_SECONDS,
                 )
             except Exception as e2:
-                log.error(f"agent: fallback model also failed ({e2}), stopping with data gathered so far")
+                log.error(f"agent: fallback model also failed ({type(e2).__name__}: {e2}), stopping with data gathered so far")
                 break
 
         msg = resp.choices[0].message
@@ -680,6 +702,30 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
         if len(tool_names) > 5:
             log.warning(f"agent response: model returned {len(tool_names)} tool calls — likely hallucination, will use first finish only")
         log.info(f"agent response: finish_reason={resp.choices[0].finish_reason} tool_calls={tool_names}")
+
+        if not msg.tool_calls:
+            log.warning(f"agent: no tool calls returned, retrying with {EMPTY_RESPONSE_FALLBACK_MODEL} fallback")
+            if time.monotonic() >= deadline:
+                log.warning("agent: budget exceeded before empty-response fallback, stopping with data gathered so far")
+            else:
+                try:
+                    resp = await asyncio.wait_for(
+                        client.chat.completions.create(
+                            model=EMPTY_RESPONSE_FALLBACK_MODEL,
+                            messages=messages,
+                            tools=tools,
+                            tool_choice="required",
+                            temperature=0,
+                            max_tokens=2048,
+                            timeout=MODEL_CALL_TIMEOUT_SECONDS,
+                        ),
+                        timeout=MODEL_CALL_TIMEOUT_SECONDS,
+                    )
+                    msg = resp.choices[0].message
+                    tool_names = [tc.function.name for tc in (msg.tool_calls or [])]
+                    log.info(f"agent response (empty-retry): finish_reason={resp.choices[0].finish_reason} tool_calls={tool_names}")
+                except Exception as e:
+                    log.error(f"agent: empty-response fallback also failed ({type(e).__name__}: {e}), stopping with data gathered so far")
 
         # Append assistant turn to history
         assistant_entry: dict = {"role": "assistant"}
@@ -764,7 +810,7 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
     elif final_name != finish_result.get("name"):
         log.info(f"agent: name sanitized from {finish_result.get('name')!r} to {final_name!r}")
     raw_emails: list[dict] = finish_result.get("emails") or []
-    final_bio = finish_result.get("bio")
+    final_bio = _clean_bio(finish_result.get("bio"))
     final_contact_form = finish_result.get("contact_form_url") or pre_crawl_contact_form
 
     # Use deterministic _is_personal classifier instead of LLM's self-graded type.

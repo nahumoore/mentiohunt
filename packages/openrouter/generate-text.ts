@@ -42,6 +42,7 @@ type ChatCompletionResponse = {
       content?: unknown
       reasoning?: unknown
     }
+    finish_reason?: string | null
   }>
   usage?: {
     cost?: number
@@ -75,31 +76,37 @@ async function callModel(
     }),
   })
 
-  const data = (await response.json().catch(() => null)) as
-    | ChatCompletionResponse
-    | null
+  const rawText = await response.text()
+  let data: ChatCompletionResponse | null = null
+  try {
+    data = rawText ? (JSON.parse(rawText) as ChatCompletionResponse) : null
+  } catch {
+    // data stays null; rawText is preserved for error reporting below.
+  }
 
   if (!response.ok) {
     throw new Error(
-      data?.error?.message ?? `OpenRouter request failed: ${response.status}`
+      data?.error?.message ??
+        `OpenRouter request failed: ${response.status} ${response.statusText}${rawText ? ` — ${rawText.slice(0, 500)}` : ""}`
     )
   }
 
-  const message = data?.choices?.[0]?.message
+  const choice = data?.choices?.[0]
+  const message = choice?.message
   const content = message?.content
   const reasoning = message?.reasoning
   const cost = data?.usage?.cost ?? 0
 
-  if (typeof content === "string") {
+  if (typeof content === "string" && content.length > 0) {
     return { text: content, cost }
   } else if (content !== undefined && content !== null) {
     return { text: JSON.stringify(content), cost }
-  } else if (typeof reasoning === "string") {
+  } else if (typeof reasoning === "string" && reasoning.length > 0) {
     // Reasoning models (e.g. z-ai/glm-4.7-flash) emit output in the reasoning field, content is null
     return { text: reasoning, cost }
   } else {
     throw new Error(
-      `OpenRouter response did not include text content: ${JSON.stringify(data)}`
+      `OpenRouter response did not include text content (status=${response.status}, finish_reason=${choice?.finish_reason ?? "unknown"}): ${rawText ? rawText.slice(0, 1000) : "<empty body>"}`
     )
   }
 }

@@ -9,6 +9,7 @@ import {
   IconSitemap,
   IconSwords,
   IconTextSize,
+  IconUserSearch,
   IconWorldSearch,
 } from "@tabler/icons-react"
 
@@ -96,6 +97,14 @@ const tools = [
       "Enter a keyword and an optional target URL to generate a full set of anchor text variants — exact match, partial, branded, LSI, and generic — each with a safety label and plain-language guidance.",
     icon: IconTextSize,
     href: `/free-tools/${FREE_TOOL_NAMES.anchorTextGenerator}`,
+  },
+  {
+    name: "Author Contact Finder",
+    eyebrow: "Article to contact",
+    description:
+      "Paste a blog post URL and find the author's name, role, and most likely contact email — labelled with a confidence level, for backlink outreach.",
+    icon: IconUserSearch,
+    href: `/free-tools/${FREE_TOOL_NAMES.authorContactFinder}`,
   },
 ]
 

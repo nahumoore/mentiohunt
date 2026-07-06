@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   },
   description:
     "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
+  other: {
+    "backlink-verify": "BQDz3SSE6VrVTFlb7wPeC4GnObtAsY9n",
+  },
 }
 
 const figtree = Figtree({

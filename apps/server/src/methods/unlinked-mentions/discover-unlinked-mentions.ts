@@ -260,6 +260,10 @@ export async function discoverUnlinkedMentions(
     // 4. Domain rating — only when the user has set a DR floor.
     if (settings.dr_min > 0 && qualified.length > 0) {
       const drByDomain = await enrichDomainRatings([...new Set(qualified.map((q) => q.domain))])
+      log.info("domain ratings fetched", {
+        productId: product.id,
+        ratings: [...drByDomain.entries()].map(([domain, dr]) => ({ domain, dr })),
+      })
       qualified = qualified
         .map((q) => ({ ...q, domainRating: drByDomain.get(q.domain) ?? null }))
         .filter((q) => {

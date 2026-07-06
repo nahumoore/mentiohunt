@@ -16,8 +16,8 @@ import {
 } from "../competitor-backlinks/filter-backlinks.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
+import { generateOutreachSequence } from "../shared/generate-outreach-sequence.js"
 import { checkMention, type CheckMentionResult } from "./check-mention-client.js"
-import { generateMentionEmail } from "./generate-mention-email.js"
 import { scoreMentionRelevance, type MentionCandidate } from "./score-mention-relevance.js"
 
 const log = createLogger("discover-unlinked-mentions")
@@ -128,7 +128,7 @@ const EMPTY_ENRICHMENT: EnrichedColumns = {
 async function enrichMention(
   candidate: QualifiedMention,
   product: Product,
-  senderName: string | null,
+  sender: { name: string | null; isPublicAccount: boolean },
   emailSettings: EmailSettings
 ): Promise<EnrichedColumns> {
   try {
@@ -138,14 +138,22 @@ async function enrichMention(
 
     let emailResult: { subject: string; step1Body: string; step2Body: string; step3Body: string; cost: number } | null = null
     if (contact.email) {
-      emailResult = await generateMentionEmail(product, {
-        title: candidate.title,
-        foundUrl: candidate.url,
-        contactName: contact.name,
-        senderName,
-        voiceTone: emailSettings.voice_tone,
-        offering: emailSettings.offering,
-      })
+      emailResult = await generateOutreachSequence(
+        product,
+        {
+          opportunityType: "unlinked_mention",
+          title: candidate.title,
+          foundUrl: candidate.url,
+        },
+        {
+          contactName: contact.name,
+          senderName: sender.name,
+          isPublicAccount: sender.isPublicAccount,
+          voiceTone: emailSettings.voice_tone,
+          offering: emailSettings.offering,
+          authorBio: contact.rawMetadata?.bio ?? null,
+        }
+      )
     }
 
     log.success("enrichment complete", {
@@ -193,7 +201,7 @@ export async function discoverUnlinkedMentions(
 
   const brandTerms = [productName]
 
-  const senderName = await resolveSenderName(product.user_id)
+  const sender = await resolveSenderName(product.user_id)
 
   const runId = await createProspectRun(product.id, brandTerms)
   let totalCostUsd = 0
@@ -348,7 +356,7 @@ export async function discoverUnlinkedMentions(
           if (budget && budget.remaining <= 0) return
           if (budget) budget.remaining -= 1
 
-          const enriched = await enrichMention(item, product, senderName, emailSettings)
+          const enriched = await enrichMention(item, product, sender, emailSettings)
 
           if (!enriched.contact_email) {
             log.info("skipping prospect, no email found", { domain: item.domain })

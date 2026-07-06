@@ -43,4 +43,13 @@ export function registerJobs(): void {
     }
   })
   console.log("[cron] Scheduled: feedback email sequence (hourly)")
+
+  // cron.schedule("0 8 * * *", async () => {
+  //   try {
+  //     await runListicleRoundupDiscovery()
+  //   } catch (err) {
+  //     console.error("[cron] Error running listicle roundup discovery:", err)
+  //   }
+  // })
+  // console.log("[cron] Scheduled: listicle roundup discovery (08:00 UTC)")
 }

@@ -16,6 +16,7 @@ const DEFAULT_DISCOVERY_SETTINGS: DiscoverySettings = {
   opportunityTypes: [
     "competitor_backlinks",
     "unlinked_mentions",
+    "listicle_roundups",
   ],
   drMin: 0,
   drMax: null,
@@ -43,7 +44,8 @@ function mapDiscoverySettings(
   return {
     opportunityTypes: settings.opportunity_types.map((type) => {
       if (type === "competitor_backlink") return "competitor_backlinks"
-      return "unlinked_mentions"
+      if (type === "unlinked_mention") return "unlinked_mentions"
+      return "listicle_roundups"
     }),
     drMin: settings.dr_min,
     drMax: settings.dr_max,

@@ -682,9 +682,17 @@ export type Database = {
         | "case_study"
         | "comparison"
         | "manual"
-      prospect_sequence_status: "pending" | "sent" | "failed" | "skipped" | "paused"
+      prospect_sequence_status:
+        | "pending"
+        | "sent"
+        | "failed"
+        | "skipped"
+        | "paused"
       prospect_status: "new" | "contacted" | "dismissed" | "negotiating" | "won"
-      prospect_tier: "competitor_backlink" | "unlinked_mention"
+      prospect_tier:
+        | "competitor_backlink"
+        | "unlinked_mention"
+        | "listicle_roundup"
       run_status: "pending" | "running" | "completed" | "failed"
     }
     CompositeTypes: {
@@ -830,9 +838,19 @@ export const Constants = {
         "comparison",
         "manual",
       ],
-      prospect_sequence_status: ["pending", "sent", "failed", "skipped", "paused"],
+      prospect_sequence_status: [
+        "pending",
+        "sent",
+        "failed",
+        "skipped",
+        "paused",
+      ],
       prospect_status: ["new", "contacted", "dismissed", "negotiating", "won"],
-      prospect_tier: ["competitor_backlink", "unlinked_mention"],
+      prospect_tier: [
+        "competitor_backlink",
+        "unlinked_mention",
+        "listicle_roundup",
+      ],
       run_status: ["pending", "running", "completed", "failed"],
     },
   },

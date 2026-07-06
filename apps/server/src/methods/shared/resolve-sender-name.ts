@@ -1,9 +1,16 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 
-export async function resolveSenderName(userId: string): Promise<string | null> {
+export type ResolvedSender = { name: string | null; isPublicAccount: boolean }
+
+/**
+ * Outreach is always signed and sent as the customer, never as Mentiohunt or the
+ * shared mailbox's own identity — only the underlying sending infra (shared pool
+ * today, a connected mailbox in the future) differs by tier.
+ */
+export async function resolveSenderName(userId: string): Promise<ResolvedSender> {
   const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("tier")
+    .select("tier, name")
     .eq("id", userId)
     .single()
 
@@ -12,21 +19,15 @@ export async function resolveSenderName(userId: string): Promise<string | null> 
   if (isPaid) {
     const { data: userAccount } = await supabaseAdmin
       .from("email_accounts")
-      .select("name")
+      .select("id")
       .eq("user_id", userId)
       .eq("is_public", false)
       .eq("status", "active")
       .limit(1)
       .single()
 
-    if (userAccount) return userAccount.name ?? null
+    if (userAccount) return { name: profile?.name ?? null, isPublicAccount: false }
   }
 
-  const { data: publicAccount } = await supabaseAdmin
-    .from("email_accounts")
-    .select("name")
-    .eq("is_public", true)
-    .single()
-
-  return publicAccount?.name ?? null
+  return { name: profile?.name ?? null, isPublicAccount: true }
 }

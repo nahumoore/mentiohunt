@@ -1,10 +1,11 @@
-import { IconLink, IconSwords } from "@tabler/icons-react"
+import { IconLink, IconListNumbers, IconSwords } from "@tabler/icons-react"
 import type { Database } from "@workspace/supabase/database-types"
 import type { ElementType } from "react"
 
 export type OpportunityType =
   | "competitor_backlinks"
   | "unlinked_mentions"
+  | "listicle_roundups"
 
 export type ProspectTier = Database["public"]["Enums"]["prospect_tier"]
 
@@ -30,11 +31,19 @@ export const TYPE_CONFIG: Record<OpportunityType, TypeConfig> = {
     icon: IconLink,
     color: "text-violet-600 bg-violet-500/10",
   },
+  listicle_roundups: {
+    label: "Listicle & Roundup Inclusion",
+    description:
+      "\"Best X tools\" and \"top N alternatives\" posts ranking in your niche. Pitch adding your product. High intent, recurring as posts get updated.",
+    icon: IconListNumbers,
+    color: "text-blue-600 bg-blue-500/10",
+  },
 }
 
 export const OPPORTUNITY_TYPE_TO_PROSPECT_TIER = {
   competitor_backlinks: "competitor_backlink",
   unlinked_mentions: "unlinked_mention",
+  listicle_roundups: "listicle_roundup",
 } satisfies Record<OpportunityType, ProspectTier>
 
 export const PROSPECT_TIER_CONFIG: Record<ProspectTier, TypeConfig> = {
@@ -49,5 +58,11 @@ export const PROSPECT_TIER_CONFIG: Record<ProspectTier, TypeConfig> = {
     label: "Unlinked mention",
     description:
       "A page that mentions your product or brand context but has not linked yet.",
+  },
+  listicle_roundup: {
+    ...TYPE_CONFIG.listicle_roundups,
+    label: "Listicle roundup",
+    description:
+      "A \"best of\" or \"top alternatives\" post ranking in your niche that doesn't list your product yet.",
   },
 }

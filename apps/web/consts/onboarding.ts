@@ -52,6 +52,7 @@ export type ResourceMode = "sitemap" | "pages"
 export const OPPORTUNITY_TYPE_IDS = [
   "competitor_backlinks",
   "unlinked_mentions",
+  "listicle_roundups",
 ] as const
 
 export const OPPORTUNITY_TYPES = [
@@ -67,11 +68,18 @@ export const OPPORTUNITY_TYPES = [
     description:
       "Find pages that mention your product but forgot to link to you.",
   },
+  {
+    id: "listicle_roundups",
+    label: "Listicle roundups",
+    description:
+      "Find \"best X tools\" and \"top N alternatives\" posts that don't list your product yet.",
+  },
 ] as const
 
 export const DEFAULT_OPPORTUNITY_TYPES = [
   "competitor_backlinks",
   "unlinked_mentions",
+  "listicle_roundups",
 ] satisfies OpportunityTypeId[]
 
 export type OpportunityTypeId = (typeof OPPORTUNITY_TYPE_IDS)[number]

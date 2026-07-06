@@ -104,11 +104,11 @@ export function OpportunityPipelineRow({
           return (
             <span
               className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
                 statusCfg.color
               )}
             >
-              <StatusIcon className="size-3 shrink-0" />
+              <StatusIcon className="size-3.5 shrink-0" />
               {statusCfg.label}
             </span>
           )

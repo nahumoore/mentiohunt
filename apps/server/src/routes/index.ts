@@ -2,6 +2,7 @@ import type { Application } from "express"
 import { analyzeBacklinkSiteRouter } from "./analyze-backlink-site.js"
 import { crawlSinglePageRouter } from "./crawl-single-page.js"
 import { devDiscoverCompetitorBacklinksRouter } from "./dev-discover-competitor-backlinks.js"
+import { devDiscoverListicleRoundupsRouter } from "./dev-discover-listicle-roundups.js"
 import { freeToolCompetitorBacklinkGapRouter } from "./free-tool-competitor-backlink-gap.js"
 import { devDiscoverUnlinkedMentionsRouter } from "./dev-discover-unlinked-mentions.js"
 import { devTestScraperRouter } from "./dev-test-scraper.js"
@@ -32,6 +33,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
     app.use(devSendOnboardingEmailRouter)
     app.use(devDiscoverCompetitorBacklinksRouter)
     app.use(devDiscoverUnlinkedMentionsRouter)
+    app.use(devDiscoverListicleRoundupsRouter)
     app.use(devTestScraperRouter)
   }
 }

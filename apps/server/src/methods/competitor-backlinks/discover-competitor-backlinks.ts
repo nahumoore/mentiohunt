@@ -5,9 +5,9 @@ import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import { enrichContact } from "./enrich-contact.js"
 import { extractBacklinks, extractCompetitorDomain } from "./extract-backlinks.js"
 import { filterBacklinks, extractDomainFromUrl, type TaggedBacklinkItem, type FilterSettings } from "./filter-backlinks.js"
-import { generateBacklinkEmail } from "./generate-backlink-email.js"
+import { generateOutreachSequence } from "../shared/generate-outreach-sequence.js"
 import { scoreBacklinkRelevance, type ScoredBacklinkItem } from "./score-backlink-relevance.js"
-import { resolveSenderName } from "../shared/resolve-sender-name.js"
+import { resolveSenderName, type ResolvedSender } from "../shared/resolve-sender-name.js"
 
 const log = createLogger("discover-competitor-backlinks")
 
@@ -59,7 +59,7 @@ async function enrichProspect(
   item: ScoredBacklinkItem,
   product: { product_name: string; product_description: string; website_url: string },
   domain: string,
-  senderName: string | null,
+  sender: { name: string | null; isPublicAccount: boolean },
   emailSettings: EmailSettings
 ): Promise<EnrichedColumns> {
   try {
@@ -80,21 +80,24 @@ async function enrichProspect(
       }
     }
 
-    const urlToPath = (() => {
-      try { return new URL(item.urlTo).pathname } catch { return item.urlTo }
-    })()
-
-    const emailResult = await generateBacklinkEmail(product, {
-      title: item.title,
-      anchor: item.anchor,
-      urlToPath,
-      pageType: item.pageType,
-      contactName: contact.name,
-      competitorDomain: item.competitorDomain,
-      senderName,
-      voiceTone: emailSettings.voice_tone,
-      offering: emailSettings.offering,
-    })
+    const emailResult = await generateOutreachSequence(
+      product,
+      {
+        opportunityType: "competitor_backlink",
+        title: item.title,
+        anchor: item.anchor,
+        pageType: item.pageType,
+        competitorDomain: item.competitorDomain,
+      },
+      {
+        contactName: contact.name,
+        senderName: sender.name,
+        isPublicAccount: sender.isPublicAccount,
+        voiceTone: emailSettings.voice_tone,
+        offering: emailSettings.offering,
+        authorBio: contact.rawMetadata?.bio ?? null,
+      }
+    )
 
     log.success("enrichment complete", {
       domain,
@@ -227,7 +230,7 @@ async function processCompetitor(
     website_url: string
   },
   settings: FilterSettings,
-  senderName: string | null,
+  sender: ResolvedSender,
   emailSettings: EmailSettings,
   enrichLimit: LimitFunction,
   maxProspects: number,
@@ -347,7 +350,7 @@ async function processCompetitor(
           if (budget) budget.remaining -= 1
 
           const domain = extractDomainFromUrl(item.urlFrom)
-          const enriched = await enrichProspect(item, product, domain, senderName, emailSettings)
+          const enriched = await enrichProspect(item, product, domain, sender, emailSettings)
 
           if (!enriched.contact_email) {
             log.info("skipping prospect, no email found", { domain })
@@ -430,7 +433,7 @@ export async function discoverCompetitorBacklinks(
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
-  const senderName = await resolveSenderName(product.user_id)
+  const sender = await resolveSenderName(product.user_id)
 
   const allDomains = product.competitors.map(extractCompetitorDomain)
   const competitorsToProcess = await selectCompetitorsForRun(product.id, allDomains, maxCompetitors)
@@ -450,7 +453,7 @@ export async function discoverCompetitorBacklinks(
 
   try {
     for (const competitorDomain of competitorsToProcess) {
-      const result = await processCompetitor(competitorDomain, product, settings, senderName, emailSettings, enrichLimit, maxProspects, budget, onProspectCreated, fetchLimit)
+      const result = await processCompetitor(competitorDomain, product, settings, sender, emailSettings, enrichLimit, maxProspects, budget, onProspectCreated, fetchLimit)
       totalProspectsCreated += result.prospectsCreated
       totalCostUsd += result.costUsd
       mozCursorsByDomain[competitorDomain] = result.nextCursor

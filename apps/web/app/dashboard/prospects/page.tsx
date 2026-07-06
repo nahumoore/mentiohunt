@@ -1,21 +1,16 @@
 "use client"
 
+import { IconLoader2 } from "@tabler/icons-react"
+import { Card } from "@workspace/ui/components/card"
 import { useEffect } from "react"
 
 import { AllReviewedEmpty } from "@/components/link-building/prospects/all-reviewed-empty"
-import {
-  DiscoveryProgressBanner,
-  DiscoveryProgressPanel,
-  DiscoveryZeroResultsEmpty,
-} from "@/components/link-building/prospects/discovery-progress-panel"
 import { OpportunityPipeline } from "@/components/link-building/prospects/prospect-pipeline"
 import { captureEvent } from "@/lib/analytics"
-import { isDiscoveryRunning } from "@/lib/prospect-runs"
 import { useProspectStore } from "@/stores/prospect-store"
 
 export default function ProspectsPage() {
   const prospects = useProspectStore((state) => state.prospects)
-  const runs = useProspectStore((state) => state.runs)
   const hasCompletedRun = useProspectStore((state) => state.hasCompletedRun)
 
   useEffect(() => {
@@ -23,35 +18,29 @@ export default function ProspectsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (prospects.length > 0) {
+  if (prospects.length === 0 && !hasCompletedRun) {
     return (
-      <>
-        <DiscoveryProgressBanner />
-        <OpportunityPipeline prospects={prospects} />
-      </>
+      <Card className="rounded-xl border border-border px-6 py-16 text-center shadow-sm">
+        <div className="mx-auto flex max-w-md flex-col items-center gap-3">
+          <span className="flex size-12 items-center justify-center rounded-full bg-(--color-blaze-orange)/10">
+            <IconLoader2 className="size-5 animate-spin text-(--color-blaze-orange)" />
+          </span>
+          <h2 className="text-base font-semibold text-foreground">
+            Building your prospect queue
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            We&apos;re analyzing your site and competitors to surface relevant
+            backlink prospects. This usually takes a few minutes —
+            you&apos;ll receive an email once done!
+          </p>
+        </div>
+      </Card>
     )
   }
 
-  const discovering =
-    isDiscoveryRunning(runs) || (runs.length === 0 && !hasCompletedRun)
-
-  if (discovering) {
-    return <DiscoveryProgressPanel />
+  if (prospects.length === 0) {
+    return <AllReviewedEmpty />
   }
 
-  // Discovery finished with zero prospect rows: the run found nothing (or
-  // failed), which needs different guidance than a reviewed-out queue.
-  const totalCreated = runs.reduce(
-    (sum, run) => sum + (run.prospects_created ?? 0),
-    0
-  )
-  if (runs.length > 0 && totalCreated === 0) {
-    return (
-      <DiscoveryZeroResultsEmpty
-        allFailed={runs.every((run) => run.status === "failed")}
-      />
-    )
-  }
-
-  return <AllReviewedEmpty />
+  return <OpportunityPipeline prospects={prospects} />
 }

@@ -25,41 +25,39 @@ export async function runOnboardingJobs(
   const t0 = Date.now()
   log.info("jobs START", { userId, productId })
 
-  // Fetch product + settings + email account once, shared across all discovery branches.
-  const [{ data: product, error: productError }, { data: settings, error: settingsError }, account] =
-    await Promise.all([
-      supabaseAdmin
-        .from("products")
-        .select("id, user_id, product_name, product_description, website_url, competitors")
-        .eq("id", productId)
-        .single(),
-      supabaseAdmin
-        .from("backlink_prospects_settings")
-        .select("dr_min, dr_max, voice_tone, offering, opportunity_types")
-        .eq("product_id", productId)
-        .single(),
-      resolveEmailAccount(userId),
-    ])
+  // Fetch product + settings once, shared across both discovery branches.
+  const { data: product, error: productError } = await supabaseAdmin
+    .from("products")
+    .select("id, user_id, product_name, product_description, website_url, competitors")
+    .eq("id", productId)
+    .single()
 
   if (productError) log.warn("product fetch error", { productId, error: productError.message })
+
+  const { data: settings, error: settingsError } = await supabaseAdmin
+    .from("backlink_prospects_settings")
+    .select("dr_min, dr_max, voice_tone, offering, opportunity_types")
+    .eq("product_id", productId)
+    .single()
+
   if (settingsError) log.warn("settings fetch error", { productId, error: settingsError.message })
 
   const filterSettings = { dr_min: settings?.dr_min ?? 0, dr_max: settings?.dr_max ?? null }
   const emailSettings = { voice_tone: settings?.voice_tone ?? null, offering: settings?.offering ?? null }
   const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention"]
 
+  // Resolve email account once, upfront — shared by per-prospect streaming and the safety sweep.
+  const account = await resolveEmailAccount(userId)
+
   // Per-prospect sequence tasks, decoupled from discovery so they don't block the enrich loop.
   const seqLimit = pLimit(3)
   const seqPromises: Promise<void>[] = []
-  let firstProspectLogged = false
 
-  const onProspectCreated: (p: ProspectCreatedPayload) => void = (p) => {
-    if (!firstProspectLogged) {
-      firstProspectLogged = true
-      log.info("first prospect visible", { productId, msSinceStart: Date.now() - t0 })
-    }
-    if (account) seqPromises.push(seqLimit(() => createSequencesForProspect(p, account)))
-  }
+  const onProspectCreated: ((p: ProspectCreatedPayload) => void) | undefined = account
+    ? (p) => {
+        seqPromises.push(seqLimit(() => createSequencesForProspect(p, account)))
+      }
+    : undefined
 
   const [backlinkDiscoveryResult, mentionDiscoveryResult, listicleDiscoveryResult, pagesResult] =
     await Promise.allSettled([

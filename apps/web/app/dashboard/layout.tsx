@@ -6,12 +6,6 @@ import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
 import type { DirectoryListItem } from "@/stores/directory-store"
 import type { DiscoverySettings } from "@/stores/discovery-settings-store"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
-import {
-  computeHasCompletedRun,
-  PROSPECT_RUN_COLUMNS,
-  PROSPECT_RUN_FETCH_LIMIT,
-  type ProspectRunItem,
-} from "@/lib/prospect-runs"
 import type { ProspectListItem } from "@/stores/prospect-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
 import type { Tables } from "@workspace/supabase/database-types"
@@ -120,7 +114,6 @@ export default async function DashboardLayout({
   }
 
   let prospects: ProspectListItem[] = []
-  let prospectRuns: ProspectRunItem[] = []
   let hasCompletedProspectRun = false
   let directories: DirectoryListItem[] = []
   let discoverySettings: DiscoverySettings | null = product
@@ -138,7 +131,7 @@ export default async function DashboardLayout({
       directoriesResult,
       discoverySettingsResult,
       backlinkNetworkResult,
-      prospectRunsResult,
+      lastProspectRunResult,
       pagesResult,
     ] = await Promise.all([
       supabase
@@ -168,10 +161,12 @@ export default async function DashboardLayout({
         .maybeSingle(),
       supabase
         .from("backlink_prospect_runs")
-        .select(PROSPECT_RUN_COLUMNS)
+        .select("id, status")
         .eq("product_id", product.id)
+        .eq("status", "completed")
         .order("started_at", { ascending: false })
-        .limit(PROSPECT_RUN_FETCH_LIMIT),
+        .limit(1)
+        .maybeSingle(),
       supabase
         .from("product_pages")
         .select("id, url, title, description, page_type, priority")
@@ -187,13 +182,7 @@ export default async function DashboardLayout({
     }
 
     prospects = prospectRows ?? []
-
-    if (prospectRunsResult.error) {
-      console.error("Error fetching prospect runs:", prospectRunsResult.error)
-    } else {
-      prospectRuns = prospectRunsResult.data ?? []
-    }
-    hasCompletedProspectRun = computeHasCompletedRun(prospectRuns)
+    hasCompletedProspectRun = !lastProspectRunResult.error && lastProspectRunResult.data !== null
 
     if (directoriesResult.error) {
       console.error("Error fetching directories:", directoriesResult.error)
@@ -246,7 +235,6 @@ export default async function DashboardLayout({
       profile={profile}
       product={product}
       prospects={prospects}
-      prospectRuns={prospectRuns}
       hasCompletedProspectRun={hasCompletedProspectRun}
       directories={directories}
       discoverySettings={discoverySettings}

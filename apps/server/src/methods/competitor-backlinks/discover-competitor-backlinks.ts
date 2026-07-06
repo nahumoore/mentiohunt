@@ -330,9 +330,11 @@ async function processCompetitor(
       title: item.title || "",
       snippet: item.relevanceReason || "",
     }))
-    // Runs concurrently with enrichment — the scores are only needed at upsert
-    // time, and enrichment is minutes-long while scoring is seconds-long.
-    const siteRelevancePromise = scoreSiteRelevance(siteRelevanceInputs, product)
+    const { results: siteRelevanceResults, cost: siteRelevanceCost } = await scoreSiteRelevance(
+      siteRelevanceInputs,
+      product
+    )
+    totalCost += siteRelevanceCost
 
     // Enrich each prospect first, then insert the fully-populated row so the UI
     // never shows a contactless prospect that fills in later.
@@ -355,7 +357,6 @@ async function processCompetitor(
             return
           }
 
-          const { results: siteRelevanceResults } = await siteRelevancePromise
           const sr = siteRelevanceResults.get(item.urlFrom)
           const { step2_body, step3_body, ...dbEnriched } = enriched
 
@@ -395,8 +396,6 @@ async function processCompetitor(
         })
       )
     )
-
-    totalCost += (await siteRelevancePromise).cost
 
     log.info("rows upserted", { productId: product.id, competitorDomain, count: prospectsCreated })
 
@@ -438,7 +437,7 @@ export async function discoverCompetitorBacklinks(
 
   const allDomains = product.competitors.map(extractCompetitorDomain)
   const competitorsToProcess = await selectCompetitorsForRun(product.id, allDomains, maxCompetitors)
-  const enrichLimit = pLimit(3)
+  const enrichLimit = pLimit(1)
 
   log.info("competitors selected", {
     productId: product.id,

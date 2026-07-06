@@ -4,10 +4,6 @@ import { create } from "zustand"
 
 import type { Tables } from "@workspace/supabase/database-types"
 
-import type { ProspectRunItem } from "@/lib/prospect-runs"
-
-export type { ProspectRunItem }
-
 type BacklinkProspect = Tables<"backlink_prospects">
 
 export type ProspectSequence = Pick<
@@ -44,12 +40,9 @@ export type ProspectDetail = ProspectListItem &
 
 type ProspectStore = {
   prospects: ProspectListItem[]
-  runs: ProspectRunItem[]
   hasCompletedRun: boolean
   prospectDetailsById: Record<string, ProspectDetail>
   setProspects: (prospects: ProspectListItem[]) => void
-  setRuns: (runs: ProspectRunItem[]) => void
-  upsertProspects: (prospects: ProspectListItem[]) => void
   setHasCompletedRun: (hasCompletedRun: boolean) => void
   updateProspectStatuses: (
     prospectIds: string[],
@@ -77,20 +70,9 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
 
 export const useProspectStore = create<ProspectStore>()((set) => ({
   prospects: [],
-  runs: [],
   hasCompletedRun: false,
   prospectDetailsById: {},
   setProspects: (prospects) => set({ prospects }),
-  setRuns: (runs) => set({ runs }),
-  upsertProspects: (incoming) =>
-    set((state) => {
-      if (incoming.length === 0) return state
-      const byId = new Map(incoming.map((item) => [item.id, item]))
-      const updated = state.prospects.map((item) => byId.get(item.id) ?? item)
-      state.prospects.forEach((item) => byId.delete(item.id))
-      const fresh = incoming.filter((item) => byId.has(item.id))
-      return { prospects: fresh.length > 0 ? [...fresh, ...updated] : updated }
-    }),
   setHasCompletedRun: (hasCompletedRun) => set({ hasCompletedRun }),
   updateProspectStatuses: (prospectIds, status) =>
     set((state) => {

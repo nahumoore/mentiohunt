@@ -44,7 +44,7 @@ export async function runOnboardingJobs(
 
   const filterSettings = { dr_min: settings?.dr_min ?? 0, dr_max: settings?.dr_max ?? null }
   const emailSettings = { voice_tone: settings?.voice_tone ?? null, offering: settings?.offering ?? null }
-  const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention"]
+  const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention", "listicle_roundup"]
 
   // Resolve email account once, upfront — shared by per-prospect streaming and the safety sweep.
   const account = await resolveEmailAccount(userId)

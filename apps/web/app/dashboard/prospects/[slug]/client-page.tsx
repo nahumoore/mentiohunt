@@ -266,7 +266,7 @@ function ConversationView({
 
         {/* Textarea */}
         <textarea
-          rows={6}
+          rows={10}
           value={replyBody}
           onChange={(e) => setReplyBody(e.target.value)}
           placeholder={`Reply to ${prospect.contact_name?.split(" ")[0] ?? "them"}…`}

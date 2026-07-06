@@ -22,6 +22,7 @@ import type { ProspectListItem } from "@/stores/prospect-store"
 const TIER_BORDER: Record<ProspectTier, string> = {
   competitor_backlink: "border-l-amber-500",
   unlinked_mention: "border-l-violet-500",
+  listicle_roundup: "border-l-blue-500",
 }
 
 function extractHostname(url: string | null): string | null {

@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
         raise RuntimeError("API_KEY env var is not set — refusing to start without auth")
 
     async with AsyncDynamicSession(
-        max_pages=3,
+        max_pages=6,
         headless=True,
         disable_resources=True,
         block_ads=True,

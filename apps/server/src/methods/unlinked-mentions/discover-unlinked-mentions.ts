@@ -339,11 +339,9 @@ export async function discoverUnlinkedMentions(
       title: item.title || "",
       snippet: item.snippet || "",
     }))
-    const { results: siteRelevanceResults, cost: siteRelevanceCost } = await scoreSiteRelevance(
-      siteRelevanceInputs,
-      product
-    )
-    totalCostUsd += siteRelevanceCost
+    // Runs concurrently with enrichment — the scores are only needed at upsert
+    // time, and enrichment is minutes-long while scoring is seconds-long.
+    const siteRelevancePromise = scoreSiteRelevance(siteRelevanceInputs, product)
 
     // 8. Enrich each prospect first, then insert the fully-populated row so the
     //    UI never shows a contactless prospect that fills in later.
@@ -363,6 +361,7 @@ export async function discoverUnlinkedMentions(
             return
           }
 
+          const { results: siteRelevanceResults } = await siteRelevancePromise
           const sr = siteRelevanceResults.get(item.url)
           const { step2_body, step3_body, ...dbEnriched } = enriched
 
@@ -402,6 +401,8 @@ export async function discoverUnlinkedMentions(
         })
       )
     )
+
+    totalCostUsd += (await siteRelevancePromise).cost
 
     log.info("rows upserted", { productId: product.id, inserted: prospectsCreated })
 

@@ -10,7 +10,8 @@ import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import { useOutreachSettingsStore } from "@/stores/outreach-settings-store"
 import type { DashboardProduct } from "@/stores/product-store"
 import { useProductStore } from "@/stores/product-store"
-import type { ProspectListItem } from "@/stores/prospect-store"
+import { DiscoveryRunPoller } from "@/components/dashboard/discovery-run-poller"
+import type { ProspectListItem, ProspectRunItem } from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import type { DashboardProfile } from "@/stores/profile-store"
 import { useProfileStore } from "@/stores/profile-store"
@@ -23,6 +24,7 @@ type DashboardStoreHydratorProps = {
   profile: DashboardProfile | null
   product: DashboardProduct | null
   prospects: ProspectListItem[]
+  prospectRuns: ProspectRunItem[]
   hasCompletedProspectRun: boolean
   directories: DirectoryListItem[]
   discoverySettings: DiscoverySettings | null
@@ -36,6 +38,7 @@ export function DashboardStoreHydrator({
   profile,
   product,
   prospects,
+  prospectRuns,
   hasCompletedProspectRun,
   directories,
   discoverySettings,
@@ -48,13 +51,19 @@ export function DashboardStoreHydrator({
     useProfileStore.getState().setProfile(profile)
     useProductStore.getState().setProduct(product)
     useProspectStore.getState().setProspects(prospects)
+    useProspectStore.getState().setRuns(prospectRuns)
     useProspectStore.getState().setHasCompletedRun(hasCompletedProspectRun)
     useDirectoryStore.getState().setDirectories(directories)
     useDiscoverySettingsStore.getState().setSettings(discoverySettings)
     useOutreachSettingsStore.getState().setSettings(outreachSettings)
     useBacklinkNetworkStore.getState().setMembership(backlinkNetworkMembership)
     usePagesStore.getState().setPages(pages)
-  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages])
+  }, [profile, product, prospects, prospectRuns, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages])
 
-  return children
+  return (
+    <>
+      <DiscoveryRunPoller />
+      {children}
+    </>
+  )
 }

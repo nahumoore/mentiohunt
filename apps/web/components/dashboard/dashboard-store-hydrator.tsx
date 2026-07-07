@@ -19,6 +19,8 @@ import { useDirectoryStore } from "@/stores/directory-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
 import { usePagesStore } from "@/stores/pages-store"
 
+import { ProspectRealtimeSync } from "./prospect-realtime-sync"
+
 type DashboardStoreHydratorProps = {
   profile: DashboardProfile | null
   product: DashboardProduct | null
@@ -56,5 +58,10 @@ export function DashboardStoreHydrator({
     usePagesStore.getState().setPages(pages)
   }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages])
 
-  return children
+  return (
+    <>
+      {children}
+      <ProspectRealtimeSync />
+    </>
+  )
 }

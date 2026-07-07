@@ -123,7 +123,7 @@ const EMPTY_ENRICHMENT: EnrichedColumns = {
 
 /**
  * Resolve contact + email draft for a mention. Returns the columns to persist
- * so the prospect row can be inserted fully enriched.
+ * as an update against the already-inserted bare prospect row.
  */
 async function enrichMention(
   candidate: QualifiedMention,
@@ -345,62 +345,96 @@ export async function discoverUnlinkedMentions(
     )
     totalCostUsd += siteRelevanceCost
 
-    // 8. Enrich each prospect first, then insert the fully-populated row so the
-    //    UI never shows a contactless prospect that fills in later.
+    // Claim budget synchronously, up front, so we only ever bare-insert
+    // prospects we're actually going to enrich — otherwise a budget-skipped
+    // row would sit in 'pending' forever and get deduped out of every future
+    // run (found_url already exists).
+    const toProcess = newItems.filter(() => {
+      if (budget && budget.remaining <= 0) return false
+      if (budget) budget.remaining -= 1
+      return true
+    })
+
+    if (toProcess.length === 0) {
+      if (runId) await completeProspectRun(runId, 0, totalCostUsd)
+      return { prospectsCreated: 0, totalCostUsd }
+    }
+
+    // Insert bare rows immediately so the UI shows discovered sites right
+    // away; enrichment (contact + outreach email) fills each row in after.
+    const bareRows = toProcess.map((item) => {
+      const sr = siteRelevanceResults.get(item.url)
+      return {
+        product_id: product.id,
+        domain: item.domain,
+        domain_rating: item.domainRating,
+        found_url: item.url,
+        target_url: product.website_url,
+        tier: "unlinked_mention" as const,
+        status: "new" as const,
+        site_relevance_score: sr?.score ?? null,
+        enrichment_status: "pending" as const,
+      }
+    })
+
+    const { data: insertedRows, error: insertError } = await supabaseAdmin
+      .from("backlink_prospects")
+      .upsert(bareRows, { onConflict: "product_id,found_url", ignoreDuplicates: true })
+      .select("id, found_url")
+
+    if (insertError) {
+      log.warn("bare prospect insert failed", { productId: product.id, error: insertError.message })
+    }
+
+    const idByUrl = new Map((insertedRows ?? []).map((r) => [r.found_url as string, r.id as string]))
+    const prospectsCreated = idByUrl.size
+
+    // Enrich each newly-inserted prospect, updating its row live as it completes.
     const enrichLimit = pLimit(3)
-    let prospectsCreated = 0
     await Promise.allSettled(
-      newItems.map((item) =>
-        enrichLimit(async () => {
-          // Budget guard — claim synchronously before any expensive I/O.
-          if (budget && budget.remaining <= 0) return
-          if (budget) budget.remaining -= 1
+      toProcess
+        .filter((item) => idByUrl.has(item.url))
+        .map((item) =>
+          enrichLimit(async () => {
+            const id = idByUrl.get(item.url)!
 
-          const enriched = await enrichMention(item, product, sender, emailSettings)
+            await supabaseAdmin
+              .from("backlink_prospects")
+              .update({ enrichment_status: "enriching" as const })
+              .eq("id", id)
 
-          if (!enriched.contact_email) {
-            log.info("skipping prospect, no email found", { domain: item.domain })
-            return
-          }
+            const enriched = await enrichMention(item, product, sender, emailSettings)
+            const { step2_body, step3_body, ...dbEnriched } = enriched
+            const ready = !!enriched.contact_email
 
-          const sr = siteRelevanceResults.get(item.url)
-          const { step2_body, step3_body, ...dbEnriched } = enriched
-
-          const { data, error } = await supabaseAdmin
-            .from("backlink_prospects")
-            .upsert(
-              {
-                product_id: product.id,
-                domain: item.domain,
-                domain_rating: item.domainRating,
-                found_url: item.url,
-                target_url: product.website_url,
-                tier: "unlinked_mention" as const,
-                status: "new" as const,
-                site_relevance_score: sr?.score ?? null,
+            const { error } = await supabaseAdmin
+              .from("backlink_prospects")
+              .update({
                 ...dbEnriched,
-              },
-              { onConflict: "product_id,found_url", ignoreDuplicates: true }
-            )
-            .select("id")
+                enrichment_status: ready ? ("ready" as const) : ("failed" as const),
+                status: ready ? ("new" as const) : ("dismissed" as const),
+              })
+              .eq("id", id)
 
-          if (error) {
-            log.warn("prospect upsert failed", { domain: item.domain, error: error.message })
-            return
-          }
-          if ((data ?? []).length > 0) {
-            prospectsCreated += 1
-            onProspectCreated?.({
-              id: (data as Array<{ id: string }>)[0]!.id,
-              contactName: enriched.contact_name,
-              emailSubject: enriched.email_subject,
-              emailBody: enriched.email_body,
-              step2Body: step2_body,
-              step3Body: step3_body,
-            })
-          }
-        })
-      )
+            if (error) {
+              log.warn("prospect enrichment update failed", { domain: item.domain, error: error.message })
+              return
+            }
+
+            if (ready) {
+              onProspectCreated?.({
+                id,
+                contactName: enriched.contact_name,
+                emailSubject: enriched.email_subject,
+                emailBody: enriched.email_body,
+                step2Body: step2_body,
+                step3Body: step3_body,
+              })
+            } else {
+              log.info("no email found, dismissed", { domain: item.domain })
+            }
+          })
+        )
     )
 
     log.info("rows upserted", { productId: product.id, inserted: prospectsCreated })

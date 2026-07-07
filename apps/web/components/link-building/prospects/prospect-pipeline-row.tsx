@@ -3,9 +3,11 @@
 import {
   IconArrowRight,
   IconExternalLink,
+  IconLoader2,
   IconMailCheck,
   IconMailOff,
 } from "@tabler/icons-react"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 
@@ -49,74 +51,32 @@ export function OpportunityPipelineRow({
   const dr = prospect.domain_rating
   const relevanceScore = prospect.site_relevance_score
   const relevancePercent = relevanceScore == null ? 0 : relevanceScore
+  const isEnriching =
+    prospect.enrichment_status === "pending" ||
+    prospect.enrichment_status === "enriching"
 
   function navigate() {
+    if (isEnriching) return
     router.push(`/dashboard/prospects/${prospect.id}`)
   }
 
   return (
     <tr
       role="button"
-      tabIndex={0}
+      tabIndex={isEnriching ? -1 : 0}
       onClick={navigate}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") navigate()
       }}
-      className="group cursor-pointer border-b border-border/60 transition-colors last:border-0 hover:bg-muted/30"
+      className={cn(
+        "group border-b border-border/60 transition-colors last:border-0",
+        isEnriching
+          ? "cursor-default"
+          : "cursor-pointer hover:bg-muted/30"
+      )}
     >
-      {/* Person col */}
-      <td className="overflow-hidden py-4 pr-3 pl-6 align-top">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white border border-border">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={avatarUrl}
-              alt=""
-              width={36}
-              height={36}
-              className="size-9"
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">
-              {prospect.contact_name ?? "Unknown contact"}
-            </p>
-            {hasEmail ? (
-              <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-emerald-600">
-                <IconMailCheck className="size-3 shrink-0" />
-                <span className="truncate">{prospect.contact_email}</span>
-              </span>
-            ) : (
-              <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground/60">
-                <IconMailOff className="size-3 shrink-0" />
-                No email found
-              </span>
-            )}
-          </div>
-        </div>
-      </td>
-
-      {/* Status col */}
-      <td className="px-3 py-4 align-top">
-        {(() => {
-          const statusCfg = STATUS_CONFIG[prospect.status]
-          const StatusIcon = statusCfg.icon
-          return (
-            <span
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
-                statusCfg.color
-              )}
-            >
-              <StatusIcon className="size-3.5 shrink-0" />
-              {statusCfg.label}
-            </span>
-          )
-        })()}
-      </td>
-
       {/* Site col */}
-      <td className="overflow-hidden px-3 py-4 align-top">
+      <td className="overflow-hidden py-4 pr-3 pl-6 align-top">
         <div className="flex min-w-0 items-start gap-2">
           {favicon ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -192,12 +152,82 @@ export function OpportunityPipelineRow({
         </div>
       </td>
 
+      {/* Contact col */}
+      <td className="overflow-hidden px-3 py-4 align-top">
+        {isEnriching ? (
+          <div className="flex min-w-0 items-start gap-3">
+            <Skeleton className="size-9 shrink-0 rounded-xl" />
+            <div className="min-w-0 flex-1 space-y-1.5 pt-0.5">
+              <Skeleton className="h-3.5 w-24 rounded" />
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/60">
+                <IconLoader2 className="size-3 shrink-0 animate-spin" />
+                {prospect.enrichment_status === "enriching"
+                  ? "Finding contact…"
+                  : "Queued…"}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white border border-border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatarUrl}
+                alt=""
+                width={36}
+                height={36}
+                className="size-9"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {prospect.contact_name ?? "Unknown contact"}
+              </p>
+              {hasEmail ? (
+                <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-emerald-600">
+                  <IconMailCheck className="size-3 shrink-0" />
+                  <span className="truncate">{prospect.contact_email}</span>
+                </span>
+              ) : (
+                <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground/60">
+                  <IconMailOff className="size-3 shrink-0" />
+                  No email found
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </td>
+
+      {/* Status col */}
+      <td className="px-3 py-4 align-top">
+        {(() => {
+          const statusCfg = STATUS_CONFIG[prospect.status]
+          const StatusIcon = statusCfg.icon
+          return (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
+                statusCfg.color
+              )}
+            >
+              <StatusIcon className="size-3.5 shrink-0" />
+              {statusCfg.label}
+            </span>
+          )
+        })()}
+      </td>
+
       {/* Action col */}
       <td className="py-4 pr-6 pl-3 align-top">
-        <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors group-hover:border-(--color-blaze-orange)/40 group-hover:text-(--color-blaze-orange)">
-          Open
-          <IconArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-        </span>
+        {isEnriching ? (
+          <Skeleton className="h-6 w-16 rounded-full" />
+        ) : (
+          <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors group-hover:border-(--color-blaze-orange)/40 group-hover:text-(--color-blaze-orange)">
+            Open
+            <IconArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        )}
       </td>
     </tr>
   )

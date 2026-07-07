@@ -19,6 +19,7 @@ export type ProspectListItem = Pick<
   | "target_url"
   | "tier"
   | "status"
+  | "enrichment_status"
   | "discovered_at"
   | "contact_email"
   | "contact_name"
@@ -49,6 +50,7 @@ type ProspectStore = {
     status: BacklinkProspect["status"]
   ) => void
   upsertProspectDetail: (prospect: ProspectDetail) => void
+  upsertProspectFromRealtime: (row: BacklinkProspect) => void
   clearProspects: () => void
 }
 
@@ -60,6 +62,7 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
     target_url: prospect.target_url,
     tier: prospect.tier,
     status: prospect.status,
+    enrichment_status: prospect.enrichment_status,
     discovered_at: prospect.discovered_at,
     contact_email: prospect.contact_email,
     contact_name: prospect.contact_name,
@@ -107,6 +110,41 @@ export const useProspectStore = create<ProspectStore>()((set) => ({
         prospectDetailsById: {
           ...state.prospectDetailsById,
           [prospect.id]: prospect,
+        },
+      }
+    }),
+  upsertProspectFromRealtime: (row) =>
+    set((state) => {
+      const detail: ProspectDetail = {
+        id: row.id,
+        product_id: row.product_id,
+        domain: row.domain,
+        target_url: row.target_url,
+        tier: row.tier,
+        status: row.status,
+        enrichment_status: row.enrichment_status,
+        discovered_at: row.discovered_at,
+        contact_email: row.contact_email,
+        contact_name: row.contact_name,
+        domain_rating: row.domain_rating,
+        site_relevance_score: row.site_relevance_score,
+        email_subject: row.email_subject,
+        email_body: row.email_body,
+        created_at: row.created_at,
+        found_url: row.found_url,
+        contact_social_links: row.contact_social_links,
+        raw_metadata: row.raw_metadata,
+      }
+      const listItem = toListItem(detail)
+      const exists = state.prospects.some((item) => item.id === row.id)
+
+      return {
+        prospects: exists
+          ? state.prospects.map((item) => (item.id === row.id ? listItem : item))
+          : [listItem, ...state.prospects],
+        prospectDetailsById: {
+          ...state.prospectDetailsById,
+          [row.id]: detail,
         },
       }
     }),

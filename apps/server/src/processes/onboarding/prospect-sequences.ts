@@ -107,6 +107,7 @@ export async function assignSequences(
     .from("backlink_prospects")
     .select("id, contact_name, email_subject, email_body")
     .eq("product_id", productId)
+    .eq("enrichment_status", "ready")
     .is("email_account_id", null)
 
   if (!prospects?.length) {
@@ -168,8 +169,10 @@ export async function assignSequences(
   const { error: updateError } = await supabaseAdmin
     .from("backlink_prospects")
     .update({ email_account_id: account.id })
-    .eq("product_id", productId)
-    .is("email_account_id", null)
+    .in(
+      "id",
+      prospects.map((p) => p.id)
+    )
 
   if (updateError) {
     log.error("assignSequences: failed to update prospects", { productId, error: updateError.message })

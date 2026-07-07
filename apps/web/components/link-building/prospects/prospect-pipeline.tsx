@@ -113,30 +113,16 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
         <TooltipProvider>
           <table className="w-full table-fixed">
             <colgroup>
-              <col className="w-[30%]" />
-              <col className="w-[12%]" />
               <col className="w-[22%]" />
               <col className="w-[10%]" />
               <col className="w-[16%]" />
+              <col className="w-[30%]" />
+              <col className="w-[12%]" />
               <col className="w-[10%]" />
             </colgroup>
             <thead>
               <tr className="border-b border-border/60 bg-muted/20">
                 <th className="py-3 pr-3 pl-6 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
-                  <div className="flex items-center gap-1.5">
-                    Contact
-                    <SortButton
-                      sortKey="contact"
-                      activeKey={sortKey}
-                      dir={sortDir}
-                      onSort={handleSort}
-                    />
-                  </div>
-                </th>
-                <th className="px-3 py-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
-                  Status
-                </th>
-                <th className="px-3 py-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
                   <div className="flex items-center gap-1.5">
                     Site
                     <SortButton
@@ -182,6 +168,20 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
                       </TooltipContent>
                     </Tooltip>
                   </div>
+                </th>
+                <th className="px-3 py-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
+                  <div className="flex items-center gap-1.5">
+                    Contact
+                    <SortButton
+                      sortKey="contact"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onSort={handleSort}
+                    />
+                  </div>
+                </th>
+                <th className="px-3 py-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
+                  Status
                 </th>
                 <th className="py-3 pr-6 pl-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
                   Action

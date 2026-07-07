@@ -23,7 +23,7 @@ export default async function ProspectPage({
   const { data: prospect, error } = await supabase
     .from("backlink_prospects")
     .select(
-      "id, product_id, domain, target_url, tier, status, discovered_at, contact_email, contact_name, email_subject, email_body, created_at, found_url, contact_social_links, raw_metadata, domain_rating, site_relevance_score"
+      "id, product_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, email_subject, email_body, created_at, found_url, contact_social_links, raw_metadata, domain_rating, site_relevance_score"
     )
     .eq("id", slug)
     .maybeSingle()

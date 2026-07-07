@@ -121,6 +121,7 @@ export type Database = {
           email_account_id: string | null
           email_body: string | null
           email_subject: string | null
+          enrichment_status: Database["public"]["Enums"]["prospect_enrichment_status"]
           found_url: string | null
           id: string
           product_id: string
@@ -141,6 +142,7 @@ export type Database = {
           email_account_id?: string | null
           email_body?: string | null
           email_subject?: string | null
+          enrichment_status?: Database["public"]["Enums"]["prospect_enrichment_status"]
           found_url?: string | null
           id?: string
           product_id: string
@@ -161,6 +163,7 @@ export type Database = {
           email_account_id?: string | null
           email_body?: string | null
           email_subject?: string | null
+          enrichment_status?: Database["public"]["Enums"]["prospect_enrichment_status"]
           found_url?: string | null
           id?: string
           product_id?: string
@@ -682,6 +685,7 @@ export type Database = {
         | "case_study"
         | "comparison"
         | "manual"
+      prospect_enrichment_status: "pending" | "enriching" | "ready" | "failed"
       prospect_sequence_status:
         | "pending"
         | "sent"
@@ -838,6 +842,7 @@ export const Constants = {
         "comparison",
         "manual",
       ],
+      prospect_enrichment_status: ["pending", "enriching", "ready", "failed"],
       prospect_sequence_status: [
         "pending",
         "sent",

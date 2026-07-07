@@ -1,4 +1,6 @@
+import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
 import { supabaseServer } from "@/lib/supabase/server"
+import type { TablesInsert } from "@workspace/supabase/database-types"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -52,18 +54,40 @@ export async function PUT(request: Request) {
     return buildValidationError("Product not found.", 404)
   }
 
-  const { error: upsertError } = await supabase
+  const updatedAt = new Date().toISOString()
+  const { data: updatedSettings, error: updateError } = await supabase
     .from("backlink_prospects_settings")
-    .upsert({
+    .update({
+      voice_tone: voiceTone,
+      offering,
+      updated_at: updatedAt,
+    })
+    .eq("product_id", product.id)
+    .select("product_id")
+    .maybeSingle()
+
+  if (updateError) {
+    console.error("Error updating outreach settings:", updateError)
+    return buildValidationError("Failed to update outreach settings.", 500)
+  }
+
+  if (!updatedSettings) {
+    const settingsPayload: TablesInsert<"backlink_prospects_settings"> = {
       product_id: product.id,
       voice_tone: voiceTone,
       offering,
-      updated_at: new Date().toISOString(),
-    })
+      opportunity_types: DEFAULT_PROSPECT_TIERS,
+      updated_at: updatedAt,
+    }
 
-  if (upsertError) {
-    console.error("Error updating outreach settings:", upsertError)
-    return buildValidationError("Failed to update outreach settings.", 500)
+    const { error: insertError } = await supabase
+      .from("backlink_prospects_settings")
+      .insert(settingsPayload)
+
+    if (insertError) {
+      console.error("Error creating outreach settings:", insertError)
+      return buildValidationError("Failed to update outreach settings.", 500)
+    }
   }
 
   return NextResponse.json({ settings: { voiceTone, offering } })

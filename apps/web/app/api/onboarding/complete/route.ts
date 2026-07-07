@@ -1,6 +1,6 @@
 import { onboardingSchema } from "@/consts/onboarding"
 import { FREE_TRIAL_MAX_PAGES } from "@/consts/billing"
-import { OPPORTUNITY_TYPE_TO_PROSPECT_TIER } from "@/lib/opportunity-types"
+import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
 import { supabaseServer } from "@/lib/supabase/server"
 import { waitUntil } from "@vercel/functions"
 import type { TablesInsert, TablesUpdate } from "@workspace/supabase/database-types"
@@ -64,10 +64,6 @@ export async function POST(request: Request) {
     competitors: parsedRequest.data.competitors,
   }
 
-  const opportunityTypes = parsedRequest.data.opportunityTypes.map(
-    (opportunityType) => OPPORTUNITY_TYPE_TO_PROSPECT_TIER[opportunityType]
-  )
-
   const { data: existingProducts, error: existingProductsError } = await supabase
     .from("products")
     .select("id")
@@ -121,12 +117,12 @@ export async function POST(request: Request) {
 
   const settingsPayload: TablesInsert<"backlink_prospects_settings"> = {
     product_id: productId,
-    opportunity_types: opportunityTypes,
+    opportunity_types: DEFAULT_PROSPECT_TIERS,
   }
 
   const { error: upsertSettingsError } = await supabase
     .from("backlink_prospects_settings")
-    .upsert(settingsPayload)
+    .upsert(settingsPayload, { onConflict: "product_id" })
 
   if (upsertSettingsError) {
     console.error("Error saving onboarding settings:", upsertSettingsError)

@@ -7,6 +7,7 @@ import { discoverUnlinkedMentions } from "../methods/unlinked-mentions/discover-
 const log = createLogger("daily-backlink-discovery")
 
 const PRODUCT_CONCURRENCY = 3
+const DEFAULT_OPPORTUNITY_TYPES = ["competitor_backlink", "unlinked_mention", "listicle_roundup"]
 
 export async function runDailyBacklinkDiscovery(): Promise<void> {
   log.info("starting")
@@ -53,7 +54,7 @@ export async function runDailyBacklinkDiscovery(): Promise<void> {
           offering: settings?.offering ?? null,
         }
 
-        const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention"]
+        const opportunityTypes = settings?.opportunity_types ?? DEFAULT_OPPORTUNITY_TYPES
 
         await Promise.allSettled([
           opportunityTypes.includes("competitor_backlink")

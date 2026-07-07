@@ -9,6 +9,12 @@ export type OpportunityType =
 
 export type ProspectTier = Database["public"]["Enums"]["prospect_tier"]
 
+export const DEFAULT_PROSPECT_TIERS = [
+  "competitor_backlink",
+  "unlinked_mention",
+  "listicle_roundup",
+] satisfies ProspectTier[]
+
 export interface TypeConfig {
   label: string
   description: string

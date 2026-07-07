@@ -8,6 +8,7 @@ import { assignSequences } from "../processes/onboarding/prospect-sequences.js"
 const log = createLogger("listicle-roundup-discovery")
 
 const PRODUCT_CONCURRENCY = 3
+const DEFAULT_OPPORTUNITY_TYPES = ["competitor_backlink", "unlinked_mention", "listicle_roundup"]
 
 /**
  * Daily 8am scan for "best X tools" / "top N alternatives" listicles where the
@@ -48,7 +49,7 @@ export async function runListicleRoundupDiscovery(): Promise<void> {
           .eq("product_id", product.id)
           .single()
 
-        const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention"]
+        const opportunityTypes = settings?.opportunity_types ?? DEFAULT_OPPORTUNITY_TYPES
         if (!opportunityTypes.includes("listicle_roundup")) return
 
         const filterSettings = {

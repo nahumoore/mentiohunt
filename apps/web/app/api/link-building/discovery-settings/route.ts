@@ -78,7 +78,7 @@ export async function PUT(request: Request) {
 
   const { error: upsertSettingsError } = await supabase
     .from("backlink_prospects_settings")
-    .upsert(settingsPayload)
+    .upsert(settingsPayload, { onConflict: "product_id" })
 
   if (upsertSettingsError) {
     console.error("Error updating discovery settings:", upsertSettingsError)

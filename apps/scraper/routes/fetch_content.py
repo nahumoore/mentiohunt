@@ -9,6 +9,7 @@ from core import (
     ScrapeRequest,
     _execution_log,
     _require_api_key,
+    _scrape_slot,
     fetch_page,
     log,
 )
@@ -43,7 +44,8 @@ def _extract_content(page, url: str) -> FetchContentResponse:
 async def fetch_content(request: ScrapeRequest):
     with _execution_log("fetch-content"):
         log.info(f"fetch-content request: {request.url}")
-        page = await fetch_page(request.url)
+        async with _scrape_slot("light"):
+            page = await fetch_page(request.url)
         if not page:
             raise HTTPException(status_code=502, detail="fetch failed")
         return _extract_content(page, request.url)

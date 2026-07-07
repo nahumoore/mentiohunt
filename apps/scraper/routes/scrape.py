@@ -12,6 +12,7 @@ from core import (
     _extract_author_hints,
     _get_agent_helpers,
     _require_api_key,
+    _scrape_slot,
     fetch_page,
     log,
     run_agent_scrape,
@@ -24,7 +25,8 @@ router = APIRouter()
 async def agent_scrape(request: ScrapeRequest):
     with _execution_log("agent-scrape"):
         log.info(f"agent-scrape request: {request.url}")
-        return await run_agent_scrape(url=request.url, helpers=_get_agent_helpers())
+        async with _scrape_slot("heavy"):
+            return await run_agent_scrape(url=request.url, helpers=_get_agent_helpers())
 
 
 class BylineScrapeResponse(BaseModel):
@@ -39,7 +41,8 @@ async def byline_scrape(request: ScrapeRequest):
     where a full multi-page agent crawl isn't worth the cost (A6a)."""
     with _execution_log("byline-scrape"):
         log.info(f"byline-scrape request: {request.url}")
-        page = await fetch_page(request.url)
+        async with _scrape_slot("light"):
+            page = await fetch_page(request.url)
         if not page:
             return BylineScrapeResponse(name=None, author_hints=[], author_url=None)
 

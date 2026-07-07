@@ -7,7 +7,7 @@ import os
 import re
 import socket
 import uuid
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
@@ -87,6 +87,38 @@ _dynamic_session = None
 _stealthy_session = None
 
 _cf_blocked_domains: set[str] = set()
+
+# --- Global concurrency gates --------------------------------------------------
+# Single uvicorn worker (see Dockerfile CMD, no --workers flag) so these
+# semaphores are process-wide == app-wide. If the service is ever run with
+# multiple workers/replicas, each gets its own pool and the "global" cap breaks.
+#
+# Two pools instead of one flat cap: heavy routes (agent-scrape, and check-mention
+# when it falls into the agent-scrape branch) hold a slot for a full multi-page
+# crawl (tens of seconds to ~2 min), while light routes (byline-scrape,
+# fetch-content) do a single tiered fetch and return fast. Node callers give
+# light routes a much tighter abort timeout (byline-scrape: 30s) than heavy ones
+# (agent-scrape: 120s, check-mention: 180s) — sharing one pool would let a heavy
+# request occupy a slot long enough to blow the light route's timeout budget
+# even though nothing actually failed server-side, just queued.
+_HEAVY_CONCURRENCY = int(os.getenv("SCRAPE_HEAVY_CONCURRENCY", "3"))
+_LIGHT_CONCURRENCY = int(os.getenv("SCRAPE_LIGHT_CONCURRENCY", "8"))
+_heavy_semaphore = asyncio.Semaphore(_HEAVY_CONCURRENCY)
+_light_semaphore = asyncio.Semaphore(_LIGHT_CONCURRENCY)
+
+
+@asynccontextmanager
+async def _scrape_slot(pool: str):
+    """Acquire a global concurrency slot for the given pool ("heavy" | "light").
+    Blocks (does not fail) while the pool is full — callers just wait in line."""
+    semaphore = _heavy_semaphore if pool == "heavy" else _light_semaphore
+    waited = semaphore.locked()
+    if waited:
+        log.info(f"scrape slot ({pool}) full, queueing")
+    async with semaphore:
+        if waited:
+            log.info(f"scrape slot ({pool}) acquired after wait")
+        yield
 
 # --- Auth --------------------------------------------------------------------
 API_KEY = os.getenv("API_KEY")
@@ -489,6 +521,7 @@ __all__ = [
     "log",
     "_execution_log",
     "_require_api_key",
+    "_scrape_slot",
     "_get_agent_helpers",
     "_seeded_helpers",
     "_links_to_target",

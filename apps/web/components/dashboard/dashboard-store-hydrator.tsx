@@ -47,10 +47,32 @@ export function DashboardStoreHydrator({
   children,
 }: DashboardStoreHydratorProps) {
   useEffect(() => {
+    const prospectStore = useProspectStore.getState()
+    const existingProductProspects = product
+      ? prospectStore.prospects.filter(
+          (prospect) => prospect.product_id === product.id
+        )
+      : []
+    const prospectsById = new Map(
+      prospects.map((prospect) => [prospect.id, prospect])
+    )
+
+    existingProductProspects.forEach((prospect) => {
+      prospectsById.set(prospect.id, prospect)
+    })
+
     useProfileStore.getState().setProfile(profile)
     useProductStore.getState().setProduct(product)
-    useProspectStore.getState().setProspects(prospects)
-    useProspectStore.getState().setHasCompletedRun(hasCompletedProspectRun)
+    prospectStore.setProspects(
+      [...prospectsById.values()].sort(
+        (a, b) =>
+          new Date(b.discovered_at).getTime() -
+          new Date(a.discovered_at).getTime()
+      )
+    )
+    prospectStore.setHasCompletedRun(
+      hasCompletedProspectRun || prospectStore.hasCompletedRun
+    )
     useDirectoryStore.getState().setDirectories(directories)
     useDiscoverySettingsStore.getState().setSettings(discoverySettings)
     useOutreachSettingsStore.getState().setSettings(outreachSettings)

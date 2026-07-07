@@ -1,8 +1,36 @@
 import { supabaseServer } from "@/lib/supabase/server"
+import { supabaseAdmin } from "@workspace/supabase/admin"
 import type { ProspectDetail, ProspectSequence } from "@/stores/prospect-store"
 import { notFound, redirect } from "next/navigation"
 
 import { ProspectClientPage } from "./client-page"
+
+/** Mirrors resolveEmailAccount's notion of "an account is available" (own
+ * connected mailbox for paid tiers, else the shared public account) so the
+ * manual-completion form can gate its submit button without a client-side
+ * DB read. */
+async function checkHasEmailAccount(userId: string, isPaid: boolean): Promise<boolean> {
+  if (isPaid) {
+    const { data: ownAccount } = await supabaseAdmin
+      .from("email_accounts")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("is_public", false)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle()
+
+    if (ownAccount) return true
+  }
+
+  const { data: publicAccount } = await supabaseAdmin
+    .from("email_accounts")
+    .select("id")
+    .eq("is_public", true)
+    .maybeSingle()
+
+  return !!publicAccount
+}
 
 export default async function ProspectPage({
   params,
@@ -65,6 +93,10 @@ export default async function ProspectPage({
 
   const sequences: ProspectSequence[] = sequencesResult.data ?? []
   const isFreeUser = profileResult.data == null ? true : profileResult.data.tier === "free"
+  const isPaid = profileResult.data?.tier === "pro" || profileResult.data?.tier === "agency"
+
+  const hasEmailAccount =
+    prospect.status === "email_not_found" ? await checkHasEmailAccount(user.id, isPaid) : true
 
   return (
     <ProspectClientPage
@@ -72,6 +104,7 @@ export default async function ProspectPage({
       product={{ productName: productResult.data.product_name, websiteUrl: productResult.data.website_url }}
       sequences={sequences}
       isFreeUser={isFreeUser}
+      hasEmailAccount={hasEmailAccount}
     />
   )
 }

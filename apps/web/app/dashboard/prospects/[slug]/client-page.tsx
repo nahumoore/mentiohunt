@@ -13,13 +13,14 @@ import {
   IconCheck,
   IconChevronRight,
   IconExternalLink,
+  IconLoader2,
   IconMail,
   IconMailCheck,
+  IconMailOff,
   IconMessage2,
   IconPlayerPause,
   IconSend,
   IconSparkles,
-  IconUser,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Json } from "@workspace/supabase/database-types"
@@ -30,6 +31,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Switch } from "@workspace/ui/components/switch"
 
 import { captureEvent } from "@/lib/analytics"
@@ -39,12 +41,13 @@ import type { ProspectDetail, ProspectSequence } from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import { STATUS_CONFIG, formatDate, type ProspectStatus } from "@/app/dashboard/prospects/_data"
 import { EmailSequenceNav } from "@/components/prospects/email-sequence-nav"
+import { ManualCompletionForm } from "@/components/link-building/prospects/manual-completion-form"
 
 const PIPELINE_STEPS: ProspectStatus[] = ["new", "contacted", "negotiating", "won"]
 
 function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
-  if (status === "dismissed") {
-    const cfg = STATUS_CONFIG.dismissed
+  if (status === "dismissed" || status === "email_not_found") {
+    const cfg = STATUS_CONFIG[status]
     const Icon = cfg.icon
     return (
       <div className="flex items-center gap-3">
@@ -120,6 +123,12 @@ function getDiceBearUrl(seed: string): string {
   return `https://api.dicebear.com/10.x/micah/svg?mouthVariant=smirk&facialHairVariant=&hairVariant=dannyPhantom,fonze,full,pixie&hairProbability=100&baseColor=f9c9b6,ac6651,f5bd8a&backgroundColor=ffffff&seed=${encodeURIComponent(seed)}`
 }
 
+function getFaviconUrl(domain: string | null): string | null {
+  if (!domain) return null
+  const host = domain.startsWith("http") ? new URL(domain).hostname : domain
+  return `https://www.google.com/s2/favicons?domain=${host}&sz=32`
+}
+
 function nullishString(v: string | null | undefined): string | null {
   if (!v || v === "null" || v === "undefined" || v.trim() === "") return null
   return v
@@ -162,6 +171,42 @@ function drBarColor(dr: number): string {
   if (dr >= 60) return "bg-emerald-500"
   if (dr >= 30) return "bg-amber-500"
   return "bg-primary"
+}
+
+function fitBarColor(score: number): string {
+  if (score >= 70) return "bg-emerald-500"
+  if (score >= 40) return "bg-amber-500"
+  return "bg-red-400"
+}
+
+function ScoreTile({
+  label,
+  hint,
+  value,
+  barColor,
+}: {
+  label: string
+  hint: string
+  value: number | null
+  barColor: string
+}) {
+  return (
+    <div className="rounded-md bg-muted/40 px-3 py-2">
+      <p className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-0.5 font-mono text-lg font-bold leading-none tabular-nums text-foreground">
+        {value ?? "—"}
+      </p>
+      <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn("h-full rounded-full", value != null ? barColor : "bg-muted")}
+          style={{ width: `${value != null ? Math.min(value, 100) : 0}%` }}
+        />
+      </div>
+      <p className="mt-1 text-[9px] leading-tight text-muted-foreground/70">{hint}</p>
+    </div>
+  )
 }
 
 function ConversationView({
@@ -302,11 +347,13 @@ export function ProspectClientPage({
   prospect,
   sequences,
   isFreeUser,
+  hasEmailAccount,
 }: {
   prospect: ProspectDetail
   product: ProspectProduct
   sequences: ProspectSequence[]
   isFreeUser: boolean
+  hasEmailAccount: boolean
 }) {
   const router = useRouter()
   const upsertProspectDetail = useProspectStore((s) => s.upsertProspectDetail)
@@ -341,7 +388,11 @@ export function ProspectClientPage({
   const statusCfg = STATUS_CONFIG[current.status]
   const StatusIcon = statusCfg?.icon
   const avatarUrl = getDiceBearUrl(current.domain ?? current.id)
+  const favicon = getFaviconUrl(current.domain)
   const dr = current.domain_rating
+  const fitScore = current.site_relevance_score
+  const isEnrichingContact =
+    current.enrichment_status === "pending" || current.enrichment_status === "enriching"
 
   function stepLabel(step: number): string {
     if (step === 1) return "Initial outreach"
@@ -424,136 +475,143 @@ export function ProspectClientPage({
         {/* ─── Left sidebar ─── */}
         <aside className="w-[320px] shrink-0 overflow-y-auto border-r bg-background px-5 py-6">
           {/* Site identity */}
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div className="flex items-start gap-2.5">
-              <div className="size-9 shrink-0 overflow-hidden rounded-lg bg-white border border-border">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={avatarUrl}
-                  alt=""
-                  width={36}
-                  height={36}
-                  className="size-9"
-                />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="font-heading text-base font-bold tracking-tight leading-tight break-all">
-                    {current.domain}
-                  </h2>
+          <div className="flex items-start gap-2.5 mb-4">
+            <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white border border-border">
+              {favicon ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={favicon} alt="" width={20} height={20} className="size-5" />
+              ) : (
+                <div className="size-5 rounded-sm bg-muted" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <h2 className="font-heading text-base font-bold tracking-tight leading-tight break-all">
+                {current.domain}
+              </h2>
+              {current.found_url && (
+                <a
+                  href={current.found_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary mt-0.5 transition-colors"
+                >
+                  Found article <IconExternalLink className="size-3" />
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Score tiles */}
+          <div className="grid grid-cols-2 gap-2 mb-5">
+            <ScoreTile
+              label="Domain Rating"
+              hint="Backlink authority of this site"
+              value={dr ?? null}
+              barColor={dr != null ? drBarColor(dr) : "bg-muted"}
+            />
+            <ScoreTile
+              label="Site Fit"
+              hint="Topical match with your product"
+              value={fitScore ?? null}
+              barColor={fitScore != null ? fitBarColor(fitScore) : "bg-muted"}
+            />
+          </div>
+
+          {/* Contact section */}
+          <section className="mb-4">
+            <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground mb-1.5">
+              Contact
+            </p>
+            {isEnrichingContact ? (
+              <div className="flex items-start gap-2.5">
+                <Skeleton className="size-9 shrink-0 rounded-xl" />
+                <div className="min-w-0 flex-1 space-y-1.5 pt-0.5">
+                  <Skeleton className="h-3.5 w-24 rounded" />
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/60">
+                    <IconLoader2 className="size-3 shrink-0 animate-spin" />
+                    {current.enrichment_status === "enriching" ? "Finding contact…" : "Queued…"}
+                  </span>
                 </div>
-                {current.found_url && (
+              </div>
+            ) : (
+              <div className="flex items-start gap-2.5">
+                <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white border border-border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={avatarUrl} alt="" width={36} height={36} className="size-9" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {contactName ?? "Unknown contact"}
+                  </p>
+                  {contactEmail ? (
+                    <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-emerald-600">
+                      <IconMailCheck className="size-3 shrink-0" />
+                      <span className="truncate">{contactEmail}</span>
+                    </span>
+                  ) : (
+                    <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground/60">
+                      <IconMailOff className="size-3 shrink-0" />
+                      No email found
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {Object.keys(socialLinks).length > 0 && (
+              <div className="flex items-center gap-2 mt-2">
+                {socialLinks.twitter && (
                   <a
-                    href={current.found_url}
+                    href={socialLinks.twitter}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary mt-0.5 transition-colors"
+                    className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    Found article <IconExternalLink className="size-3" />
+                    <IconBrandTwitter className="size-3.5" />
+                  </a>
+                )}
+                {socialLinks.linkedin && (
+                  <a
+                    href={socialLinks.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <IconBrandLinkedin className="size-3.5" />
+                  </a>
+                )}
+                {socialLinks.youtube && (
+                  <a
+                    href={socialLinks.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <IconBrandYoutube className="size-3.5" />
+                  </a>
+                )}
+                {socialLinks.facebook && (
+                  <a
+                    href={socialLinks.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <IconBrandFacebook className="size-3.5" />
+                  </a>
+                )}
+                {socialLinks.instagram && (
+                  <a
+                    href={socialLinks.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <IconBrandInstagram className="size-3.5" />
                   </a>
                 )}
               </div>
-            </div>
-            {dr !== null && dr !== undefined && (
-              <div className="text-right shrink-0">
-                <p className="font-mono text-2xl font-bold text-foreground leading-none tabular-nums">
-                  {dr}
-                </p>
-                <p className="text-[9px] text-muted-foreground mt-0.5 uppercase tracking-wide">
-                  DR
-                </p>
-              </div>
             )}
-          </div>
-
-          {/* DR progress bar */}
-          {dr !== null && dr !== undefined && (
-            <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden mb-5">
-              <div
-                className={cn("h-full rounded-full transition-all", drBarColor(dr))}
-                style={{ width: `${Math.min(dr, 100)}%` }}
-              />
-            </div>
-          )}
-
-          {/* Contact section */}
-          {(contactName || contactEmail) && (
-            <section className="mb-4">
-              <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground mb-1.5">
-                Contact
-              </p>
-              {contactName && (
-                <div className="flex items-center gap-1.5 mb-1">
-                  <IconUser className="size-3 shrink-0 text-muted-foreground" />
-                  <p className="text-sm font-semibold text-foreground">
-                    {contactName}
-                  </p>
-                </div>
-              )}
-              {contactEmail && (
-                <div className="flex items-center gap-1.5">
-                  <IconMail className="size-3 shrink-0 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground truncate">
-                    {contactEmail}
-                  </p>
-                </div>
-              )}
-              {Object.keys(socialLinks).length > 0 && (
-                <div className="flex items-center gap-2 mt-2">
-                  {socialLinks.twitter && (
-                    <a
-                      href={socialLinks.twitter}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <IconBrandTwitter className="size-3.5" />
-                    </a>
-                  )}
-                  {socialLinks.linkedin && (
-                    <a
-                      href={socialLinks.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <IconBrandLinkedin className="size-3.5" />
-                    </a>
-                  )}
-                  {socialLinks.youtube && (
-                    <a
-                      href={socialLinks.youtube}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <IconBrandYoutube className="size-3.5" />
-                    </a>
-                  )}
-                  {socialLinks.facebook && (
-                    <a
-                      href={socialLinks.facebook}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <IconBrandFacebook className="size-3.5" />
-                    </a>
-                  )}
-                  {socialLinks.instagram && (
-                    <a
-                      href={socialLinks.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <IconBrandInstagram className="size-3.5" />
-                    </a>
-                  )}
-                </div>
-              )}
-            </section>
-          )}
+          </section>
 
           {/* Bio / about */}
           {bio && (
@@ -635,6 +693,17 @@ export function ProspectClientPage({
           {isNegotiating ? (
             /* ── Conversation view ── */
             <ConversationView prospect={current} sequences={sequences} />
+          ) : current.status === "email_not_found" && emailSequence.length === 0 ? (
+            /* ── Manual completion form ── */
+            <ManualCompletionForm
+              prospectId={current.id}
+              hasEmailAccount={hasEmailAccount}
+              onSuccess={() => {
+                updateProspectStatuses([current.id], "new")
+                router.refresh()
+              }}
+              onDismiss={() => handleStatusUpdate("dismissed")}
+            />
           ) : emailSequence.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <p className="text-sm font-medium text-foreground">No outreach sequence yet</p>

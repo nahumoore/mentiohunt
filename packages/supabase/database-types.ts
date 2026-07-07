@@ -692,7 +692,13 @@ export type Database = {
         | "failed"
         | "skipped"
         | "paused"
-      prospect_status: "new" | "contacted" | "dismissed" | "negotiating" | "won"
+      prospect_status:
+        | "new"
+        | "contacted"
+        | "dismissed"
+        | "negotiating"
+        | "won"
+        | "email_not_found"
       prospect_tier:
         | "competitor_backlink"
         | "unlinked_mention"
@@ -850,7 +856,14 @@ export const Constants = {
         "skipped",
         "paused",
       ],
-      prospect_status: ["new", "contacted", "dismissed", "negotiating", "won"],
+      prospect_status: [
+        "new",
+        "contacted",
+        "dismissed",
+        "negotiating",
+        "won",
+        "email_not_found",
+      ],
       prospect_tier: [
         "competitor_backlink",
         "unlinked_mention",

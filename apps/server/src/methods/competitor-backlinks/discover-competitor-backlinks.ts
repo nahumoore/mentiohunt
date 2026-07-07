@@ -76,7 +76,16 @@ async function enrichProspect(
         email_body: null,
         step2_body: null,
         step3_body: null,
-        raw_metadata: contact.rawMetadata,
+        raw_metadata: {
+          ...(contact.rawMetadata ?? {}),
+          outreach_context: {
+            opportunityType: "competitor_backlink",
+            title: item.title,
+            anchor: item.anchor,
+            pageType: item.pageType,
+            competitorDomain: item.competitorDomain,
+          },
+        },
       }
     }
 
@@ -410,7 +419,7 @@ async function processCompetitor(
               .update({
                 ...dbEnriched,
                 enrichment_status: ready ? ("ready" as const) : ("failed" as const),
-                status: ready ? ("new" as const) : ("dismissed" as const),
+                status: ready ? ("new" as const) : ("email_not_found" as const),
               })
               .eq("id", id)
 
@@ -429,7 +438,7 @@ async function processCompetitor(
                 step3Body: step3_body,
               })
             } else {
-              log.info("no email found, dismissed", { domain })
+              log.info("no email found, marked email_not_found", { domain })
             }
           })
         )

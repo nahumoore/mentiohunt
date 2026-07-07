@@ -181,6 +181,10 @@ async function enrichListicle(
     const contact = await enrichContact(item.url, "roundup", item.domain)
     const social = Object.keys(contact.social_links).length > 0 ? contact.social_links : null
 
+    const competitorDomain =
+      item.topCompetitor ||
+      (product.competitors?.[0] ? extractCompetitorDomain(product.competitors[0]) : "similar tools")
+
     if (!contact.email) {
       log.info("contact name without email", { domain: item.domain, contactName: contact.name })
       return {
@@ -191,13 +195,18 @@ async function enrichListicle(
         email_body: null,
         step2_body: null,
         step3_body: null,
-        raw_metadata: contact.rawMetadata,
+        raw_metadata: {
+          ...(contact.rawMetadata ?? {}),
+          outreach_context: {
+            opportunityType: "listicle_roundup",
+            title: item.title,
+            anchor: "",
+            pageType: "roundup",
+            competitorDomain,
+          },
+        },
       }
     }
-
-    const competitorDomain =
-      item.topCompetitor ||
-      (product.competitors?.[0] ? extractCompetitorDomain(product.competitors[0]) : "similar tools")
 
     const emailResult = await generateOutreachSequence(
       product,
@@ -523,7 +532,7 @@ export async function discoverListicleRoundups(
               .update({
                 ...dbEnriched,
                 enrichment_status: ready ? ("ready" as const) : ("failed" as const),
-                status: ready ? ("new" as const) : ("dismissed" as const),
+                status: ready ? ("new" as const) : ("email_not_found" as const),
               })
               .eq("id", id)
 
@@ -542,7 +551,7 @@ export async function discoverListicleRoundups(
                 step3Body: step3_body,
               })
             } else {
-              log.info("no email found, dismissed", { domain: item.domain })
+              log.info("no email found, marked email_not_found", { domain: item.domain })
             }
           })
         )

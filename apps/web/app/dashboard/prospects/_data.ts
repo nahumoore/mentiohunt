@@ -3,6 +3,7 @@ import {
   IconCircleX,
   IconLink,
   IconListDetails,
+  IconMailQuestion,
   IconSend,
   IconSparkles,
 } from "@tabler/icons-react"
@@ -66,6 +67,11 @@ export const STATUS_CONFIG: Record<ProspectStatus, StatusConfig> = {
     icon: IconCircleX,
     color: "text-muted-foreground bg-muted",
   },
+  email_not_found: {
+    label: "Email not found",
+    icon: IconMailQuestion,
+    color: "text-amber-600 bg-amber-500/10",
+  },
 }
 
 export const STATUS_FILTERS: ProspectFilterConfig[] = [
@@ -98,6 +104,11 @@ export const STATUS_FILTERS: ProspectFilterConfig[] = [
     value: "dismissed",
     label: STATUS_CONFIG.dismissed.label,
     icon: STATUS_CONFIG.dismissed.icon,
+  },
+  {
+    value: "email_not_found",
+    label: STATUS_CONFIG.email_not_found.label,
+    icon: STATUS_CONFIG.email_not_found.icon,
   },
 ]
 

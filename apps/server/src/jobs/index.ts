@@ -26,15 +26,6 @@ export function registerJobs(): void {
     "[cron] Scheduled: free trial deactivation (00:15, 08:15, 16:15 UTC)"
   )
 
-  // cron.schedule("0 4 * * *", async () => {
-  //   try {
-  //     await runDailyBacklinkDiscovery()
-  //   } catch (err) {
-  //     console.error("[cron] Error running daily backlink discovery:", err)
-  //   }
-  // })
-  // console.log("[cron] Scheduled: daily backlink discovery (04:00 UTC)")
-
   cron.schedule("0 * * * *", async () => {
     try {
       await runFeedbackEmailSequence()
@@ -43,13 +34,4 @@ export function registerJobs(): void {
     }
   })
   console.log("[cron] Scheduled: feedback email sequence (hourly)")
-
-  // cron.schedule("0 8 * * *", async () => {
-  //   try {
-  //     await runListicleRoundupDiscovery()
-  //   } catch (err) {
-  //     console.error("[cron] Error running listicle roundup discovery:", err)
-  //   }
-  // })
-  // console.log("[cron] Scheduled: listicle roundup discovery (08:00 UTC)")
 }

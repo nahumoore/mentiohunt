@@ -4,6 +4,7 @@ import {
   IconCircleCheck,
   IconCircleX,
   IconLink,
+  IconMailQuestion,
   IconSend,
   IconSparkles,
 } from "@tabler/icons-react"
@@ -63,6 +64,17 @@ const PIPELINE = [
     selectedBg: "#fef2f2",
     selectedText: "#b91c1c",
     selectedIcon: "#ef4444",
+  },
+  {
+    value: "email_not_found" as ProspectStatus,
+    label: "Email not found",
+    icon: IconMailQuestion,
+    activeBg: "#fffbeb",
+    activeText: "#b45309",
+    activeIcon: "#d97706",
+    selectedBg: "#fffbeb",
+    selectedText: "#b45309",
+    selectedIcon: "#d97706",
   },
 ]
 

@@ -171,7 +171,14 @@ async function enrichMention(
       email_body: emailResult?.step1Body ?? null,
       step2_body: emailResult?.step2Body ?? null,
       step3_body: emailResult?.step3Body ?? null,
-      raw_metadata: contact.rawMetadata,
+      raw_metadata: {
+        ...(contact.rawMetadata ?? {}),
+        outreach_context: {
+          opportunityType: "unlinked_mention",
+          title: candidate.title,
+          foundUrl: candidate.url,
+        },
+      },
     }
   } catch (err) {
     log.warn("mention enrichment failed", { domain: candidate.domain, error: String(err) })
@@ -412,7 +419,7 @@ export async function discoverUnlinkedMentions(
               .update({
                 ...dbEnriched,
                 enrichment_status: ready ? ("ready" as const) : ("failed" as const),
-                status: ready ? ("new" as const) : ("dismissed" as const),
+                status: ready ? ("new" as const) : ("email_not_found" as const),
               })
               .eq("id", id)
 
@@ -431,7 +438,7 @@ export async function discoverUnlinkedMentions(
                 step3Body: step3_body,
               })
             } else {
-              log.info("no email found, dismissed", { domain: item.domain })
+              log.info("no email found, marked email_not_found", { domain: item.domain })
             }
           })
         )

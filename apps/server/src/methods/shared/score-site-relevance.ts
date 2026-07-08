@@ -53,6 +53,46 @@ const RESPONSE_FORMAT = {
   },
 }
 
+async function scoreBatch(
+  items: SiteRelevanceInput[],
+  product: { product_name: string; product_description: string },
+  model: (typeof OPENROUTER_MODELS)[keyof typeof OPENROUTER_MODELS]
+): Promise<{ results: Map<string, { score: number }>; cost: number }> {
+  const payload = items.map((item) => ({
+    id: item.id,
+    domain: item.domain,
+    title: item.title || "(no title)",
+    context: item.snippet || "(no context)",
+  }))
+
+  const { text, cost } = await generateTextWithUsage({
+    model,
+    fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+    systemInstructions: SYSTEM_INSTRUCTIONS(product),
+    input: `Sites:\n${JSON.stringify(payload, null, 2)}`,
+    responseFormat: RESPONSE_FORMAT,
+  })
+
+  let parsed: { results: { id: string; score: number }[] }
+  try {
+    parsed = JSON.parse(text) as typeof parsed
+  } catch {
+    log.warn("json parse failed")
+    return { results: new Map(), cost }
+  }
+
+  if (!Array.isArray(parsed?.results)) {
+    log.warn("unexpected response shape", { keys: Object.keys(parsed ?? {}) })
+    return { results: new Map(), cost }
+  }
+
+  const results = new Map(
+    parsed.results.map((r) => [r.id, { score: Math.round(r.score) }])
+  )
+
+  return { results, cost }
+}
+
 export async function scoreSiteRelevance(
   items: SiteRelevanceInput[],
   product: { product_name: string; product_description: string }
@@ -60,41 +100,36 @@ export async function scoreSiteRelevance(
   if (items.length === 0) return { results: new Map(), cost: 0 }
 
   try {
-    const payload = items.map((item) => ({
-      id: item.id,
-      domain: item.domain,
-      title: item.title || "(no title)",
-      context: item.snippet || "(no context)",
-    }))
+    const { results, cost: firstCost } = await scoreBatch(items, product, OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH)
+    let totalCost = firstCost
 
-    const { text, cost } = await generateTextWithUsage({
-      model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
-      fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
-      systemInstructions: SYSTEM_INSTRUCTIONS(product),
-      input: `Sites:\n${JSON.stringify(payload, null, 2)}`,
-      responseFormat: RESPONSE_FORMAT,
-    })
+    const missingItems = items.filter((item) => !results.has(item.id))
 
-    let parsed: { results: { id: string; score: number }[] }
-    try {
-      parsed = JSON.parse(text) as typeof parsed
-    } catch {
-      log.warn("json parse failed")
-      return { results: new Map(), cost: 0 }
+    if (missingItems.length > 0) {
+      log.warn("missing ids in response, retrying", {
+        requested: items.length,
+        missing: missingItems.length,
+        missingIds: missingItems.map((item) => item.id),
+      })
+
+      const { results: retryResults, cost: retryCost } = await scoreBatch(
+        missingItems,
+        product,
+        OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH
+      )
+      totalCost += retryCost
+
+      for (const [id, score] of retryResults) results.set(id, score)
+
+      const stillMissing = missingItems.filter((item) => !results.has(item.id))
+      if (stillMissing.length > 0) {
+        log.warn("ids missing after retry", { missingIds: stillMissing.map((item) => item.id) })
+      }
     }
 
-    if (!Array.isArray(parsed?.results)) {
-      log.warn("unexpected response shape", { keys: Object.keys(parsed ?? {}) })
-      return { results: new Map(), cost: 0 }
-    }
+    log.info("scoring complete", { requested: items.length, scored: results.size, cost_usd: totalCost.toFixed(4) })
 
-    const results = new Map(
-      parsed.results.map((r) => [r.id, { score: Math.round(r.score) }])
-    )
-
-    log.info("scoring complete", { count: items.length, cost_usd: cost.toFixed(4) })
-
-    return { results, cost }
+    return { results, cost: totalCost }
   } catch (err) {
     log.warn("scoring failed", { error: String(err) })
     return { results: new Map(), cost: 0 }

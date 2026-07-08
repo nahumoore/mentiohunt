@@ -51,7 +51,7 @@ export default async function ProspectPage({
   const { data: prospect, error } = await supabase
     .from("backlink_prospects")
     .select(
-      "id, product_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, email_subject, email_body, created_at, found_url, contact_social_links, raw_metadata, domain_rating, site_relevance_score"
+      "id, product_id, product_page_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, email_subject, email_body, created_at, found_url, contact_social_links, raw_metadata, domain_rating, site_relevance_score"
     )
     .eq("id", slug)
     .maybeSingle()
@@ -87,6 +87,22 @@ export default async function ProspectPage({
     notFound()
   }
 
+  let sourcePage: ProspectDetail["source_page"] = null
+  if (prospect.product_page_id) {
+    const { data: productPage, error: productPageError } = await supabase
+      .from("product_pages")
+      .select("id, url, title, page_type")
+      .eq("id", prospect.product_page_id)
+      .eq("product_id", prospect.product_id)
+      .maybeSingle()
+
+    if (productPageError) {
+      console.error("Error fetching prospect source page:", productPageError)
+    } else {
+      sourcePage = productPage
+    }
+  }
+
   if (sequencesResult.error) {
     console.error("Error fetching prospect sequences:", sequencesResult.error)
   }
@@ -100,7 +116,7 @@ export default async function ProspectPage({
 
   return (
     <ProspectClientPage
-      prospect={prospect as ProspectDetail}
+      prospect={{ ...(prospect as ProspectDetail), source_page: sourcePage }}
       product={{ productName: productResult.data.product_name, websiteUrl: productResult.data.website_url }}
       sequences={sequences}
       isFreeUser={isFreeUser}

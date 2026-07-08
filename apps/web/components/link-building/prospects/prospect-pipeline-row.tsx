@@ -6,6 +6,7 @@ import {
   IconLoader2,
   IconMailCheck,
   IconMailOff,
+  IconQuestionMark,
 } from "@tabler/icons-react"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { cn } from "@workspace/ui/lib/utils"
@@ -169,16 +170,22 @@ export function OpportunityPipelineRow({
           </div>
         ) : (
           <div className="flex min-w-0 items-start gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white border border-border">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={avatarUrl}
-                alt=""
-                width={36}
-                height={36}
-                className="size-9"
-              />
-            </div>
+            {prospect.contact_name ? (
+              <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white border border-border">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  width={36}
+                  height={36}
+                  className="size-9"
+                />
+              </div>
+            ) : (
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted border border-border">
+                <IconQuestionMark className="size-4 text-muted-foreground" />
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-foreground">
                 {prospect.contact_name ?? "Unknown contact"}

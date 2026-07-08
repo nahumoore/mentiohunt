@@ -3,6 +3,7 @@
 import {
   IconArrowRight,
   IconCalendar,
+  IconFileText,
   IconMailCheck,
   IconMailOff,
   IconSwords,
@@ -11,6 +12,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 
 import { getContactAvatarUrl } from "@/consts/contact-avatar"
+import { usePagesStore } from "@/stores/pages-store"
 
 import {
   TYPE_CONFIG,
@@ -23,6 +25,7 @@ const TIER_BORDER: Record<ProspectTier, string> = {
   competitor_backlink: "border-l-amber-500",
   unlinked_mention: "border-l-violet-500",
   listicle_roundup: "border-l-blue-500",
+  resource_page_inclusion: "border-l-emerald-500",
 }
 
 function extractHostname(url: string | null): string | null {
@@ -34,8 +37,19 @@ function extractHostname(url: string | null): string | null {
   }
 }
 
+function getPageDisplay(url: string): string {
+  try {
+    const parsed = new URL(url)
+    const host = parsed.hostname.replace(/^www\./, "")
+    return parsed.pathname !== "/" ? host + parsed.pathname : host
+  } catch {
+    return url
+  }
+}
+
 export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
   const router = useRouter()
+  const pages = usePagesStore((state) => state.pages)
   const tierCfg = TYPE_CONFIG[prospect.tier]
   if (!tierCfg) return null
   const TierIcon = tierCfg.icon
@@ -45,6 +59,11 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
     prospect.tier === "competitor_backlink"
       ? extractHostname(prospect.target_url)
       : null
+  const sourcePage =
+    prospect.source_page ??
+    (prospect.product_page_id
+      ? (pages.find((page) => page.id === prospect.product_page_id) ?? null)
+      : null)
 
   return (
     <div
@@ -119,6 +138,15 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
               links to{" "}
               <span className="font-medium text-foreground/70">
                 {competitorHostname}
+              </span>
+            </span>
+          )}
+          {sourcePage && (
+            <span className="inline-flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+              <IconFileText className="size-3 shrink-0 text-emerald-500/70" />
+              <span className="shrink-0">found using</span>
+              <span className="truncate font-medium text-foreground/70">
+                {sourcePage.title || getPageDisplay(sourcePage.url)}
               </span>
             </span>
           )}

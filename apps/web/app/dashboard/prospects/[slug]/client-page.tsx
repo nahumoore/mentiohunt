@@ -13,12 +13,14 @@ import {
   IconCheck,
   IconChevronRight,
   IconExternalLink,
+  IconFileText,
   IconLoader2,
   IconMail,
   IconMailCheck,
   IconMailOff,
   IconMessage2,
   IconPlayerPause,
+  IconQuestionMark,
   IconSend,
   IconSparkles,
 } from "@tabler/icons-react"
@@ -39,6 +41,7 @@ import { formatRelative } from "@/lib/format-date"
 import { PROSPECT_TIER_CONFIG } from "@/lib/opportunity-types"
 import type { ProspectDetail, ProspectSequence } from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
+import { usePagesStore } from "@/stores/pages-store"
 import { STATUS_CONFIG, formatDate, type ProspectStatus } from "@/app/dashboard/prospects/_data"
 import { EmailSequenceNav } from "@/components/prospects/email-sequence-nav"
 import { ManualCompletionForm } from "@/components/link-building/prospects/manual-completion-form"
@@ -359,7 +362,16 @@ export function ProspectClientPage({
   const upsertProspectDetail = useProspectStore((s) => s.upsertProspectDetail)
   const storedProspect = useProspectStore((s) => s.prospectDetailsById[prospect.id])
   const updateProspectStatuses = useProspectStore((s) => s.updateProspectStatuses)
+  const pages = usePagesStore((s) => s.pages)
   const current = storedProspect ?? prospect
+  const sourcePage =
+    current.source_page ??
+    (current.product_page_id
+      ? (pages.find((page) => page.id === current.product_page_id) ?? null)
+      : null)
+  const showTargetUrl = Boolean(
+    current.target_url && current.target_url !== sourcePage?.url
+  )
 
   const [statusLoading, setStatusLoading] = useState<"contacted" | "dismissed" | "pausing" | null>(null)
   const [pauseModalOpen, setPauseModalOpen] = useState(false)
@@ -535,10 +547,16 @@ export function ProspectClientPage({
               </div>
             ) : (
               <div className="flex items-start gap-2.5">
-                <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white border border-border">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={avatarUrl} alt="" width={36} height={36} className="size-9" />
-                </div>
+                {contactName ? (
+                  <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white border border-border">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={avatarUrl} alt="" width={36} height={36} className="size-9" />
+                  </div>
+                ) : (
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted border border-border">
+                    <IconQuestionMark className="size-4 text-muted-foreground" />
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-foreground">
                     {contactName ?? "Unknown contact"}
@@ -627,15 +645,35 @@ export function ProspectClientPage({
           )}
 
           {/* Links section */}
-          {(current.found_url || current.target_url) && (
+          {(current.found_url || showTargetUrl || sourcePage) && (
             <section className="mb-4 space-y-2.5">
               <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
                 Links
               </p>
-              {current.target_url && (
+              {sourcePage && (
+                <div>
+                  <div className="mb-0.5 flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wide">
+                    <IconFileText className="size-3" />
+                    <span>Found using your page</span>
+                  </div>
+                  <a
+                    href={sourcePage.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary hover:underline break-all leading-relaxed"
+                  >
+                    {sourcePage.title || getUrlDisplay(sourcePage.url)}
+                  </a>
+                </div>
+              )}
+              {showTargetUrl && current.target_url && (
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
-                    {current.tier === "competitor_backlink" ? "Links to competitor" : "Target"}
+                    {current.tier === "competitor_backlink"
+                      ? "Links to competitor"
+                      : current.tier === "resource_page_inclusion"
+                        ? "Suggested target page"
+                        : "Target"}
                   </p>
                   <a
                     href={current.target_url}

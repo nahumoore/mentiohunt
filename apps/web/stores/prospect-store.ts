@@ -6,6 +6,11 @@ import type { Tables } from "@workspace/supabase/database-types"
 
 type BacklinkProspect = Tables<"backlink_prospects">
 
+export type ProspectSourcePage = Pick<
+  Tables<"product_pages">,
+  "id" | "url" | "title" | "page_type"
+>
+
 export type ProspectSequence = Pick<
   Tables<"prospect_sequences">,
   "id" | "step" | "subject" | "body" | "status" | "scheduled_at" | "sent_at"
@@ -15,6 +20,7 @@ export type ProspectListItem = Pick<
   BacklinkProspect,
   | "id"
   | "product_id"
+  | "product_page_id"
   | "domain"
   | "target_url"
   | "tier"
@@ -25,7 +31,7 @@ export type ProspectListItem = Pick<
   | "contact_name"
   | "domain_rating"
   | "site_relevance_score"
->
+> & { source_page?: ProspectSourcePage | null }
 
 export type ProspectDetail = ProspectListItem &
   Pick<
@@ -58,6 +64,7 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
   return {
     id: prospect.id,
     product_id: prospect.product_id,
+    product_page_id: prospect.product_page_id,
     domain: prospect.domain,
     target_url: prospect.target_url,
     tier: prospect.tier,
@@ -68,6 +75,7 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
     contact_name: prospect.contact_name,
     domain_rating: prospect.domain_rating,
     site_relevance_score: prospect.site_relevance_score,
+    source_page: prospect.source_page,
   }
 }
 
@@ -115,9 +123,11 @@ export const useProspectStore = create<ProspectStore>()((set) => ({
     }),
   upsertProspectFromRealtime: (row) =>
     set((state) => {
+      const existingDetail = state.prospectDetailsById[row.id]
       const detail: ProspectDetail = {
         id: row.id,
         product_id: row.product_id,
+        product_page_id: row.product_page_id,
         domain: row.domain,
         target_url: row.target_url,
         tier: row.tier,
@@ -134,6 +144,10 @@ export const useProspectStore = create<ProspectStore>()((set) => ({
         found_url: row.found_url,
         contact_social_links: row.contact_social_links,
         raw_metadata: row.raw_metadata,
+        source_page:
+          existingDetail?.product_page_id === row.product_page_id
+            ? existingDetail.source_page
+            : null,
       }
       const listItem = toListItem(detail)
       const exists = state.prospects.some((item) => item.id === row.id)

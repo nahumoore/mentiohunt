@@ -10,8 +10,8 @@ function buildFollowupBodies(
   senderFirstName: string
 ): { step2Body: string; step3Body: string } {
   return {
-    step2Body: `Hi ${firstName},\n\nWanted to reach out once more — happy to share more details if helpful.\n\nBest,\n${senderFirstName}`,
-    step3Body: `Hi ${firstName},\n\nLast note from me — if timing ever works out, I'd love to connect.\n\nBest,\n${senderFirstName}\n\nP.S. No hard feelings if it's not a fit — I won't follow up after this.`,
+    step2Body: `Hi ${firstName},\n\nWanted to add one more reason this might be worth a look: if the page is still maintained, a small update can make it more useful for readers without needing a rewrite.\n\nBest,\n${senderFirstName}`,
+    step3Body: `Hi ${firstName},\n\nLast note from me. If the page is not being updated anymore, no worries at all.\n\nBest,\n${senderFirstName}\n\nP.S. No hard feelings if it's not a fit, I won't follow up after this.`,
   }
 }
 

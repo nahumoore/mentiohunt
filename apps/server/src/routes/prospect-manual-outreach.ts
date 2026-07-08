@@ -46,13 +46,23 @@ type StoredOutreachContext =
       title: string
       foundUrl: string
     }
+  | {
+      opportunityType: "resource_page_inclusion"
+      title: string
+      foundUrl: string
+      targetUrl: string
+      targetTitle: string
+      targetDescription?: string | null
+      targetPageType: string
+      reason: string
+    }
 
 /** Rebuild the OutreachContext used to generate the original draft. Prefers the
  * context persisted at discovery time (raw_metadata.outreach_context); falls
  * back to a minimal context derived from the row for legacy prospects that
  * predate that persistence. */
 function buildOutreachContext(prospect: {
-  tier: "competitor_backlink" | "unlinked_mention" | "listicle_roundup"
+  tier: "competitor_backlink" | "unlinked_mention" | "listicle_roundup" | "resource_page_inclusion"
   domain: string | null
   target_url: string | null
   found_url: string | null
@@ -73,6 +83,18 @@ function buildOutreachContext(prospect: {
       opportunityType: "unlinked_mention",
       title: prospect.domain ?? "",
       foundUrl: prospect.found_url ?? "",
+    }
+  }
+
+  if (prospect.tier === "resource_page_inclusion") {
+    return {
+      opportunityType: "resource_page_inclusion",
+      title: prospect.domain ?? "",
+      foundUrl: prospect.found_url ?? "",
+      targetUrl: prospect.target_url ?? "",
+      targetTitle: "",
+      targetPageType: "resource",
+      reason: "The target page may be a useful additional resource for this page's readers.",
     }
   }
 

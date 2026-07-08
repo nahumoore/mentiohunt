@@ -1,38 +1,10 @@
 import type { BacklinkItem } from "./extract-backlinks.js"
 import { createLogger } from "../../helpers/logger.js"
+import { extractDomainFromUrl, isNoisyUrl } from "../shared/url-filters.js"
 
 const log = createLogger("filter-backlinks")
 
 const CAP_PER_COMPETITOR = 15
-
-export const NOISE_DOMAINS = new Set([
-  "github.com",
-  "chrome.google.com",
-  "apps.apple.com",
-  "play.google.com",
-  "web.archive.org",
-  "reddit.com",
-  "twitter.com",
-  "x.com",
-  "linkedin.com",
-  "facebook.com",
-  "youtube.com",
-  "wikipedia.org",
-  "pinterest.com",
-  "instagram.com",
-  "tiktok.com",
-  "quora.com",
-  "medium.com",
-  "amazon.com",
-  "google.com",
-  "producthunt.com",
-  "crunchbase.com",
-  "yelp.com",
-  "trustpilot.com",
-  "g2.com",
-])
-
-const NOISE_PATH_SEGMENTS = ["/user/", "/profile/", "/members/", "/author/"]
 
 export type TaggedBacklinkItem = BacklinkItem & {
   competitorDomain: string
@@ -41,38 +13,6 @@ export type TaggedBacklinkItem = BacklinkItem & {
 export type FilterSettings = {
   dr_min: number
   dr_max: number | null
-}
-
-function extractDomainFromUrl(url: string): string {
-  try {
-    return new URL(url).hostname.replace(/^www\./i, "").toLowerCase()
-  } catch {
-    return url
-      .replace(/^https?:\/\//i, "")
-      .replace(/^www\./i, "")
-      .replace(/\/.*$/, "")
-      .toLowerCase()
-  }
-}
-
-function matchesNoiseDomain(domain: string): boolean {
-  return [...NOISE_DOMAINS].some(
-    (noiseDomain) => domain === noiseDomain || domain.endsWith(`.${noiseDomain}`)
-  )
-}
-
-function isNoisyUrl(urlFrom: string): boolean {
-  const domain = extractDomainFromUrl(urlFrom)
-  if (matchesNoiseDomain(domain)) return true
-
-  let path = ""
-  try {
-    path = new URL(urlFrom).pathname.toLowerCase()
-  } catch {
-    path = urlFrom.toLowerCase()
-  }
-
-  return NOISE_PATH_SEGMENTS.some((seg) => path.includes(seg))
 }
 
 export function filterBacklinks(
@@ -143,11 +83,6 @@ export function filterBacklinks(
   log.info("filter complete", { total: result.length })
 
   return result
-}
-
-/** True when a domain (or URL) belongs to a big aggregator/social we never pitch. */
-export function isNoiseDomain(domainOrUrl: string): boolean {
-  return matchesNoiseDomain(extractDomainFromUrl(domainOrUrl))
 }
 
 export { extractDomainFromUrl }

@@ -1,5 +1,6 @@
 import cron from "node-cron"
 import { deactivateExpiredFreeTrials } from "./deactivate-expired-free-trials.js"
+import { runDailyBacklinkDiscovery } from "./daily-backlink-discovery.js"
 import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
 import { updateDirectorySeoMetrics } from "./update-directory-seo-metrics.js"
 
@@ -34,4 +35,13 @@ export function registerJobs(): void {
     }
   })
   console.log("[cron] Scheduled: feedback email sequence (hourly)")
+
+  cron.schedule("0 7 * * *", async () => {
+    try {
+      await runDailyBacklinkDiscovery()
+    } catch (err) {
+      console.error("[cron] Error running daily backlink discovery:", err)
+    }
+  })
+  console.log("[cron] Scheduled: daily backlink discovery (07:00 UTC)")
 }

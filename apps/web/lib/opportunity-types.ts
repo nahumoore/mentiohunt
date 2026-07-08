@@ -6,6 +6,7 @@ export type OpportunityType =
   | "competitor_backlinks"
   | "unlinked_mentions"
   | "listicle_roundups"
+  | "resource_page_inclusions"
 
 export type ProspectTier = Database["public"]["Enums"]["prospect_tier"]
 
@@ -13,6 +14,7 @@ export const DEFAULT_PROSPECT_TIERS = [
   "competitor_backlink",
   "unlinked_mention",
   "listicle_roundup",
+  "resource_page_inclusion",
 ] satisfies ProspectTier[]
 
 export interface TypeConfig {
@@ -44,12 +46,20 @@ export const TYPE_CONFIG: Record<OpportunityType, TypeConfig> = {
     icon: IconListNumbers,
     color: "text-blue-600 bg-blue-500/10",
   },
+  resource_page_inclusions: {
+    label: "Resource Page Inclusions",
+    description:
+      "Curated resource pages where one of your existing pages would be a useful addition for readers.",
+    icon: IconLink,
+    color: "text-emerald-600 bg-emerald-500/10",
+  },
 }
 
 export const OPPORTUNITY_TYPE_TO_PROSPECT_TIER = {
   competitor_backlinks: "competitor_backlink",
   unlinked_mentions: "unlinked_mention",
   listicle_roundups: "listicle_roundup",
+  resource_page_inclusions: "resource_page_inclusion",
 } satisfies Record<OpportunityType, ProspectTier>
 
 export const PROSPECT_TIER_CONFIG: Record<ProspectTier, TypeConfig> = {
@@ -70,5 +80,11 @@ export const PROSPECT_TIER_CONFIG: Record<ProspectTier, TypeConfig> = {
     label: "Listicle roundup",
     description:
       "A \"best of\" or \"top alternatives\" post ranking in your niche that doesn't list your product yet.",
+  },
+  resource_page_inclusion: {
+    ...TYPE_CONFIG.resource_page_inclusions,
+    label: "Resource page inclusion",
+    description:
+      "A curated resource page where one of your existing pages would be a useful addition.",
   },
 }

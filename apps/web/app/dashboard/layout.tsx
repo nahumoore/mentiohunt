@@ -17,6 +17,7 @@ const DEFAULT_DISCOVERY_SETTINGS: DiscoverySettings = {
     "competitor_backlinks",
     "unlinked_mentions",
     "listicle_roundups",
+    "resource_page_inclusions",
   ],
   drMin: 0,
   drMax: null,
@@ -45,7 +46,8 @@ function mapDiscoverySettings(
     opportunityTypes: settings.opportunity_types.map((type) => {
       if (type === "competitor_backlink") return "competitor_backlinks"
       if (type === "unlinked_mention") return "unlinked_mentions"
-      return "listicle_roundups"
+      if (type === "listicle_roundup") return "listicle_roundups"
+      return "resource_page_inclusions"
     }),
     drMin: settings.dr_min,
     drMax: settings.dr_max,
@@ -137,7 +139,7 @@ export default async function DashboardLayout({
       supabase
         .from("backlink_prospects")
         .select(
-          "id, product_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, domain_rating, site_relevance_score"
+          "id, product_id, product_page_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, domain_rating, site_relevance_score"
         )
         .eq("product_id", product.id)
         .order("discovered_at", { ascending: false }),
@@ -181,7 +183,6 @@ export default async function DashboardLayout({
       console.error("Error fetching backlink prospects:", prospectsError)
     }
 
-    prospects = prospectRows ?? []
     hasCompletedProspectRun = !lastProspectRunResult.error && lastProspectRunResult.data !== null
 
     if (directoriesResult.error) {
@@ -219,6 +220,14 @@ export default async function DashboardLayout({
     } else {
       pages = pagesResult.data ?? []
     }
+
+    const pageById = new Map(pages.map((page) => [page.id, page]))
+    prospects = (prospectRows ?? []).map((prospect) => ({
+      ...prospect,
+      source_page: prospect.product_page_id
+        ? (pageById.get(prospect.product_page_id) ?? null)
+        : null,
+    }))
   }
 
   const sidebarUser = {

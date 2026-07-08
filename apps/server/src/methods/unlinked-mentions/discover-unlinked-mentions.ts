@@ -9,11 +9,8 @@ import { getDomainRating } from "../../helpers/ahrefs/get-domain-rating.js"
 import { createLogger } from "../../helpers/logger.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../competitor-backlinks/discover-competitor-backlinks.js"
 import { resolveContactEmail } from "../competitor-backlinks/enrich-contact.js"
-import {
-  extractDomainFromUrl,
-  isNoiseDomain,
-  type FilterSettings,
-} from "../competitor-backlinks/filter-backlinks.js"
+import type { FilterSettings } from "../competitor-backlinks/filter-backlinks.js"
+import { extractDomainFromUrl, isNoiseDomain } from "../shared/url-filters.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import { generateOutreachSequence } from "../shared/generate-outreach-sequence.js"

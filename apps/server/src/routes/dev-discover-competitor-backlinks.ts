@@ -2,8 +2,8 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import { Router, type IRouter } from "express"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
 import { enrichContact } from "../methods/competitor-backlinks/enrich-contact.js"
-import { extractDomainFromUrl } from "../methods/competitor-backlinks/filter-backlinks.js"
 import { discoverCompetitorBacklinks } from "../methods/competitor-backlinks/discover-competitor-backlinks.js"
+import { extractDomainFromUrl } from "../methods/shared/url-filters.js"
 
 const log = createLogger("route-dev-discover-competitor-backlinks")
 

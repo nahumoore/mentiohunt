@@ -8,7 +8,7 @@ const log = createLogger("generate-outreach-sequence")
 
 const MAX_USER_INPUT_LENGTH = 400
 
-export type OpportunityType = "competitor_backlink" | "unlinked_mention" | "listicle_roundup"
+export type OpportunityType = "competitor_backlink" | "unlinked_mention" | "listicle_roundup" | "resource_page_inclusion"
 
 export type OutreachContext =
   | {
@@ -22,6 +22,16 @@ export type OutreachContext =
       opportunityType: "unlinked_mention"
       title: string
       foundUrl: string
+    }
+  | {
+      opportunityType: "resource_page_inclusion"
+      title: string
+      foundUrl: string
+      targetUrl: string
+      targetTitle: string
+      targetDescription?: string | null
+      targetPageType: string
+      reason: string
     }
 
 export type OutreachSender = {
@@ -73,6 +83,17 @@ function buildFraming(context: OutreachContext): { situation: string; opening: s
     }
   }
 
+  if (context.opportunityType === "resource_page_inclusion") {
+    const targetTitle = context.targetTitle || "this resource"
+    const targetDescription = context.targetDescription ? `\nTarget page description: ${context.targetDescription}` : ""
+
+    return {
+      situation: `Prospect guide/resource page URL: ${context.foundUrl}\nProspect page title: ${context.title || "(unknown)"}\nSelected page to pitch: ${context.targetUrl}\nSelected page title: ${targetTitle}${targetDescription}\nSelected page type: ${context.targetPageType || "resource"}\nWhy it fits: ${context.reason || "The selected page appears useful for this prospect page's readers."}\nSituation: This is a resource page inclusion opportunity. The email must pitch the selected page, not the product homepage. Say that we have or created "${targetTitle}" and that it could be a good addition to their guide/resource page. The ask is to consider adding the selected page as an additional helpful resource for readers.`,
+      opening: `One sentence showing you noticed their specific guide/resource page by topic or title, not just the domain.\n- One sentence saying we have or created "${targetTitle}" and why that selected page would be useful for their readers, using the fit reason without sounding like an SEO pitch.`,
+      ask: `One short, direct ask — would they consider adding or referencing "${targetTitle}" on their guide/resource page if useful.`,
+    }
+  }
+
   const angle = buildAngle(context.pageType, context.competitorDomain)
   return {
     situation: `Anchor text used for competitor: ${context.anchor || "(unknown)"}\nOutreach angle: ${angle}`,
@@ -94,6 +115,16 @@ export async function generateOutreachSequence(
   const offering = sanitizeUserInput(sender.offering)
   const authorBio = sanitizeUserInput(sender.authorBio)
   const { situation, opening, ask } = buildFraming(context)
+  const resourcePageInstructions =
+    context.opportunityType === "resource_page_inclusion"
+      ? `
+Resource page inclusion rules:
+- Prioritize the selected page over the product. The product is only background; the selected page is the thing being suggested for inclusion.
+- Email 1 must say we have or created the selected page and that it could be a good addition to their guide/resource page.
+- Email 2 must bring one new reason the selected page would make their guide/resource page more useful. Keep the selected page as the subject of the note.
+- Email 3 must add a final useful angle or make it easy to ignore if they do not update that page anymore. Do not say only "happy to share more details" with no substance.
+`
+      : ""
 
   const systemInstructions = `You write a 3-email outreach sequence from one founder to another.
 
@@ -103,7 +134,7 @@ Website: ${product.website_url}
 
 Page title: ${context.title || "(unknown)"}
 ${situation}
-${voiceTone ? `\n<voice_tone>\n${voiceTone}\n</voice_tone>\n` : ""}${offering ? `\n<offering>\n${offering}\n</offering>\n` : ""}${authorBio ? `\n<author_bio>\n${authorBio}\n</author_bio>\n` : ""}
+${resourcePageInstructions}${voiceTone ? `\n<voice_tone>\n${voiceTone}\n</voice_tone>\n` : ""}${offering ? `\n<offering>\n${offering}\n</offering>\n` : ""}${authorBio ? `\n<author_bio>\n${authorBio}\n</author_bio>\n` : ""}
 Generate all 3 emails. Rules that apply to all:
 - Open each email with: ${greeting},
 - Separate each paragraph with a blank line.
@@ -128,7 +159,7 @@ Email 3 — final outreach:
 - Do not reference when previous emails were sent.
 - Make clear this is the last outreach, warmly.
 - Lead with the most compelling angle not yet covered${offering ? " — if <offering> has an item unused by emails 1 and 2, lead with that one" : ""}. Do not just repeat the ask again with no new substance.
-- End with a genuine goodbye, e.g. "No hard feelings if timing isn't right — I won't follow up after this."
+- End with a genuine goodbye, e.g. "No hard feelings if timing isn't right, I won't follow up after this."
 - After the sign-off, add a P.S. line reinforcing the goodbye.`
 
   try {

@@ -4,7 +4,8 @@ import { Router, type IRouter } from "express"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
 import { checkRateLimit } from "../helpers/rate-limit.js"
 import { extractBacklinks, extractCompetitorDomain } from "../methods/competitor-backlinks/extract-backlinks.js"
-import { filterBacklinks, extractDomainFromUrl, type TaggedBacklinkItem } from "../methods/competitor-backlinks/filter-backlinks.js"
+import { filterBacklinks, type TaggedBacklinkItem } from "../methods/competitor-backlinks/filter-backlinks.js"
+import { extractDomainFromUrl } from "../methods/shared/url-filters.js"
 
 const log = createLogger("free-tool-competitor-backlink-gap")
 

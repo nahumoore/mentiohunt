@@ -30,7 +30,7 @@ export function ProspectRealtimeSync() {
     const supabase = supabaseClient()
     const channels: ReturnType<typeof supabase.channel>[] = []
     let cancelled = false
-    const expectedStrategies = new Set(
+    const expectedStrategies = new Set<ProspectRun["strategy"]>(
       (opportunityTypes ?? []).map(
         (type) => OPPORTUNITY_TYPE_TO_PROSPECT_TIER[type]
       )

@@ -125,6 +125,7 @@ export type Database = {
           found_url: string | null
           id: string
           product_id: string
+          product_page_id: string | null
           raw_metadata: Json | null
           site_relevance_score: number | null
           status: Database["public"]["Enums"]["prospect_status"]
@@ -146,6 +147,7 @@ export type Database = {
           found_url?: string | null
           id?: string
           product_id: string
+          product_page_id?: string | null
           raw_metadata?: Json | null
           site_relevance_score?: number | null
           status?: Database["public"]["Enums"]["prospect_status"]
@@ -167,6 +169,7 @@ export type Database = {
           found_url?: string | null
           id?: string
           product_id?: string
+          product_page_id?: string | null
           raw_metadata?: Json | null
           site_relevance_score?: number | null
           status?: Database["public"]["Enums"]["prospect_status"]
@@ -186,6 +189,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backlink_prospects_product_page_id_fkey"
+            columns: ["product_page_id"]
+            isOneToOne: false
+            referencedRelation: "product_pages"
             referencedColumns: ["id"]
           },
         ]
@@ -703,6 +713,7 @@ export type Database = {
         | "competitor_backlink"
         | "unlinked_mention"
         | "listicle_roundup"
+        | "resource_page_inclusion"
       run_status: "pending" | "running" | "completed" | "failed"
     }
     CompositeTypes: {
@@ -868,6 +879,7 @@ export const Constants = {
         "competitor_backlink",
         "unlinked_mention",
         "listicle_roundup",
+        "resource_page_inclusion",
       ],
       run_status: ["pending", "running", "completed", "failed"],
     },

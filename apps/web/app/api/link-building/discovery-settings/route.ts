@@ -1,5 +1,8 @@
-import { OPPORTUNITY_TYPE_IDS, type OpportunityTypeId } from "@/consts/onboarding"
-import { OPPORTUNITY_TYPE_TO_PROSPECT_TIER } from "@/lib/opportunity-types"
+import {
+  OPPORTUNITY_TYPE_TO_PROSPECT_TIER,
+  TYPE_CONFIG,
+  type OpportunityType,
+} from "@/lib/opportunity-types"
 import { supabaseServer } from "@/lib/supabase/server"
 import type { TablesInsert } from "@workspace/supabase/database-types"
 import { NextResponse } from "next/server"
@@ -8,8 +11,8 @@ import { z } from "zod"
 export const runtime = "nodejs"
 
 const discoveryOpportunityTypes = [
-  ...OPPORTUNITY_TYPE_IDS,
-] as [OpportunityTypeId, ...OpportunityTypeId[]]
+  ...(Object.keys(TYPE_CONFIG) as OpportunityType[]),
+] as [OpportunityType, ...OpportunityType[]]
 
 const discoverySettingsSchema = z.object({
   opportunityTypes: z

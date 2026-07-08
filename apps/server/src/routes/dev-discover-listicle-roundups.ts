@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { Router, type IRouter } from "express"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
-import { discoverListicleRoundups } from "../methods/listicle-roundup/discover-listicle-roundups.js"
+import { discoverListicleRoundups } from "../methods/prospect-generation-methods/listicle-roundup/index.js"
 import { assignSequences } from "../processes/onboarding/prospect-sequences.js"
 
 const log = createLogger("route-dev-discover-listicle-roundups")

@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
 import { sendListicleAlertEmail } from "../helpers/emails/send-listicle-alert.js"
 import { createLogger } from "../helpers/logger.js"
-import { discoverListicleRoundups } from "../methods/listicle-roundup/discover-listicle-roundups.js"
+import { discoverListicleRoundups } from "../methods/prospect-generation-methods/listicle-roundup/index.js"
 import { assignSequences } from "../processes/onboarding/prospect-sequences.js"
 
 const log = createLogger("listicle-roundup-discovery")

@@ -1,14 +1,14 @@
 import {
   EMAIL_VERIFIER,
   type EmailVerificationResult,
-} from "../../helpers/actors/email-verifier.js"
+} from "../../../helpers/actors/email-verifier.js"
 import {
   SCRAPERLINK_GOOGLE_SERP,
   type GoogleSerpItem,
   type GoogleSerpResult,
-} from "../../helpers/actors/google-serp-scraper.js"
-import { runApifyActor } from "../../helpers/actors/run-apify-actor.js"
-import { createLogger } from "../../helpers/logger.js"
+} from "../../../helpers/actors/google-serp-scraper.js"
+import { runApifyActor } from "../../../helpers/actors/run-apify-actor.js"
+import { createLogger } from "../../../helpers/logger.js"
 import type { PageType } from "./score-backlink-relevance.js"
 import { isValidContactEmail, sanitizeContactName } from "./contact-validation.js"
 

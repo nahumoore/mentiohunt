@@ -1,6 +1,6 @@
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
-import { createLogger } from "../../helpers/logger.js"
+import { createLogger } from "../../../helpers/logger.js"
 
 const log = createLogger("score-site-relevance")
 

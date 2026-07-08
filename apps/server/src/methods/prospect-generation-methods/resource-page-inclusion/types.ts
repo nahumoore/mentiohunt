@@ -36,28 +36,6 @@ export type RunHistory = {
   lastRunByQueryKey: Map<string, string>
 }
 
-export type EnrichedColumns = {
-  contact_name: string | null
-  contact_email: string | null
-  contact_social_links: Record<string, string> | null
-  email_subject: string | null
-  email_body: string | null
-  step2_body: string | null
-  step3_body: string | null
-  raw_metadata: unknown
-}
-
-export const EMPTY_ENRICHMENT: EnrichedColumns = {
-  contact_name: null,
-  contact_email: null,
-  contact_social_links: null,
-  email_subject: null,
-  email_body: null,
-  step2_body: null,
-  step3_body: null,
-  raw_metadata: null,
-}
-
 export const DEFAULT_PAGE_TYPES = ["article", "resource", "free_tool", "comparison", "case_study"]
 
 export const DEFAULT_QUERY_TEMPLATES = [

@@ -1,8 +1,8 @@
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
-import { createLogger } from "../../helpers/logger.js"
-import { parseLlmJson } from "../../helpers/parse-llm-json.js"
-import { extractCompetitorDomain } from "../competitor-backlinks/extract-backlinks.js"
+import { createLogger } from "../../../helpers/logger.js"
+import { parseLlmJson } from "../../../helpers/parse-llm-json.js"
+import { extractCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
 
 const log = createLogger("build-listicle-queries")
 

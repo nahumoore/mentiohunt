@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { createLogger } from "../../helpers/logger.js"
-import type { ProspectCreatedPayload } from "../../methods/competitor-backlinks/discover-competitor-backlinks.js"
+import type { ProspectCreatedPayload } from "../../methods/prospect-generation-methods/shared/prospect-types.js"
 import { resolveEmailAccount } from "./resolve-email-account.js"
 
 const log = createLogger("onboarding-prospect-sequences")

@@ -1,5 +1,5 @@
 import type { BacklinkItem } from "./extract-backlinks.js"
-import { createLogger } from "../../helpers/logger.js"
+import { createLogger } from "../../../helpers/logger.js"
 import { extractDomainFromUrl, isNoisyUrl } from "../shared/url-filters.js"
 
 const log = createLogger("filter-backlinks")

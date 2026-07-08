@@ -1,9 +1,9 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { Router, type IRouter } from "express"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
-import { enrichContact } from "../methods/competitor-backlinks/enrich-contact.js"
-import { discoverUnlinkedMentions } from "../methods/unlinked-mentions/discover-unlinked-mentions.js"
-import { extractDomainFromUrl } from "../methods/shared/url-filters.js"
+import { enrichContact } from "../methods/prospect-generation-methods/competitor-backlink/enrich-contact.js"
+import { discoverUnlinkedMentions } from "../methods/prospect-generation-methods/unlinked-mention/index.js"
+import { extractDomainFromUrl } from "../methods/prospect-generation-methods/shared/url-filters.js"
 
 const log = createLogger("route-dev-discover-unlinked-mentions")
 

@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import { Router, type IRouter } from "express"
 import { sendResourcePageInclusionAlertEmail } from "../helpers/emails/send-resource-page-inclusion-alert.js"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
-import { discoverResourcePageInclusions } from "../methods/resource-page-inclusion/index.js"
+import { discoverResourcePageInclusions } from "../methods/prospect-generation-methods/resource-page-inclusion/index.js"
 
 const log = createLogger("route-dev-run-daily-backlink-discovery")
 

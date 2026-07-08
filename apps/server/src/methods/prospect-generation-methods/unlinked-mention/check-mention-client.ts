@@ -1,5 +1,5 @@
-import { createLogger } from "../../helpers/logger.js"
-import type { AgentScrapeResponse } from "../competitor-backlinks/enrich-contact.js"
+import { createLogger } from "../../../helpers/logger.js"
+import type { AgentScrapeResponse } from "../competitor-backlink/enrich-contact.js"
 
 const log = createLogger("check-mention-client")
 

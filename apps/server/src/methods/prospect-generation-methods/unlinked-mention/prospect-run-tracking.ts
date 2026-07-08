@@ -1,17 +1,15 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { createLogger } from "../../../helpers/logger.js"
 
-const log = createLogger("resource-page-inclusion-prospect-run")
+const log = createLogger("unlinked-mention-prospect-run")
 
-export async function createProspectRun(productId: string, input: unknown, dryRun: boolean): Promise<string | null> {
-  if (dryRun) return null
-
+export async function createProspectRun(productId: string, brandTerms: string[]): Promise<string | null> {
   const { data, error } = await supabaseAdmin
     .from("backlink_prospect_runs" as string)
     .insert({
       product_id: productId,
-      strategy: "resource_page_inclusion",
-      input,
+      strategy: "unlinked_mention",
+      input: { brand_terms: brandTerms },
       status: "running",
     })
     .select("id")
@@ -21,17 +19,10 @@ export async function createProspectRun(productId: string, input: unknown, dryRu
     log.warn("failed to create prospect run", { productId, error: error.message })
     return null
   }
-
   return (data as { id: string }).id
 }
 
-export async function completeProspectRun(
-  runId: string | null,
-  prospectsCreated: number,
-  costUsd: number,
-  metadata?: unknown
-): Promise<void> {
-  if (!runId) return
+export async function completeProspectRun(runId: string, prospectsCreated: number, costUsd: number): Promise<void> {
   await supabaseAdmin
     .from("backlink_prospect_runs" as string)
     .update({
@@ -39,13 +30,11 @@ export async function completeProspectRun(
       completed_at: new Date().toISOString(),
       prospects_created: prospectsCreated,
       cost_usd: costUsd,
-      metadata: metadata ?? null,
     })
     .eq("id", runId)
 }
 
-export async function failProspectRun(runId: string | null, error: string): Promise<void> {
-  if (!runId) return
+export async function failProspectRun(runId: string, error: string): Promise<void> {
   await supabaseAdmin
     .from("backlink_prospect_runs" as string)
     .update({ status: "failed", completed_at: new Date().toISOString(), error })

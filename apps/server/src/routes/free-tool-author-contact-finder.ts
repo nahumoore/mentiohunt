@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto"
 import { Router, type IRouter } from "express"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
 import { checkRateLimit } from "../helpers/rate-limit.js"
-import { enrichContact } from "../methods/competitor-backlinks/enrich-contact.js"
+import { enrichContact } from "../methods/prospect-generation-methods/competitor-backlink/enrich-contact.js"
 
 const log = createLogger("free-tool-author-contact-finder")
 

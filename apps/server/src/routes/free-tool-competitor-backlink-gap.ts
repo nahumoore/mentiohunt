@@ -1,11 +1,11 @@
 import { timingSafeEqual } from "node:crypto"
-import { generateCompetitorDomains } from "../methods/competitor-backlinks/generate-competitors.js"
+import { generateCompetitorDomains } from "../methods/prospect-generation-methods/competitor-backlink/generate-competitors.js"
 import { Router, type IRouter } from "express"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
 import { checkRateLimit } from "../helpers/rate-limit.js"
-import { extractBacklinks, extractCompetitorDomain } from "../methods/competitor-backlinks/extract-backlinks.js"
-import { filterBacklinks, type TaggedBacklinkItem } from "../methods/competitor-backlinks/filter-backlinks.js"
-import { extractDomainFromUrl } from "../methods/shared/url-filters.js"
+import { extractBacklinks, extractCompetitorDomain } from "../methods/prospect-generation-methods/competitor-backlink/extract-backlinks.js"
+import { filterBacklinks, type TaggedBacklinkItem } from "../methods/prospect-generation-methods/competitor-backlink/filter-backlinks.js"
+import { extractDomainFromUrl } from "../methods/prospect-generation-methods/shared/url-filters.js"
 
 const log = createLogger("free-tool-competitor-backlink-gap")
 

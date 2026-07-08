@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
-import { createLogger } from "../../helpers/logger.js"
+import { createLogger } from "../../../helpers/logger.js"
 import { queryKey, readObjectArray, readStringArray, rememberLatest } from "./helpers.js"
 import type { RunHistory } from "./types.js"
 

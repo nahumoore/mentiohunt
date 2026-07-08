@@ -1,5 +1,5 @@
-import { getBacklinks } from "../../helpers/data-for-seo/get-backlinks.js"
-import { createLogger } from "../../helpers/logger.js"
+import { getBacklinks } from "../../../helpers/data-for-seo/get-backlinks.js"
+import { createLogger } from "../../../helpers/logger.js"
 
 const log = createLogger("extract-competitor-backlinks")
 

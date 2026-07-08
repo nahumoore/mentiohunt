@@ -5,8 +5,8 @@ import { createLogger, withRouteLog } from "../helpers/logger.js"
 import {
   discoverResourcePageInclusions,
   type ResourcePageInclusionOptions,
-} from "../methods/resource-page-inclusion/index.js"
-import type { ProspectCreatedPayload } from "../methods/competitor-backlinks/discover-competitor-backlinks.js"
+} from "../methods/prospect-generation-methods/resource-page-inclusion/index.js"
+import type { ProspectCreatedPayload } from "../methods/prospect-generation-methods/shared/prospect-types.js"
 import { assignSequences, createSequencesForProspect } from "../processes/onboarding/prospect-sequences.js"
 import { resolveEmailAccount } from "../processes/onboarding/resolve-email-account.js"
 

@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
 import { sendResourcePageInclusionAlertEmail } from "../helpers/emails/send-resource-page-inclusion-alert.js"
 import { createLogger } from "../helpers/logger.js"
-import { discoverResourcePageInclusions } from "../methods/resource-page-inclusion/index.js"
+import { discoverResourcePageInclusions } from "../methods/prospect-generation-methods/resource-page-inclusion/index.js"
 
 const log = createLogger("daily-backlink-discovery")
 

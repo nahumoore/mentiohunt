@@ -1,4 +1,4 @@
-import { createLogger } from "../../helpers/logger.js"
+import { createLogger } from "../../../helpers/logger.js"
 
 const log = createLogger("check-listicle-client")
 

@@ -1,8 +1,8 @@
 import pLimit from "p-limit"
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
-import { createLogger } from "../../helpers/logger.js"
-import { parseLlmJson } from "../../helpers/parse-llm-json.js"
+import { createLogger } from "../../../helpers/logger.js"
+import { parseLlmJson } from "../../../helpers/parse-llm-json.js"
 
 const log = createLogger("score-mention-relevance")
 

@@ -1,7 +1,7 @@
 import { generateText } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
-import { extractPageContent } from "../../helpers/html-extract.js"
-import { createLogger } from "../../helpers/logger.js"
+import { extractPageContent } from "../../../helpers/html-extract.js"
+import { createLogger } from "../../../helpers/logger.js"
 
 const log = createLogger("generate-backlink-competitors")
 

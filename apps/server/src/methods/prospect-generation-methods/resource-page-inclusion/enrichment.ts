@@ -1,34 +1,13 @@
-import pLimit from "p-limit"
-import { getDomainRating } from "../../helpers/ahrefs/get-domain-rating.js"
-import { createLogger } from "../../helpers/logger.js"
-import type { EmailSettings } from "../competitor-backlinks/discover-competitor-backlinks.js"
-import { enrichContact } from "../competitor-backlinks/enrich-contact.js"
+import { createLogger } from "../../../helpers/logger.js"
+import { enrichContact } from "../competitor-backlink/enrich-contact.js"
 import { generateOutreachSequence } from "../shared/generate-outreach-sequence.js"
+import { EMPTY_ENRICHMENT, type EmailSettings, type EnrichedColumns } from "../shared/prospect-types.js"
 import type { ScoredResourceInclusionCandidate } from "./score-resource-page-inclusion.js"
-import { EMPTY_ENRICHMENT, type EnrichedColumns, type Product } from "./types.js"
+import type { Product } from "./types.js"
 
 const log = createLogger("resource-page-inclusion-enrichment")
 
-export async function enrichDomainRatings(domains: string[]): Promise<Map<string, number | null>> {
-  const map = new Map<string, number | null>()
-  if (domains.length === 0) return map
-
-  try {
-    const limit = pLimit(5)
-    await Promise.all(
-      domains.map((domain) =>
-        limit(async () => {
-          const rating = await getDomainRating(domain)
-          map.set(domain, rating)
-        })
-      )
-    )
-  } catch (err) {
-    log.warn("DR enrichment failed", { error: String(err) })
-  }
-
-  return map
-}
+export { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
 
 export async function enrichResourceInclusion(
   item: ScoredResourceInclusionCandidate,

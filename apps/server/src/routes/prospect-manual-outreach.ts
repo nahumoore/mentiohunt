@@ -4,12 +4,12 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
 import { createSequencesForProspect } from "../processes/onboarding/prospect-sequences.js"
 import { resolveEmailAccount } from "../processes/onboarding/resolve-email-account.js"
-import { resolveSenderName } from "../methods/shared/resolve-sender-name.js"
+import { resolveSenderName } from "../methods/prospect-generation-methods/shared/resolve-sender-name.js"
 import {
   generateOutreachSequence,
   type OutreachContext,
-} from "../methods/shared/generate-outreach-sequence.js"
-import type { PageType } from "../methods/competitor-backlinks/score-backlink-relevance.js"
+} from "../methods/prospect-generation-methods/shared/generate-outreach-sequence.js"
+import type { PageType } from "../methods/prospect-generation-methods/competitor-backlink/score-backlink-relevance.js"
 
 const log = createLogger("route-prospect-manual-outreach")
 

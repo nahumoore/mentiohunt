@@ -1,8 +1,8 @@
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
-import { createLogger } from "../../helpers/logger.js"
-import { sanitizeContactName } from "../competitor-backlinks/contact-validation.js"
-import type { PageType } from "../competitor-backlinks/score-backlink-relevance.js"
+import { createLogger } from "../../../helpers/logger.js"
+import { sanitizeContactName } from "../competitor-backlink/contact-validation.js"
+import type { PageType } from "../competitor-backlink/score-backlink-relevance.js"
 
 const log = createLogger("generate-outreach-sequence")
 

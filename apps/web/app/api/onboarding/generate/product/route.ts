@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   try {
     const input = ["Homepage signals:", JSON.stringify(body.site, null, 2)].join("\n")
     const output = await generateText({ input, systemInstructions })
-    const parsed = productInfoSchema.safeParse(JSON.parse(extractJsonObject(output)))
+    const parsed = productInfoSchema.safeParse(JSON.parse(extractJsonObject(output.text)))
 
     if (!parsed.success) {
       return NextResponse.json({ error: "Failed to generate product info." }, { status: 502 })

@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       .filter(Boolean)
       .join("\n")
     const output = await generateText({ input, systemInstructions })
-    const result = competitorsSchema.safeParse(JSON.parse(extractJsonObject(output)))
+    const result = competitorsSchema.safeParse(JSON.parse(extractJsonObject(output.text)))
 
     if (!result.success) {
       return NextResponse.json({ error: "Failed to generate competitors." }, { status: 502 })

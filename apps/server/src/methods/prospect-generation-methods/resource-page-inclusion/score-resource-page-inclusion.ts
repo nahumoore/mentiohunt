@@ -145,9 +145,9 @@ async function scoreBatch(
   let lastErr: unknown
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
     try {
-      const { text, cost } = await generateTextWithUsage({
+      const { text, cost, finishReason, promptTokens, completionTokens, modelUsed } = await generateTextWithUsage({
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
-        fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
         systemInstructions: SYSTEM_INSTRUCTIONS(product),
         thinkingBudget: 2000,
         input: `Candidates:\n${JSON.stringify(payload, null, 2)}`,
@@ -166,7 +166,16 @@ async function scoreBatch(
       try {
         parsed = parseLlmJson<typeof parsed>(text)
       } catch (parseErr) {
-        log.warn("json parse failed", { error: String(parseErr), rawResponse: text })
+        log.warn("json parse failed", {
+          error: String(parseErr),
+          rawResponse: text,
+          finishReason,
+          promptTokens,
+          completionTokens,
+        })
+        if (finishReason === "length") {
+          throw new Error(`TRUNCATED_JSON_RESPONSE: ${String(parseErr)}`)
+        }
         return { results: [], cost: 0 }
       }
 
@@ -185,6 +194,8 @@ async function scoreBatch(
         })
         .filter((r): r is ScoredResourceInclusionCandidate => r !== null)
 
+      log.info("batch scored", { model: modelUsed, items: scored.length })
+
       for (const r of scored) {
         log.info("scored item", {
           url: r.url,
@@ -202,9 +213,10 @@ async function scoreBatch(
       const msg = String(err)
       const isRateLimit = msg.includes("rate_limit_exceeded") || msg.includes('"code":429') || msg.includes("429")
       const isEmptyCompletion = msg.includes("did not include text content")
-      if ((isRateLimit || isEmptyCompletion) && attempt < RETRY_DELAYS_MS.length) {
+      const isTruncated = msg.includes("TRUNCATED_JSON_RESPONSE")
+      if ((isRateLimit || isEmptyCompletion || isTruncated) && attempt < RETRY_DELAYS_MS.length) {
         const delay = RETRY_DELAYS_MS[attempt]!
-        log.warn(isEmptyCompletion ? "empty completion, retrying" : "rate limited, retrying", {
+        log.warn(isTruncated ? "truncated json response, retrying" : isEmptyCompletion ? "empty completion, retrying" : "rate limited, retrying", {
           attempt: attempt + 1,
           delay_ms: delay,
         })

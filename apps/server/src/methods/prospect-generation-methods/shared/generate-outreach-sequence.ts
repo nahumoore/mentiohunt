@@ -163,8 +163,9 @@ Email 3 — final outreach:
 - After the sign-off, add a P.S. line reinforcing the goodbye.`
 
   try {
-    const { text, cost } = await generateTextWithUsage({
+    const { text, cost, modelUsed } = await generateTextWithUsage({
       model: OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5,
+      fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
       systemInstructions,
       input: "Draft the outreach subject line and all 3 emails.",
       responseFormat: {
@@ -197,6 +198,7 @@ Email 3 — final outreach:
       opportunityType: context.opportunityType,
       subject: parsed.email_subject,
       cost_usd: cost.toFixed(4),
+      model: modelUsed,
     })
     return {
       subject: parsed.email_subject,

@@ -131,9 +131,9 @@ async function scoreBatch(
   let lastErr: unknown
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
     try {
-      const { text, cost } = await generateTextWithUsage({
+      const { text, cost, modelUsed } = await generateTextWithUsage({
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
-        fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
         systemInstructions: SYSTEM_INSTRUCTIONS(product),
         thinkingBudget: 2000,
         input: `Pages:\n${JSON.stringify(payload, null, 2)}`,
@@ -162,6 +162,8 @@ async function scoreBatch(
           }
         })
         .filter((r): r is ScoredBacklinkItem => r !== null)
+
+      log.info("batch scored", { model: modelUsed, items: scored.length })
 
       for (const r of scored) {
         log.info("scored item", {

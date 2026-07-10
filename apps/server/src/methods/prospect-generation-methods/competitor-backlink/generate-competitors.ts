@@ -87,8 +87,9 @@ export async function generateCompetitorDomains(websiteUrl: string): Promise<str
     `Homepage body text: ${page.text || ""}`,
   ].join("\n")
 
-  const text = await generateText({
+  const { text, modelUsed } = await generateText({
     model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
+    fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
     systemInstructions,
     input,
     responseFormat: {
@@ -118,7 +119,7 @@ export async function generateCompetitorDomains(websiteUrl: string): Promise<str
     throw new Error("Failed to generate competitors")
   }
 
-  log.info("competitors generated", { websiteDomain, competitors })
+  log.info("competitors generated", { websiteDomain, competitors, model: modelUsed })
 
   return competitors
 }

@@ -59,17 +59,19 @@ export async function buildListicleQueries(product: {
 
   let categories: string[] = []
   let cost = 0
+  let modelUsed: string | null = null
 
   try {
-    const { text, cost: callCost } = await generateTextWithUsage({
+    const { text, cost: callCost, modelUsed: usedModel } = await generateTextWithUsage({
       model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
-      fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+      fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
       systemInstructions: SYSTEM_INSTRUCTIONS,
       thinkingBudget: 1000,
       input: `Product: ${product.product_name}\nDescription: ${product.product_description}`,
       responseFormat: RESPONSE_FORMAT,
     })
     cost = callCost
+    modelUsed = usedModel
     const parsed = parseLlmJson<{ categories?: unknown }>(text)
     categories = Array.isArray(parsed.categories)
       ? parsed.categories
@@ -104,6 +106,7 @@ export async function buildListicleQueries(product: {
     categories,
     competitorCount: product.competitors?.length ?? 0,
     poolSize: finalQueries.length,
+    model: modelUsed,
   })
 
   return { queries: finalQueries, cost }

@@ -46,10 +46,23 @@ type ChatCompletionResponse = {
   }>
   usage?: {
     cost?: number
+    prompt_tokens?: number
+    completion_tokens?: number
+    total_tokens?: number
   }
   error?: {
     message?: string
   }
+}
+
+export type GenerateTextUsageMeta = {
+  finishReason: string | null
+  promptTokens: number | null
+  completionTokens: number | null
+}
+
+export type GenerateTextModelMeta = {
+  modelUsed: string
 }
 
 async function callModel(
@@ -58,7 +71,7 @@ async function callModel(
   responseFormat: Required<Pick<GenerateTextOptions, "responseFormat">>["responseFormat"],
   thinkingBudget: number | undefined,
   timeoutMs: number
-): Promise<{ text: string; cost: number }> {
+): Promise<{ text: string; cost: number } & GenerateTextUsageMeta> {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -96,14 +109,19 @@ async function callModel(
   const content = message?.content
   const reasoning = message?.reasoning
   const cost = data?.usage?.cost ?? 0
+  const usageMeta: GenerateTextUsageMeta = {
+    finishReason: choice?.finish_reason ?? null,
+    promptTokens: data?.usage?.prompt_tokens ?? null,
+    completionTokens: data?.usage?.completion_tokens ?? null,
+  }
 
   if (typeof content === "string" && content.length > 0) {
-    return { text: content, cost }
+    return { text: content, cost, ...usageMeta }
   } else if (content !== undefined && content !== null) {
-    return { text: JSON.stringify(content), cost }
+    return { text: JSON.stringify(content), cost, ...usageMeta }
   } else if (typeof reasoning === "string" && reasoning.length > 0) {
     // Reasoning models (e.g. z-ai/glm-4.7-flash) emit output in the reasoning field, content is null
-    return { text: reasoning, cost }
+    return { text: reasoning, cost, ...usageMeta }
   } else {
     throw new Error(
       `OpenRouter response did not include text content (status=${response.status}, finish_reason=${choice?.finish_reason ?? "unknown"}): ${rawText ? rawText.slice(0, 1000) : "<empty body>"}`
@@ -120,7 +138,9 @@ async function generateStructuredText({
   timeoutMs = 30_000,
   responseFormat,
 }: Required<Pick<GenerateTextOptions, "model" | "input" | "responseFormat">> &
-  Pick<GenerateTextOptions, "fallbackModels" | "systemInstructions" | "thinkingBudget" | "timeoutMs">): Promise<{ text: string; cost: number }> {
+  Pick<GenerateTextOptions, "fallbackModels" | "systemInstructions" | "thinkingBudget" | "timeoutMs">): Promise<
+  { text: string; cost: number } & GenerateTextUsageMeta & GenerateTextModelMeta
+> {
   const messages = [
     ...(systemInstructions
       ? [{ role: "system" as const, content: systemInstructions }]
@@ -129,7 +149,7 @@ async function generateStructuredText({
   ]
 
   const modelsToTry = [model, ...(fallbackModels ?? [])]
-  let lastErr: unknown
+  const attemptErrors: string[] = []
 
   for (let i = 0; i < modelsToTry.length; i++) {
     const modelId = modelsToTry[i]!
@@ -139,9 +159,9 @@ async function generateStructuredText({
       if (isFallback) {
         console.warn(`[openrouter] fallback model succeeded: ${modelId} (primary: ${modelsToTry[0]})`)
       }
-      return result
+      return { ...result, modelUsed: modelId }
     } catch (err) {
-      lastErr = err
+      attemptErrors.push(`${modelId}: ${String(err)}`)
       if (isFallback) {
         console.warn(`[openrouter] fallback model failed: ${modelId} — ${String(err)}`)
       } else if (modelsToTry.length > 1) {
@@ -150,7 +170,7 @@ async function generateStructuredText({
     }
   }
 
-  throw lastErr
+  throw new Error(`All models failed — ${attemptErrors.join(" | ")}`)
 }
 
 export async function generateText({
@@ -161,9 +181,9 @@ export async function generateText({
   thinkingBudget,
   timeoutMs,
   responseFormat,
-}: GenerateTextOptions): Promise<string> {
+}: GenerateTextOptions): Promise<{ text: string } & GenerateTextModelMeta> {
   if (responseFormat) {
-    const { text } = await generateStructuredText({
+    const { text, modelUsed } = await generateStructuredText({
       model,
       fallbackModels,
       input,
@@ -172,7 +192,7 @@ export async function generateText({
       timeoutMs,
       responseFormat,
     })
-    return text
+    return { text, modelUsed }
   }
 
   const openrouter = new OpenRouter({
@@ -185,7 +205,8 @@ export async function generateText({
     instructions: systemInstructions,
   })
 
-  return await result.getText()
+  const text = await result.getText()
+  return { text, modelUsed: model }
 }
 
 export async function generateTextWithUsage({
@@ -196,7 +217,9 @@ export async function generateTextWithUsage({
   thinkingBudget,
   timeoutMs,
   responseFormat,
-}: GenerateTextOptions): Promise<{ text: string; cost: number }> {
+}: GenerateTextOptions): Promise<
+  { text: string; cost: number } & Partial<GenerateTextUsageMeta> & GenerateTextModelMeta
+> {
   if (responseFormat) {
     return generateStructuredText({
       model,
@@ -220,5 +243,5 @@ export async function generateTextWithUsage({
   })
 
   const text = await result.getText()
-  return { text, cost: 0 }
+  return { text, cost: 0, modelUsed: model }
 }

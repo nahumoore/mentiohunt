@@ -2,14 +2,22 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { mkdir, appendFile } from "node:fs/promises";
 import path from "node:path";
 import { inspect } from "node:util";
+import { supabaseAdmin } from "@workspace/supabase/admin";
 
 type LogLevel = "info" | "success" | "warn" | "error" | "debug";
 
 type LogDetails = Record<string, unknown>;
-type RouteLogContext = {
-  filePath: string;
-  writeQueue: Promise<void>;
+type LogEntry = {
+  timestamp: string;
+  level: LogLevel;
+  scope: string;
+  message: string;
+  details?: LogDetails;
 };
+
+type RouteLogContext =
+  | { mode: "file"; filePath: string; writeQueue: Promise<void> }
+  | { mode: "db"; entries: LogEntry[] };
 
 const isDev = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "dev";
 const routeLogStorage = new AsyncLocalStorage<RouteLogContext>();
@@ -40,33 +48,40 @@ function formatRouteNameForFilename(routeName: string): string {
   return routeName.trim().replace(/[^a-zA-Z0-9._-]/g, "-") || "route";
 }
 
-function formatFileLine(level: LogLevel, scope: string, message: string, details?: LogDetails): string {
-  const config = levels[level];
-  const timestamp = new Date().toISOString();
-  const detailText = details ? ` ${inspect(details, { colors: false, depth: null, breakLength: Infinity })}` : "";
+function formatFileLine(entry: LogEntry): string {
+  const config = levels[entry.level];
+  const detailText = entry.details
+    ? ` ${inspect(entry.details, { colors: false, depth: null, breakLength: Infinity })}`
+    : "";
 
-  return `${timestamp} ${config.label} [${scope}] ${message}${detailText}\n`;
+  return `${entry.timestamp} ${config.label} [${entry.scope}] ${entry.message}${detailText}\n`;
 }
 
-function appendRouteLog(line: string): void {
+function recordEntry(entry: LogEntry): void {
   const context = routeLogStorage.getStore();
   if (!context) return;
 
-  context.writeQueue = context.writeQueue
-    .then(() => appendFile(context.filePath, line, "utf8"))
-    .catch((error: unknown) => {
-      console.warn(`Failed to write route log ${context.filePath}:`, error);
-    });
+  if (context.mode === "file") {
+    context.writeQueue = context.writeQueue
+      .then(() => appendFile(context.filePath, formatFileLine(entry), "utf8"))
+      .catch((error: unknown) => {
+        console.warn(`Failed to write route log ${context.filePath}:`, error);
+      });
+    return;
+  }
+
+  context.entries.push(entry);
 }
 
 function write(level: LogLevel, scope: string, message: string, details?: LogDetails): void {
+  recordEntry({ timestamp: new Date().toISOString(), level, scope, message, details });
+
   const isAlwaysLog = level === "error" || level === "warn";
   if (!isDev && !isAlwaysLog) return;
 
   const config = levels[level];
   const timestamp = new Date().toISOString().slice(11, 23);
   const prefix = `${dim}${timestamp}${reset} ${config.color}${config.label}${reset} ${dim}[${scope}]${reset}`;
-  appendRouteLog(formatFileLine(level, scope, message, details));
 
   if (details) {
     console[config.method](`${prefix} ${message}`, details);
@@ -86,9 +101,7 @@ export function createLogger(scope: string) {
   };
 }
 
-export async function withRouteLog<T>(routeName: string, run: () => Promise<T>): Promise<T> {
-  if (!isDev) return run();
-
+async function runWithFileLog<T>(routeName: string, run: () => Promise<T>): Promise<T> {
   const fileName = `${formatRouteNameForFilename(routeName)}-${formatDatetimeForFilename(new Date())}.txt`;
   const filePath = path.resolve(process.cwd(), ".logs", fileName);
 
@@ -99,10 +112,7 @@ export async function withRouteLog<T>(routeName: string, run: () => Promise<T>):
     return run();
   }
 
-  const context: RouteLogContext = {
-    filePath,
-    writeQueue: Promise.resolve(),
-  };
+  const context: RouteLogContext = { mode: "file", filePath, writeQueue: Promise.resolve() };
 
   return routeLogStorage.run(context, async () => {
     write("info", routeName, "route execution started", { logFile: filePath });
@@ -114,4 +124,53 @@ export async function withRouteLog<T>(routeName: string, run: () => Promise<T>):
       await context.writeQueue;
     }
   });
+}
+
+async function runWithDbLog<T>(routeName: string, run: () => Promise<T>): Promise<T> {
+  const context: RouteLogContext = { mode: "db", entries: [] };
+  const startedAt = new Date();
+
+  return routeLogStorage.run(context, async () => {
+    write("info", routeName, "route execution started");
+
+    try {
+      const result = await run();
+      write("info", routeName, "route execution finished");
+      await persistDbLog(routeName, context, startedAt, "success");
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      write("error", routeName, "route execution failed", { error: message });
+      await persistDbLog(routeName, context, startedAt, "error", message);
+      throw error;
+    }
+  });
+}
+
+async function persistDbLog(
+  routeName: string,
+  context: Extract<RouteLogContext, { mode: "db" }>,
+  startedAt: Date,
+  status: "success" | "error",
+  error?: string,
+): Promise<void> {
+  const finishedAt = new Date();
+
+  const { error: insertError } = await supabaseAdmin.from("route_execution_logs").insert({
+    route_name: routeName,
+    status,
+    started_at: startedAt.toISOString(),
+    finished_at: finishedAt.toISOString(),
+    duration_ms: finishedAt.getTime() - startedAt.getTime(),
+    entries: context.entries,
+    error: error ?? null,
+  });
+
+  if (insertError) {
+    console.warn(`Failed to persist route log for ${routeName}:`, insertError.message);
+  }
+}
+
+export async function withRouteLog<T>(routeName: string, run: () => Promise<T>): Promise<T> {
+  return isDev ? runWithFileLog(routeName, run) : runWithDbLog(routeName, run);
 }

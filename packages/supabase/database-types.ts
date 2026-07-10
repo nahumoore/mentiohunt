@@ -668,6 +668,69 @@ export type Database = {
           },
         ]
       }
+      route_execution_logs: {
+        Row: {
+          cost_usd: number | null
+          duration_ms: number | null
+          entries: Json
+          error: string | null
+          finished_at: string | null
+          id: string
+          metadata: Json | null
+          product_id: string | null
+          request: Json | null
+          route_name: string
+          started_at: string
+          status: Database["public"]["Enums"]["route_log_status"]
+          user_id: string | null
+        }
+        Insert: {
+          cost_usd?: number | null
+          duration_ms?: number | null
+          entries?: Json
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          request?: Json | null
+          route_name: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["route_log_status"]
+          user_id?: string | null
+        }
+        Update: {
+          cost_usd?: number | null
+          duration_ms?: number | null
+          entries?: Json
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          request?: Json | null
+          route_name?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["route_log_status"]
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_execution_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_execution_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -714,6 +777,7 @@ export type Database = {
         | "unlinked_mention"
         | "listicle_roundup"
         | "resource_page_inclusion"
+      route_log_status: "running" | "success" | "error"
       run_status: "pending" | "running" | "completed" | "failed"
     }
     CompositeTypes: {
@@ -881,6 +945,7 @@ export const Constants = {
         "listicle_roundup",
         "resource_page_inclusion",
       ],
+      route_log_status: ["running", "success", "error"],
       run_status: ["pending", "running", "completed", "failed"],
     },
   },

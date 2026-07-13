@@ -13,11 +13,8 @@ export function BigTestimonial() {
       </div>
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
-        <figure className="relative mx-auto max-w-5xl overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-[0_22px_80px_-58px_rgba(0,0,0,0.55)]">
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-blaze-orange)]/80 to-transparent" />
-          <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-[var(--color-blaze-orange)]/8 blur-3xl" />
-
-          <div className="relative grid gap-6 p-5 sm:p-6 md:grid-cols-[11rem_minmax(0,1fr)] md:items-center lg:p-8">
+        <figure className="relative mx-auto max-w-5xl">
+          <div className="relative grid gap-6 sm:gap-8 md:grid-cols-[11rem_minmax(0,1fr)] md:items-center">
             <div className="relative h-40 overflow-hidden rounded-[1.35rem] bg-muted sm:h-44 md:h-48">
               <Image
                 src={UserTestimonial}
@@ -49,7 +46,7 @@ export function BigTestimonial() {
                 </blockquote>
               </div>
 
-              <div className="mt-6 flex flex-col gap-1 border-t border-border/80 pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-heading text-base font-semibold tracking-tight text-foreground">
                     Logan Stuart

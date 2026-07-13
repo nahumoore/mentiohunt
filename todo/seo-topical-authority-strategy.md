@@ -4,20 +4,23 @@ GSC-validated 2026-07-13. Site still young (~50 clicks total) — positions/impr
 
 **Already built (don't rebuild):** pillar `saas-backlink-building`; articles `link-building-outreach-email`, `how-to-find-backlink-opportunities`, `resource-page-link-building`, `unlinked-brand-mentions`, `guest-posting-for-saas`, `haro-link-building`; full `backlinks-from/*` (11 pages); `alternatives/*` (7); `compare/*` (3); `free-tools` incl. anchor-text-generator. Monitoring-era pages already removed from code.
 
-## Fixes first (highest ROI — built pages underperforming)
+## PHASE 1: Fixes first (highest ROI — built pages underperforming) — DONE 2026-07-13
 
-- **`link-building-outreach-email` slipped hard:** pos 20.7 → 43.8 on 190 impr. Add internal links from pillar + related articles.
-- **`how-to-find-backlink-opportunities`:** 417 impr (site's highest), stuck pos 49. Authority problem, not coverage — internal links in + sharpen, don't add keywords.
-- **Refresh `backlinks-from/pinterest`:** 249 impr pos 23.8 = biggest single win. Cover nofollow reality + dofollow paths + examples. Then quora (pos 18.4), reddit (pos 16.4), wikipedia (pos 38).
-- **Pitchbox buyer intent:** expand `alternatives/best-pitchbox-alternative-for-founders` (pos 43, 167 impr) with real pricing breakdown + honest review (fits transparency positioning). GSC: pitchbox pricing (39), pitchbox (35), pitchbox price (26), pitchbox review.
-- **`/alternatives` hub cleanup:** 388 impr, pos 55.68, 0.26% CTR — matching off-topic "X alternative" queries (trengo, zutrix, socialhose, eclincher, hasoffers, wordstream). Tighten hub copy to link-building tools only; route `buzzstream alternatives` (86 impr hitting hub at pos 60) + `pitchbox alternative` to their dedicated pages via internal links.
+- [x] **`link-building-outreach-email` slipped hard:** pos 20.7 → 43.8 on 190 impr. Added inbound links from pillar (`saas-backlink-building`, which previously linked to neither target page — also had a broken `/resources/unlinked-brand-mentions` link, fixed to `/blog/...`) and from `resource-page-link-building`.
+- [x] **`how-to-find-backlink-opportunities`:** 417 impr (site's highest), stuck pos 49. Added inbound links from pillar + `guest-posting-for-saas` (previously missing). Content already had strong E-E-A-T signals — no keyword padding added.
+- [x] **Refreshed `backlinks-from/pinterest`:** added a concrete worked example (saves-vs-clicks timing). Nofollow reality + dofollow paths were already covered.
+- [x] **Refreshed quora, reddit, wikipedia:** added worked examples to each. Reddit had a stale broken link to `reddinbox.com` (old brand domain, tool never existed on mentiohunt.com) — replaced with `/free-tools/backlink-opportunity-finder`.
+- [x] **Pitchbox buyer intent:** added "Is Pitchbox Worth It? Our Honest Take" section + FAQ entry to `alternatives/best-pitchbox-alternative-for-founders` targeting bare "pitchbox"/"pitchbox review" intent. Pricing breakdown was already thorough.
+- [x] **`/alternatives` hub cleanup:** tightened H1/metadata/subtext from generic "every tool" framing to explicit "link building and backlink outreach tools" scoping (should reduce off-topic query matches). Changed anchor text on cross-links from `ahrefs`/`semrush` alt pages to "best Pitchbox alternative" / "best BuzzStream alternative" instead of bare brand name, to help Google attribute those queries to the dedicated pages instead of the hub.
+
+**Watch in next GSC pull:** whether hub copy change actually reduces off-topic impressions (trengo/zutrix/etc.) without hurting the legitimate ones — this is a signal-strength bet, not guaranteed.
 
 ## Consolidation (decision due)
 
 - **Fold `unlinked-brand-mentions`** into `how-to-find-backlink-opportunities` + 301. Two review cycles, no improvement (142 impr pos 67; SERP branded by ahrefs/moz/semrush).
 - **Verify monitoring pages 301** (not 404): /twitter-monitoring, /reddit-monitoring, /quora-monitoring, /blog/reddit-marketing, /free-tools/reddit-user-analyzer.
 
-## Content to build
+## PHASE 2: Content to build
 
 1. **Second pillar** `/blog/saas-link-building-agency-vs-software` — decision pillar with POV (more transparent than agency, less work than software). Primary: `saas link building agency` (590, low KD) · `outreach link building services` (70, KD9). Feeds `alternatives/*` + `compare/*`.
 2. **AI-citations article** `/blog/backlinks-ai-search-citations` — do backlinks influence ChatGPT/Perplexity/AI Overview citations. GSC surfacing: "chatgpt to create backlinks" (pos 46), "will more website citation links help you show up in chatgpt" (pos 82). Interlink `backlinks-from/chatgpt` (pos 45) + pillar. Verify kws first: `ai search citations`, `chatgpt citations seo`, `llm seo backlinks`, `generative engine optimization backlinks`.
@@ -30,11 +33,11 @@ Pattern proven (forbes 4 clicks pos 9.2; youtube pos 3.1; medium pos 8.1). New p
 
 ## Free tools to build
 
-| Slug | Primary keyword | Vol | KD | Notes |
-| --- | --- | --- | --- | --- |
-| `free-tools/guest-post-sites-finder` | guest posting sites | 390 | 3 | + `guest post sites list` (90, KD16). Pairs with `guest-posting-for-saas`. |
-| `free-tools/outreach-email-generator` | outreach email template | 170 | low | + `cold email generator` (70) · `link building outreach email` (50, KD3). Direct product CTA. |
-| `free-tools/dofollow-link-checker` | do-follow backlink checker | 320 | 22 | Qualifies prospects; slightly harder SERP. |
+| Slug                                  | Primary keyword            | Vol | KD  | Notes                                                                                         |
+| ------------------------------------- | -------------------------- | --- | --- | --------------------------------------------------------------------------------------------- |
+| `free-tools/guest-post-sites-finder`  | guest posting sites        | 390 | 3   | + `guest post sites list` (90, KD16). Pairs with `guest-posting-for-saas`.                    |
+| `free-tools/outreach-email-generator` | outreach email template    | 170 | low | + `cold email generator` (70) · `link building outreach email` (50, KD3). Direct product CTA. |
+| `free-tools/dofollow-link-checker`    | do-follow backlink checker | 320 | 22  | Qualifies prospects; slightly harder SERP.                                                    |
 
 **Skip:** high-KD authority/DA-PA checkers, `backlink generator` (spammy, off-positioning). `free-tools/google-index-checker` = dead end (106 impr, every query pos 80+) — candidate for removal if it never earns a click.
 

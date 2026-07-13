@@ -14,22 +14,22 @@ import { Navbar } from "@/components/landing/navbar"
 import { getAllResources, type BlogPostMeta } from "@/lib/mdx"
 
 export const metadata: Metadata = {
-  title: "Alternatives — Mentiohunt",
+  title: "Link Building Tool Alternatives — Mentiohunt",
   description:
-    "Our honest comparison of backlink building tools. We have a bias — we'll tell you when the other tool is actually better.",
+    "Honest comparisons of link building and backlink outreach tools — Pitchbox, BuzzStream, Ahrefs, Semrush, Respona, and more. We'll tell you when the other tool is actually better.",
   openGraph: {
-    title: "Alternatives — Mentiohunt",
+    title: "Link Building Tool Alternatives — Mentiohunt",
     description:
-      "Our honest comparison of backlink building tools. We have a bias — we'll tell you when the other tool is actually better.",
+      "Honest comparisons of link building and backlink outreach tools — Pitchbox, BuzzStream, Ahrefs, Semrush, Respona, and more. We'll tell you when the other tool is actually better.",
     url: "https://mentiohunt.com/alternatives",
     siteName: "Mentiohunt",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Alternatives — Mentiohunt",
+    title: "Link Building Tool Alternatives — Mentiohunt",
     description:
-      "Our honest comparison of backlink building tools. We have a bias — we'll tell you when the other tool is actually better.",
+      "Honest comparisons of link building and backlink outreach tools — Pitchbox, BuzzStream, Ahrefs, Semrush, Respona, and more. We'll tell you when the other tool is actually better.",
   },
 }
 
@@ -78,19 +78,19 @@ export default function AlternativesPage() {
           <div className="relative container mx-auto max-w-5xl">
             <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-princeton-orange)] uppercase">
               <IconScale size={13} stroke={2.5} />
-              <span>Honest Comparisons</span>
+              <span>Link Building Tool Comparisons</span>
             </div>
             <h1 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:text-[3.25rem]">
-              We compared every tool.{" "}
+              Link building and backlink outreach tools,{" "}
               <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
-                Here&apos;s the truth.
+                compared honestly.
               </span>
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
               Yes, we built Mentiohunt. Yes, we have an obvious bias. We also
-              used most of these tools before building ours. We&apos;ll tell you
-              honestly when a competitor is actually the better choice for your
-              situation.
+              used most of these backlink prospecting and outreach tools before
+              building ours. We&apos;ll tell you honestly when a competitor is
+              actually the better choice for your link building workflow.
             </p>
 
             <div className="mt-7 inline-flex items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">

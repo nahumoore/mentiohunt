@@ -67,11 +67,18 @@ async function scoreBatch(
   }))
 
   return withLlmRetries(log, async () => {
+    const input = `Sites:\n${JSON.stringify(payload, null, 2)}`
+    log.info("llm request", {
+      model,
+      fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+      systemInstructions: SYSTEM_INSTRUCTIONS(product),
+      input,
+    })
     const { text, cost, modelUsed } = await generateTextWithUsage({
       model,
       fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
       systemInstructions: SYSTEM_INSTRUCTIONS(product),
-      input: `Sites:\n${JSON.stringify(payload, null, 2)}`,
+      input,
       responseFormat: RESPONSE_FORMAT,
     })
 

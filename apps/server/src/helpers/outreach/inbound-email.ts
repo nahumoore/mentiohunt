@@ -192,13 +192,21 @@ async function classifyWithLlm(input: {
 
   try {
     return await withLlmRetries(log, async () => {
+      const llmInput = JSON.stringify({ subject: input.subject, body: input.body.slice(0, 4000) })
+      const systemInstructions =
+        "Classify a matched inbound email reply to a backlink outreach email. Return only the requested JSON. Distinguish an explicit unsubscribe from a negative reply that only declines this pitch. Be conservative and use needs_review when uncertain."
+      log.info("llm request", {
+        model: OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5,
+        fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+        systemInstructions,
+        input: llmInput,
+      })
       const { text } = await generateText({
         model: OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5,
         fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
         timeoutMs: 15_000,
-        systemInstructions:
-          "Classify a matched inbound email reply to a backlink outreach email. Return only the requested JSON. Distinguish an explicit unsubscribe from a negative reply that only declines this pitch. Be conservative and use needs_review when uncertain.",
-        input: JSON.stringify({ subject: input.subject, body: input.body.slice(0, 4000) }),
+        systemInstructions,
+        input: llmInput,
         responseFormat: {
           type: "json_schema",
           json_schema: {

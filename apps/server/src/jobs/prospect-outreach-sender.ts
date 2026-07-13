@@ -53,6 +53,22 @@ function isAccountConfigurationError(error: unknown): boolean {
   )
 }
 
+/** Prospect ids owned (via product) by a given user — covers both a paid
+ * user's own mailbox and a free user's shared public-pool sends, since
+ * ownership lives on the prospect/product, not on email_accounts.user_id. */
+export async function loadProspectIdsForUser(userId: string): Promise<string[]> {
+  const { data: products } = await supabaseAdmin.from("products").select("id").eq("user_id", userId)
+  const productIds = products?.map((p) => p.id) ?? []
+  if (!productIds.length) return []
+
+  const { data: prospects } = await supabaseAdmin
+    .from("backlink_prospects")
+    .select("id")
+    .in("product_id", productIds)
+
+  return prospects?.map((p) => p.id) ?? []
+}
+
 const STALE_LOCK_MINUTES = 10
 
 async function failStaleLocks(): Promise<void> {
@@ -381,22 +397,37 @@ async function processSequence(sequence: ProspectSequence): Promise<boolean> {
   }
 }
 
-export async function runProspectOutreachSender(): Promise<void> {
+export async function runProspectOutreachSender(userId?: string, bypassSendWindow = false): Promise<void> {
   await failStaleLocks()
 
-  if (!isWithinUtcSendWindow()) {
+  if (!bypassSendWindow && !isWithinUtcSendWindow()) {
     log.info("outside UTC send window")
     return
   }
 
+  let prospectIds: string[] | null = null
+  if (userId) {
+    prospectIds = await loadProspectIdsForUser(userId)
+    if (!prospectIds.length) {
+      log.info("no prospects for user", { userId })
+      return
+    }
+  }
+
   const batchLimit = Math.max(1, MAX_SENDS_PER_TICK - Math.floor(Math.random() * 3))
-  const { data: dueSequences, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from("prospect_sequences")
     .select("id, prospect_id, email_account_id, step, subject, body, attempt_count")
     .eq("status", "pending")
     .lte("scheduled_at", new Date().toISOString())
     .order("scheduled_at", { ascending: true })
     .limit(MAX_ROWS_TO_SCAN)
+
+  if (prospectIds) {
+    query = query.in("prospect_id", prospectIds)
+  }
+
+  const { data: dueSequences, error } = await query
 
   if (error) {
     log.error("failed to fetch due sequences", { error: error.message })

@@ -5,7 +5,9 @@ import { ImapFlow } from "imapflow"
 import { simpleParser, type AddressObject, type ParsedMail } from "mailparser"
 import { classifyInboundEmail, extractMessageIds, normalizeEmail, normalizeMessageId, normalizeSubject, type HeaderMap, type InboundClassification } from "../helpers/outreach/inbound-email.js"
 import { stopProspectSequence } from "../helpers/outreach/stop-prospect-sequence.js"
+import { sendReplyAlertEmail } from "../helpers/emails/send-reply-alert.js"
 import { createLogger } from "../helpers/logger.js"
+import { loadProspectIdsForUser } from "./prospect-outreach-sender.js"
 
 const log = createLogger("prospect-outreach-monitor")
 
@@ -39,7 +41,7 @@ type SequenceRow = Pick<
   "id" | "prospect_id" | "email_account_id" | "status" | "sent_at" | "subject" | "message_id" | "step"
 >
 
-type ProspectRow = Pick<Tables<"backlink_prospects">, "id" | "contact_email" | "status">
+type ProspectRow = Pick<Tables<"backlink_prospects">, "id" | "contact_email" | "contact_name" | "domain" | "product_id" | "status">
 
 type MatchedSequence = SequenceRow & { prospect: ProspectRow }
 
@@ -204,7 +206,7 @@ async function releaseSync(syncId: string, patch: Partial<Tables<"email_account_
 async function loadSequenceWithProspect(sequence: SequenceRow): Promise<MatchedSequence | null> {
   const { data: prospect, error } = await supabaseAdmin
     .from("backlink_prospects")
-    .select("id, contact_email, status")
+    .select("id, contact_email, contact_name, domain, product_id, status")
     .eq("id", sequence.prospect_id)
     .maybeSingle()
 
@@ -246,7 +248,7 @@ async function loadRecentSentSequences(accountId: string): Promise<MatchedSequen
   const prospectIds = [...new Set(sequences.map((sequence) => sequence.prospect_id))]
   const { data: prospects, error: prospectError } = await supabaseAdmin
     .from("backlink_prospects")
-    .select("id, contact_email, status")
+    .select("id, contact_email, contact_name, domain, product_id, status")
     .in("id", prospectIds)
 
   if (prospectError) {
@@ -373,6 +375,39 @@ async function storeMessage({
   return false
 }
 
+async function notifyUserOfReply(match: MatchedSequence): Promise<void> {
+  const { data: product, error: productError } = await supabaseAdmin
+    .from("products")
+    .select("user_id, product_name")
+    .eq("id", match.prospect.product_id)
+    .maybeSingle()
+
+  if (productError || !product) {
+    log.warn("failed to load product for reply alert", { sequenceId: match.id, error: productError?.message })
+    return
+  }
+
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .select("email, name")
+    .eq("id", product.user_id)
+    .maybeSingle()
+
+  if (profileError || !profile?.email) {
+    log.warn("no profile email, skipping reply alert", { sequenceId: match.id, userId: product.user_id, error: profileError?.message })
+    return
+  }
+
+  await sendReplyAlertEmail({
+    to: profile.email,
+    userId: product.user_id,
+    userName: profile.name,
+    productName: product.product_name,
+    domain: match.prospect.domain,
+    contactName: match.prospect.contact_name,
+  })
+}
+
 async function applyClassification(match: MatchedSequence, inbound: ParsedInbound, classification: InboundClassification, reason: string): Promise<void> {
   const metadata = { classificationReason: reason, inboundMessageId: inbound.messageId, imapUid: inbound.uid }
 
@@ -407,6 +442,7 @@ async function applyClassification(match: MatchedSequence, inbound: ParsedInboun
       prospectStatus: "negotiating",
       metadata,
     })
+    await notifyUserOfReply(match)
     return
   }
 
@@ -584,7 +620,55 @@ async function processAccount(account: EmailAccount): Promise<void> {
   }
 }
 
-export async function runProspectOutreachMonitor(): Promise<void> {
+export async function runProspectOutreachMonitor(userId?: string): Promise<void> {
+  if (userId) {
+    const prospectIds = await loadProspectIdsForUser(userId)
+    if (!prospectIds.length) {
+      log.info("no prospects for user", { userId })
+      return
+    }
+
+    const { data: sequences, error: sequencesError } = await supabaseAdmin
+      .from("prospect_sequences")
+      .select("email_account_id")
+      .in("prospect_id", prospectIds)
+
+    if (sequencesError) {
+      log.error("failed to load sequences for user", { userId, error: sequencesError.message })
+      return
+    }
+
+    const accountIds = [...new Set(sequences?.map((s) => s.email_account_id) ?? [])]
+    if (!accountIds.length) {
+      log.info("no email accounts used by user's prospects", { userId })
+      return
+    }
+
+    // NB: public-pool accounts are shared, so this also surfaces inbound mail
+    // for other free users on the same mailbox — expected for the shared pool.
+    const { data: accounts, error } = await supabaseAdmin
+      .from("email_accounts")
+      .select("id, email, imap_host, imap_port, imap_user, imap_pass, smtp_user, smtp_pass, status")
+      .in("id", accountIds)
+      .not("imap_host", "is", null)
+      .not("imap_port", "is", null)
+
+    if (error) {
+      log.error("failed to load email accounts for monitoring", { userId, error: error.message })
+      return
+    }
+
+    if (!accounts?.length) {
+      log.info("no email accounts for user configured for monitoring", { userId })
+      return
+    }
+
+    for (const account of accounts) {
+      await processAccount(account)
+    }
+    return
+  }
+
   const { count } = await supabaseAdmin
     .from("email_accounts")
     .select("id", { count: "exact", head: true })

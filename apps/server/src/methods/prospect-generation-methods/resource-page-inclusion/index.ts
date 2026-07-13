@@ -250,6 +250,7 @@ export async function discoverResourcePageInclusions(
     }
 
     if (settings.dr_min > 0 || settings.dr_max !== null) {
+      const beforeCount = qualified.length
       const drByDomain = await enrichDomainRatings([...new Set(qualified.map((q) => q.domain))])
       qualified = qualified
         .map((q) => ({ ...q, domainRating: drByDomain.get(q.domain) ?? null }))
@@ -260,6 +261,13 @@ export async function discoverResourcePageInclusions(
           if (settings.dr_max !== null && dr > settings.dr_max) return false
           return true
         }) as ScoredResourceInclusionCandidate[]
+      log.info("dr filter applied", {
+        dr_min: settings.dr_min,
+        dr_max: settings.dr_max,
+        before: beforeCount,
+        after: qualified.length,
+        ratings: [...drByDomain.entries()],
+      })
     }
 
     const siteRelevanceInputs = qualified.map((item) => ({

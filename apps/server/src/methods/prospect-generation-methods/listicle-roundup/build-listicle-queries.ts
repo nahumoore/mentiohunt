@@ -64,12 +64,20 @@ export async function buildListicleQueries(product: {
 
   try {
     const { cost: callCost, modelUsed: usedModel, categories: parsedCategories } = await withLlmRetries(log, async () => {
+      const input = `Product: ${product.product_name}\nDescription: ${product.product_description}`
+      log.info("llm request", {
+        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+        systemInstructions: SYSTEM_INSTRUCTIONS,
+        thinkingBudget: 1000,
+        input,
+      })
       const { text, cost: attemptCost, modelUsed: attemptModel } = await generateTextWithUsage({
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
         systemInstructions: SYSTEM_INSTRUCTIONS,
         thinkingBudget: 1000,
-        input: `Product: ${product.product_name}\nDescription: ${product.product_description}`,
+        input,
         responseFormat: RESPONSE_FORMAT,
       })
       const parsed = parseLlmJson<{ categories?: unknown }>(text)

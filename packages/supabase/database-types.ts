@@ -124,10 +124,10 @@ export type Database = {
           enrichment_status: Database["public"]["Enums"]["prospect_enrichment_status"]
           found_url: string | null
           id: string
-          product_id: string
-          product_page_id: string | null
           outreach_stopped_at: string | null
           outreach_stopped_reason: string | null
+          product_id: string
+          product_page_id: string | null
           raw_metadata: Json | null
           site_relevance_score: number | null
           status: Database["public"]["Enums"]["prospect_status"]
@@ -148,10 +148,10 @@ export type Database = {
           enrichment_status?: Database["public"]["Enums"]["prospect_enrichment_status"]
           found_url?: string | null
           id?: string
-          product_id: string
-          product_page_id?: string | null
           outreach_stopped_at?: string | null
           outreach_stopped_reason?: string | null
+          product_id: string
+          product_page_id?: string | null
           raw_metadata?: Json | null
           site_relevance_score?: number | null
           status?: Database["public"]["Enums"]["prospect_status"]
@@ -172,10 +172,10 @@ export type Database = {
           enrichment_status?: Database["public"]["Enums"]["prospect_enrichment_status"]
           found_url?: string | null
           id?: string
-          product_id?: string
-          product_page_id?: string | null
           outreach_stopped_at?: string | null
           outreach_stopped_reason?: string | null
+          product_id?: string
+          product_page_id?: string | null
           raw_metadata?: Json | null
           site_relevance_score?: number | null
           status?: Database["public"]["Enums"]["prospect_status"]
@@ -310,6 +310,53 @@ export type Database = {
         }
         Relationships: []
       }
+      email_account_mailbox_syncs: {
+        Row: {
+          created_at: string
+          email_account_id: string
+          id: string
+          last_error: string | null
+          last_synced_at: string | null
+          last_uid: number
+          locked_at: string | null
+          mailbox: string
+          uid_validity: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_account_id: string
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          last_uid?: number
+          locked_at?: string | null
+          mailbox?: string
+          uid_validity?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_account_id?: string
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          last_uid?: number
+          locked_at?: string | null
+          mailbox?: string
+          uid_validity?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_account_mailbox_syncs_email_account_id_fkey"
+            columns: ["email_account_id"]
+            isOneToOne: false
+            referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_accounts: {
         Row: {
           created_at: string
@@ -377,53 +424,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      email_account_mailbox_syncs: {
-        Row: {
-          created_at: string
-          email_account_id: string
-          id: string
-          last_error: string | null
-          last_synced_at: string | null
-          last_uid: number
-          locked_at: string | null
-          mailbox: string
-          uid_validity: number | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email_account_id: string
-          id?: string
-          last_error?: string | null
-          last_synced_at?: string | null
-          last_uid?: number
-          locked_at?: string | null
-          mailbox?: string
-          uid_validity?: number | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email_account_id?: string
-          id?: string
-          last_error?: string | null
-          last_synced_at?: string | null
-          last_uid?: number
-          locked_at?: string | null
-          mailbox?: string
-          uid_validity?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "email_account_mailbox_syncs_email_account_id_fkey"
-            columns: ["email_account_id"]
-            isOneToOne: false
-            referencedRelation: "email_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -814,8 +814,8 @@ export type Database = {
       }
       prospect_sequences: {
         Row: {
-          body: string | null
           attempt_count: number
+          body: string | null
           bounce_reason: string | null
           bounced_at: string | null
           created_at: string
@@ -834,8 +834,8 @@ export type Database = {
           subject: string | null
         }
         Insert: {
-          body?: string | null
           attempt_count?: number
+          body?: string | null
           bounce_reason?: string | null
           bounced_at?: string | null
           created_at?: string
@@ -854,8 +854,8 @@ export type Database = {
           subject?: string | null
         }
         Update: {
-          body?: string | null
           attempt_count?: number
+          body?: string | null
           bounce_reason?: string | null
           bounced_at?: string | null
           created_at?: string
@@ -1015,7 +1015,32 @@ export type Database = {
     Functions: {
       claim_prospect_outreach_sequence: {
         Args: { p_sequence_id: string; p_spacing_seconds?: number }
-        Returns: Database["public"]["Tables"]["prospect_sequences"]["Row"][]
+        Returns: {
+          attempt_count: number
+          body: string | null
+          bounce_reason: string | null
+          bounced_at: string | null
+          created_at: string
+          email_account_id: string
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          locked_at: string | null
+          message_id: string | null
+          prospect_id: string
+          provider_response: Json | null
+          scheduled_at: string
+          sent_at: string | null
+          status: Database["public"]["Enums"]["prospect_sequence_status"]
+          step: number
+          subject: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "prospect_sequences"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       merge_discovery_status: {
         Args: { p_product_id: string; p_updates: Json }
@@ -1023,14 +1048,14 @@ export type Database = {
       }
       stop_prospect_outreach: {
         Args: {
-          p_email_account_id: string | null
+          p_email_account_id: string
           p_event_type: string
           p_metadata?: Json
           p_prospect_id: string
-          p_prospect_status?: Database["public"]["Enums"]["prospect_status"] | null
+          p_prospect_status?: Database["public"]["Enums"]["prospect_status"]
           p_reason: string
-          p_recipient_email: string | null
-          p_sequence_id: string | null
+          p_recipient_email: string
+          p_sequence_id: string
           p_suppress?: boolean
         }
         Returns: undefined

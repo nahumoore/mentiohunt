@@ -135,7 +135,7 @@ async function generateStructuredText({
   input,
   systemInstructions,
   thinkingBudget,
-  timeoutMs = 30_000,
+  timeoutMs = 60_000,
   responseFormat,
 }: Required<Pick<GenerateTextOptions, "model" | "input" | "responseFormat">> &
   Pick<GenerateTextOptions, "fallbackModels" | "systemInstructions" | "thinkingBudget" | "timeoutMs">): Promise<

@@ -51,7 +51,7 @@ function formatRouteNameForFilename(routeName: string): string {
 function formatFileLine(entry: LogEntry): string {
   const config = levels[entry.level];
   const detailText = entry.details
-    ? ` ${inspect(entry.details, { colors: false, depth: null, breakLength: Infinity })}`
+    ? ` ${inspect(entry.details, { colors: false, depth: null, breakLength: Infinity, maxStringLength: Infinity })}`
     : "";
 
   return `${entry.timestamp} ${config.label} [${entry.scope}] ${entry.message}${detailText}\n`;

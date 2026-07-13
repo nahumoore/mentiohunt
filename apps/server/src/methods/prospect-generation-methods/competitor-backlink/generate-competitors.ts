@@ -89,6 +89,12 @@ export async function generateCompetitorDomains(websiteUrl: string): Promise<str
   ].join("\n")
 
   const { parsed, modelUsed } = await withLlmRetries(log, async () => {
+    log.info("llm request", {
+      model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
+      fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+      systemInstructions,
+      input,
+    })
     const { text, modelUsed: usedModel } = await generateText({
       model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
       fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],

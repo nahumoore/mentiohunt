@@ -136,12 +136,20 @@ async function categorizeBatch(
 
   try {
     return await withLlmRetries(log, async () => {
+      const input = `Pages:\n${JSON.stringify(payload, null, 2)}`
+      log.info("llm request", {
+        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+        systemInstructions: SYSTEM_INSTRUCTIONS(product),
+        thinkingBudget: 1000,
+        input,
+      })
       const { text, cost, modelUsed } = await generateTextWithUsage({
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
         systemInstructions: SYSTEM_INSTRUCTIONS(product),
         thinkingBudget: 1000,
-        input: `Pages:\n${JSON.stringify(payload, null, 2)}`,
+        input,
         responseFormat: RESPONSE_FORMAT,
       })
 
@@ -161,6 +169,15 @@ async function categorizeBatch(
           }
         })
         .filter((r): r is PageCategorization => r !== null)
+
+      if (categorized.length < pages.length) {
+        log.warn("id mismatch: some pages uncategorized", {
+          sentIds: pages.map((p) => p.url),
+          returnedIds: parsed.results.map((r) => r.id),
+          missingIds: pages.filter((p) => !byId.has(p.url)).map((p) => p.url),
+          rawResponse: text,
+        })
+      }
 
       log.info("batch categorized", { model: modelUsed, pages: categorized.length })
 

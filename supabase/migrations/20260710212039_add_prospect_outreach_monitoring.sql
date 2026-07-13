@@ -29,7 +29,7 @@ create table if not exists public.prospect_messages (
   classification_reason text,
   message_id text,
   in_reply_to text,
-  references text[],
+  "references" text[],
   imap_uid bigint,
   imap_uid_validity bigint,
   from_email text,

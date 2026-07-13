@@ -130,12 +130,20 @@ async function scoreBatch(
 
   try {
     return await withLlmRetries(log, async () => {
+      const input = `Pages:\n${JSON.stringify(payload, null, 2)}`
+      log.info("llm request", {
+        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+        systemInstructions: SYSTEM_INSTRUCTIONS(product),
+        thinkingBudget: 2000,
+        input,
+      })
       const { text, cost, modelUsed } = await generateTextWithUsage({
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
         systemInstructions: SYSTEM_INSTRUCTIONS(product),
         thinkingBudget: 2000,
-        input: `Pages:\n${JSON.stringify(payload, null, 2)}`,
+        input,
         responseFormat: RESPONSE_FORMAT,
       })
 
@@ -155,6 +163,15 @@ async function scoreBatch(
           }
         })
         .filter((r): r is ScoredBacklinkItem => r !== null)
+
+      if (scored.length < items.length) {
+        log.warn("id mismatch: some items unscored", {
+          sentIds: items.map((i) => i.urlFrom),
+          returnedIds: parsed.results.map((r) => r.id),
+          missingIds: items.filter((i) => !scoreById.has(i.urlFrom)).map((i) => i.urlFrom),
+          rawResponse: text,
+        })
+      }
 
       log.info("batch scored", { model: modelUsed, items: scored.length })
 

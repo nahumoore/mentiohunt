@@ -2,6 +2,8 @@ import cron from "node-cron"
 import { runDailyBacklinkDiscovery } from "./daily-backlink-discovery.js"
 import { deactivateExpiredFreeTrials } from "./deactivate-expired-free-trials.js"
 import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
+import { runProspectOutreachSender } from "./prospect-outreach-sender.js"
+import { runProspectOutreachMonitor } from "./prospect-outreach-monitor.js"
 
 export function registerJobs(): void {
   // cron.schedule("0 2 1 * *", async () => {
@@ -35,23 +37,23 @@ export function registerJobs(): void {
   })
   console.log("[cron] Scheduled: feedback email sequence (hourly)")
 
-  // cron.schedule("*/5 * * * *", async () => {
-  //   try {
-  //     await runProspectOutreachSender()
-  //   } catch (err) {
-  //     console.error("[cron] Error running prospect outreach sender:", err)
-  //   }
-  // })
-  // console.log("[cron] Scheduled: prospect outreach sender (every 5 minutes)")
+  cron.schedule("*/5 * * * *", async () => {
+    try {
+      await runProspectOutreachSender()
+    } catch (err) {
+      console.error("[cron] Error running prospect outreach sender:", err)
+    }
+  })
+  console.log("[cron] Scheduled: prospect outreach sender (every 5 minutes)")
 
-  // cron.schedule("2-59/5 * * * *", async () => {
-  //   try {
-  //     await runProspectOutreachMonitor()
-  //   } catch (err) {
-  //     console.error("[cron] Error running prospect outreach monitor:", err)
-  //   }
-  // })
-  // console.log("[cron] Scheduled: prospect outreach monitor (every 5 minutes)")
+  cron.schedule("2-59/5 * * * *", async () => {
+    try {
+      await runProspectOutreachMonitor()
+    } catch (err) {
+      console.error("[cron] Error running prospect outreach monitor:", err)
+    }
+  })
+  console.log("[cron] Scheduled: prospect outreach monitor (every 5 minutes)")
 
   cron.schedule("0 7 * * *", async () => {
     try {

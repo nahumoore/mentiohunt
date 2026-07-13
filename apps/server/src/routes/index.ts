@@ -9,6 +9,7 @@ import { devDiscoverUnlinkedMentionsRouter } from "./dev-discover-unlinked-menti
 import { devRunDailyBacklinkDiscoveryRouter } from "./dev-run-daily-backlink-discovery.js"
 import { devTestScraperRouter } from "./dev-test-scraper.js"
 import { devPopulateMissingSeoMetricsRouter } from "./dev-populate-missing-seo-metrics.js"
+import { devRunOutreachJobsRouter } from "./dev-run-outreach-jobs.js"
 import { devSendOnboardingEmailRouter } from "./dev-send-onboarding-email.js"
 import { devUpdateAllSeoMetricsRouter } from "./dev-update-all-seo-metrics.js"
 import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunities-by-url.js"
@@ -41,5 +42,6 @@ export function registerRoutes(app: Application, isDev: boolean): void {
     app.use(devDiscoverListicleRoundupsRouter)
     app.use(devDiscoverResourcePageInclusionsRouter)
     app.use(devTestScraperRouter)
+    app.use(devRunOutreachJobsRouter)
   }
 }

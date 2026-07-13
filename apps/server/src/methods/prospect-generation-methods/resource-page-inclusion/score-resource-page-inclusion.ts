@@ -126,8 +126,8 @@ async function scoreBatch(
   items: ResourceInclusionCandidate[],
   product: { product_name: string; product_description: string }
 ): Promise<{ results: ScoredResourceInclusionCandidate[]; cost: number }> {
-  const payload = items.map((item) => ({
-    id: item.id,
+  const payload = items.map((item, index) => ({
+    id: String(index),
     candidateUrl: item.url,
     candidateTitle: item.title || "(no title)",
     candidateSnippet: item.snippet || "",
@@ -144,12 +144,20 @@ async function scoreBatch(
 
   try {
     return await withLlmRetries(log, async () => {
+      const input = `Candidates:\n${JSON.stringify(payload, null, 2)}`
+      log.info("llm request", {
+        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+        systemInstructions: SYSTEM_INSTRUCTIONS(product),
+        thinkingBudget: 2000,
+        input,
+      })
       const { text, cost, finishReason, promptTokens, completionTokens, modelUsed } = await generateTextWithUsage({
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
         systemInstructions: SYSTEM_INSTRUCTIONS(product),
         thinkingBudget: 2000,
-        input: `Candidates:\n${JSON.stringify(payload, null, 2)}`,
+        input,
         responseFormat: RESPONSE_FORMAT,
       })
 
@@ -164,6 +172,7 @@ async function scoreBatch(
       }
       try {
         parsed = parseLlmJson<typeof parsed>(text)
+        if (!Array.isArray(parsed?.results)) throw new Error("missing results array")
       } catch (parseErr) {
         log.warn("json parse failed, retrying", {
           error: String(parseErr),
@@ -175,10 +184,10 @@ async function scoreBatch(
         throw parseErr
       }
 
-      const scoreById = new Map(parsed.results.map((r) => [r.id, r]))
+      const scoreByIndex = new Map(parsed.results.map((r) => [r.id, r]))
       const scored: ScoredResourceInclusionCandidate[] = items
-        .map((item) => {
-          const s = scoreById.get(item.id)
+        .map((item, index) => {
+          const s = scoreByIndex.get(String(index))
           if (!s) return null
           return {
             ...item,
@@ -189,6 +198,18 @@ async function scoreBatch(
           }
         })
         .filter((r): r is ScoredResourceInclusionCandidate => r !== null)
+
+      if (scored.length < items.length) {
+        log.warn("id mismatch: some items unscored", {
+          sentIds: items.map((_, index) => String(index)),
+          returnedIds: parsed.results.map((r) => r.id),
+          missingIds: items
+            .map((item, index) => ({ item, index }))
+            .filter(({ index }) => !scoreByIndex.has(String(index)))
+            .map(({ item }) => item.id),
+          rawResponse: text,
+        })
+      }
 
       log.info("batch scored", { model: modelUsed, items: scored.length })
 

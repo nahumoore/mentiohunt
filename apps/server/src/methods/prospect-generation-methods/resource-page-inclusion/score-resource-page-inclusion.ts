@@ -2,6 +2,7 @@ import pLimit from "p-limit"
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../../helpers/logger.js"
+import { withLlmRetries } from "../../../helpers/llm-retry.js"
 import { parseLlmJson } from "../../../helpers/parse-llm-json.js"
 
 const log = createLogger("score-resource-page-inclusion")
@@ -34,7 +35,6 @@ export type ScoredResourceInclusionCandidate = ResourceInclusionCandidate & {
   alreadyLinksToTarget: boolean
 }
 
-const RETRY_DELAYS_MS = [3_000, 10_000, 30_000]
 const BATCH_SIZE = 5
 const TEXT_EXCERPT_LENGTH = 2200
 
@@ -142,9 +142,8 @@ async function scoreBatch(
     },
   }))
 
-  let lastErr: unknown
-  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
-    try {
+  try {
+    return await withLlmRetries(log, async () => {
       const { text, cost, finishReason, promptTokens, completionTokens, modelUsed } = await generateTextWithUsage({
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
@@ -166,17 +165,14 @@ async function scoreBatch(
       try {
         parsed = parseLlmJson<typeof parsed>(text)
       } catch (parseErr) {
-        log.warn("json parse failed", {
+        log.warn("json parse failed, retrying", {
           error: String(parseErr),
           rawResponse: text,
           finishReason,
           promptTokens,
           completionTokens,
         })
-        if (finishReason === "length") {
-          throw new Error(`TRUNCATED_JSON_RESPONSE: ${String(parseErr)}`)
-        }
-        return { results: [], cost: 0 }
+        throw parseErr
       }
 
       const scoreById = new Map(parsed.results.map((r) => [r.id, r]))
@@ -208,25 +204,9 @@ async function scoreBatch(
       }
 
       return { results: scored, cost }
-    } catch (err) {
-      lastErr = err
-      const msg = String(err)
-      const isRateLimit = msg.includes("rate_limit_exceeded") || msg.includes('"code":429') || msg.includes("429")
-      const isEmptyCompletion = msg.includes("did not include text content")
-      const isTruncated = msg.includes("TRUNCATED_JSON_RESPONSE")
-      if ((isRateLimit || isEmptyCompletion || isTruncated) && attempt < RETRY_DELAYS_MS.length) {
-        const delay = RETRY_DELAYS_MS[attempt]!
-        log.warn(isTruncated ? "truncated json response, retrying" : isEmptyCompletion ? "empty completion, retrying" : "rate limited, retrying", {
-          attempt: attempt + 1,
-          delay_ms: delay,
-        })
-        await new Promise((resolve) => setTimeout(resolve, delay))
-        continue
-      }
-      break
-    }
+    })
+  } catch (err) {
+    log.warn("scoring failed", { error: String(err) })
+    return { results: [], cost: 0 }
   }
-
-  log.warn("scoring failed", { error: String(lastErr) })
-  return { results: [], cost: 0 }
 }

@@ -1,7 +1,8 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { createLogger } from "../../helpers/logger.js"
+import { buildProspectSequenceSchedule } from "../../helpers/emails/outreach-schedule.js"
 import type { ProspectCreatedPayload } from "../../methods/prospect-generation-methods/shared/prospect-types.js"
-import { resolveEmailAccount } from "./resolve-email-account.js"
+import { resolveEmailAccount, type ResolvedEmailAccount } from "./resolve-email-account.js"
 
 const log = createLogger("onboarding-prospect-sequences")
 
@@ -21,12 +22,9 @@ function buildFollowupBodies(
  */
 export async function createSequencesForProspect(
   prospect: ProspectCreatedPayload,
-  account: { id: string; name: string | null }
+  account: ResolvedEmailAccount
 ): Promise<void> {
-  const now = new Date()
-  const hour1 = new Date(now.getTime() + 60 * 60 * 1000)
-  const day3 = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
-  const day7 = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+  const schedule = buildProspectSequenceSchedule()
 
   const reSubject = prospect.emailSubject ? `Re: ${prospect.emailSubject}` : null
   const firstName = prospect.contactName?.split(" ")[0] ?? "there"
@@ -43,7 +41,7 @@ export async function createSequencesForProspect(
         step: 1,
         subject: prospect.emailSubject,
         body: prospect.emailBody,
-        scheduled_at: hour1.toISOString(),
+        scheduled_at: schedule.step1.toISOString(),
       },
       {
         prospect_id: prospect.id,
@@ -51,7 +49,7 @@ export async function createSequencesForProspect(
         step: 2,
         subject: reSubject,
         body: prospect.step2Body ?? step2Body,
-        scheduled_at: day3.toISOString(),
+        scheduled_at: schedule.step2.toISOString(),
       },
       {
         prospect_id: prospect.id,
@@ -59,7 +57,7 @@ export async function createSequencesForProspect(
         step: 3,
         subject: reSubject,
         body: prospect.step3Body ?? step3Body,
-        scheduled_at: day7.toISOString(),
+        scheduled_at: schedule.step3.toISOString(),
       },
     ])
 
@@ -94,7 +92,7 @@ export async function createSequencesForProspect(
 export async function assignSequences(
   userId: string,
   productId: string,
-  resolvedAccount?: { id: string; name: string | null } | null
+  resolvedAccount?: ResolvedEmailAccount | null
 ): Promise<void> {
   const account = resolvedAccount !== undefined ? resolvedAccount : await resolveEmailAccount(userId)
 
@@ -117,14 +115,10 @@ export async function assignSequences(
 
   log.info("assignSequences START", { productId, count: prospects.length, accountId: account.id })
 
-  const now = new Date()
-  const hour1 = new Date(now.getTime() + 60 * 60 * 1000)
-  const day3 = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
-  const day7 = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-
   const senderFirstName = account.name?.split(" ")[0] ?? ""
 
   const sequences = prospects.flatMap((p) => {
+    const schedule = buildProspectSequenceSchedule()
     const reSubject = p.email_subject ? `Re: ${p.email_subject}` : null
     const firstName = p.contact_name?.split(" ")[0] ?? "there"
     const { step2Body, step3Body } = buildFollowupBodies(firstName, senderFirstName)
@@ -136,7 +130,7 @@ export async function assignSequences(
         step: 1,
         subject: p.email_subject,
         body: p.email_body,
-        scheduled_at: hour1.toISOString(),
+        scheduled_at: schedule.step1.toISOString(),
       },
       {
         prospect_id: p.id,
@@ -144,7 +138,7 @@ export async function assignSequences(
         step: 2,
         subject: reSubject,
         body: step2Body,
-        scheduled_at: day3.toISOString(),
+        scheduled_at: schedule.step2.toISOString(),
       },
       {
         prospect_id: p.id,
@@ -152,7 +146,7 @@ export async function assignSequences(
         step: 3,
         subject: reSubject,
         body: step3Body,
-        scheduled_at: day7.toISOString(),
+        scheduled_at: schedule.step3.toISOString(),
       },
     ]
   })

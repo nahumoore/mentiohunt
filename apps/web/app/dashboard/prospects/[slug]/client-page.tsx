@@ -21,7 +21,6 @@ import {
   IconMessage2,
   IconPlayerPause,
   IconQuestionMark,
-  IconSend,
   IconSparkles,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
@@ -39,7 +38,7 @@ import { Switch } from "@workspace/ui/components/switch"
 import { captureEvent } from "@/lib/analytics"
 import { formatRelative } from "@/lib/format-date"
 import { PROSPECT_TIER_CONFIG } from "@/lib/opportunity-types"
-import type { ProspectDetail, ProspectSequence } from "@/stores/prospect-store"
+import type { ProspectDetail, ProspectMessage, ProspectSequence } from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import { usePagesStore } from "@/stores/pages-store"
 import { STATUS_CONFIG, formatDate, type ProspectStatus } from "@/app/dashboard/prospects/_data"
@@ -215,34 +214,44 @@ function ScoreTile({
 function ConversationView({
   prospect,
   sequences,
+  messages,
 }: {
   prospect: ProspectDetail
   sequences: ProspectSequence[]
+  messages: ProspectMessage[]
 }) {
   const subject = prospect.email_subject ?? "Collaboration opportunity"
   const sentSteps = sequences.filter((s) => s.status === "sent")
-  const [replyBody, setReplyBody] = useState("")
-  const [isSending, setIsSending] = useState(false)
+  const storedOutboundSequenceIds = new Set(
+    messages.filter((message) => message.direction === "outbound").map((message) => message.sequence_id)
+  )
+  const threadItems = [
+    ...sentSteps.filter((seq) => !storedOutboundSequenceIds.has(seq.id)).map((seq) => ({
+      id: seq.id,
+      direction: "outbound" as const,
+      date: seq.sent_at ?? seq.scheduled_at,
+      body: seq.body ?? "",
+      classification: null as string | null,
+      classificationReason: null as string | null,
+      fromName: null as string | null,
+      fromEmail: null as string | null,
+    })),
+    ...messages.map((message) => ({
+      id: message.id,
+      direction: message.direction === "outbound" ? ("outbound" as const) : ("inbound" as const),
+      date: message.received_at,
+      body: message.text_body ?? "",
+      classification: message.classification,
+      classificationReason: message.classification_reason,
+      fromName: message.from_name,
+      fromEmail: message.from_email,
+    })),
+  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [])
-
-  function handleSend() {
-    if (!replyBody.trim()) return
-    setIsSending(true)
-    setTimeout(() => {
-      setIsSending(false)
-      setReplyBody("")
-    }, 1200)
-  }
-
-  function handleAiDraft() {
-    setReplyBody(
-      `Hi ${prospect.contact_name?.split(" ")[0] ?? "there"},\n\nThanks for getting back to me — really appreciate it.\n\nWe're building [your product description]. The article I had in mind was [article URL], where a mention of our tool in the context of [topic] would feel like a natural fit for your readers.\n\nHappy to share more context or even draft the exact paragraph you could use. Would that be helpful?\n\nBest,\n[Your name]`
-    )
-  }
 
   return (
     <div className="flex flex-col">
@@ -254,94 +263,103 @@ function ConversationView({
         </p>
       </div>
 
-      {/* Sent messages */}
+      {prospect.outreach_stopped_reason && (
+        <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
+          Sequence stopped: <span className="font-semibold text-foreground">{prospect.outreach_stopped_reason.replace(/_/g, " ")}</span>
+          {prospect.outreach_stopped_at ? ` · ${formatRelative(new Date(prospect.outreach_stopped_at))}` : null}
+        </div>
+      )}
+
+      {/* Thread messages */}
       <div className="space-y-4 mb-6">
-        {sentSteps.length === 0 ? (
-          <p className="text-sm text-muted-foreground/60 italic">No emails sent yet.</p>
+        {threadItems.length === 0 ? (
+          <p className="text-sm text-muted-foreground/60 italic">No conversation yet.</p>
         ) : (
-          sentSteps.map((seq) => (
-            <div key={seq.id} className="flex gap-3">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ring-1 bg-primary/10 text-primary ring-primary/20">
-                Y
-              </div>
-              <div className="flex-1 min-w-0 rounded-xl border border-l-2 border-l-primary border-border bg-card px-4 py-3 transition-all">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-[11px] font-semibold text-primary">
-                      You (via Mentiohunt)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-600">
-                      <IconMailCheck className="size-2.5" />
-                      Sent
-                    </span>
-                    {seq.sent_at && (
-                      <span className="text-[10px] text-muted-foreground/40">
-                        {formatRelative(new Date(seq.sent_at))}
-                      </span>
-                    )}
-                  </div>
+          threadItems.map((item) => {
+            const isOutbound = item.direction === "outbound"
+            const isBounce = item.classification === "bounce"
+            const label = isOutbound
+              ? "Sent"
+              : item.classification === "human_reply"
+                ? "Reply"
+                : item.classification === "auto_reply"
+                  ? "Auto reply"
+                : item.classification === "unsubscribe"
+                    ? "Stop request"
+                    : item.classification === "negative_reply"
+                      ? "Declined"
+                    : item.classification === "wrong_person"
+                      ? "Wrong person"
+                      : item.classification === "challenge"
+                        ? "Challenge"
+                        : item.classification === "bounce"
+                          ? "Bounce"
+                          : "Needs review"
+
+            return (
+              <div key={item.id} className="flex gap-3">
+                <div
+                  className={cn(
+                    "flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ring-1",
+                    isOutbound
+                      ? "bg-primary/10 text-primary ring-primary/20"
+                      : isBounce
+                        ? "bg-destructive/10 text-destructive ring-destructive/20"
+                        : "bg-muted text-foreground ring-border"
+                  )}
+                >
+                  {isOutbound ? "Y" : (item.fromName?.[0] ?? prospect.contact_name?.[0] ?? "P")}
                 </div>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                  {seq.body ?? ""}
-                </p>
+                <div
+                  className={cn(
+                    "flex-1 min-w-0 rounded-xl border border-l-2 border-border bg-card px-4 py-3 transition-all",
+                    isOutbound ? "border-l-primary" : isBounce ? "border-l-destructive" : "border-l-muted-foreground/30"
+                  )}
+                >
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={cn("text-[11px] font-semibold", isOutbound ? "text-primary" : "text-foreground")}>
+                        {isOutbound ? "You (via Mentiohunt)" : item.fromName || item.fromEmail || prospect.contact_name || "Prospect"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider",
+                          isOutbound
+                            ? "bg-emerald-500/10 text-emerald-600"
+                            : isBounce
+                              ? "bg-destructive/10 text-destructive"
+                              : "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        {isBounce ? <IconMailOff className="size-2.5" /> : isOutbound ? <IconMailCheck className="size-2.5" /> : <IconMessage2 className="size-2.5" />}
+                        {label}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground/40">
+                        {formatRelative(new Date(item.date))}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                    {item.body || item.classificationReason || "No message body captured."}
+                  </p>
+                  {item.classificationReason && !isOutbound && (
+                    <p className="mt-2 text-[10px] text-muted-foreground/60">
+                      Classified as {label.toLowerCase()}: {item.classificationReason}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            )
+          })
         )}
         <div ref={bottomRef} />
       </div>
 
-      {/* Compose reply */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        {/* Compose header */}
-        <div className="flex items-center gap-2 border-b border-border bg-muted/20 px-4 py-2">
-          <IconMessage2 className="size-3.5 text-muted-foreground/50" />
-          <span className="text-[11px] font-semibold text-muted-foreground/60">Reply</span>
-          <span className="mx-1 text-muted-foreground/20">·</span>
-          <span className="text-[11px] text-muted-foreground/50 truncate">Re: {subject}</span>
-        </div>
-
-        {/* To row */}
-        <div className="flex items-center gap-2 border-b border-border/60 px-4 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">To</span>
-          <span className="text-[11px] text-muted-foreground font-medium">
-            {prospect.contact_name ?? "Lead"}{" "}
-            <span className="text-muted-foreground/50">&lt;{prospect.contact_email ?? `hello@${prospect.domain ?? "example.com"}`}&gt;</span>
-          </span>
-        </div>
-
-        {/* Textarea */}
-        <textarea
-          rows={10}
-          value={replyBody}
-          onChange={(e) => setReplyBody(e.target.value)}
-          placeholder={`Reply to ${prospect.contact_name?.split(" ")[0] ?? "them"}…`}
-          className="w-full resize-none bg-transparent px-4 py-3 text-sm text-foreground leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none"
-        />
-
-        {/* Actions */}
-        <div className="flex items-center justify-between border-t border-border/60 px-4 py-2.5">
-          <button
-            type="button"
-            onClick={handleAiDraft}
-            className="inline-flex items-center gap-1.5 rounded-full border border-(--color-princeton-orange)/30 bg-(--color-princeton-orange)/8 px-3 py-1.5 text-[11px] font-semibold text-(--color-blaze-orange) transition-colors hover:bg-(--color-princeton-orange)/15"
-          >
-            <IconSparkles className="size-3" />
-            AI Draft
-          </button>
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={!replyBody.trim() || isSending}
-            className="inline-flex items-center gap-1.5 rounded-full bg-(--color-blaze-orange) px-4 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-(--color-crimson-carrot) disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <IconSend className="size-3" />
-            {isSending ? "Sending…" : "Send Reply"}
-          </button>
-        </div>
-      </div>
+      <p className="rounded-xl border border-border bg-muted/20 px-4 py-3 text-xs text-muted-foreground">
+        Reply from the connected mailbox to preserve the email thread.
+      </p>
     </div>
   )
 }
@@ -349,12 +367,14 @@ function ConversationView({
 export function ProspectClientPage({
   prospect,
   sequences,
+  messages,
   isFreeUser,
   hasEmailAccount,
 }: {
   prospect: ProspectDetail
   product: ProspectProduct
   sequences: ProspectSequence[]
+  messages: ProspectMessage[]
   isFreeUser: boolean
   hasEmailAccount: boolean
 }) {
@@ -412,26 +432,19 @@ export function ProspectClientPage({
     return "Last follow-up"
   }
 
-  const now = Date.now()
   const emailSequence = sequences.map((seq) => {
     const date = new Date(seq.sent_at ?? seq.scheduled_at ?? current.created_at)
-    const isPastScheduled = seq.status !== "sent" && date.getTime() < now
     return {
       number: seq.step,
       label: stepLabel(seq.step),
       subject: seq.subject ?? "",
       body: seq.body ?? "",
-      status: (seq.status === "sent" || isPastScheduled) ? ("sent" as const) : ("scheduled" as const),
+      status: seq.status === "sent" ? ("sent" as const) : ("scheduled" as const),
       date,
     }
   })
 
-  const firstSeq = sequences[0]
-  const firstEmailPast =
-    firstSeq != null &&
-    new Date(firstSeq.sent_at ?? firstSeq.scheduled_at ?? current.created_at).getTime() < now
-  const displayStatus =
-    current.status === "new" && firstEmailPast ? ("contacted" as const) : current.status
+  const displayStatus = current.status
 
   const activeEmail = emailSequence[activeEmailIdx]!
   const isNegotiating = current.status === "negotiating"
@@ -730,7 +743,7 @@ export function ProspectClientPage({
 
           {isNegotiating ? (
             /* ── Conversation view ── */
-            <ConversationView prospect={current} sequences={sequences} />
+            <ConversationView prospect={current} sequences={sequences} messages={messages} />
           ) : current.status === "email_not_found" && emailSequence.length === 0 ? (
             /* ── Manual completion form ── */
             <ManualCompletionForm
@@ -752,6 +765,13 @@ export function ProspectClientPage({
           ) : (
             /* ── Email sequence / draft view ── */
             <>
+              {current.outreach_stopped_reason && (
+                <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
+                  Outreach stopped: <span className="font-semibold text-foreground">{current.outreach_stopped_reason.replace(/_/g, " ")}</span>
+                  {current.outreach_stopped_at ? ` · ${formatRelative(new Date(current.outreach_stopped_at))}` : null}
+                </div>
+              )}
+
               <EmailSequenceNav
                 steps={emailSequence}
                 activeIdx={activeEmailIdx}

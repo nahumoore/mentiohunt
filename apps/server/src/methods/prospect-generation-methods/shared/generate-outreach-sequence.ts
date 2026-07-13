@@ -1,6 +1,7 @@
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../../helpers/logger.js"
+import { withLlmRetries } from "../../../helpers/llm-retry.js"
 import { sanitizeContactName } from "../competitor-backlink/contact-validation.js"
 import type { PageType } from "../competitor-backlink/score-backlink-relevance.js"
 
@@ -163,50 +164,52 @@ Email 3 — final outreach:
 - After the sign-off, add a P.S. line reinforcing the goodbye.`
 
   try {
-    const { text, cost, modelUsed } = await generateTextWithUsage({
-      model: OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5,
-      fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
-      systemInstructions,
-      input: "Draft the outreach subject line and all 3 emails.",
-      responseFormat: {
-        type: "json_schema",
-        json_schema: {
-          name: "outreach_sequence",
-          strict: true,
-          schema: {
-            type: "object",
-            properties: {
-              email_subject: { type: "string" },
-              step1_body: { type: "string" },
-              step2_body: { type: "string" },
-              step3_body: { type: "string" },
+    return await withLlmRetries(log, async () => {
+      const { text, cost, modelUsed } = await generateTextWithUsage({
+        model: OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5,
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+        systemInstructions,
+        input: "Draft the outreach subject line and all 3 emails.",
+        responseFormat: {
+          type: "json_schema",
+          json_schema: {
+            name: "outreach_sequence",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                email_subject: { type: "string" },
+                step1_body: { type: "string" },
+                step2_body: { type: "string" },
+                step3_body: { type: "string" },
+              },
+              required: ["email_subject", "step1_body", "step2_body", "step3_body"],
+              additionalProperties: false,
             },
-            required: ["email_subject", "step1_body", "step2_body", "step3_body"],
-            additionalProperties: false,
           },
         },
-      },
-    })
+      })
 
-    const parsed = JSON.parse(text) as {
-      email_subject: string
-      step1_body: string
-      step2_body: string
-      step3_body: string
-    }
-    log.info("email generated", {
-      opportunityType: context.opportunityType,
-      subject: parsed.email_subject,
-      cost_usd: cost.toFixed(4),
-      model: modelUsed,
+      const parsed = JSON.parse(text) as {
+        email_subject: string
+        step1_body: string
+        step2_body: string
+        step3_body: string
+      }
+      log.info("email generated", {
+        opportunityType: context.opportunityType,
+        subject: parsed.email_subject,
+        cost_usd: cost.toFixed(4),
+        model: modelUsed,
+      })
+      return {
+        subject: parsed.email_subject,
+        step1Body: parsed.step1_body,
+        step2Body: parsed.step2_body,
+        step3Body: parsed.step3_body,
+        cost,
+      }
     })
-    return {
-      subject: parsed.email_subject,
-      step1Body: parsed.step1_body,
-      step2Body: parsed.step2_body,
-      step3Body: parsed.step3_body,
-      cost,
-    }
   } catch (err) {
     log.warn("email generation failed", { opportunityType: context.opportunityType, error: String(err) })
     return null

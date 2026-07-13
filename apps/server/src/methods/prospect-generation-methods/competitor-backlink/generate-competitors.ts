@@ -2,6 +2,7 @@ import { generateText } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { extractPageContent } from "../../../helpers/html-extract.js"
 import { createLogger } from "../../../helpers/logger.js"
+import { withLlmRetries } from "../../../helpers/llm-retry.js"
 
 const log = createLogger("generate-backlink-competitors")
 
@@ -87,23 +88,24 @@ export async function generateCompetitorDomains(websiteUrl: string): Promise<str
     `Homepage body text: ${page.text || ""}`,
   ].join("\n")
 
-  const { text, modelUsed } = await generateText({
-    model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
-    fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
-    systemInstructions,
-    input,
-    responseFormat: {
-      type: "json_schema",
-      json_schema: {
-        name: "competitor_domains",
-        strict: true,
-        schema: RESPONSE_SCHEMA as unknown as Record<string, unknown>,
+  const { parsed, modelUsed } = await withLlmRetries(log, async () => {
+    const { text, modelUsed: usedModel } = await generateText({
+      model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
+      fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+      systemInstructions,
+      input,
+      responseFormat: {
+        type: "json_schema",
+        json_schema: {
+          name: "competitor_domains",
+          strict: true,
+          schema: RESPONSE_SCHEMA as unknown as Record<string, unknown>,
+        },
       },
-    },
-    timeoutMs: 30_000,
+      timeoutMs: 30_000,
+    })
+    return { parsed: JSON.parse(text) as { competitors?: unknown }, modelUsed: usedModel }
   })
-
-  const parsed = JSON.parse(text) as { competitors?: unknown }
   const rawCompetitors = Array.isArray(parsed.competitors) ? parsed.competitors : []
 
   const competitors = Array.from(

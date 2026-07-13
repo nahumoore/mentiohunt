@@ -126,6 +126,8 @@ export type Database = {
           id: string
           product_id: string
           product_page_id: string | null
+          outreach_stopped_at: string | null
+          outreach_stopped_reason: string | null
           raw_metadata: Json | null
           site_relevance_score: number | null
           status: Database["public"]["Enums"]["prospect_status"]
@@ -148,6 +150,8 @@ export type Database = {
           id?: string
           product_id: string
           product_page_id?: string | null
+          outreach_stopped_at?: string | null
+          outreach_stopped_reason?: string | null
           raw_metadata?: Json | null
           site_relevance_score?: number | null
           status?: Database["public"]["Enums"]["prospect_status"]
@@ -170,6 +174,8 @@ export type Database = {
           id?: string
           product_id?: string
           product_page_id?: string | null
+          outreach_stopped_at?: string | null
+          outreach_stopped_reason?: string | null
           raw_metadata?: Json | null
           site_relevance_score?: number | null
           status?: Database["public"]["Enums"]["prospect_status"]
@@ -375,6 +381,53 @@ export type Database = {
           },
         ]
       }
+      email_account_mailbox_syncs: {
+        Row: {
+          created_at: string
+          email_account_id: string
+          id: string
+          last_error: string | null
+          last_synced_at: string | null
+          last_uid: number
+          locked_at: string | null
+          mailbox: string
+          uid_validity: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_account_id: string
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          last_uid?: number
+          locked_at?: string | null
+          mailbox?: string
+          uid_validity?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_account_id?: string
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          last_uid?: number
+          locked_at?: string | null
+          mailbox?: string
+          uid_validity?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_account_mailbox_syncs_email_account_id_fkey"
+            columns: ["email_account_id"]
+            isOneToOne: false
+            referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_sequences: {
         Row: {
           created_at: string
@@ -415,6 +468,106 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_suppressions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          reason: string
+          source_prospect_id: string | null
+          source_sequence_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          reason: string
+          source_prospect_id?: string | null
+          source_sequence_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string
+          source_prospect_id?: string | null
+          source_sequence_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_suppressions_source_prospect_id_fkey"
+            columns: ["source_prospect_id"]
+            isOneToOne: false
+            referencedRelation: "backlink_prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_suppressions_source_sequence_id_fkey"
+            columns: ["source_sequence_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_sequences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outreach_events: {
+        Row: {
+          created_at: string
+          email_account_id: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          prospect_id: string | null
+          recipient_email: string | null
+          sequence_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_account_id?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          prospect_id?: string | null
+          recipient_email?: string | null
+          sequence_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_account_id?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          prospect_id?: string | null
+          recipient_email?: string | null
+          sequence_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreach_events_email_account_id_fkey"
+            columns: ["email_account_id"]
+            isOneToOne: false
+            referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outreach_events_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "backlink_prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outreach_events_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_sequences"
             referencedColumns: ["id"]
           },
         ]
@@ -559,13 +712,121 @@ export type Database = {
         }
         Relationships: []
       }
+      prospect_messages: {
+        Row: {
+          classification: string
+          classification_confidence: number | null
+          classification_reason: string | null
+          created_at: string
+          direction: string
+          email_account_id: string | null
+          from_email: string | null
+          from_name: string | null
+          headers: Json | null
+          html_body: string | null
+          id: string
+          imap_uid: number | null
+          imap_uid_validity: number | null
+          in_reply_to: string | null
+          message_id: string | null
+          metadata: Json | null
+          prospect_id: string
+          received_at: string
+          references: string[] | null
+          sequence_id: string | null
+          subject: string | null
+          text_body: string | null
+          to_emails: string[] | null
+        }
+        Insert: {
+          classification: string
+          classification_confidence?: number | null
+          classification_reason?: string | null
+          created_at?: string
+          direction?: string
+          email_account_id?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          headers?: Json | null
+          html_body?: string | null
+          id?: string
+          imap_uid?: number | null
+          imap_uid_validity?: number | null
+          in_reply_to?: string | null
+          message_id?: string | null
+          metadata?: Json | null
+          prospect_id: string
+          received_at: string
+          references?: string[] | null
+          sequence_id?: string | null
+          subject?: string | null
+          text_body?: string | null
+          to_emails?: string[] | null
+        }
+        Update: {
+          classification?: string
+          classification_confidence?: number | null
+          classification_reason?: string | null
+          created_at?: string
+          direction?: string
+          email_account_id?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          headers?: Json | null
+          html_body?: string | null
+          id?: string
+          imap_uid?: number | null
+          imap_uid_validity?: number | null
+          in_reply_to?: string | null
+          message_id?: string | null
+          metadata?: Json | null
+          prospect_id?: string
+          received_at?: string
+          references?: string[] | null
+          sequence_id?: string | null
+          subject?: string | null
+          text_body?: string | null
+          to_emails?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospect_messages_email_account_id_fkey"
+            columns: ["email_account_id"]
+            isOneToOne: false
+            referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospect_messages_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "backlink_prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospect_messages_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_sequences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prospect_sequences: {
         Row: {
           body: string | null
+          attempt_count: number
+          bounce_reason: string | null
+          bounced_at: string | null
           created_at: string
           email_account_id: string
           id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          locked_at: string | null
+          message_id: string | null
           prospect_id: string
+          provider_response: Json | null
           scheduled_at: string
           sent_at: string | null
           status: Database["public"]["Enums"]["prospect_sequence_status"]
@@ -574,10 +835,18 @@ export type Database = {
         }
         Insert: {
           body?: string | null
+          attempt_count?: number
+          bounce_reason?: string | null
+          bounced_at?: string | null
           created_at?: string
           email_account_id: string
           id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          locked_at?: string | null
+          message_id?: string | null
           prospect_id: string
+          provider_response?: Json | null
           scheduled_at: string
           sent_at?: string | null
           status?: Database["public"]["Enums"]["prospect_sequence_status"]
@@ -586,10 +855,18 @@ export type Database = {
         }
         Update: {
           body?: string | null
+          attempt_count?: number
+          bounce_reason?: string | null
+          bounced_at?: string | null
           created_at?: string
           email_account_id?: string
           id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          locked_at?: string | null
+          message_id?: string | null
           prospect_id?: string
+          provider_response?: Json | null
           scheduled_at?: string
           sent_at?: string | null
           status?: Database["public"]["Enums"]["prospect_sequence_status"]
@@ -736,8 +1013,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_prospect_outreach_sequence: {
+        Args: { p_sequence_id: string; p_spacing_seconds?: number }
+        Returns: Database["public"]["Tables"]["prospect_sequences"]["Row"][]
+      }
       merge_discovery_status: {
         Args: { p_product_id: string; p_updates: Json }
+        Returns: undefined
+      }
+      stop_prospect_outreach: {
+        Args: {
+          p_email_account_id: string | null
+          p_event_type: string
+          p_metadata?: Json
+          p_prospect_id: string
+          p_prospect_status?: Database["public"]["Enums"]["prospect_status"] | null
+          p_reason: string
+          p_recipient_email: string | null
+          p_sequence_id: string | null
+          p_suppress?: boolean
+        }
         Returns: undefined
       }
     }
@@ -765,6 +1060,8 @@ export type Database = {
         | "failed"
         | "skipped"
         | "paused"
+        | "sending"
+        | "bounced"
       prospect_status:
         | "new"
         | "contacted"
@@ -930,6 +1227,8 @@ export const Constants = {
         "failed",
         "skipped",
         "paused",
+        "sending",
+        "bounced",
       ],
       prospect_status: [
         "new",

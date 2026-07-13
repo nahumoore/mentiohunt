@@ -1,6 +1,6 @@
 import { OpenRouter } from "@openrouter/agent"
 
-import { DEFAULT_GENERATE_TEXT_MODEL, type OpenRouterModel } from "./models"
+import { DEFAULT_GENERATE_TEXT_MODEL, type OpenRouterModel } from "./models.ts"
 
 type ProcessEnv = {
   env?: Record<string, string | undefined>

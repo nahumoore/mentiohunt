@@ -1,6 +1,7 @@
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../../helpers/logger.js"
+import { withLlmRetries } from "../../../helpers/llm-retry.js"
 import { parseLlmJson } from "../../../helpers/parse-llm-json.js"
 import { extractCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
 
@@ -62,19 +63,22 @@ export async function buildListicleQueries(product: {
   let modelUsed: string | null = null
 
   try {
-    const { text, cost: callCost, modelUsed: usedModel } = await generateTextWithUsage({
-      model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
-      fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
-      systemInstructions: SYSTEM_INSTRUCTIONS,
-      thinkingBudget: 1000,
-      input: `Product: ${product.product_name}\nDescription: ${product.product_description}`,
-      responseFormat: RESPONSE_FORMAT,
+    const { cost: callCost, modelUsed: usedModel, categories: parsedCategories } = await withLlmRetries(log, async () => {
+      const { text, cost: attemptCost, modelUsed: attemptModel } = await generateTextWithUsage({
+        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+        systemInstructions: SYSTEM_INSTRUCTIONS,
+        thinkingBudget: 1000,
+        input: `Product: ${product.product_name}\nDescription: ${product.product_description}`,
+        responseFormat: RESPONSE_FORMAT,
+      })
+      const parsed = parseLlmJson<{ categories?: unknown }>(text)
+      return { cost: attemptCost, modelUsed: attemptModel, categories: parsed.categories }
     })
     cost = callCost
     modelUsed = usedModel
-    const parsed = parseLlmJson<{ categories?: unknown }>(text)
-    categories = Array.isArray(parsed.categories)
-      ? parsed.categories
+    categories = Array.isArray(parsedCategories)
+      ? parsedCategories
           .filter((c): c is string => typeof c === "string" && c.trim().length > 0)
           .slice(0, MAX_CATEGORIES)
       : []

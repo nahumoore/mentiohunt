@@ -1,6 +1,7 @@
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../../helpers/logger.js"
+import { withLlmRetries } from "../../../helpers/llm-retry.js"
 
 const log = createLogger("score-site-relevance")
 
@@ -65,32 +66,27 @@ async function scoreBatch(
     context: item.snippet || "(no context)",
   }))
 
-  const { text, cost, modelUsed } = await generateTextWithUsage({
-    model,
-    fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
-    systemInstructions: SYSTEM_INSTRUCTIONS(product),
-    input: `Sites:\n${JSON.stringify(payload, null, 2)}`,
-    responseFormat: RESPONSE_FORMAT,
+  return withLlmRetries(log, async () => {
+    const { text, cost, modelUsed } = await generateTextWithUsage({
+      model,
+      fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+      systemInstructions: SYSTEM_INSTRUCTIONS(product),
+      input: `Sites:\n${JSON.stringify(payload, null, 2)}`,
+      responseFormat: RESPONSE_FORMAT,
+    })
+
+    const parsed = JSON.parse(text) as { results: { id: string; score: number }[] }
+
+    if (!Array.isArray(parsed?.results)) {
+      throw new Error(`unexpected response shape: ${Object.keys(parsed ?? {}).join(",")}`)
+    }
+
+    const results = new Map(
+      parsed.results.map((r) => [r.id, { score: Math.round(r.score) }])
+    )
+
+    return { results, cost, modelUsed }
   })
-
-  let parsed: { results: { id: string; score: number }[] }
-  try {
-    parsed = JSON.parse(text) as typeof parsed
-  } catch {
-    log.warn("json parse failed", { model: modelUsed })
-    return { results: new Map(), cost, modelUsed }
-  }
-
-  if (!Array.isArray(parsed?.results)) {
-    log.warn("unexpected response shape", { keys: Object.keys(parsed ?? {}), model: modelUsed })
-    return { results: new Map(), cost, modelUsed }
-  }
-
-  const results = new Map(
-    parsed.results.map((r) => [r.id, { score: Math.round(r.score) }])
-  )
-
-  return { results, cost, modelUsed }
 }
 
 export async function scoreSiteRelevance(

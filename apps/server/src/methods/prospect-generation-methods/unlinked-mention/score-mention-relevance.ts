@@ -2,6 +2,7 @@ import pLimit from "p-limit"
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../../helpers/logger.js"
+import { withLlmRetries } from "../../../helpers/llm-retry.js"
 import { parseLlmJson } from "../../../helpers/parse-llm-json.js"
 
 const log = createLogger("score-mention-relevance")
@@ -17,7 +18,6 @@ export type ScoredMention = MentionCandidate & {
   relevanceReason: string
 }
 
-const RETRY_DELAYS_MS = [3_000, 10_000, 30_000]
 const BATCH_SIZE = 20
 
 function chunk<T>(arr: T[], size: number): T[][] {
@@ -107,9 +107,8 @@ async function scoreBatch(
     snippet: item.snippet || "(no snippet)",
   }))
 
-  let lastErr: unknown
-  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
-    try {
+  try {
+    return await withLlmRetries(log, async () => {
       const { text, cost, modelUsed } = await generateTextWithUsage({
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
@@ -119,13 +118,7 @@ async function scoreBatch(
         responseFormat: RESPONSE_FORMAT,
       })
 
-      let parsed: { results: { id: string; score: number; reason: string }[] }
-      try {
-        parsed = parseLlmJson<typeof parsed>(text)
-      } catch (parseErr) {
-        log.warn("json parse failed", { error: String(parseErr), rawResponse: text })
-        return { results: [], cost: 0 }
-      }
+      const parsed = parseLlmJson<{ results: { id: string; score: number; reason: string }[] }>(text)
 
       const scoreById = new Map(parsed.results.map((r) => [r.id, r]))
 
@@ -154,20 +147,9 @@ async function scoreBatch(
       }
 
       return { results: scored, cost }
-    } catch (err) {
-      lastErr = err
-      const msg = String(err)
-      const isRateLimit = msg.includes("rate_limit_exceeded") || msg.includes('"code":429') || msg.includes("429")
-      if (isRateLimit && attempt < RETRY_DELAYS_MS.length) {
-        const delay = RETRY_DELAYS_MS[attempt]!
-        log.warn("rate limited, retrying", { attempt: attempt + 1, delay_ms: delay })
-        await new Promise((resolve) => setTimeout(resolve, delay))
-        continue
-      }
-      break
-    }
+    })
+  } catch (err) {
+    log.warn("scoring failed", { error: String(err) })
+    return { results: [], cost: 0 }
   }
-
-  log.warn("scoring failed", { error: String(lastErr) })
-  return { results: [], cost: 0 }
 }

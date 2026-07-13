@@ -1,6 +1,6 @@
 import { supabaseServer } from "@/lib/supabase/server"
 import { supabaseAdmin } from "@workspace/supabase/admin"
-import type { ProspectDetail, ProspectSequence } from "@/stores/prospect-store"
+import type { ProspectDetail, ProspectMessage, ProspectSequence } from "@/stores/prospect-store"
 import { notFound, redirect } from "next/navigation"
 
 import { ProspectClientPage } from "./client-page"
@@ -27,6 +27,8 @@ async function checkHasEmailAccount(userId: string, isPaid: boolean): Promise<bo
     .from("email_accounts")
     .select("id")
     .eq("is_public", true)
+    .eq("status", "active")
+    .limit(1)
     .maybeSingle()
 
   return !!publicAccount
@@ -51,7 +53,7 @@ export default async function ProspectPage({
   const { data: prospect, error } = await supabase
     .from("backlink_prospects")
     .select(
-      "id, product_id, product_page_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, email_subject, email_body, created_at, found_url, contact_social_links, raw_metadata, domain_rating, site_relevance_score"
+      "id, product_id, product_page_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, email_subject, email_body, created_at, found_url, contact_social_links, raw_metadata, domain_rating, site_relevance_score, outreach_stopped_at, outreach_stopped_reason"
     )
     .eq("id", slug)
     .maybeSingle()
@@ -73,7 +75,7 @@ export default async function ProspectPage({
       .maybeSingle(),
     supabase
       .from("prospect_sequences")
-      .select("id, step, subject, body, status, scheduled_at, sent_at")
+      .select("id, step, subject, body, status, scheduled_at, sent_at, bounced_at, bounce_reason")
       .eq("prospect_id", prospect.id)
       .order("step", { ascending: true }),
     supabase
@@ -111,6 +113,18 @@ export default async function ProspectPage({
   const isFreeUser = profileResult.data == null ? true : profileResult.data.tier === "free"
   const isPaid = profileResult.data?.tier === "pro" || profileResult.data?.tier === "agency"
 
+  const { data: messagesData, error: messagesError } = await supabaseAdmin
+    .from("prospect_messages")
+    .select("id, sequence_id, direction, classification, classification_reason, from_email, from_name, subject, text_body, received_at")
+    .eq("prospect_id", prospect.id)
+    .order("received_at", { ascending: true })
+
+  if (messagesError) {
+    console.error("Error fetching prospect messages:", messagesError)
+  }
+
+  const messages: ProspectMessage[] = messagesData ?? []
+
   const hasEmailAccount =
     prospect.status === "email_not_found" ? await checkHasEmailAccount(user.id, isPaid) : true
 
@@ -119,6 +133,7 @@ export default async function ProspectPage({
       prospect={{ ...(prospect as ProspectDetail), source_page: sourcePage }}
       product={{ productName: productResult.data.product_name, websiteUrl: productResult.data.website_url }}
       sequences={sequences}
+      messages={messages}
       isFreeUser={isFreeUser}
       hasEmailAccount={hasEmailAccount}
     />

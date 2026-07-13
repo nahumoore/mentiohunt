@@ -13,7 +13,21 @@ export type ProspectSourcePage = Pick<
 
 export type ProspectSequence = Pick<
   Tables<"prospect_sequences">,
-  "id" | "step" | "subject" | "body" | "status" | "scheduled_at" | "sent_at"
+  "id" | "step" | "subject" | "body" | "status" | "scheduled_at" | "sent_at" | "bounced_at" | "bounce_reason"
+>
+
+export type ProspectMessage = Pick<
+  Tables<"prospect_messages">,
+  | "id"
+  | "sequence_id"
+  | "direction"
+  | "classification"
+  | "classification_reason"
+  | "from_email"
+  | "from_name"
+  | "subject"
+  | "text_body"
+  | "received_at"
 >
 
 export type ProspectListItem = Pick<
@@ -43,6 +57,8 @@ export type ProspectDetail = ProspectListItem &
     | "contact_social_links"
     | "raw_metadata"
     | "domain_rating"
+    | "outreach_stopped_at"
+    | "outreach_stopped_reason"
   >
 
 type ProspectStore = {
@@ -144,6 +160,8 @@ export const useProspectStore = create<ProspectStore>()((set) => ({
         found_url: row.found_url,
         contact_social_links: row.contact_social_links,
         raw_metadata: row.raw_metadata,
+        outreach_stopped_at: row.outreach_stopped_at,
+        outreach_stopped_reason: row.outreach_stopped_reason,
         source_page:
           existingDetail?.product_page_id === row.product_page_id
             ? existingDetail.source_page

@@ -1,20 +1,19 @@
 import cron from "node-cron"
-import { deactivateExpiredFreeTrials } from "./deactivate-expired-free-trials.js"
 import { runDailyBacklinkDiscovery } from "./daily-backlink-discovery.js"
+import { deactivateExpiredFreeTrials } from "./deactivate-expired-free-trials.js"
 import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
-import { updateDirectorySeoMetrics } from "./update-directory-seo-metrics.js"
 
 export function registerJobs(): void {
-  cron.schedule("0 2 1 * *", async () => {
-    try {
-      await updateDirectorySeoMetrics()
-    } catch (err) {
-      console.error("[cron] Error updating directory SEO metrics:", err)
-    }
-  })
-  console.log(
-    "[cron] Scheduled: directory SEO metrics update (1st of each month)"
-  )
+  // cron.schedule("0 2 1 * *", async () => {
+  //   try {
+  //     await updateDirectorySeoMetrics()
+  //   } catch (err) {
+  //     console.error("[cron] Error updating directory SEO metrics:", err)
+  //   }
+  // })
+  // console.log(
+  //   "[cron] Scheduled: directory SEO metrics update (1st of each month)"
+  // )
 
   cron.schedule("15 0,8,16 * * *", async () => {
     try {
@@ -35,6 +34,24 @@ export function registerJobs(): void {
     }
   })
   console.log("[cron] Scheduled: feedback email sequence (hourly)")
+
+  // cron.schedule("*/5 * * * *", async () => {
+  //   try {
+  //     await runProspectOutreachSender()
+  //   } catch (err) {
+  //     console.error("[cron] Error running prospect outreach sender:", err)
+  //   }
+  // })
+  // console.log("[cron] Scheduled: prospect outreach sender (every 5 minutes)")
+
+  // cron.schedule("2-59/5 * * * *", async () => {
+  //   try {
+  //     await runProspectOutreachMonitor()
+  //   } catch (err) {
+  //     console.error("[cron] Error running prospect outreach monitor:", err)
+  //   }
+  // })
+  // console.log("[cron] Scheduled: prospect outreach monitor (every 5 minutes)")
 
   cron.schedule("0 7 * * *", async () => {
     try {

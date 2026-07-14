@@ -36,6 +36,21 @@ const nextConfig = {
         destination: "/blog/how-to-find-backlink-opportunities",
         permanent: true,
       },
+      {
+        source: "/quora-monitoring",
+        destination: "/blog/how-to-find-backlink-opportunities",
+        permanent: true,
+      },
+      {
+        source: "/free-tools/reddit-user-analyzer",
+        destination: "/blog/how-to-find-backlink-opportunities",
+        permanent: true,
+      },
+      {
+        source: "/blog/unlinked-brand-mentions",
+        destination: "/blog/how-to-find-backlink-opportunities",
+        permanent: true,
+      },
     ]
   },
 }

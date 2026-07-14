@@ -166,6 +166,7 @@ async function loadContext(sequence: ProspectSequence): Promise<{
   account: AccountContext
   senderName: string | null
   previousMessageId: string | null
+  ownerEligible: boolean
 } | null> {
   const { data: prospect, error: prospectError } = await supabaseAdmin
     .from("backlink_prospects")
@@ -202,11 +203,12 @@ async function loadContext(sequence: ProspectSequence): Promise<{
 
   const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("name, email")
+    .select("name, email, tier, active_trial")
     .eq("id", product.user_id)
     .maybeSingle()
 
   const senderName = profile?.name?.trim() || profile?.email?.split("@")[0] || null
+  const ownerEligible = profile !== undefined && profile !== null && (profile.tier !== "free" || profile.active_trial)
   let previousMessageId: string | null = null
   if (sequence.step > 1) {
     const { data: previous } = await supabaseAdmin
@@ -221,7 +223,7 @@ async function loadContext(sequence: ProspectSequence): Promise<{
     previousMessageId = previous?.message_id ?? null
   }
 
-  return { prospect, product, account, senderName, previousMessageId }
+  return { prospect, product, account, senderName, previousMessageId, ownerEligible }
 }
 
 async function isSuppressed(email: string): Promise<boolean> {
@@ -299,6 +301,11 @@ async function processSequence(sequence: ProspectSequence): Promise<boolean> {
     const recipientEmail = context.prospect.contact_email ? normalizeEmail(context.prospect.contact_email) : null
     if (!recipientEmail || !claimed.subject?.trim() || !claimed.body?.trim()) {
       await skipSequence(claimed, "Missing recipient, subject, or body.", recipientEmail)
+      return false
+    }
+
+    if (!context.ownerEligible) {
+      await skipSequence(claimed, "Owner's free trial has expired.", recipientEmail)
       return false
     }
 

@@ -64,8 +64,8 @@ export async function sendOutreachEmail({
     port: account.smtp_port,
     secure: account.smtp_port === 465,
     auth: { user: account.smtp_user, pass: smtpPassword },
-    connectionTimeout: 15_000,
-    greetingTimeout: 15_000,
+    connectionTimeout: 30_000,
+    greetingTimeout: 30_000,
   })
 
   const info = await transporter.sendMail({

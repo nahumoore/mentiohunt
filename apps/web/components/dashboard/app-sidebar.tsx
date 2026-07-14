@@ -28,6 +28,15 @@ import { Skeleton } from "@workspace/ui/components/skeleton"
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000
 
+function getProductHostname(websiteUrl: string | null | undefined) {
+  if (!websiteUrl) return null
+  try {
+    return new URL(websiteUrl).hostname.replace(/^www\./, "")
+  } catch {
+    return null
+  }
+}
+
 function getTrialDaysRemaining(periodEndAt: string) {
   const periodEndTime = new Date(periodEndAt).getTime()
 
@@ -49,7 +58,9 @@ export function AppSidebar({
   const pathname = usePathname()
   const product = useProductStore((state) => state.product)
   const profile = useProfileStore((state) => state.profile)
-  const productName = getProductDisplayName(product ?? initialProduct)
+  const activeProduct = product ?? initialProduct
+  const productName = getProductDisplayName(activeProduct)
+  const productHostname = getProductHostname(activeProduct?.website_url)
   const isTrialProfileLoading = profile === null
   const isFreeTrial = profile?.tier === "free" && profile.active_trial
   const trialDaysRemaining = profile
@@ -79,9 +90,23 @@ export function AppSidebar({
             <p className="font-heading text-base font-bold leading-5 tracking-tight text-sidebar-foreground">
               Mentiohunt
             </p>
-            <p className="truncate text-xs leading-4 text-muted-foreground">
-              {user.email}
-            </p>
+            {productHostname ? (
+              <p className="flex items-center gap-1 truncate text-xs leading-4 text-muted-foreground">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://www.google.com/s2/favicons?domain=${productHostname}&sz=32`}
+                  alt=""
+                  width={12}
+                  height={12}
+                  className="size-3 shrink-0 rounded-[2px]"
+                />
+                <span className="truncate">{productHostname}</span>
+              </p>
+            ) : (
+              <p className="truncate text-xs leading-4 text-muted-foreground">
+                {user.email}
+              </p>
+            )}
           </div>
         </Link>
       </SidebarHeader>

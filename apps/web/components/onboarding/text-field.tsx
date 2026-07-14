@@ -1,5 +1,6 @@
 "use client"
 
+import { OnboardingLoadingField } from "@/components/onboarding/onboarding-loading-field"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { cn } from "@workspace/ui/lib/utils"
@@ -10,17 +11,26 @@ type TextFieldProps = {
   error?: string
   placeholder?: string
   isLoading?: boolean
+  loadingMessage?: string
   onChange: (value: string) => void
 }
 
-export function TextField({ label, value, error, placeholder, isLoading, onChange }: TextFieldProps) {
+export function TextField({
+  label,
+  value,
+  error,
+  placeholder,
+  isLoading,
+  loadingMessage = "Loading",
+  onChange,
+}: TextFieldProps) {
   return (
     <Field>
       <FieldLabel className="text-[0.7rem] font-bold text-muted-foreground uppercase">
         {label}
       </FieldLabel>
       {isLoading ? (
-        <div className="h-12 animate-pulse rounded-md bg-muted" />
+        <OnboardingLoadingField message={loadingMessage} className="h-12" />
       ) : (
         <Input
           value={value}

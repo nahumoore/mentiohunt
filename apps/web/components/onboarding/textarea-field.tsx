@@ -1,5 +1,6 @@
 "use client"
 
+import { OnboardingLoadingField } from "@/components/onboarding/onboarding-loading-field"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
@@ -9,10 +10,18 @@ type TextareaFieldProps = {
   value: string
   error?: string
   isLoading?: boolean
+  loadingMessage?: string
   onChange: (value: string) => void
 }
 
-export function TextareaField({ label, value, error, isLoading, onChange }: TextareaFieldProps) {
+export function TextareaField({
+  label,
+  value,
+  error,
+  isLoading,
+  loadingMessage = "Loading",
+  onChange,
+}: TextareaFieldProps) {
   return (
     <Field>
       <div className="flex items-center justify-between gap-3">
@@ -22,7 +31,7 @@ export function TextareaField({ label, value, error, isLoading, onChange }: Text
         {!isLoading && <span className="text-xs text-muted-foreground">{value.trim().length} / 280</span>}
       </div>
       {isLoading ? (
-        <div className="min-h-[120px] animate-pulse rounded-md bg-muted" />
+        <OnboardingLoadingField message={loadingMessage} className="min-h-[120px] items-start pt-3.5" />
       ) : (
         <Textarea
           className={cn(

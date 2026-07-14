@@ -749,6 +749,8 @@ export function ProspectClientPage({
             <ManualCompletionForm
               prospectId={current.id}
               hasEmailAccount={hasEmailAccount}
+              foundContactName={contactName}
+              domain={current.domain}
               onSuccess={() => {
                 updateProspectStatuses([current.id], "new")
                 router.refresh()

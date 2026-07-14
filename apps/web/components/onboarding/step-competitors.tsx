@@ -32,6 +32,7 @@ export function StepCompetitors({
         maxItems={10}
         showFavicon
         isLoading={loadingFields.has("competitors")}
+        loadingMessage="Investigating your competitors"
         normalizeItem={normalizeUrl}
         onChange={(items) => updateField("competitors", items)}
       />

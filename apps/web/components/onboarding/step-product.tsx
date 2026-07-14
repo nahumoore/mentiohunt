@@ -29,6 +29,7 @@ export function StepProduct({
         value={data.productName}
         error={errors.productName}
         isLoading={loadingFields.has("productName")}
+        loadingMessage="Reading your site to name your product"
         onChange={(value) => updateField("productName", value)}
       />
       <TextareaField
@@ -36,6 +37,7 @@ export function StepProduct({
         value={data.productDescription}
         error={errors.productDescription}
         isLoading={loadingFields.has("productDescription")}
+        loadingMessage="Drafting a description from your site"
         onChange={(value) => updateField("productDescription", value)}
       />
     </div>

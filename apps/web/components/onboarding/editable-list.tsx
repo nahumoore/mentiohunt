@@ -1,5 +1,6 @@
 "use client"
 
+import { OnboardingLoadingField } from "@/components/onboarding/onboarding-loading-field"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { cn } from "@workspace/ui/lib/utils"
@@ -15,6 +16,7 @@ type EditableListProps = {
   maxItems: number
   showFavicon?: boolean
   isLoading?: boolean
+  loadingMessage?: string
   badgeIcon?: React.ReactNode
   normalizeItem?: (value: string) => string
   onChange: (items: string[]) => void
@@ -29,6 +31,7 @@ export function EditableList({
   maxItems,
   showFavicon = false,
   isLoading = false,
+  loadingMessage = "Loading",
   badgeIcon,
   normalizeItem = (value) => value.trim(),
   onChange,
@@ -64,15 +67,7 @@ export function EditableList({
         <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
           {label}
         </label>
-        <div className="flex flex-wrap gap-1.5">
-          {[48, 72, 60, 56, 80].map((w) => (
-            <div
-              key={w}
-              className="h-6 animate-pulse rounded-full bg-muted"
-              style={{ width: `${w}px` }}
-            />
-          ))}
-        </div>
+        <OnboardingLoadingField message={loadingMessage} className="h-12" />
       </div>
     )
   }

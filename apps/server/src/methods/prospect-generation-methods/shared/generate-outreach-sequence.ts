@@ -54,6 +54,17 @@ export type OutreachSequence = {
   cost: number
 }
 
+/** The LLM is instructed to sign off with "Best,\n{senderFirstName}" but sometimes drops it
+ * entirely. Back-fill it deterministically rather than shipping a signature-less email. */
+function ensureSignOff(body: string, senderFirstName: string): string {
+  const trimmed = body.trimEnd()
+  if (!senderFirstName) return trimmed
+  const escaped = senderFirstName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const hasSignOff = new RegExp(`best,?\\s*\\n\\s*${escaped}\\b`, "i").test(trimmed)
+  if (hasSignOff) return trimmed
+  return `${trimmed}\n\nBest,\n${senderFirstName}`
+}
+
 function sanitizeUserInput(input: string | null | undefined): string | null {
   if (!input) return null
   return input.trim().slice(0, MAX_USER_INPUT_LENGTH)
@@ -202,6 +213,13 @@ Email 3 — final outreach:
         step2_body: string
         step3_body: string
       }
+      const step1Body = ensureSignOff(parsed.step1_body, senderFirstName)
+      const step2Body = ensureSignOff(parsed.step2_body, senderFirstName)
+      const step3Body = ensureSignOff(parsed.step3_body, senderFirstName)
+      if (step1Body !== parsed.step1_body || step2Body !== parsed.step2_body || step3Body !== parsed.step3_body) {
+        log.info("sign-off missing from LLM output, backfilled", { opportunityType: context.opportunityType, senderFirstName })
+      }
+
       log.info("email generated", {
         opportunityType: context.opportunityType,
         subject: parsed.email_subject,
@@ -210,9 +228,9 @@ Email 3 — final outreach:
       })
       return {
         subject: parsed.email_subject,
-        step1Body: parsed.step1_body,
-        step2Body: parsed.step2_body,
-        step3Body: parsed.step3_body,
+        step1Body,
+        step2Body,
+        step3Body,
         cost,
       }
     })

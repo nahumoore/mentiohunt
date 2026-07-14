@@ -4,6 +4,26 @@
  * placeholder email addresses (e.g. john@example.com).
  */
 
+// Substrings that indicate the LLM returned a scraper failure description or a
+// refusal to name a real person, instead of a real name.
+const NAME_FAILURE_SUBSTRINGS = [
+  "unable",
+  "cannot",
+  "could not",
+  "access denied",
+  "site could",
+  "error",
+  "no real person",
+  "not identified",
+  "no individual",
+  "not able to identify",
+  "no author",
+  "no name",
+  "not found",
+  "not available",
+  "no person",
+]
+
 const NAME_BLOCKLIST = new Set([
   "null",
   "none",
@@ -60,7 +80,9 @@ export function sanitizeContactName(name: string | null | undefined): string | n
   if (!trimmed) return null
   if (trimmed.length > 60) return null
   if (!/[a-zA-Z]/.test(trimmed)) return null
-  if (NAME_BLOCKLIST.has(trimmed.toLowerCase())) return null
+  const lower = trimmed.toLowerCase()
+  if (NAME_BLOCKLIST.has(lower)) return null
+  if (NAME_FAILURE_SUBSTRINGS.some((s) => lower.includes(s))) return null
   if (trimmed.split(/\s+/).length > 5) return null
   return trimmed
 }

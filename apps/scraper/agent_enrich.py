@@ -24,8 +24,25 @@ _PLACEHOLDER_EMAIL_DOMAINS = {"example.com", "example.org", "example.net", "test
 
 _NAME_BLOCKLIST = {"null", "none", "n/a", "na", "undefined", "unknown", "finish", "scrape_page", "anonymous", "author", "admin", "editor", "staff", "team"}
 
-# Substrings that indicate the LLM returned a scraper failure description instead of a real name.
-_NAME_FAILURE_SUBSTRINGS = ["unable", "cannot", "could not", "access denied", "site could", "error"]
+# Substrings that indicate the LLM returned a scraper failure description or a
+# refusal to name a real person, instead of a real name.
+_NAME_FAILURE_SUBSTRINGS = [
+    "unable",
+    "cannot",
+    "could not",
+    "access denied",
+    "site could",
+    "error",
+    "no real person",
+    "not identified",
+    "no individual",
+    "not able to identify",
+    "no author",
+    "no name",
+    "not found",
+    "not available",
+    "no person",
+]
 
 
 def _clean_name(name: str | None) -> str | None:

@@ -2,6 +2,7 @@ import pLimit from "p-limit"
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { fetchSitemapUrls, filterContentUrls } from "../../helpers/sitemap.js"
 import { createLogger } from "../../helpers/logger.js"
+import { scraperLightLimit } from "../../helpers/scraper-limits.js"
 import { categorizePages, type PageToClassify } from "./categorize-pages.js"
 
 const log = createLogger("crawl-product-pages")
@@ -16,25 +17,28 @@ type ScraperContentResult = {
 async function fetchContentFromScraper(url: string): Promise<ScraperContentResult | null> {
   const scraperUrl = process.env.SCRAPER_URL
   if (!scraperUrl) return null
-  try {
-    const scraperApiKey = process.env.SCRAPER_API_KEY
-    const res = await fetch(`${scraperUrl}/fetch-content`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
-      },
-      body: JSON.stringify({ url }),
-    })
-    if (!res.ok) {
-      log.warn("scraper fetch-content failed", { url, status: res.status })
+  return scraperLightLimit(async () => {
+    try {
+      const scraperApiKey = process.env.SCRAPER_API_KEY
+      const res = await fetch(`${scraperUrl}/fetch-content`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
+        },
+        body: JSON.stringify({ url }),
+        signal: AbortSignal.timeout(60_000),
+      })
+      if (!res.ok) {
+        log.warn("scraper fetch-content failed", { url, status: res.status })
+        return null
+      }
+      return (await res.json()) as ScraperContentResult
+    } catch (err) {
+      log.warn("scraper fetch-content error", { url, error: String(err) })
       return null
     }
-    return (await res.json()) as ScraperContentResult
-  } catch (err) {
-    log.warn("scraper fetch-content error", { url, error: String(err) })
-    return null
-  }
+  })
 }
 
 const CRAWL_CONCURRENCY = 10

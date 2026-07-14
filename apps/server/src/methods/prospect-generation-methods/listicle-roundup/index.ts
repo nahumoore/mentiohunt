@@ -287,7 +287,7 @@ export async function discoverListicleRoundups(
     const prospectsCreated = idByUrl.size
 
     // Enrich each newly-inserted prospect, updating its row live as it completes.
-    const enrichLimit = pLimit(3)
+    const enrichLimit = pLimit(5)
     await Promise.allSettled(
       toProcess
         .filter((item) => idByUrl.has(item.url))

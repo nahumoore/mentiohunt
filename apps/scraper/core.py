@@ -101,10 +101,26 @@ _cf_blocked_domains: set[str] = set()
 # (agent-scrape: 120s, check-mention: 180s) — sharing one pool would let a heavy
 # request occupy a slot long enough to blow the light route's timeout budget
 # even though nothing actually failed server-side, just queued.
-_HEAVY_CONCURRENCY = int(os.getenv("SCRAPE_HEAVY_CONCURRENCY", "3"))
-_LIGHT_CONCURRENCY = int(os.getenv("SCRAPE_LIGHT_CONCURRENCY", "8"))
+#
+# Sizing: heavy must not exceed the dynamic session's max_pages (main.py) or
+# heavy jobs queue on browser tabs instead of here, invisibly. The Node caller
+# mirrors these caps in apps/server/src/helpers/scraper-limits.ts so requests
+# queue client-side (before their abort timeout starts) rather than in here.
+_HEAVY_CONCURRENCY = int(os.getenv("SCRAPE_HEAVY_CONCURRENCY", "10"))
+_LIGHT_CONCURRENCY = int(os.getenv("SCRAPE_LIGHT_CONCURRENCY", "16"))
 _heavy_semaphore = asyncio.Semaphore(_HEAVY_CONCURRENCY)
 _light_semaphore = asyncio.Semaphore(_LIGHT_CONCURRENCY)
+
+# Live occupancy per pool, for the /health endpoint and queue logging. Guarded
+# only by the single-threaded event loop — no lock needed.
+_pool_stats = {
+    "heavy": {"active": 0, "waiting": 0, "capacity": _HEAVY_CONCURRENCY},
+    "light": {"active": 0, "waiting": 0, "capacity": _LIGHT_CONCURRENCY},
+}
+
+
+def pool_stats() -> dict:
+    return {pool: dict(stats) for pool, stats in _pool_stats.items()}
 
 
 @asynccontextmanager
@@ -112,13 +128,23 @@ async def _scrape_slot(pool: str):
     """Acquire a global concurrency slot for the given pool ("heavy" | "light").
     Blocks (does not fail) while the pool is full — callers just wait in line."""
     semaphore = _heavy_semaphore if pool == "heavy" else _light_semaphore
+    stats = _pool_stats[pool]
     waited = semaphore.locked()
     if waited:
-        log.info(f"scrape slot ({pool}) full, queueing")
-    async with semaphore:
+        log.info(f"scrape slot ({pool}) full, queueing (waiting={stats['waiting'] + 1})")
+    stats["waiting"] += 1
+    try:
+        await semaphore.acquire()
+    finally:
+        stats["waiting"] -= 1
+    stats["active"] += 1
+    try:
         if waited:
             log.info(f"scrape slot ({pool}) acquired after wait")
         yield
+    finally:
+        stats["active"] -= 1
+        semaphore.release()
 
 # --- Auth --------------------------------------------------------------------
 API_KEY = os.getenv("API_KEY")
@@ -522,6 +548,7 @@ __all__ = [
     "_execution_log",
     "_require_api_key",
     "_scrape_slot",
+    "pool_stats",
     "_get_agent_helpers",
     "_seeded_helpers",
     "_links_to_target",

@@ -44,7 +44,9 @@ export async function discoverCompetitorBacklinks(
 
   const allDomains = product.competitors.map(extractCompetitorDomain)
   const competitorsToProcess = await selectCompetitorsForRun(product.id, allDomains, maxCompetitors)
-  const enrichLimit = pLimit(1)
+  // Per-run fairness cap; total scraper pressure across runs is bounded by the
+  // shared limiters in helpers/scraper-limits.ts.
+  const enrichLimit = pLimit(5)
 
   log.info("competitors selected", {
     productId: product.id,

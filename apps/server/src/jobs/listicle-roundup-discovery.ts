@@ -7,7 +7,7 @@ import { assignSequences } from "../processes/onboarding/prospect-sequences.js"
 
 const log = createLogger("listicle-roundup-discovery")
 
-const PRODUCT_CONCURRENCY = 3
+const PRODUCT_CONCURRENCY = 5
 const DEFAULT_OPPORTUNITY_TYPES = ["competitor_backlink", "unlinked_mention", "listicle_roundup"]
 
 /**

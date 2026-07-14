@@ -89,7 +89,7 @@ export async function discoverUnlinkedMentions(
     }
 
     // 3. Verify mention + no existing link, enriching contact in the same call.
-    const checkLimit = pLimit(5)
+    const checkLimit = pLimit(8)
     const checked = await Promise.all(
       candidates.map((c) =>
         checkLimit(async () => {
@@ -234,7 +234,7 @@ export async function discoverUnlinkedMentions(
     const prospectsCreated = idByUrl.size
 
     // Enrich each newly-inserted prospect, updating its row live as it completes.
-    const enrichLimit = pLimit(3)
+    const enrichLimit = pLimit(5)
     await Promise.allSettled(
       toProcess
         .filter((item) => idByUrl.has(item.url))

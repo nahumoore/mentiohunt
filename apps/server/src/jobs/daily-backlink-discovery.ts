@@ -6,7 +6,7 @@ import { discoverResourcePageInclusions } from "../methods/prospect-generation-m
 
 const log = createLogger("daily-backlink-discovery")
 
-const PRODUCT_CONCURRENCY = 3
+const PRODUCT_CONCURRENCY = 5
 const DEFAULT_OPPORTUNITY_TYPES = ["resource_page_inclusion"]
 
 /**

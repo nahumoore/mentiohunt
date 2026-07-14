@@ -9,6 +9,7 @@ import {
 } from "../../../helpers/actors/google-serp-scraper.js"
 import { runApifyActor } from "../../../helpers/actors/run-apify-actor.js"
 import { createLogger } from "../../../helpers/logger.js"
+import { scraperHeavyLimit, scraperLightLimit } from "../../../helpers/scraper-limits.js"
 import type { PageType } from "./score-backlink-relevance.js"
 import { isValidContactEmail, sanitizeContactName } from "./contact-validation.js"
 
@@ -50,27 +51,30 @@ async function callScraper(url: string): Promise<AgentScrapeResponse | null> {
     return null
   }
 
-  try {
-    const scraperApiKey = process.env.SCRAPER_API_KEY
-    const res = await fetch(`${scraperUrl}/agent-scrape`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
-      },
-      body: JSON.stringify({ url }),
-      signal: AbortSignal.timeout(120_000),
-    })
-    if (!res.ok) {
-      const body = await res.text().catch(() => "")
-      log.warn("scraper returned error", { url, status: res.status, body: body.slice(0, 500) })
+  // Global heavy-pool slot: the abort timeout starts inside, once we hold it.
+  return scraperHeavyLimit(async () => {
+    try {
+      const scraperApiKey = process.env.SCRAPER_API_KEY
+      const res = await fetch(`${scraperUrl}/agent-scrape`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
+        },
+        body: JSON.stringify({ url }),
+        signal: AbortSignal.timeout(120_000),
+      })
+      if (!res.ok) {
+        const body = await res.text().catch(() => "")
+        log.warn("scraper returned error", { url, status: res.status, body: body.slice(0, 500) })
+        return null
+      }
+      return (await res.json()) as AgentScrapeResponse
+    } catch (err) {
+      log.warn("scraper call failed", { url, error: String(err) })
       return null
     }
-    return res.json() as Promise<AgentScrapeResponse>
-  } catch (err) {
-    log.warn("scraper call failed", { url, error: String(err) })
-    return null
-  }
+  })
 }
 
 type BylineScrapeResponse = {
@@ -87,27 +91,29 @@ async function callBylineScrape(url: string): Promise<BylineScrapeResponse | nul
     return null
   }
 
-  try {
-    const scraperApiKey = process.env.SCRAPER_API_KEY
-    const res = await fetch(`${scraperUrl}/byline-scrape`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
-      },
-      body: JSON.stringify({ url }),
-      signal: AbortSignal.timeout(30_000),
-    })
-    if (!res.ok) {
-      const body = await res.text().catch(() => "")
-      log.warn("byline scraper returned error", { url, status: res.status, body: body.slice(0, 500) })
+  return scraperLightLimit(async () => {
+    try {
+      const scraperApiKey = process.env.SCRAPER_API_KEY
+      const res = await fetch(`${scraperUrl}/byline-scrape`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
+        },
+        body: JSON.stringify({ url }),
+        signal: AbortSignal.timeout(30_000),
+      })
+      if (!res.ok) {
+        const body = await res.text().catch(() => "")
+        log.warn("byline scraper returned error", { url, status: res.status, body: body.slice(0, 500) })
+        return null
+      }
+      return (await res.json()) as BylineScrapeResponse
+    } catch (err) {
+      log.warn("byline scraper call failed", { url, error: String(err) })
       return null
     }
-    return res.json() as Promise<BylineScrapeResponse>
-  } catch (err) {
-    log.warn("byline scraper call failed", { url, error: String(err) })
-    return null
-  }
+  })
 }
 
 // Template ids in empirical default order — "first.last@" is the dominant

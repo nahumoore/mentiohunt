@@ -333,7 +333,7 @@ export async function discoverResourcePageInclusions(
     const idByUrl = new Map((insertedRows ?? []).map((r) => [r.found_url as string, r.id as string]))
     const prospectsCreated = idByUrl.size
     const sender = await resolveSenderName(product.user_id)
-    const enrichLimit = pLimit(3)
+    const enrichLimit = pLimit(5)
 
     await Promise.allSettled(
       toProcess

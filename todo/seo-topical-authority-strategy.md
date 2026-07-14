@@ -2,7 +2,7 @@
 
 GSC-validated 2026-07-13. Site still young (~50 clicks total) — positions/impressions are demand signals, not traffic. Articles live at `/blog/<slug>`; MDX in `apps/web/resources/`.
 
-**Already built (don't rebuild):** pillar `saas-backlink-building`; articles `link-building-outreach-email`, `how-to-find-backlink-opportunities`, `resource-page-link-building`, `unlinked-brand-mentions`, `guest-posting-for-saas`, `haro-link-building`; full `backlinks-from/*` (11 pages); `alternatives/*` (7); `compare/*` (3); `free-tools` incl. anchor-text-generator. Monitoring-era pages already removed from code.
+**Already built (don't rebuild):** pillar `saas-backlink-building`; articles `link-building-outreach-email`, `how-to-find-backlink-opportunities`, `resource-page-link-building`, `guest-posting-for-saas`, `haro-link-building`, `backlinks-ai-search-citations`; full `backlinks-from/*` (11 pages); `alternatives/*` (7); `compare/*` (3); `free-tools` (8 built: anchor-text-generator, author-contact-finder, backlink-opportunity-finder, backlink-price-calculator, competitor-backlink-gap, directory-backlink-opportunity-finder, google-index-checker, startup-directories). Monitoring-era pages already removed from code. `unlinked-brand-mentions` folded 2026-07-14 — see Consolidation below.
 
 ## PHASE 1: Fixes first (highest ROI — built pages underperforming) — DONE 2026-07-13
 
@@ -15,17 +15,18 @@ GSC-validated 2026-07-13. Site still young (~50 clicks total) — positions/impr
 
 **Watch in next GSC pull:** whether hub copy change actually reduces off-topic impressions (trengo/zutrix/etc.) without hurting the legitimate ones — this is a signal-strength bet, not guaranteed.
 
-## Consolidation (decision due)
+## Consolidation — DONE 2026-07-14
 
-- **Fold `unlinked-brand-mentions`** into `how-to-find-backlink-opportunities` + 301. Two review cycles, no improvement (142 impr pos 67; SERP branded by ahrefs/moz/semrush).
-- **Verify monitoring pages 301** (not 404): /twitter-monitoring, /reddit-monitoring, /quora-monitoring, /blog/reddit-marketing, /free-tools/reddit-user-analyzer.
+- **Folded `unlinked-brand-mentions`** into `how-to-find-backlink-opportunities` (Step 5). Two review cycles, no improvement (142 impr pos 67; SERP branded by ahrefs/moz/semrush). Merged in the prioritization-scoring table, contact-finding steps, and 30–55% conversion-rate stat that were unique to the old page. Deleted `resources/articles/unlinked-brand-mentions.mdx` + orphaned images in `public/resources/unlinked-brand-mentions/`. Added 301 `/blog/unlinked-brand-mentions` → `/blog/how-to-find-backlink-opportunities` in `next.config.mjs`. Repointed the 4 internal links that referenced the old slug (`saas-backlink-building`, `haro-link-building`, `link-building-outreach-email`, `backlinks-ai-search-citations`) to the new anchor `#step-5-convert-unlinked-mentions`.
+- **Monitoring pages 301:** /twitter-monitoring, /reddit-monitoring, /blog/reddit-marketing already redirected. Found and fixed two gaps that were 404ing: /quora-monitoring, /free-tools/reddit-user-analyzer — both now redirect to `how-to-find-backlink-opportunities` in `apps/web/next.config.mjs`.
 
 ## PHASE 2: Content to build
 
 1. **Second pillar** `/blog/saas-link-building-agency-vs-software` — decision pillar with POV (more transparent than agency, less work than software). Primary: `saas link building agency` (590, low KD) · `outreach link building services` (70, KD9). Feeds `alternatives/*` + `compare/*`.
-2. **AI-citations article** `/blog/backlinks-ai-search-citations` — do backlinks influence ChatGPT/Perplexity/AI Overview citations. GSC surfacing: "chatgpt to create backlinks" (pos 46), "will more website citation links help you show up in chatgpt" (pos 82). Interlink `backlinks-from/chatgpt` (pos 45) + pillar. Verify kws first: `ai search citations`, `chatgpt citations seo`, `llm seo backlinks`, `generative engine optimization backlinks`.
-3. **BOFU tools listicle** `articles/best-link-building-tools-for-founders` — lists Mentiohunt + competitors. `best link building tools` (320, low KD) · `link building software` (320, KD17) · `best seo link building software` (90, KD5). GSC: "linkbuilding software" (pos 98), "link building resources" (pos 88) — no page targets these yet.
-4. **Research assets** (own opportunity-queue data — earn links + AI citations, not keyword-driven): `saas-backlink-placement-patterns`, `saas-listicle-tool-overlap`, `state-of-saas-backlinks-2026` (recurring annual asset).
+2. **BOFU tools listicle** `articles/best-link-building-tools-for-founders` — lists Mentiohunt + competitors. `best link building tools` (320, low KD) · `link building software` (320, KD17) · `best seo link building software` (90, KD5). GSC: "linkbuilding software" (pos 98), "link building resources" (pos 88) — no page targets these yet.
+3. **Research assets** (own opportunity-queue data — earn links + AI citations, not keyword-driven): `saas-backlink-placement-patterns`, `saas-listicle-tool-overlap`, `state-of-saas-backlinks-2026` (recurring annual asset).
+
+~~AI-citations article~~ — already built, see `backlinks-ai-search-citations` above. Was listed here as outstanding by mistake; live since 2026-07-13.
 
 ## `backlinks-from/*` expansion
 

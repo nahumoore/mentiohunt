@@ -66,6 +66,11 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
       "Connect the mailboxes Mentiohunt uses to send outreach and read replies. You approve the first send per site — everything after runs on autopilot.",
     icon: IconMailBolt,
   },
+  "/dashboard/settings": {
+    title: "Settings",
+    description: "Manage your profile, notifications, and billing.",
+    icon: IconSettings,
+  },
 }
 
 export function DashboardHeader() {

@@ -1,7 +1,8 @@
 "use client"
 
-import { IconAlertTriangle } from "@tabler/icons-react"
+import { IconAlertTriangle, IconSettings } from "@tabler/icons-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import * as React from "react"
 
 import { IconBrandMentiohunt } from "@/components/custom-icons/brand-mentiohunt"
@@ -18,6 +19,9 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
 import { Skeleton } from "@workspace/ui/components/skeleton"
@@ -42,6 +46,7 @@ export function AppSidebar({
   user: { name: string; email: string; avatar: string }
   initialProduct: DashboardProduct | null
 }) {
+  const pathname = usePathname()
   const product = useProductStore((state) => state.product)
   const profile = useProfileStore((state) => state.profile)
   const productName = getProductDisplayName(product ?? initialProduct)
@@ -105,6 +110,20 @@ export function AppSidebar({
             </span>
           </Link>
         ) : null}
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname === "/dashboard/settings"}
+              tooltip="Settings"
+            >
+              <Link href="/dashboard/settings">
+                <IconSettings />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />

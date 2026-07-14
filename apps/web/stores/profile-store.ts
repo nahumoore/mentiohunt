@@ -13,6 +13,7 @@ export type DashboardProfile = Pick<
   | "tier"
   | "active_trial"
   | "billing_period_end_at"
+  | "email_settings"
 >
 
 type ProfileStore = {

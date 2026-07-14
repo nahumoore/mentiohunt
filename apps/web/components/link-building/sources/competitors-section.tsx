@@ -16,7 +16,7 @@ function getHostname(url: string) {
 
 export function CompetitorsSection({ competitors }: CompetitorsSectionProps) {
   return (
-    <div className="overflow-hidden rounded-3xl border border-border/70 bg-card">
+    <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
       <div className="border-b border-border/70 px-5 py-4">
         <p className="text-sm font-medium">Competitors</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">

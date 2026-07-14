@@ -9,6 +9,7 @@ type SettingsSaveFooterProps = {
   isSaving: boolean
   hasUnsavedChanges?: boolean
   onSave: () => void
+  saveLabel?: string
 }
 
 export function SettingsSaveFooter({
@@ -17,6 +18,7 @@ export function SettingsSaveFooter({
   isSaving,
   hasUnsavedChanges,
   onSave,
+  saveLabel = "Save discovery settings",
 }: SettingsSaveFooterProps) {
   return (
     <div className="flex flex-col gap-3 border-t border-border/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -42,7 +44,7 @@ export function SettingsSaveFooter({
         {hasUnsavedChanges && (
           <span className="size-1.5 rounded-full bg-orange" />
         )}
-        {isSaving ? "Saving..." : "Save discovery settings"}
+        {isSaving ? "Saving..." : saveLabel}
       </Button>
     </div>
   )

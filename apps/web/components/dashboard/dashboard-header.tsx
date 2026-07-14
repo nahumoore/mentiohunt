@@ -12,6 +12,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import * as React from "react"
 
+import { HowItWorksDialog } from "@/components/link-building/prospects/how-it-works-dialog"
 import { useEmailAccountStore } from "@/stores/email-account-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import { Button } from "@workspace/ui/components/button"
@@ -26,6 +27,7 @@ type PageConfig = {
   description: string
   icon: React.ElementType
   settingsHref?: string
+  action?: React.ReactNode
 }
 
 const PAGE_CONFIG: Record<string, PageConfig> = {
@@ -35,6 +37,7 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
       "Prioritized sites and next actions where there is a realistic path toward a backlink.",
     icon: IconSparkles,
     settingsHref: "/dashboard/prospects/settings",
+    action: <HowItWorksDialog />,
   },
   "/dashboard/prospects/settings": {
     title: "Prospect Settings",
@@ -63,7 +66,7 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
   "/dashboard/email-accounts": {
     title: "Email Accounts",
     description:
-      "Connect the mailboxes Mentiohunt uses to send outreach and read replies. You approve the first send per site — everything after runs on autopilot.",
+      "Connect the mailboxes Mentiohunt uses to send outreach and read replies. Outreach and follow-ups send automatically — dismiss any prospect you don't want, and reply once someone responds.",
     icon: IconMailBolt,
   },
   "/dashboard/settings": {
@@ -150,14 +153,17 @@ export function DashboardHeader() {
               {pageConfig.description}
             </p>
           </div>
-          {pageConfig.settingsHref && (
-            <Button asChild variant="ghost" size="default" className="mt-1 shrink-0">
-              <Link href={pageConfig.settingsHref}>
-                <IconSettings className="size-4" />
-                Settings
-              </Link>
-            </Button>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {pageConfig.action}
+            {pageConfig.settingsHref && (
+              <Button asChild variant="ghost" size="default" className="mt-1 shrink-0">
+                <Link href={pageConfig.settingsHref}>
+                  <IconSettings className="size-4" />
+                  Settings
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </header>

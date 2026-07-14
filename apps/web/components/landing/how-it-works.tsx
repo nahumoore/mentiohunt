@@ -52,9 +52,9 @@ const steps: Step[] = [
   },
   {
     eyebrow: "Action",
-    title: "Accept the backlink or pass",
+    title: "We send it, you just review",
     description:
-      "Each opportunity comes with a ready-to-send email draft. Approve in one click — Mentiohunt handles the contact, the send, and the follow-up. Most customers see their first placed backlink within 14–21 days of setup.",
+      "Each opportunity comes with a ready email draft that sends itself — the contact, the send, and the follow-up are all handled automatically. Pass on anything that isn't a fit. Most customers see their first placed backlink within 14–21 days of setup.",
     Illustration: ActionIllustration,
   },
 ]
@@ -384,10 +384,10 @@ function ActionIllustration() {
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          <button className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[var(--color-blaze-orange)] px-5 py-3 text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(255,84,0,0.45)] transition-opacity hover:opacity-90">
+          <div className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[var(--color-blaze-orange)]/10 px-5 py-3 text-sm font-bold text-[var(--color-blaze-orange)]">
             <IconMailFast className="h-4 w-4" />
-            Approve & send
-          </button>
+            Sending automatically
+          </div>
           <button className="rounded-2xl border border-black/8 bg-gray-50 px-5 py-3 text-sm font-semibold text-black/40 transition-colors hover:text-black/60">
             Pass
           </button>

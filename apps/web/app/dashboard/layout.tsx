@@ -126,6 +126,7 @@ export default async function DashboardLayout({
     : null
   let backlinkNetworkMembership: BacklinkNetworkMembership | null = null
   let pages: ProductPageListItem[] = []
+  let hasActiveEmailAccount = false
 
   if (product) {
     const [
@@ -135,6 +136,7 @@ export default async function DashboardLayout({
       backlinkNetworkResult,
       lastProspectRunResult,
       pagesResult,
+      emailAccountResult,
     ] = await Promise.all([
       supabase
         .from("backlink_prospects")
@@ -175,7 +177,17 @@ export default async function DashboardLayout({
         .eq("product_id", product.id)
         .order("created_at", { ascending: false })
         .limit(100),
+      supabase
+        .from("email_accounts")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_public", false)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle(),
     ])
+
+    hasActiveEmailAccount = emailAccountResult.data !== null
 
     const { data: prospectRows, error: prospectsError } = prospectsResult
 
@@ -250,6 +262,7 @@ export default async function DashboardLayout({
       outreachSettings={outreachSettings}
       backlinkNetworkMembership={backlinkNetworkMembership}
       pages={pages}
+      hasActiveEmailAccount={hasActiveEmailAccount}
     >
       <SidebarProvider>
         <AppSidebar user={sidebarUser} initialProduct={product} />

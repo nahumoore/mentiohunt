@@ -18,6 +18,7 @@ import type { DirectoryListItem } from "@/stores/directory-store"
 import { useDirectoryStore } from "@/stores/directory-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
 import { usePagesStore } from "@/stores/pages-store"
+import { useEmailAccountStore } from "@/stores/email-account-store"
 
 import { ProspectRealtimeSync } from "./prospect-realtime-sync"
 
@@ -31,6 +32,7 @@ type DashboardStoreHydratorProps = {
   outreachSettings: OutreachSettings | null
   backlinkNetworkMembership: BacklinkNetworkMembership | null
   pages: ProductPageListItem[]
+  hasActiveEmailAccount: boolean | null
   children: ReactNode
 }
 
@@ -44,6 +46,7 @@ export function DashboardStoreHydrator({
   outreachSettings,
   backlinkNetworkMembership,
   pages,
+  hasActiveEmailAccount,
   children,
 }: DashboardStoreHydratorProps) {
   useEffect(() => {
@@ -78,7 +81,8 @@ export function DashboardStoreHydrator({
     useOutreachSettingsStore.getState().setSettings(outreachSettings)
     useBacklinkNetworkStore.getState().setMembership(backlinkNetworkMembership)
     usePagesStore.getState().setPages(pages)
-  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages])
+    useEmailAccountStore.getState().setHasActiveEmailAccount(hasActiveEmailAccount)
+  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount])
 
   return (
     <>

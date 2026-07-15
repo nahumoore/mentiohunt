@@ -139,14 +139,14 @@ async function categorizeBatch(
       const input = `Pages:\n${JSON.stringify(payload, null, 2)}`
       log.info("llm request", {
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
-        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
         systemInstructions: SYSTEM_INSTRUCTIONS(product),
         thinkingBudget: 1000,
         input,
       })
       const { text, cost, modelUsed } = await generateTextWithUsage({
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
-        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
         systemInstructions: SYSTEM_INSTRUCTIONS(product),
         thinkingBudget: 1000,
         input,

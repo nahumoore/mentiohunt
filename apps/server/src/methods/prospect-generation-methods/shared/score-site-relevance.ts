@@ -1,3 +1,4 @@
+import pLimit from "p-limit"
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../../helpers/logger.js"
@@ -10,6 +11,16 @@ export type SiteRelevanceInput = {
   domain: string
   title: string
   snippet: string
+}
+
+const BATCH_SIZE = 20
+
+const FALLBACK_MODELS = [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO]
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+  return out
 }
 
 const SYSTEM_INSTRUCTIONS = (product: { product_name: string; product_description: string }) =>
@@ -56,9 +67,8 @@ const RESPONSE_FORMAT = {
 
 async function scoreBatch(
   items: SiteRelevanceInput[],
-  product: { product_name: string; product_description: string },
-  model: (typeof OPENROUTER_MODELS)[keyof typeof OPENROUTER_MODELS]
-): Promise<{ results: Map<string, { score: number }>; cost: number; modelUsed: string }> {
+  product: { product_name: string; product_description: string }
+): Promise<{ results: Map<string, { score: number }>; cost: number }> {
   const payload = items.map((item) => ({
     id: item.id,
     domain: item.domain,
@@ -66,34 +76,41 @@ async function scoreBatch(
     context: item.snippet || "(no context)",
   }))
 
-  return withLlmRetries(log, async () => {
-    const input = `Sites:\n${JSON.stringify(payload, null, 2)}`
-    log.info("llm request", {
-      model,
-      fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
-      systemInstructions: SYSTEM_INSTRUCTIONS(product),
-      input,
+  try {
+    return await withLlmRetries(log, async () => {
+      const input = `Sites:\n${JSON.stringify(payload, null, 2)}`
+      log.info("llm request", {
+        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        fallbackModels: FALLBACK_MODELS,
+        systemInstructions: SYSTEM_INSTRUCTIONS(product),
+        input,
+      })
+      const { text, cost, modelUsed } = await generateTextWithUsage({
+        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        fallbackModels: FALLBACK_MODELS,
+        systemInstructions: SYSTEM_INSTRUCTIONS(product),
+        input,
+        responseFormat: RESPONSE_FORMAT,
+      })
+
+      const parsed = JSON.parse(text) as { results: { id: string; score: number }[] }
+
+      if (!Array.isArray(parsed?.results)) {
+        throw new Error(`unexpected response shape: ${Object.keys(parsed ?? {}).join(",")}`)
+      }
+
+      const results = new Map(
+        parsed.results.map((r) => [r.id, { score: Math.round(r.score) }])
+      )
+
+      log.info("batch scored", { model: modelUsed, items: results.size })
+
+      return { results, cost }
     })
-    const { text, cost, modelUsed } = await generateTextWithUsage({
-      model,
-      fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
-      systemInstructions: SYSTEM_INSTRUCTIONS(product),
-      input,
-      responseFormat: RESPONSE_FORMAT,
-    })
-
-    const parsed = JSON.parse(text) as { results: { id: string; score: number }[] }
-
-    if (!Array.isArray(parsed?.results)) {
-      throw new Error(`unexpected response shape: ${Object.keys(parsed ?? {}).join(",")}`)
-    }
-
-    const results = new Map(
-      parsed.results.map((r) => [r.id, { score: Math.round(r.score) }])
-    )
-
-    return { results, cost, modelUsed }
-  })
+  } catch (err) {
+    log.warn("batch scoring failed", { error: String(err) })
+    return { results: new Map(), cost: 0 }
+  }
 }
 
 export async function scoreSiteRelevance(
@@ -102,50 +119,43 @@ export async function scoreSiteRelevance(
 ): Promise<{ results: Map<string, { score: number }>; cost: number }> {
   if (items.length === 0) return { results: new Map(), cost: 0 }
 
-  try {
-    const { results, cost: firstCost, modelUsed: firstModelUsed } = await scoreBatch(
-      items,
-      product,
-      OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH
-    )
-    let totalCost = firstCost
-    const modelsUsed = [firstModelUsed]
+  const batches = chunk(items, BATCH_SIZE)
+  const limit = pLimit(5)
 
-    const missingItems = items.filter((item) => !results.has(item.id))
+  const batchOutcomes = await Promise.all(
+    batches.map((batch) => limit(() => scoreBatch(batch, product)))
+  )
 
-    if (missingItems.length > 0) {
-      log.warn("missing ids in response, retrying", {
-        requested: items.length,
-        missing: missingItems.length,
-        missingIds: missingItems.map((item) => item.id),
-      })
+  const results = new Map<string, { score: number }>()
+  let totalCost = 0
+  for (const outcome of batchOutcomes) {
+    for (const [id, score] of outcome.results) results.set(id, score)
+    totalCost += outcome.cost
+  }
 
-      const { results: retryResults, cost: retryCost, modelUsed: retryModelUsed } = await scoreBatch(
-        missingItems,
-        product,
-        OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH
-      )
-      totalCost += retryCost
-      modelsUsed.push(retryModelUsed)
-
-      for (const [id, score] of retryResults) results.set(id, score)
-
-      const stillMissing = missingItems.filter((item) => !results.has(item.id))
-      if (stillMissing.length > 0) {
-        log.warn("ids missing after retry", { missingIds: stillMissing.map((item) => item.id) })
-      }
-    }
-
-    log.info("scoring complete", {
+  const missingItems = items.filter((item) => !results.has(item.id))
+  if (missingItems.length > 0) {
+    log.warn("missing ids after batch scoring, retrying", {
       requested: items.length,
-      scored: results.size,
-      cost_usd: totalCost.toFixed(4),
-      modelsUsed,
+      missing: missingItems.length,
+      missingIds: missingItems.map((item) => item.id),
     })
 
-    return { results, cost: totalCost }
-  } catch (err) {
-    log.warn("scoring failed", { error: String(err) })
-    return { results: new Map(), cost: 0 }
+    const retryOutcome = await scoreBatch(missingItems, product)
+    totalCost += retryOutcome.cost
+    for (const [id, score] of retryOutcome.results) results.set(id, score)
+
+    const stillMissing = missingItems.filter((item) => !results.has(item.id))
+    if (stillMissing.length > 0) {
+      log.warn("ids missing after retry", { missingIds: stillMissing.map((item) => item.id) })
+    }
   }
+
+  log.info("scoring complete", {
+    requested: items.length,
+    scored: results.size,
+    cost_usd: totalCost.toFixed(4),
+  })
+
+  return { results, cost: totalCost }
 }

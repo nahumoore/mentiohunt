@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express"
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { sendFeedbackSequenceEmail } from "../email-sequences/feedback-sequence.js"
-import type { FunnelStage } from "../email-sequences/feedback-sequence.js"
+import { deriveFeedbackStage } from "../email-sequences/feedback-stage.js"
 import { createLogger } from "../helpers/logger.js"
 
 const log = createLogger("route-dev-send-onboarding-email")
@@ -22,7 +22,11 @@ devSendOnboardingEmailRouter.post("/dev-send-onboarding-email", async (req, res)
   try {
     const [{ data: profile, error: profileError }, { data: sequence, error: sequenceError }] =
       await Promise.all([
-        supabaseAdmin.from("profiles").select("email, name").eq("id", userId).single(),
+        supabaseAdmin
+          .from("profiles")
+          .select("email, name, onboarding_completed")
+          .eq("id", userId)
+          .single(),
         supabaseAdmin
           .from("email_sequences")
           .select("step, reply_token")
@@ -44,7 +48,10 @@ devSendOnboardingEmailRouter.post("/dev-send-onboarding-email", async (req, res)
       return
     }
 
-    const stage: FunnelStage = "used_opportunities_only"
+    const { stage, productName } = await deriveFeedbackStage({
+      userId,
+      onboardingCompleted: profile.onboarding_completed,
+    })
 
     await sendFeedbackSequenceEmail({
       to: profile.email,
@@ -53,6 +60,7 @@ devSendOnboardingEmailRouter.post("/dev-send-onboarding-email", async (req, res)
       replyToken: sequence.reply_token,
       step: sequence.step,
       stage,
+      productName,
     })
 
     log.info("done", { userId, step: sequence.step, stage })

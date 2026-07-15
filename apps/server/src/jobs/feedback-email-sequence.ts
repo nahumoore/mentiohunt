@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { sendFeedbackSequenceEmail } from "../email-sequences/feedback-sequence.js"
-import type { FunnelStage } from "../email-sequences/feedback-sequence.js"
+import { deriveFeedbackStage } from "../email-sequences/feedback-stage.js"
 import { createLogger } from "../helpers/logger.js"
 
 const log = createLogger("feedback-email-sequence")
@@ -38,7 +38,7 @@ export async function runFeedbackEmailSequence() {
     try {
       const { data: profile, error: profileError } = await supabaseAdmin
         .from("profiles")
-        .select("email, name, created_at")
+        .select("email, name, created_at, onboarding_completed")
         .eq("id", seq.user_id)
         .single()
 
@@ -53,7 +53,10 @@ export async function runFeedbackEmailSequence() {
         continue
       }
 
-      const stage: FunnelStage = "used_opportunities_only"
+      const { stage, productName } = await deriveFeedbackStage({
+        userId: seq.user_id,
+        onboardingCompleted: profile.onboarding_completed,
+      })
 
       await sendFeedbackSequenceEmail({
         to: profile.email,
@@ -62,6 +65,7 @@ export async function runFeedbackEmailSequence() {
         replyToken: seq.reply_token,
         step: seq.step,
         stage,
+        productName,
       })
 
       const isLastStep = seq.step >= 2

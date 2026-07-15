@@ -27,9 +27,16 @@ function spin(template: string): string {
   })
 }
 
+// Like spin, but safe for interpolated values (a product name containing
+// "|" or "{" would corrupt a spin template).
+function pick(...options: string[]): string {
+  return options[Math.floor(Math.random() * options.length)]!
+}
+
 function step0Content(
   stage: FunnelStage,
-  firstName: string | null
+  firstName: string | null,
+  productName: string | null
 ): EmailContent {
   const name = firstName ?? "there"
   const greeting = spin("{Hi|Hello|Hey}")
@@ -53,13 +60,23 @@ Nico`,
       }
     case "onboarding_done_no_action":
       return {
-        subject: spin(
-          "{your results are waiting|just a heads up|quick thing from the founder}"
-        ),
+        subject: productName
+          ? pick(
+              `your results for ${productName} are waiting`,
+              "just a heads up",
+              "quick thing from the founder"
+            )
+          : spin(
+              "{your results are waiting|just a heads up|quick thing from the founder}"
+            ),
         previewText: "your backlink opportunities are ready to review",
         body: `${greeting} ${name} - Nico here, founder of Mentiohunt :)
 
-You finished onboarding but haven't checked your results yet. Your link building opportunities are ready to review.
+${
+  productName
+    ? `You finished setting up ${productName} but haven't checked your results yet. Your link building opportunities are ready to review.`
+    : `You finished onboarding but haven't checked your results yet. Your link building opportunities are ready to review.`
+}
 
 Anything getting in the way? One line is enough.
 
@@ -70,13 +87,23 @@ Nico`,
       }
     case "used_opportunities_only":
       return {
-        subject: spin(
-          "{how's Mentiohunt going?|quick check-in from the founder|how's it going so far?}"
-        ),
+        subject: productName
+          ? pick(
+              `how's the link building for ${productName} going?`,
+              "quick check-in from the founder",
+              "how's it going so far?"
+            )
+          : spin(
+              "{how's Mentiohunt going?|quick check-in from the founder|how's it going so far?}"
+            ),
         previewText: "you've been exploring link building, a quick check-in",
         body: `${greeting} ${name} - Nico here :)
 
-I can see you've been looking at your link building opportunities. Are the results relevant to your site, or is anything feeling off?
+${
+  productName
+    ? `I can see you've been looking at the link building opportunities we found for ${productName}. Are the sites we're surfacing actually a fit, or is anything feeling off?`
+    : `I can see you've been looking at your link building opportunities. Are the results relevant to your site, or is anything feeling off?`
+}
 
 Thanks for giving Mentiohunt a try!
 
@@ -88,7 +115,8 @@ Nico`,
 
 function step1Content(
   stage: FunnelStage,
-  firstName: string | null
+  firstName: string | null,
+  productName: string | null
 ): EmailContent {
   const name = firstName ?? "there"
   const greeting = spin("{Hi again|Hey again|Hello again}")
@@ -108,7 +136,7 @@ I'm just trying to figure out what actually got in the way. Was the setup confus
 A few words are more than enough :)
 
 ${signoff},
-Nicolas`,
+Nico`,
       }
     case "onboarding_done_no_action":
       return {
@@ -119,34 +147,41 @@ Nicolas`,
           "curious whether the results felt relevant to your product",
         body: `${greeting} ${name},
 
-It's been a few days. Did you get a chance to look at your opportunities? I'm curious whether the results felt relevant to your product or totally off.
+It's been a few days. Did you get a chance to look at your opportunities? I'm curious whether the results felt relevant to ${productName ?? "your product"} or totally off.
 
 If something looked wrong, reply and tell me. That directly helps me improve the matching.
 
 ${signoff},
-Nicolas`,
+Nico`,
       }
     case "used_opportunities_only":
       return {
-        subject: spin(
-          "{how are the link building results?|honest question|quick one}"
-        ),
+        subject: productName
+          ? pick(
+              `are the opportunities a fit for ${productName}?`,
+              "how are the link building results?",
+              "quick one"
+            )
+          : spin(
+              "{how are the link building results?|honest question|quick one}"
+            ),
         previewText: "curious if the opportunities are a good fit",
         body: `${greeting} ${name},
 
-You've been looking at the link building side for a few days. Are the opportunities a good fit for your site, or are too many of them off-target?
+You've been looking at the link building side for a few days. Are the opportunities a good fit for ${productName ?? "your site"}, or are too many of them off-target?
 
 Honest feedback helps me tune the discovery logic. Just reply.
 
 ${signoff},
-Nicolas`,
+Nico`,
       }
   }
 }
 
 function step2Content(
   stage: FunnelStage,
-  firstName: string | null
+  firstName: string | null,
+  productName: string | null
 ): EmailContent {
   const name = firstName ?? "there"
   const greeting = spin("{Hi again|Hey again|Hello again}")
@@ -166,7 +201,7 @@ If there was a reason you dropped off, even one word helps (bad UX / too confusi
 Either way, appreciate you for trying it.
 
 ${signoff},
-Nicolas`,
+Nico`,
       }
     default:
       return {
@@ -178,12 +213,12 @@ Nicolas`,
 
 Last email, I promise.
 
-One question: what's the one thing that would make Mentiohunt noticeably more useful for you? Could be a missing feature, something confusing, or a workflow that doesn't quite fit.
+One question: what's the one thing that would make Mentiohunt noticeably more useful for ${productName ?? "you"}? Could be a missing feature, something confusing, or a workflow that doesn't quite fit.
 
 I'm building this for founders like you, so your answer directly shapes what gets built next :)
 
 ${signoff},
-Nicolas`,
+Nico`,
       }
   }
 }
@@ -201,6 +236,7 @@ export async function sendFeedbackSequenceEmail({
   replyToken,
   step,
   stage,
+  productName,
 }: {
   to: string
   userId: string
@@ -208,6 +244,7 @@ export async function sendFeedbackSequenceEmail({
   replyToken: string
   step: number
   stage: FunnelStage
+  productName: string | null
 }) {
   const firstName = userName?.trim().split(/\s+/)[0] ?? null
   const contentFn = STEP_SUBJECTS[step]
@@ -216,7 +253,7 @@ export async function sendFeedbackSequenceEmail({
     return
   }
 
-  const { subject, body } = contentFn(stage, firstName)
+  const { subject, body } = contentFn(stage, firstName, productName)
   const replyTo = [PRIMARY_EMAIL, buildReplyToAddress(replyToken)]
 
   try {

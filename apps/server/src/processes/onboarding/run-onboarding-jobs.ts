@@ -3,6 +3,7 @@ import pLimit from "p-limit"
 import { createLogger } from "../../helpers/logger.js"
 import { discoverCompetitorBacklinks } from "../../methods/prospect-generation-methods/competitor-backlink/index.js"
 import { discoverListicleRoundups } from "../../methods/prospect-generation-methods/listicle-roundup/index.js"
+import { ALL_OPPORTUNITY_TYPES } from "../../methods/prospect-generation-methods/shared/opportunity-types.js"
 import type { ProspectCreatedPayload } from "../../methods/prospect-generation-methods/shared/prospect-types.js"
 import { discoverUnlinkedMentions } from "../../methods/prospect-generation-methods/unlinked-mention/index.js"
 import { crawlProductPages } from "../../methods/product-pages/crawl-product-pages.js"
@@ -45,7 +46,7 @@ export async function runOnboardingJobs(
 
   const filterSettings = { dr_min: settings?.dr_min ?? 0, dr_max: settings?.dr_max ?? null }
   const emailSettings = { voice_tone: settings?.voice_tone ?? null, offering: settings?.offering ?? null }
-  const opportunityTypes = settings?.opportunity_types ?? ["competitor_backlink", "unlinked_mention", "listicle_roundup"]
+  const opportunityTypes = settings?.opportunity_types ?? ALL_OPPORTUNITY_TYPES
 
   // Resolve email account once, upfront — shared by per-prospect streaming and the safety sweep.
   const account = await resolveEmailAccount(userId)

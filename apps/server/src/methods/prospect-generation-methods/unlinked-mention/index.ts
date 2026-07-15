@@ -14,7 +14,13 @@ import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import { extractDomainFromUrl, isNoiseDomain } from "../shared/url-filters.js"
 import { checkMention } from "./check-mention-client.js"
 import { enrichMention, type Product, type QualifiedMention } from "./enrichment.js"
-import { completeProspectRun, createProspectRun, failProspectRun } from "./prospect-run-tracking.js"
+import {
+  completeProspectRun,
+  createProspectRun,
+  failProspectRun,
+  getLastCompletedRunDate,
+  selectQueriesForRun,
+} from "./prospect-run-tracking.js"
 import { scoreMentionRelevance, type MentionCandidate } from "./score-mention-relevance.js"
 
 const log = createLogger("discover-unlinked-mentions")
@@ -22,6 +28,7 @@ const log = createLogger("discover-unlinked-mentions")
 const MIN_RELEVANCE_SCORE = 3
 const MAX_CANDIDATES_TO_SCRAPE = 25
 const MAX_PROSPECTS_PER_RUN = 20
+const MAX_QUERIES_PER_RUN = 2
 
 export async function discoverUnlinkedMentions(
   product: Product,
@@ -47,18 +54,54 @@ export async function discoverUnlinkedMentions(
 
   const sender = await resolveSenderName(product.user_id)
 
-  const runId = await createProspectRun(product.id, brandTerms)
+  // Rotate through query variants so repeat runs don't re-scrape the same
+  // stable top results every day, and add a freshness query for mentions
+  // published since the last completed run.
+  const queryPool = [
+    `"${productName}" -site:${ownDomain}`,
+    `"${productName}" review -site:${ownDomain}`,
+    `"${productName}" alternatives -site:${ownDomain}`,
+    `"${productName}" vs -site:${ownDomain}`,
+    `"${productName}" pricing -site:${ownDomain}`,
+    `"${productName}" tutorial -site:${ownDomain}`,
+  ]
+  const queries = await selectQueriesForRun(product.id, queryPool, MAX_QUERIES_PER_RUN)
+
+  const lastRunDate = await getLastCompletedRunDate(product.id)
+  if (lastRunDate) {
+    queries.push(`"${productName}" -site:${ownDomain} after:${lastRunDate}`)
+  }
+
+  log.info("queries selected for run", {
+    productId: product.id,
+    poolSize: queryPool.length,
+    selected: queries.length,
+    freshnessSince: lastRunDate,
+  })
+
+  const runId = await createProspectRun(product.id, brandTerms, queries)
   let totalCostUsd = 0
 
   try {
     // 1. SERP discovery — pages mentioning the brand, excluding our own site.
-    const keyword = `"${productName}" -site:${ownDomain}`
-    const serp = await runApifyActor<GoogleSerpItem[]>(
-      SCRAPERLINK_GOOGLE_SERP,
-      { keyword, limit: "50", country: "US", include_merged: false },
-      90
+    const serpLimit = pLimit(3)
+    const serpBatches = await Promise.all(
+      queries.map((keyword) =>
+        serpLimit(async () => {
+          try {
+            return await runApifyActor<GoogleSerpItem[]>(
+              SCRAPERLINK_GOOGLE_SERP,
+              { keyword, limit: "50", country: "US", include_merged: false },
+              90
+            )
+          } catch (err) {
+            log.warn("SERP query failed", { productId: product.id, keyword, error: String(err) })
+            return []
+          }
+        })
+      )
     )
-    const serpResults = serp.flatMap((item) => item.results ?? [])
+    const serpResults = serpBatches.flatMap((batch) => batch.flatMap((item) => item.results ?? []))
 
     // 2. Dedup by domain, drop own domain + big aggregators/socials.
     const byDomain = new Map<string, MentionCandidate & { domain: string }>()
@@ -74,12 +117,30 @@ export async function discoverUnlinkedMentions(
         snippet: r.description ?? "",
       })
     }
-    const candidates = [...byDomain.values()].slice(0, maxCandidates)
+    // 2b. Drop domains we've already stored a prospect for — before the
+    // expensive checkMention scrape, not after scoring. Query rotation means
+    // most re-surfaced results are ones we already have.
+    const gathered = [...byDomain.values()]
+    let freshCandidates = gathered
+    if (gathered.length > 0) {
+      const { data: existingProspects } = await supabaseAdmin
+        .from("backlink_prospects")
+        .select("found_url, domain")
+        .eq("product_id", product.id)
+        .in("domain", gathered.map((c) => c.domain))
+
+      const existingUrls = new Set((existingProspects ?? []).map((r) => r.found_url))
+      const existingDomains = new Set((existingProspects ?? []).map((r) => r.domain))
+      freshCandidates = gathered.filter((c) => !existingUrls.has(c.url) && !existingDomains.has(c.domain))
+    }
+    const candidates = freshCandidates.slice(0, maxCandidates)
 
     log.info("candidates gathered", {
       productId: product.id,
+      queries: queries.length,
       serpResults: serpResults.length,
       uniqueDomains: byDomain.size,
+      alreadyStored: gathered.length - freshCandidates.length,
       toScrape: candidates.length,
     })
 
@@ -160,23 +221,11 @@ export async function discoverUnlinkedMentions(
       return { prospectsCreated: 0, totalCostUsd }
     }
 
-    // 6. Drop prospects we've already stored so we don't re-enrich duplicates.
-    const { data: existing } = await supabaseAdmin
-      .from("backlink_prospects")
-      .select("found_url")
-      .eq("product_id", product.id)
-      .in("found_url", passing.map((item) => item.url))
+    // Already-stored URLs/domains were filtered out at step 2b, before the
+    // scrape, so everything that survives scoring is new.
+    const newItems = passing
 
-    const existingUrls = new Set((existing ?? []).map((r) => r.found_url))
-    const newItems = passing.filter((item) => !existingUrls.has(item.url))
-
-    log.info("dedup", {
-      productId: product.id,
-      toEnrich: newItems.length,
-      duplicatesSkipped: passing.length - newItems.length,
-    })
-
-    // 7. Score site-level relevance for new items using DeepSeek.
+    // 6. Score site-level relevance for new items using DeepSeek.
     const siteRelevanceInputs = newItems.map((item) => ({
       id: item.url,
       domain: item.domain,

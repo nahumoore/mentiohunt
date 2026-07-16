@@ -64,6 +64,16 @@ const faqs: FaqItem[] = [
     answer:
       "Email drafts are AI-assisted but personalized per site — not mass-templated. Each draft is tailored to the specific target, placement angle, and fit rationale. You review every draft before it goes out. Nothing sends without your sign-off.",
   },
+  {
+    question: "What happens when my 7-day free trial ends?",
+    answer:
+      "Discovery and outreach pause and dashboard access locks until you upgrade — no card is taken at signup, so you're never charged automatically. Nothing is deleted: your opportunity queue, contacts, drafts, and conversations are all saved and waiting when you come back.",
+  },
+  {
+    question: "If a prospect replies after my trial ends, do I lose the conversation?",
+    answer:
+      "No. Replies keep being collected and stored even after your trial expires, and they're waiting in your dashboard when you upgrade. If you're mid-conversation and need more time, you can also get 7 extra trial days by sharing Mentiohunt in a public post on X or LinkedIn.",
+  },
 ]
 
 export function Faq() {

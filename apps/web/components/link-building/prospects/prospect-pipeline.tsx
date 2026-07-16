@@ -17,6 +17,7 @@ import { useMemo, useState } from "react"
 import type { ProspectStatus } from "@/app/dashboard/prospects/_data"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
+import { PoolCapacityBanner } from "./pool-capacity-banner"
 import { OpportunityPipelineRow } from "./prospect-pipeline-row"
 import { StatusOverviewV1 } from "./prospect-status-overview"
 
@@ -102,6 +103,7 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
 
   return (
     <div className="flex flex-col gap-3">
+      <PoolCapacityBanner />
       <StatusOverviewV1
         prospects={prospects}
         activeStage={activeStage}

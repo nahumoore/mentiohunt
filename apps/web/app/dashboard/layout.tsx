@@ -127,8 +127,13 @@ export default async function DashboardLayout({
   let backlinkNetworkMembership: BacklinkNetworkMembership | null = null
   let pages: ProductPageListItem[] = []
   let hasActiveEmailAccount = false
+  let poolDelayedCount = 0
 
   if (product) {
+    const twentyFourHoursAgo = new Date(
+      Date.now() - 24 * 60 * 60 * 1000
+    ).toISOString()
+
     const [
       prospectsResult,
       directoriesResult,
@@ -137,6 +142,7 @@ export default async function DashboardLayout({
       lastProspectRunResult,
       pagesResult,
       emailAccountResult,
+      poolDelayedResult,
     ] = await Promise.all([
       supabase
         .from("backlink_prospects")
@@ -185,9 +191,23 @@ export default async function DashboardLayout({
         .eq("status", "active")
         .limit(1)
         .maybeSingle(),
+      // Only free-tier users send through the shared email pool, so only they
+      // can have sequences deferred by pool capacity.
+      billingProfile?.tier === "free"
+        ? supabase
+            .from("prospect_sequences")
+            .select("id, backlink_prospects!inner(product_id)", {
+              count: "exact",
+              head: true,
+            })
+            .eq("backlink_prospects.product_id", product.id)
+            .eq("status", "pending")
+            .gte("last_deferred_at", twentyFourHoursAgo)
+        : Promise.resolve(null),
     ])
 
     hasActiveEmailAccount = emailAccountResult.data !== null
+    poolDelayedCount = poolDelayedResult?.count ?? 0
 
     const { data: prospectRows, error: prospectsError } = prospectsResult
 
@@ -263,6 +283,7 @@ export default async function DashboardLayout({
       backlinkNetworkMembership={backlinkNetworkMembership}
       pages={pages}
       hasActiveEmailAccount={hasActiveEmailAccount}
+      poolDelayedCount={poolDelayedCount}
     >
       <SidebarProvider>
         <AppSidebar user={sidebarUser} initialProduct={product} />

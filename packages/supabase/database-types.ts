@@ -822,6 +822,7 @@ export type Database = {
           email_account_id: string
           id: string
           last_attempt_at: string | null
+          last_deferred_at: string | null
           last_error: string | null
           locked_at: string | null
           message_id: string | null
@@ -842,6 +843,7 @@ export type Database = {
           email_account_id: string
           id?: string
           last_attempt_at?: string | null
+          last_deferred_at?: string | null
           last_error?: string | null
           locked_at?: string | null
           message_id?: string | null
@@ -862,6 +864,7 @@ export type Database = {
           email_account_id?: string
           id?: string
           last_attempt_at?: string | null
+          last_deferred_at?: string | null
           last_error?: string | null
           locked_at?: string | null
           message_id?: string | null

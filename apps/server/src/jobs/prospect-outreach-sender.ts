@@ -129,7 +129,7 @@ async function deferForAccountSpacing(sequence: ProspectSequence): Promise<void>
   const scheduledAt = buildCapacityReschedule().toISOString()
   const { error } = await supabaseAdmin
     .from("prospect_sequences")
-    .update({ scheduled_at: scheduledAt })
+    .update({ scheduled_at: scheduledAt, last_deferred_at: new Date().toISOString() })
     .eq("id", sequence.id)
     .eq("status", "pending")
 
@@ -427,7 +427,9 @@ export async function runProspectOutreachSender(userId?: string, bypassSendWindo
     .select("id, prospect_id, email_account_id, step, subject, body, attempt_count")
     .eq("status", "pending")
     .lte("scheduled_at", new Date().toISOString())
-    .order("scheduled_at", { ascending: true })
+    // Order by created_at, not scheduled_at: spacing-deferrals rewrite scheduled_at
+    // to a random future slot, which would let newer sequences queue-jump older ones.
+    .order("created_at", { ascending: true })
     .limit(MAX_ROWS_TO_SCAN)
 
   if (prospectIds) {

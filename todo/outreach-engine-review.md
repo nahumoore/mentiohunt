@@ -2,7 +2,9 @@
 
 _Follow-up items from investigating "prospect emails not sending" report. Sends are working; issues below are secondary bugs/gaps found along the way._
 
-## 1. seodesignchicago.com got step 1 + step 2 same day — bug
+_Update 2026-07-16: items 2, 3, and 4 corrected — see status notes under each. Item 1 still open._
+
+## 1. seodesignchicago.com got step 1 + step 2 same day — bug ⏳ OPEN
 
 Sequence for `scarlet@seodesignchicago.com` (prospect_sequences group, all rows `created_at = 2026-07-10 14:35:32`):
 
@@ -27,7 +29,7 @@ order by gap asc
 limit 20;
 ```
 
-## 2. UI: surface "delayed — email pool full, upgrade to bypass" + fix queue priority
+## 2. UI: surface "delayed — email pool full, upgrade to bypass" + fix queue priority ✅ CORRECTED
 
 Two parts:
 
@@ -37,7 +39,9 @@ Two parts:
 
 **Fix:** order pending sequences by `created_at ASC` (with `scheduled_at` still used as the "not due yet" gate via `.lte()`), so older-created sequences always win among eligible rows. One-line change, low risk — didn't apply yet, pending go-ahead.
 
-## 3. Trial period FAQ gap — reply handling after trial ends
+**Status 2026-07-16:** both parts implemented. (b) applied in `prospect-outreach-sender.ts`. (a) implemented via new `prospect_sequences.last_deferred_at` column (migration `20260716120000_add_prospect_sequence_deferral_tracking.sql`, set by `deferForAccountSpacing()`), surfaced through dashboard layout → store → `PoolCapacityBanner` on the prospects queue (free tier only, since only free users send through the shared pool). Migration still needs to be applied to Supabase.
+
+## 3. Trial period FAQ gap — reply handling after trial ends ✅ CORRECTED
 
 Verbatim user comment:
 
@@ -50,8 +54,12 @@ Unanswered questions to cover, either on landing FAQ or in-dashboard (trial bann
 
 **Next step:** confirm actual product behavior (check trial-expiry logic in `apps/server`, likely near `profiles.active_trial` / `billing_period_end_at`) before writing copy — don't publish an answer that isn't backed by what the code actually does.
 
-## 4. Trial-expired page: offer 7-day extension for a social testimonial
+**Status 2026-07-16:** behavior confirmed in code — expiry cron flips `active_trial=false`, dashboard layout hard-redirects to `/expired-trial` (full lockout); discovery + sending stop but reply ingestion continues (replies preserved, restored on upgrade); no auto-extension, no card charged at signup. Copy added: two FAQ items in `components/landing/faq.tsx` + reassurance line on `/expired-trial`.
+
+## 4. Trial-expired page: offer 7-day extension for a social testimonial ✅ CORRECTED
 
 On the expired-trial page, offer +7 days if the user posts a testimonial on social media. Needs: submission mechanism (URL paste? screenshot upload?), verification step before granting the extension (manual review vs automated check), and a cap on how many times this can be claimed per account to avoid abuse.
 
 **Status:** raw, pending done separately (email cap bump already applied directly in Supabase — `daily_send_cap` for `outreach@mentiohuntapp.com` is now 25, not part of this doc's open items).
+
+**Status 2026-07-16:** implemented as manual-review flow (no new DB table). `TestimonialExtensionCard` on `/expired-trial` posts to `/api/trial-extension-request`, which emails PRIMARY_EMAIL via Resend with the user's details, the post URL, and a ready-to-run SQL grant snippet (`active_trial = true`, `billing_period_end_at = greatest(end, now()) + 7 days`). Review in inbox + manual grant in Supabase is the approval flow and abuse control.

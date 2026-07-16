@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { IconCheck, IconArrowRight } from "@tabler/icons-react"
+import { TestimonialExtensionCard } from "@/components/expired-trial/testimonial-extension-card"
 import { FREE_TRIAL_DAYS } from "@/consts/billing"
 
 export const metadata: Metadata = {
@@ -58,6 +59,19 @@ export default function ExpiredTrialPage() {
             </li>
           ))}
         </ul>
+
+        {/* reassurance */}
+        <p className="mt-6 text-center text-sm leading-relaxed text-muted-foreground">
+          Your opportunity queue, contacts, drafts, and prospect replies are
+          all saved — and replies keep being collected. Upgrading picks up
+          exactly where you left off.
+        </p>
+
+        {/* divider */}
+        <div className="my-9 h-px w-full bg-border" />
+
+        {/* testimonial extension offer */}
+        <TestimonialExtensionCard />
 
         {/* divider */}
         <div className="my-9 h-px w-full bg-border" />

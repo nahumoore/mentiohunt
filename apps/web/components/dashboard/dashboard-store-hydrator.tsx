@@ -33,6 +33,7 @@ type DashboardStoreHydratorProps = {
   backlinkNetworkMembership: BacklinkNetworkMembership | null
   pages: ProductPageListItem[]
   hasActiveEmailAccount: boolean | null
+  poolDelayedCount: number
   children: ReactNode
 }
 
@@ -47,6 +48,7 @@ export function DashboardStoreHydrator({
   backlinkNetworkMembership,
   pages,
   hasActiveEmailAccount,
+  poolDelayedCount,
   children,
 }: DashboardStoreHydratorProps) {
   useEffect(() => {
@@ -76,13 +78,14 @@ export function DashboardStoreHydrator({
     prospectStore.setHasCompletedRun(
       hasCompletedProspectRun || prospectStore.hasCompletedRun
     )
+    prospectStore.setPoolDelayedCount(poolDelayedCount)
     useDirectoryStore.getState().setDirectories(directories)
     useDiscoverySettingsStore.getState().setSettings(discoverySettings)
     useOutreachSettingsStore.getState().setSettings(outreachSettings)
     useBacklinkNetworkStore.getState().setMembership(backlinkNetworkMembership)
     usePagesStore.getState().setPages(pages)
     useEmailAccountStore.getState().setHasActiveEmailAccount(hasActiveEmailAccount)
-  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount])
+  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, poolDelayedCount])
 
   return (
     <>

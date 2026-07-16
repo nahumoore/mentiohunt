@@ -233,31 +233,37 @@ export async function runDailyBacklinkDiscovery(): Promise<void> {
 
   const { data: products, error } = await supabaseAdmin
     .from("products")
-    .select(
-      "id, user_id, product_name, product_description, website_url, competitors, profiles!inner(email, name, tier, active_trial)"
-    )
+    .select("id, user_id, product_name, product_description, website_url, competitors")
 
   if (error) {
     log.error("failed to fetch products", { error: error.message })
     return
   }
 
-  type ProfileFields = { email: string | null; name: string | null; tier: string; active_trial: boolean }
-  const withProfile = (products ?? []).map((p) => {
-    const raw = p.profiles as unknown
-    const profile = (Array.isArray(raw) ? raw[0] : raw) as ProfileFields | undefined
-    return {
-      product: {
-        id: p.id,
-        user_id: p.user_id,
-        product_name: p.product_name,
-        product_description: p.product_description,
-        website_url: p.website_url,
-        competitors: (p.competitors as string[] | null) ?? null,
-      } satisfies DiscoveryProduct,
-      profile,
-    }
-  })
+  type ProfileFields = { id: string; email: string | null; name: string | null; tier: string; active_trial: boolean }
+  const userIds = [...new Set((products ?? []).map((p) => p.user_id))]
+  const { data: profiles, error: profilesError } = await supabaseAdmin
+    .from("profiles")
+    .select("id, email, name, tier, active_trial")
+    .in("id", userIds)
+
+  if (profilesError) {
+    log.error("failed to fetch profiles", { error: profilesError.message })
+    return
+  }
+
+  const profileById = new Map((profiles ?? []).map((p) => [p.id, p as ProfileFields]))
+  const withProfile = (products ?? []).map((p) => ({
+    product: {
+      id: p.id,
+      user_id: p.user_id,
+      product_name: p.product_name,
+      product_description: p.product_description,
+      website_url: p.website_url,
+      competitors: (p.competitors as string[] | null) ?? null,
+    } satisfies DiscoveryProduct,
+    profile: profileById.get(p.user_id),
+  }))
 
   const eligible = withProfile.filter(
     ({ profile }) => profile !== undefined && (profile.tier !== "free" || profile.active_trial)

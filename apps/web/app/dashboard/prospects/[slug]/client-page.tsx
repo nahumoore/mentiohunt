@@ -48,7 +48,7 @@ import { ManualCompletionForm } from "@/components/link-building/prospects/manua
 const PIPELINE_STEPS: ProspectStatus[] = ["new", "contacted", "negotiating", "won"]
 
 function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
-  if (status === "dismissed" || status === "email_not_found") {
+  if (status === "dismissed" || status === "email_not_found" || status === "bounced") {
     const cfg = STATUS_CONFIG[status]
     const Icon = cfg.icon
     return (

@@ -4,6 +4,7 @@ import {
   IconLink,
   IconListDetails,
   IconMailQuestion,
+  IconMailX,
   IconSend,
   IconSparkles,
 } from "@tabler/icons-react"
@@ -72,6 +73,11 @@ export const STATUS_CONFIG: Record<ProspectStatus, StatusConfig> = {
     icon: IconMailQuestion,
     color: "text-amber-600 bg-amber-500/10",
   },
+  bounced: {
+    label: "Undeliverable",
+    icon: IconMailX,
+    color: "text-red-600 bg-red-500/10",
+  },
 }
 
 export const STATUS_FILTERS: ProspectFilterConfig[] = [
@@ -109,6 +115,11 @@ export const STATUS_FILTERS: ProspectFilterConfig[] = [
     value: "email_not_found",
     label: STATUS_CONFIG.email_not_found.label,
     icon: STATUS_CONFIG.email_not_found.icon,
+  },
+  {
+    value: "bounced",
+    label: STATUS_CONFIG.bounced.label,
+    icon: STATUS_CONFIG.bounced.icon,
   },
 ]
 

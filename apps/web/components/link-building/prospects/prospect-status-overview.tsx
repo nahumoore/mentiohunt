@@ -5,6 +5,7 @@ import {
   IconCircleX,
   IconLink,
   IconMailQuestion,
+  IconMailX,
   IconSend,
   IconSparkles,
 } from "@tabler/icons-react"
@@ -75,6 +76,17 @@ const PIPELINE = [
     selectedBg: "#fffbeb",
     selectedText: "#b45309",
     selectedIcon: "#d97706",
+  },
+  {
+    value: "bounced" as ProspectStatus,
+    label: "Undeliverable",
+    icon: IconMailX,
+    activeBg: "#fef2f2",
+    activeText: "#b91c1c",
+    activeIcon: "#ef4444",
+    selectedBg: "#fef2f2",
+    selectedText: "#b91c1c",
+    selectedIcon: "#ef4444",
   },
 ]
 

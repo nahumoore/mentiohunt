@@ -9,7 +9,7 @@ import {
 const STATUS_ORDER: ProspectStatus[] = ["new", "contacted", "negotiating", "won"]
 
 export function StatusPipeline({ status }: { status: ProspectStatus }) {
-  if (status === "dismissed" || status === "email_not_found") {
+  if (status === "dismissed" || status === "email_not_found" || status === "bounced") {
     const cfg = STATUS_CONFIG[status]
     const Icon = cfg.icon
     return (

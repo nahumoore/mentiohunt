@@ -1097,6 +1097,7 @@ export type Database = {
         | "negotiating"
         | "won"
         | "email_not_found"
+        | "bounced"
       prospect_tier:
         | "competitor_backlink"
         | "unlinked_mention"
@@ -1265,6 +1266,7 @@ export const Constants = {
         "negotiating",
         "won",
         "email_not_found",
+        "bounced",
       ],
       prospect_tier: [
         "competitor_backlink",

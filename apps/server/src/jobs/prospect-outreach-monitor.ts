@@ -424,7 +424,7 @@ async function applyClassification(match: MatchedSequence, inbound: ParsedInboun
       recipientEmail: match.prospect.contact_email,
       reason: "bounce",
       eventType: "bounce_detected",
-      prospectStatus: "email_not_found",
+      prospectStatus: "bounced",
       suppress: true,
       metadata,
     })

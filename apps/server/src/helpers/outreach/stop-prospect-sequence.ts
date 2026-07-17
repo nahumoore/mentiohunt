@@ -28,7 +28,7 @@ export async function stopProspectSequence({
   recipientEmail?: string | null
   reason: StopReason
   eventType: string
-  prospectStatus?: "negotiating" | "email_not_found"
+  prospectStatus?: "negotiating" | "email_not_found" | "bounced"
   suppress?: boolean
   metadata?: Record<string, unknown>
 }): Promise<void> {

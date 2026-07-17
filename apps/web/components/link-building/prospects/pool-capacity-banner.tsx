@@ -20,8 +20,7 @@ export function PoolCapacityBanner() {
         </span>
         <div>
           <p className="text-sm font-medium text-foreground">
-            Your outreach is queued — the shared email pool is at today&apos;s
-            send capacity.
+            Our shared email pool is at capacity for today.
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Emails go out automatically as slots open. Upgrade to get a

@@ -14,6 +14,15 @@ function isValidPostUrl(value: unknown): value is string {
   }
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await supabaseServer()
   const {
@@ -51,12 +60,12 @@ export async function POST(req: NextRequest) {
 
       <table cellpadding="6" style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
         <tr><td><strong>User ID</strong></td><td>${user.id}</td></tr>
-        <tr><td><strong>Email</strong></td><td>${profile?.email ?? user.email ?? "—"}</td></tr>
-        <tr><td><strong>Name</strong></td><td>${profile?.name ?? "—"}</td></tr>
-        <tr><td><strong>Tier</strong></td><td>${profile?.tier ?? "—"}</td></tr>
+        <tr><td><strong>Email</strong></td><td>${escapeHtml(profile?.email ?? user.email ?? "—")}</td></tr>
+        <tr><td><strong>Name</strong></td><td>${escapeHtml(profile?.name ?? "—")}</td></tr>
+        <tr><td><strong>Tier</strong></td><td>${escapeHtml(profile?.tier ?? "—")}</td></tr>
         <tr><td><strong>Active trial</strong></td><td>${String(profile?.active_trial ?? "—")}</td></tr>
-        <tr><td><strong>Billing period ends</strong></td><td>${profile?.billing_period_end_at ?? "—"}</td></tr>
-        <tr><td><strong>Testimonial URL</strong></td><td><a href="${encodeURI(testimonialUrl)}">${testimonialUrl}</a></td></tr>
+        <tr><td><strong>Billing period ends</strong></td><td>${escapeHtml(profile?.billing_period_end_at ?? "—")}</td></tr>
+        <tr><td><strong>Testimonial URL</strong></td><td><a href="${encodeURI(testimonialUrl)}">${escapeHtml(testimonialUrl)}</a></td></tr>
       </table>
 
       <h3>Grant snippet (after review)</h3>

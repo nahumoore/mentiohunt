@@ -124,6 +124,7 @@ export async function generateCompetitorDomains(websiteUrl: string): Promise<str
   ).slice(0, 3)
 
   if (competitors.length === 0) {
+    log.warn("no competitors survived filtering", { websiteDomain, rawCompetitors, model: modelUsed })
     throw new Error("Failed to generate competitors")
   }
 

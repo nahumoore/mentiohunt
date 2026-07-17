@@ -18,6 +18,7 @@ import {
   IconMail,
   IconMailCheck,
   IconMailOff,
+  IconMailX,
   IconMessage2,
   IconPlayerPause,
   IconQuestionMark,
@@ -757,6 +758,15 @@ export function ProspectClientPage({
               }}
               onDismiss={() => handleStatusUpdate("dismissed")}
             />
+          ) : current.status === "bounced" ? (
+            /* ── Bounced notice ── */
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <IconMailX className="size-8 text-red-500/60" />
+              <p className="mt-3 text-sm font-medium text-foreground">Email bounced</p>
+              <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+                The message couldn&apos;t be delivered because the address was undeliverable. Outreach for this prospect has stopped.
+              </p>
+            </div>
           ) : emailSequence.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <p className="text-sm font-medium text-foreground">No outreach sequence yet</p>

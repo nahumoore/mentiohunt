@@ -46,11 +46,10 @@ export function randomUtcBusinessSlotAfter(date: Date): Date {
 }
 
 export function buildProspectSequenceSchedule(now = new Date()): { step1: Date; step2: Date; step3: Date } {
-  return {
-    step1: randomUtcBusinessSlotAfter(new Date(now.getTime() + randomInt(45, 180) * MINUTE_MS)),
-    step2: randomUtcBusinessSlotAfter(new Date(now.getTime() + 3 * DAY_MS + randomInt(-120, 180) * MINUTE_MS)),
-    step3: randomUtcBusinessSlotAfter(new Date(now.getTime() + 7 * DAY_MS + randomInt(-180, 240) * MINUTE_MS)),
-  }
+  const step1 = randomUtcBusinessSlotAfter(new Date(now.getTime() + randomInt(45, 180) * MINUTE_MS))
+  const step2 = randomUtcBusinessSlotAfter(new Date(step1.getTime() + 3 * DAY_MS + randomInt(-120, 180) * MINUTE_MS))
+  const step3 = randomUtcBusinessSlotAfter(new Date(step2.getTime() + 4 * DAY_MS + randomInt(-180, 240) * MINUTE_MS))
+  return { step1, step2, step3 }
 }
 
 export function buildRetrySchedule(attemptCount: number, now = new Date()): Date {

@@ -146,6 +146,7 @@ export default function BillingPage() {
           {PLANS.map((plan, planIndex) => {
             const isCurrent = plan.tier === profile?.tier
             const isFeatured = plan.popular
+            const previousPlan = planIndex > 0 ? PLANS[planIndex - 1] : null
             const isUpgrade =
               !isCurrent &&
               (currentPlanIndex === -1 || planIndex > currentPlanIndex)
@@ -200,6 +201,12 @@ export default function BillingPage() {
                 </p>
 
                 <div className="my-5 h-px bg-gradient-to-r from-border via-border to-transparent" />
+
+                {previousPlan && (
+                  <p className="mb-3 text-sm font-semibold text-foreground">
+                    Everything in {previousPlan.name}, plus:
+                  </p>
+                )}
 
                 <ul className="flex-1 space-y-3">
                   {plan.features.map((feature) => (

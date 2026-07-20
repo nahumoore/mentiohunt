@@ -22,23 +22,25 @@ GSC-validated 2026-07-13. Site still young (~50 clicks total) — positions/impr
 
 ## PHASE 2: Content to build
 
-1. **Second pillar** `/blog/saas-link-building-agency-vs-software` — decision pillar with POV (more transparent than agency, less work than software). Primary: `saas link building agency` (590, low KD) · `outreach link building services` (70, KD9). Feeds `alternatives/*` + `compare/*`.
-2. **BOFU tools listicle** `articles/best-link-building-tools-for-founders` — lists Mentiohunt + competitors. `best link building tools` (320, low KD) · `link building software` (320, KD17) · `best seo link building software` (90, KD5). GSC: "linkbuilding software" (pos 98), "link building resources" (pos 88) — no page targets these yet.
+DataForSEO-validated 2026-07-17 (live SERP + keyword_overview pull). Corrections below override the original brief where they conflict.
+
+1. **BOFU tools listicle** `articles/best-link-building-tools-for-founders` — **build first, highest confidence.** Lists Mentiohunt + competitors. `link building software` (320, KD20, **+85% YoY, +129% QoQ — actively growing**) · `best link building tools` (320, KD2, lower than originally scoped) · `best seo link building software` (90, KD5, but -80% YoY — secondary term only). SERP for `link building software` is entirely blog listicles/roundups (aioseo, onelittleweb, seoprofy, backlinko) plus Respona's own homepage — confirms listicle format matches intent directly. GSC: "linkbuilding software" (pos 98), "link building resources" (pos 88) — `link building resources` itself is weak standalone (KD23, informational, -90% YoY) so don't build a separate page for it, just cover the phrase inside this listicle.
+2. **Second pillar** `/blog/saas-link-building-agency-vs-software` — **rewrite the brief before building.** `saas link building agency` (vol 590 confirmed, but recent months run 150–320, the 590 avg is inflated by a Sept 2025 spike; **no KD score in DataForSEO's DB at all** — a data gap, not a confirmed "low KD"; intent is **navigational**, not commercial). Live SERP is 100% agency sales homepages (saaslinkbuilder.com, aboveapex.com, derivatex.agency, scalerrs.co) + "best agencies" listicles (aimers.io, founderreports.com, newmedia.com) + a **local pack** (3 agency map entries) — zero neutral decision/comparison content ranking. A "decision pillar with POV" won't match that SERP. Rebrief as a **listicle**: "Best SaaS Link Building Agencies (and when to use software instead)," Mentiohunt included as an entry — same format as what's already ranking. Secondary: `outreach link building services` (vol 110, higher than originally scoped 70; KD1 confirmed low; also navigational, -56% YoY — minor term, don't lead with it).
 3. **Research assets** (own opportunity-queue data — earn links + AI citations, not keyword-driven): `saas-backlink-placement-patterns`, `saas-listicle-tool-overlap`, `state-of-saas-backlinks-2026` (recurring annual asset).
 
 ~~AI-citations article~~ — already built, see `backlinks-ai-search-citations` above. Was listed here as outstanding by mistake; live since 2026-07-13.
 
-## `backlinks-from/*` expansion
+## `backlinks-from/*` expansion — DEPRIORITIZED, DataForSEO-validated 2026-07-17
 
-Pattern proven (forbes 4 clicks pos 9.2; youtube pos 3.1; medium pos 8.1). New platforms — **validate vol/KD per platform first**: GitHub, Substack, Product Hunt, G2/Capterra, Crunchbase, podcasts, newsletters. Each must link up to pillar + across to `how-to-find-backlink-opportunities`.
+Pattern proven on existing 11 pages (forbes 4 clicks pos 9.2; youtube pos 3.1; medium pos 8.1) — but the "validate vol/KD per platform first" instruction already flagged this as unverified, and it checks out negative: **GitHub** (`github backlinks` vol 10, navigational intent), **Crunchbase** (`crunchbase backlink` vol 10, navigational), **podcasts** (`podcast backlinks` vol 10) all near-zero. **Product Hunt, G2/Capterra, Substack, newsletters** — no data in DataForSEO's DB at all for any phrasing tried, meaning negligible search volume. None of these platforms justify a page for keyword capture. If built anyway, treat them as link-earning/topical-authority plays (same bucket as Research assets above), not traffic plays — and don't prioritize them ahead of items 1–2 in Phase 2.
 
 ## Free tools to build
 
 | Slug                                  | Primary keyword            | Vol | KD  | Notes                                                                                         |
 | ------------------------------------- | -------------------------- | --- | --- | --------------------------------------------------------------------------------------------- |
-| `free-tools/guest-post-sites-finder`  | guest posting sites        | 390 | 3   | + `guest post sites list` (90, KD16). Pairs with `guest-posting-for-saas`.                    |
-| `free-tools/outreach-email-generator` | outreach email template    | 170 | low | + `cold email generator` (70) · `link building outreach email` (50, KD3). Direct product CTA. |
-| `free-tools/dofollow-link-checker`    | do-follow backlink checker | 320 | 22  | Qualifies prospects; slightly harder SERP.                                                    |
+| `free-tools/guest-post-sites-finder`  | guest posting sites        | 390 | **19** (was scoped 3, DataForSEO-confirmed 2026-07-17 — 6x harder than budgeted) | + `guest post sites list` (90, KD16, confirmed). Pairs with `guest-posting-for-saas`. |
+| `free-tools/outreach-email-generator` | outreach email template    | 170 | 6 (confirmed low) | + `cold email generator` (70, confirmed, informational, -56% YoY) · `link building outreach email` (50, confirmed, but navigational intent — likely brand-search, caps traffic ceiling). Direct product CTA. |
+| `free-tools/dofollow-link-checker`    | do follow backlink checker (spaced) | 320 | 21 (confirmed, matches "slightly harder") | **Use the spaced phrasing in slug/H1** — the concatenated variant `dofollow backlink checker` has identical 320 vol but KD **63**, 3x harder. Qualifies prospects. |
 
 **Skip:** high-KD authority/DA-PA checkers, `backlink generator` (spammy, off-positioning). `free-tools/google-index-checker` = dead end (106 impr, every query pos 80+) — candidate for removal if it never earns a click.
 

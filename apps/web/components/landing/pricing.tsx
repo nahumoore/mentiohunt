@@ -32,14 +32,15 @@ export function Pricing() {
             </span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Two simple plans for managed backlink discovery and outreach.
-            Start free, upgrade when you need more sites.
+            Two simple plans for managed backlink placement. We handle
+            discovery and outreach — you approve what goes live.
           </p>
         </div>
 
         <div className="mx-auto mt-14 grid max-w-6xl gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-7">
-          {PLANS.map((plan) => {
+          {PLANS.map((plan, planIndex) => {
             const isFeatured = plan.popular
+            const previousPlan = planIndex > 0 ? PLANS[planIndex - 1] : null
 
             return (
               <article
@@ -77,6 +78,12 @@ export function Pricing() {
                   </div>
 
                   <div className="my-7 h-px bg-gradient-to-r from-border via-border to-transparent" />
+
+                  {previousPlan && (
+                    <p className="mb-3.5 text-sm font-semibold text-foreground">
+                      Everything in {previousPlan.name}, plus:
+                    </p>
+                  )}
 
                   <ul className="space-y-3.5">
                     {plan.features.map((feature) => (

@@ -2,6 +2,7 @@
 
 import {
   IconFiles,
+  IconLayoutDashboard,
   IconLayoutGrid,
   IconMailBolt,
   IconNetwork,
@@ -47,6 +48,16 @@ type FeatureModule = {
 }
 
 const FEATURES: FeatureModule[] = [
+  {
+    title: "Overview",
+    pages: [
+      {
+        title: "Home",
+        url: "/dashboard",
+        icon: <IconLayoutDashboard />,
+      },
+    ],
+  },
   {
     title: "Outreach",
     pages: [
@@ -210,5 +221,9 @@ export function NavMain() {
 }
 
 function isRouteActive(pathname: string, url: string) {
+  // "/dashboard" is the shared prefix of every dashboard route, so it must
+  // match exactly rather than via startsWith — otherwise Home would appear
+  // active on every page.
+  if (url === "/dashboard") return pathname === "/dashboard"
   return pathname === url || pathname.startsWith(`${url}/`)
 }

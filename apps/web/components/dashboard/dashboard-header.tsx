@@ -2,6 +2,7 @@
 
 import {
   IconFiles,
+  IconLayoutDashboard,
   IconLayoutGrid,
   IconMailBolt,
   IconNetwork,
@@ -14,6 +15,7 @@ import * as React from "react"
 
 import { HowItWorksDialog } from "@/components/link-building/prospects/how-it-works-dialog"
 import { useEmailAccountStore } from "@/stores/email-account-store"
+import { useProfileStore } from "@/stores/profile-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
@@ -78,6 +80,8 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
 
 export function DashboardHeader() {
   const pathname = usePathname()
+  const isDashboardHome = pathname === "/dashboard"
+  const profile = useProfileStore((state) => state.profile)
   const currentProspectId = getCurrentProspectId(pathname)
   const currentEmailAccountId = getCurrentEmailAccountId(pathname)
   const currentProspectLabel = useProspectStore((state) => {
@@ -102,7 +106,14 @@ export function DashboardHeader() {
     currentEmailAccountLabel
   )
 
-  const pageConfig = PAGE_CONFIG[pathname] ?? null
+  const firstName = profile?.name?.trim()?.split(" ")[0] ?? null
+  const pageConfig: PageConfig | null = isDashboardHome
+    ? {
+        title: `Welcome back${firstName ? `, ${firstName}` : ""}.`,
+        description: "Stay on top of your backlink outreach and steer what happens next.",
+        icon: IconLayoutDashboard,
+      }
+    : (PAGE_CONFIG[pathname] ?? null)
   const PageIcon = pageConfig?.icon ?? null
 
   return (

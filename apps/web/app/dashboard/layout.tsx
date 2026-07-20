@@ -128,10 +128,14 @@ export default async function DashboardLayout({
   let pages: ProductPageListItem[] = []
   let hasActiveEmailAccount = false
   let poolDelayedCount = 0
+  let sentAt: string[] = []
 
   if (product) {
     const twentyFourHoursAgo = new Date(
       Date.now() - 24 * 60 * 60 * 1000
+    ).toISOString()
+    const ninetyDaysAgo = new Date(
+      Date.now() - 90 * 24 * 60 * 60 * 1000
     ).toISOString()
 
     const [
@@ -143,6 +147,7 @@ export default async function DashboardLayout({
       pagesResult,
       emailAccountResult,
       poolDelayedResult,
+      sentSequencesResult,
     ] = await Promise.all([
       supabase
         .from("backlink_prospects")
@@ -204,10 +209,28 @@ export default async function DashboardLayout({
             .eq("status", "pending")
             .gte("last_deferred_at", twentyFourHoursAgo)
         : Promise.resolve(null),
+      supabase
+        .from("prospect_sequences")
+        .select("sent_at, backlink_prospects!inner(product_id)")
+        .eq("backlink_prospects.product_id", product.id)
+        .eq("status", "sent")
+        .gte("sent_at", ninetyDaysAgo)
+        .order("sent_at", { ascending: false }),
     ])
 
     hasActiveEmailAccount = emailAccountResult.data !== null
     poolDelayedCount = poolDelayedResult?.count ?? 0
+
+    if (sentSequencesResult.error) {
+      console.error(
+        "Error fetching sent outreach sequences:",
+        sentSequencesResult.error
+      )
+    } else {
+      sentAt = (sentSequencesResult.data ?? [])
+        .map((row) => row.sent_at)
+        .filter((value): value is string => value !== null)
+    }
 
     const { data: prospectRows, error: prospectsError } = prospectsResult
 
@@ -284,6 +307,7 @@ export default async function DashboardLayout({
       pages={pages}
       hasActiveEmailAccount={hasActiveEmailAccount}
       poolDelayedCount={poolDelayedCount}
+      sentAt={sentAt}
     >
       <SidebarProvider>
         <AppSidebar user={sidebarUser} initialProduct={product} />

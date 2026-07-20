@@ -19,6 +19,7 @@ import { useDirectoryStore } from "@/stores/directory-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
 import { usePagesStore } from "@/stores/pages-store"
 import { useEmailAccountStore } from "@/stores/email-account-store"
+import { useOutreachActivityStore } from "@/stores/outreach-activity-store"
 
 import { ProspectRealtimeSync } from "./prospect-realtime-sync"
 
@@ -34,6 +35,7 @@ type DashboardStoreHydratorProps = {
   pages: ProductPageListItem[]
   hasActiveEmailAccount: boolean | null
   poolDelayedCount: number
+  sentAt: string[]
   children: ReactNode
 }
 
@@ -49,6 +51,7 @@ export function DashboardStoreHydrator({
   pages,
   hasActiveEmailAccount,
   poolDelayedCount,
+  sentAt,
   children,
 }: DashboardStoreHydratorProps) {
   useEffect(() => {
@@ -85,7 +88,8 @@ export function DashboardStoreHydrator({
     useBacklinkNetworkStore.getState().setMembership(backlinkNetworkMembership)
     usePagesStore.getState().setPages(pages)
     useEmailAccountStore.getState().setHasActiveEmailAccount(hasActiveEmailAccount)
-  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, poolDelayedCount])
+    useOutreachActivityStore.getState().setSentAt(sentAt)
+  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, poolDelayedCount, sentAt])
 
   return (
     <>

@@ -16,6 +16,7 @@ import { devSendOnboardingEmailRouter } from "./dev-send-onboarding-email.js"
 import { devUpdateAllSeoMetricsRouter } from "./dev-update-all-seo-metrics.js"
 import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunities-by-url.js"
 import { freeToolAuthorContactFinderRouter } from "./free-tool-author-contact-finder.js"
+import { freeToolGuestPostSitesRouter } from "./free-tool-guest-post-sites.js"
 import { googleIndexCheckerRouter } from "./google-index-checker.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
 import { prospectManualOutreachRouter } from "./prospect-manual-outreach.js"
@@ -28,6 +29,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(billingNotificationRouter)
   app.use(freeToolCompetitorBacklinkGapRouter)
   app.use(freeToolAuthorContactFinderRouter)
+  app.use(freeToolGuestPostSitesRouter)
   app.use(onboardingCompleteRouter)
   app.use(prospectManualOutreachRouter)
   app.use(crawlSinglePageRouter)

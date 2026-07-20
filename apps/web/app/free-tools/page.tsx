@@ -2,6 +2,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import {
   IconArrowRight,
+  IconArticle,
   IconBolt,
   IconCalculator,
   IconFolderSearch,
@@ -105,6 +106,14 @@ const tools = [
       "Paste a blog post URL and find the author's name, role, and most likely contact email — labelled with a confidence level, for backlink outreach.",
     icon: IconUserSearch,
     href: `/free-tools/${FREE_TOOL_NAMES.authorContactFinder}`,
+  },
+  {
+    name: "Guest Post Sites Finder",
+    eyebrow: "Website to guest-post targets",
+    description:
+      "Enter your website URL and find sites in your niche that publicly invite guest contributors, each with a fit score and rationale.",
+    icon: IconArticle,
+    href: `/free-tools/${FREE_TOOL_NAMES.guestPostSitesFinder}`,
   },
 ]
 

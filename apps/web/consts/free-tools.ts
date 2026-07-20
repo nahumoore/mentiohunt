@@ -10,6 +10,7 @@ export const FREE_TOOL_NAMES = {
   googleIndexChecker: "google-index-checker",
   anchorTextGenerator: "anchor-text-generator",
   authorContactFinder: "author-contact-finder",
+  guestPostSitesFinder: "guest-post-sites-finder",
 } as const
 
 export type FreeToolName =
@@ -25,6 +26,7 @@ export const ALL_FREE_TOOL_SLUGS: FreeToolName[] = [
   FREE_TOOL_NAMES.googleIndexChecker,
   FREE_TOOL_NAMES.anchorTextGenerator,
   FREE_TOOL_NAMES.authorContactFinder,
+  FREE_TOOL_NAMES.guestPostSitesFinder,
 ]
 
 // In-memory rate limiter — resets on deploy/restart, breaks with multiple instances

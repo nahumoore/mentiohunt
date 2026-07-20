@@ -228,8 +228,9 @@ export async function runDiscoveryForProduct(
  * paid/trial product and emails the user a method-specific summary whenever it
  * finds at least one new prospect.
  */
-export async function runDailyBacklinkDiscovery(): Promise<void> {
-  log.info("starting")
+export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }): Promise<void> {
+  const paidOnly = options?.paidOnly ?? false
+  log.info("starting", { paidOnly })
 
   const { data: products, error } = await supabaseAdmin
     .from("products")
@@ -265,9 +266,11 @@ export async function runDailyBacklinkDiscovery(): Promise<void> {
     profile: profileById.get(p.user_id),
   }))
 
-  const eligible = withProfile.filter(
-    ({ profile }) => profile !== undefined && (profile.tier !== "free" || profile.active_trial)
-  )
+  const eligible = withProfile.filter(({ profile }) => {
+    if (profile === undefined) return false
+    if (paidOnly) return profile.tier !== "free" && !profile.active_trial
+    return profile.tier !== "free" || profile.active_trial
+  })
 
   log.info("products to process", {
     total: withProfile.length,

@@ -62,5 +62,14 @@ export function registerJobs(): void {
       console.error("[cron] Error running daily backlink discovery:", err)
     }
   })
-  console.log("[cron] Scheduled: daily backlink discovery (07:00 UTC)")
+  console.log("[cron] Scheduled: daily backlink discovery, all active users (07:00 UTC)")
+
+  cron.schedule("0 19 * * *", async () => {
+    try {
+      await runDailyBacklinkDiscovery({ paidOnly: true })
+    } catch (err) {
+      console.error("[cron] Error running paid-only backlink discovery:", err)
+    }
+  })
+  console.log("[cron] Scheduled: 2nd backlink discovery run, paid users only (19:00 UTC)")
 }

@@ -24,6 +24,32 @@ function toDateString(unixTimestamp: number): string {
   return new Date(unixTimestamp * 1000).toISOString().substring(0, 10)
 }
 
+const SERVER_URL = process.env.SERVER_URL ?? "http://localhost:3001"
+
+async function notifyBillingChange(payload: {
+  userId: string
+  type: "subscription_created" | "subscription_updated" | "subscription_deleted" | "payment_failed"
+  tier: BillingTier
+}) {
+  try {
+    const res = await fetch(`${SERVER_URL}/billing/notification`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-api-key": process.env.INTERNAL_API_KEY ?? "",
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: "unknown error" }))
+      console.error("Failed to send billing notification:", data)
+    }
+  } catch (err) {
+    console.error("Failed to reach server for billing notification:", err)
+  }
+}
+
 export async function POST(req: NextRequest) {
   const stripe = getStripe()
   const webhookSecret = getWebhookSecret()
@@ -92,6 +118,12 @@ export async function POST(req: NextRequest) {
           })
           .eq("id", profile.id)
 
+        await notifyBillingChange({
+          userId: profile.id,
+          type: "subscription_created",
+          tier,
+        })
+
         break
       }
 
@@ -105,7 +137,7 @@ export async function POST(req: NextRequest) {
           ? (getTierFromPriceId(item.price?.id ?? "") ?? "free")
           : "free"
 
-        await supabaseAdmin
+        const { data: updated } = await supabaseAdmin
           .from("profiles")
           .update({
             tier,
@@ -114,6 +146,16 @@ export async function POST(req: NextRequest) {
             billing_period_end_at: toDateString(item.current_period_end),
           })
           .eq("stripe_customer_id", customerId)
+          .select("id")
+          .maybeSingle()
+
+        if (updated) {
+          await notifyBillingChange({
+            userId: updated.id,
+            type: "subscription_updated",
+            tier,
+          })
+        }
 
         break
       }
@@ -122,10 +164,20 @@ export async function POST(req: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
-        await supabaseAdmin
+        const { data: updated } = await supabaseAdmin
           .from("profiles")
           .update({ tier: "free", active_trial: false })
           .eq("stripe_customer_id", customerId)
+          .select("id")
+          .maybeSingle()
+
+        if (updated) {
+          await notifyBillingChange({
+            userId: updated.id,
+            type: "subscription_deleted",
+            tier: "free",
+          })
+        }
 
         break
       }
@@ -134,10 +186,20 @@ export async function POST(req: NextRequest) {
         const invoice = event.data.object as Stripe.Invoice
         const customerId = invoice.customer as string
 
-        await supabaseAdmin
+        const { data: updated } = await supabaseAdmin
           .from("profiles")
           .update({ tier: "free", active_trial: false })
           .eq("stripe_customer_id", customerId)
+          .select("id")
+          .maybeSingle()
+
+        if (updated) {
+          await notifyBillingChange({
+            userId: updated.id,
+            type: "payment_failed",
+            tier: "free",
+          })
+        }
 
         break
       }

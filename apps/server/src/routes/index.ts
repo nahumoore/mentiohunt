@@ -1,5 +1,6 @@
 import type { Application } from "express"
 import { analyzeBacklinkSiteRouter } from "./analyze-backlink-site.js"
+import { billingNotificationRouter } from "./billing-notification.js"
 import { crawlSinglePageRouter } from "./crawl-single-page.js"
 import { devDiscoverCompetitorBacklinksRouter } from "./dev-discover-competitor-backlinks.js"
 import { devDiscoverListicleRoundupsRouter } from "./dev-discover-listicle-roundups.js"
@@ -10,6 +11,7 @@ import { devRunDailyBacklinkDiscoveryRouter } from "./dev-run-daily-backlink-dis
 import { devTestScraperRouter } from "./dev-test-scraper.js"
 import { devPopulateMissingSeoMetricsRouter } from "./dev-populate-missing-seo-metrics.js"
 import { devRunOutreachJobsRouter } from "./dev-run-outreach-jobs.js"
+import { devSendBillingNotificationEmailRouter } from "./dev-send-billing-notification-email.js"
 import { devSendOnboardingEmailRouter } from "./dev-send-onboarding-email.js"
 import { devUpdateAllSeoMetricsRouter } from "./dev-update-all-seo-metrics.js"
 import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunities-by-url.js"
@@ -23,6 +25,7 @@ import { verifyDirectoryUrlsRouter } from "./verify-directory-urls.js"
 export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(directoryOpportunitiesByUrlRouter)
   app.use(analyzeBacklinkSiteRouter)
+  app.use(billingNotificationRouter)
   app.use(freeToolCompetitorBacklinkGapRouter)
   app.use(freeToolAuthorContactFinderRouter)
   app.use(onboardingCompleteRouter)
@@ -36,6 +39,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
     app.use(devUpdateAllSeoMetricsRouter)
     app.use(devPopulateMissingSeoMetricsRouter)
     app.use(devSendOnboardingEmailRouter)
+    app.use(devSendBillingNotificationEmailRouter)
     app.use(devDiscoverCompetitorBacklinksRouter)
     app.use(devDiscoverUnlinkedMentionsRouter)
     app.use(devRunDailyBacklinkDiscoveryRouter)

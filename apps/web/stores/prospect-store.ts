@@ -63,6 +63,7 @@ export type ProspectDetail = ProspectListItem &
 
 type ProspectStore = {
   prospects: ProspectListItem[]
+  hydrated: boolean
   hasCompletedRun: boolean
   /** Pending sequences recently deferred because the shared email pool was at capacity. */
   poolDelayedCount: number
@@ -100,10 +101,11 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
 
 export const useProspectStore = create<ProspectStore>()((set) => ({
   prospects: [],
+  hydrated: false,
   hasCompletedRun: false,
   poolDelayedCount: 0,
   prospectDetailsById: {},
-  setProspects: (prospects) => set({ prospects }),
+  setProspects: (prospects) => set({ hydrated: true, prospects }),
   setHasCompletedRun: (hasCompletedRun) => set({ hasCompletedRun }),
   setPoolDelayedCount: (poolDelayedCount) => set({ poolDelayedCount }),
   updateProspectStatuses: (prospectIds, status) =>

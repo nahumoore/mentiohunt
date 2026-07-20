@@ -4,11 +4,17 @@ import { IconLoader2 } from "@tabler/icons-react"
 import { Card } from "@workspace/ui/components/card"
 
 import { DashboardOverview } from "@/components/dashboard/overview/dashboard-overview"
+import { DashboardOverviewSkeleton } from "@/components/dashboard/overview/dashboard-overview-skeleton"
 import { useProspectStore } from "@/stores/prospect-store"
 
 export default function DashboardHomePage() {
+  const hydrated = useProspectStore((state) => state.hydrated)
   const prospects = useProspectStore((state) => state.prospects)
   const hasCompletedRun = useProspectStore((state) => state.hasCompletedRun)
+
+  if (!hydrated) {
+    return <DashboardOverviewSkeleton />
+  }
 
   if (prospects.length === 0 && !hasCompletedRun) {
     return (

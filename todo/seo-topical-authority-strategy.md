@@ -1,49 +1,40 @@
-# SEO Strategy — Outstanding Work
+# SEO Focus — Mentiohunt
 
-GSC-validated 2026-07-13. Site still young (~50 clicks total) — positions/impressions are demand signals, not traffic. Articles live at `/blog/<slug>`; MDX in `apps/web/resources/`.
+Young site (~50 clicks total). Positions/impressions = demand signals, not traffic yet. Articles at `/blog/<slug>`; MDX in `apps/web/resources/`. Keyword data DataForSEO-validated 2026-07-17; GSC re-pulled 2026-07-20.
 
-**Already built (don't rebuild):** pillar `saas-backlink-building`; articles `link-building-outreach-email`, `how-to-find-backlink-opportunities`, `resource-page-link-building`, `guest-posting-for-saas`, `haro-link-building`, `backlinks-ai-search-citations`; full `backlinks-from/*` (11 pages); `alternatives/*` (7); `compare/*` (3); `free-tools` (8 built: anchor-text-generator, author-contact-finder, backlink-opportunity-finder, backlink-price-calculator, competitor-backlink-gap, directory-backlink-opportunity-finder, google-index-checker, startup-directories). Monitoring-era pages already removed from code. `unlinked-brand-mentions` folded 2026-07-14 — see Consolidation below.
+**Already built (don't rebuild):** pillar `saas-backlink-building`; 6 blog articles; `backlinks-from/*` (11); `alternatives/*` (7); `compare/*` (3); `free-tools` (8). Monitoring-era pages already 301'd.
 
-## PHASE 1: Fixes first (highest ROI — built pages underperforming) — DONE 2026-07-13
+## What's working — feed it
+- **Winners = programmatic `/backlinks-from/*` + `/compare/*`.** forbes pos 9.1, medium 8.2, youtube 3.1, reddit 16.4, respona-vs-pitchbox 8.4. Near page 1 with ~zero authority. This template is the wedge.
+- Homepage pos 3.3. Branded "mentiohunt" pos 1 (16 clicks).
+- Push forbes/reddit/medium from pos 8–16 into top 5 via internal links + tighter titles.
 
-- [x] **`link-building-outreach-email` slipped hard:** pos 20.7 → 43.8 on 190 impr. Added inbound links from pillar (`saas-backlink-building`, which previously linked to neither target page — also had a broken `/resources/unlinked-brand-mentions` link, fixed to `/blog/...`) and from `resource-page-link-building`.
-- [x] **`how-to-find-backlink-opportunities`:** 417 impr (site's highest), stuck pos 49. Added inbound links from pillar + `guest-posting-for-saas` (previously missing). Content already had strong E-E-A-T signals — no keyword padding added.
-- [x] **Refreshed `backlinks-from/pinterest`:** added a concrete worked example (saves-vs-clicks timing). Nofollow reality + dofollow paths were already covered.
-- [x] **Refreshed quora, reddit, wikipedia:** added worked examples to each. Reddit had a stale broken link to `reddinbox.com` (old brand domain, tool never existed on mentiohunt.com) — replaced with `/free-tools/backlink-opportunity-finder`.
-- [x] **Pitchbox buyer intent:** added "Is Pitchbox Worth It? Our Honest Take" section + FAQ entry to `alternatives/best-pitchbox-alternative-for-founders` targeting bare "pitchbox"/"pitchbox review" intent. Pricing breakdown was already thorough.
-- [x] **`/alternatives` hub cleanup:** tightened H1/metadata/subtext from generic "every tool" framing to explicit "link building and backlink outreach tools" scoping (should reduce off-topic query matches). Changed anchor text on cross-links from `ahrefs`/`semrush` alt pages to "best Pitchbox alternative" / "best BuzzStream alternative" instead of bare brand name, to help Google attribute those queries to the dedicated pages instead of the hub.
+## Focus now (priority order)
 
-**Watch in next GSC pull:** whether hub copy change actually reduces off-topic impressions (trengo/zutrix/etc.) without hurting the legitimate ones — this is a signal-strength bet, not guaranteed.
+**1. Fix `/alternatives` — active drag.** Hub 426 impr, pos 56, CTR 0.23%, catching off-ICP queries (eclincher, wordstream, adheart, boundless leads). Only backlinkgpt child ranks (pos 11.6). Strip "community/Reddit monitoring" FAQs + "community opportunities" copy from all 7 pages (contradicts positioning, pulls wrong queries). Reduce hub–child cannibalization. See fix notes.
 
-## Consolidation — DONE 2026-07-14
+**2. BOFU tools listicle** `articles/best-link-building-tools-for-founders` — highest confidence. Lists Mentiohunt + competitors.
+- `link building software` (320, KD20, **+85% YoY** growing) · `best link building tools` (320, KD2) · `best seo link building software` (90, KD5, secondary).
+- SERP = all listicles/roundups → format matches. Cover "link building resources" phrase inside (don't build standalone, KD23 weak).
 
-- **Folded `unlinked-brand-mentions`** into `how-to-find-backlink-opportunities` (Step 5). Two review cycles, no improvement (142 impr pos 67; SERP branded by ahrefs/moz/semrush). Merged in the prioritization-scoring table, contact-finding steps, and 30–55% conversion-rate stat that were unique to the old page. Deleted `resources/articles/unlinked-brand-mentions.mdx` + orphaned images in `public/resources/unlinked-brand-mentions/`. Added 301 `/blog/unlinked-brand-mentions` → `/blog/how-to-find-backlink-opportunities` in `next.config.mjs`. Repointed the 4 internal links that referenced the old slug (`saas-backlink-building`, `haro-link-building`, `link-building-outreach-email`, `backlinks-ai-search-citations`) to the new anchor `#step-5-convert-unlinked-mentions`.
-- **Monitoring pages 301:** /twitter-monitoring, /reddit-monitoring, /blog/reddit-marketing already redirected. Found and fixed two gaps that were 404ing: /quora-monitoring, /free-tools/reddit-user-analyzer — both now redirect to `how-to-find-backlink-opportunities` in `apps/web/next.config.mjs`.
+**3. Agencies listicle** `/blog/best-saas-link-building-agencies` — build as **listicle, not pillar**.
+- `saas link building agency` (vol 590 but recent 150–320; **no KD in DB**; navigational). Live SERP = agency homepages + "best agencies" listicles + local pack. Neutral comparison won't rank → match the format, Mentiohunt as an entry.
+- Secondary: `outreach link building services` (110, KD1, navigational — minor).
 
-## PHASE 2: Content to build
+**4. Free tools to build**
 
-DataForSEO-validated 2026-07-17 (live SERP + keyword_overview pull). Corrections below override the original brief where they conflict.
+| Slug | Primary kw | Vol | KD | Notes |
+|---|---|---|---|---|
+| `free-tools/guest-post-sites-finder` | guest posting sites | 390 | 19 | + `guest post sites list` (90, KD16). Pairs w/ `guest-posting-for-saas`. |
+| `free-tools/outreach-email-generator` | outreach email template | 170 | 6 | + `cold email generator` (70). Direct product CTA. |
+| `free-tools/dofollow-link-checker` | do follow backlink checker (**spaced**) | 320 | 21 | Concatenated variant = KD63, 3x harder. Use spaced phrasing in slug/H1. |
 
-1. **BOFU tools listicle** `articles/best-link-building-tools-for-founders` — **build first, highest confidence.** Lists Mentiohunt + competitors. `link building software` (320, KD20, **+85% YoY, +129% QoQ — actively growing**) · `best link building tools` (320, KD2, lower than originally scoped) · `best seo link building software` (90, KD5, but -80% YoY — secondary term only). SERP for `link building software` is entirely blog listicles/roundups (aioseo, onelittleweb, seoprofy, backlinko) plus Respona's own homepage — confirms listicle format matches intent directly. GSC: "linkbuilding software" (pos 98), "link building resources" (pos 88) — `link building resources` itself is weak standalone (KD23, informational, -90% YoY) so don't build a separate page for it, just cover the phrase inside this listicle.
-2. **Second pillar** `/blog/saas-link-building-agency-vs-software` — **rewrite the brief before building.** `saas link building agency` (vol 590 confirmed, but recent months run 150–320, the 590 avg is inflated by a Sept 2025 spike; **no KD score in DataForSEO's DB at all** — a data gap, not a confirmed "low KD"; intent is **navigational**, not commercial). Live SERP is 100% agency sales homepages (saaslinkbuilder.com, aboveapex.com, derivatex.agency, scalerrs.co) + "best agencies" listicles (aimers.io, founderreports.com, newmedia.com) + a **local pack** (3 agency map entries) — zero neutral decision/comparison content ranking. A "decision pillar with POV" won't match that SERP. Rebrief as a **listicle**: "Best SaaS Link Building Agencies (and when to use software instead)," Mentiohunt included as an entry — same format as what's already ranking. Secondary: `outreach link building services` (vol 110, higher than originally scoped 70; KD1 confirmed low; also navigational, -56% YoY — minor term, don't lead with it).
-3. **Research assets** (own opportunity-queue data — earn links + AI citations, not keyword-driven): `saas-backlink-placement-patterns`, `saas-listicle-tool-overlap`, `state-of-saas-backlinks-2026` (recurring annual asset).
+Skip: DA/PA checkers, `backlink generator` (spammy). `google-index-checker` = dead (106 impr, all pos 80+) — remove if never earns a click.
 
-~~AI-citations article~~ — already built, see `backlinks-ai-search-citations` above. Was listed here as outstanding by mistake; live since 2026-07-13.
+**5. Research assets** (own opportunity-queue data — earn links + AI citations, not keyword-driven): `saas-backlink-placement-patterns`, `saas-listicle-tool-overlap`, `state-of-saas-backlinks-2026` (annual).
 
-## `backlinks-from/*` expansion — DEPRIORITIZED, DataForSEO-validated 2026-07-17
+## Deprioritized
+- **`backlinks-from/*` expansion:** GitHub/Crunchbase/podcasts vol ~10; ProductHunt/G2/Substack no data. Build only as link-earning plays, not for traffic.
 
-Pattern proven on existing 11 pages (forbes 4 clicks pos 9.2; youtube pos 3.1; medium pos 8.1) — but the "validate vol/KD per platform first" instruction already flagged this as unverified, and it checks out negative: **GitHub** (`github backlinks` vol 10, navigational intent), **Crunchbase** (`crunchbase backlink` vol 10, navigational), **podcasts** (`podcast backlinks` vol 10) all near-zero. **Product Hunt, G2/Capterra, Substack, newsletters** — no data in DataForSEO's DB at all for any phrasing tried, meaning negligible search volume. None of these platforms justify a page for keyword capture. If built anyway, treat them as link-earning/topical-authority plays (same bucket as Research assets above), not traffic plays — and don't prioritize them ahead of items 1–2 in Phase 2.
-
-## Free tools to build
-
-| Slug                                  | Primary keyword            | Vol | KD  | Notes                                                                                         |
-| ------------------------------------- | -------------------------- | --- | --- | --------------------------------------------------------------------------------------------- |
-| `free-tools/guest-post-sites-finder`  | guest posting sites        | 390 | **19** (was scoped 3, DataForSEO-confirmed 2026-07-17 — 6x harder than budgeted) | + `guest post sites list` (90, KD16, confirmed). Pairs with `guest-posting-for-saas`. |
-| `free-tools/outreach-email-generator` | outreach email template    | 170 | 6 (confirmed low) | + `cold email generator` (70, confirmed, informational, -56% YoY) · `link building outreach email` (50, confirmed, but navigational intent — likely brand-search, caps traffic ceiling). Direct product CTA. |
-| `free-tools/dofollow-link-checker`    | do follow backlink checker (spaced) | 320 | 21 (confirmed, matches "slightly harder") | **Use the spaced phrasing in slug/H1** — the concatenated variant `dofollow backlink checker` has identical 320 vol but KD **63**, 3x harder. Qualifies prospects. |
-
-**Skip:** high-KD authority/DA-PA checkers, `backlink generator` (spammy, off-positioning). `free-tools/google-index-checker` = dead end (106 impr, every query pos 80+) — candidate for removal if it never earns a click.
-
-## Avoid as primary (new-domain unwinnable, GSC-confirmed)
-
-`link building`, `find backlink opportunities` (pos 59), `discover backlinks` (pos 58), all `* index checker` terms. Ignore `inurl:`/`site:` footprint junk queries (people Googling prospecting footprints).
+## Avoid as primary (new-domain unwinnable)
+`link building`, `find backlink opportunities` (pos 59), `discover backlinks` (pos 58), all `* index checker` terms. Ignore `inurl:`/`site:` footprint junk queries.

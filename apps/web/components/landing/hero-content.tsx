@@ -38,10 +38,10 @@ export function HeroContent() {
         animate="animate"
         transition={{ duration: 0.65, delay: 0.08, ease }}
       >
-        Backlink outreach,
+        Backlinks,
         <br />
         <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
-          in autopilot.
+          on autopilot.
         </span>
       </motion.h1>
 

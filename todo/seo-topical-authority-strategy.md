@@ -11,7 +11,24 @@ Young site (~50 clicks total). Positions/impressions = demand signals, not traff
 
 ## Focus now (priority order)
 
-**1. Fix `/alternatives` — active drag.** Hub 426 impr, pos 56, CTR 0.23%, catching off-ICP queries (eclincher, wordstream, adheart, boundless leads). Only backlinkgpt child ranks (pos 11.6). Strip "community/Reddit monitoring" FAQs + "community opportunities" copy from all 7 pages (contradicts positioning, pulls wrong queries). Reduce hub–child cannibalization. See fix notes.
+**1. Fix `/alternatives` — DONE 2026-07-21.** Steps 1–4 and 6 applied. Step 7 (re-pull GSC) pending, earliest ~2026-08-11.
+
+Diagnosis: hub page (`apps/web/app/alternatives/page.tsx`) itself is fine — already scoped copy, clean metadata, good author E-E-A-T. **Real problem is inside the 7 child MDX files** (`apps/web/resources/alternatives/*.mdx`): leftover "community monitoring" language contradicts CLAUDE.md positioning (community monitoring/social reply automation explicitly NOT part of product) and is why hub catches junk queries like `reddit monitor`/`twitter monitor`/`x monitor`.
+
+Evidence: 10 "Does [tool] monitor Reddit or community forums?" FAQs across 6 of 7 pages (buzzstream 3, ahrefs 2, respona 2, pitchbox 1, backlinkgpt 1, semrush 1; postaga clean). `best-ahrefs-alternative-for-founders.mdx` worst — describes Mentiohunt itself as doing things it doesn't ship: "monitor community conversations for relevant mentions," "community reply suggestions," "get alerted when a relevant community conversation is happening" (lines ~25, 72, 131, 135, 153). 10 "community" mentions on ahrefs page, 9 on buzzstream, 7 on semrush.
+
+GSC state (90d, pulled 2026-07-20): hub `/alternatives` = 426 impr, pos 56.2, CTR 0.23%, 1 click. Only `alternatives/best-backlinkgpt-alternative-for-founders` ranks decently (pos 11.6, 22 impr, 2 clicks) — also the page with least community cruft. Hub also outranks children for their own exact-match terms (`buzzstream alternatives` 95 impr pos 60 goes to hub, not the buzzstream child) — cannibalization, but expected to self-resolve as domain authority grows; don't over-tune.
+
+Steps to execute:
+1. Purge community/monitoring FAQs + body copy from all 7 MDX files, worst-first: `best-ahrefs-alternative-for-founders.mdx` → `best-buzzstream-alternative-for-founders.mdx` → `best-semrush-link-building-alternative-for-founders.mdx` → `best-respona-alternative-for-founders.mdx` → `best-pitchbox-alternative-for-founders.mdx` → `best-backlinkgpt-alternative-for-founders.mdx`. `best-postaga-alternative-for-founders.mdx` already clean, skip.
+2. Delete every "Does X monitor Reddit/community forums?" FAQ. Replace with on-positioning FAQ (pricing reality, article-level fit, "when to choose X vs Mentiohunt").
+3. Rewrite any line claiming Mentiohunt does monitoring/community-reply work → replace with actual features: article-level fit scoring, fit rationale, contact finding, ready-to-send outreach draft, approve/reject queue.
+4. Fix `best-ahrefs-alternative-for-founders.mdx` frontmatter `description` — drop "community opportunities" phrase.
+5. Do NOT try to engineer away the hub's off-ICP impressions (eclincher/wordstream/adheart/boundless leads — 426 impr, near-zero CTR already, not worth effort). Monitoring-query subset should shed passively once step 1–4 land.
+6. After cleanup, add internal link from `saas-backlink-building` pillar + relevant blog posts into each alternatives child (mirrors what already works for backlinks-from/* pages).
+7. Re-pull GSC after ~2-3 weeks to confirm off-topic impressions on hub drop and whether children start taking their own queries back from hub.
+
+Applied 2026-07-21: all 10 monitoring FAQs removed/replaced with "Does Mentiohunt replace X entirely?" positioning FAQs across ahrefs/buzzstream/semrush/respona/pitchbox/backlinkgpt; body copy purged (worst: backlinkgpt's "Monitoring: Backlinks vs Community Conversations" section, ahrefs' "community reply suggestions"/"alerted when a relevant community conversation" lines); postaga's stray "community opportunities" line also fixed even though FAQ was clean. Step 6: linked `saas-backlink-building` pillar → ahrefs/semrush/pitchbox/respona/buzzstream; `how-to-find-backlink-opportunities` → ahrefs/semrush; `link-building-outreach-email` → buzzstream/pitchbox/respona. backlinkgpt/postaga not linked from blog posts yet — no natural anchor found, low priority (backlinkgpt already ranks pos 11.6, postaga is a 404-tool play).
 
 **2. BOFU tools listicle** `articles/best-link-building-tools-for-founders` — highest confidence. Lists Mentiohunt + competitors.
 - `link building software` (320, KD20, **+85% YoY** growing) · `best link building tools` (320, KD2) · `best seo link building software` (90, KD5, secondary).

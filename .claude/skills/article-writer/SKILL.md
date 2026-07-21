@@ -33,10 +33,24 @@ Write like a smart founder talking to another founder: simple, practical, direct
 
 1. Read the research file the user provides.
 2. Confirm the topic or primary keyword, search intent, target reader, target word count, and CTA if any are missing from the research file or user prompt.
-3. Produce an outline only.
-4. Wait for explicit user approval before writing the full article.
-5. After approval, draft the article from the approved outline and research file.
-6. If the user asks you to save the article, create or update only the requested content file. If no path is provided, suggest `apps/web/resources/articles/<topic-slug>.md` before editing.
+3. Web search the primary keyword to see what's actually ranking. See "SERP Research" below — this is required, not optional, even when the research file looks complete.
+4. Produce an outline only, informed by both the research file and the SERP scan.
+5. Wait for explicit user approval before writing the full article.
+6. After approval, draft the article from the approved outline and research file.
+7. If the user asks you to save the article, create or update only the requested content file. If no path is provided, suggest `apps/web/resources/articles/<topic-slug>.md` before editing.
+
+## SERP Research
+
+A research file tells you what to say. It doesn't tell you what the reader will see lined up next to your article, so a topic can look fresh in the research doc and still walk straight into a search results page dominated by ranked listicles.
+
+Before outlining, run a web search for the primary keyword (and one or two close variants if intent is ambiguous) and look at what's actually ranking:
+
+- **Dominant format** — listicle, how-to, comparison/vs, tool roundup, definition/explainer, opinion piece. This shapes the outline's structure; fighting the format the reader expects usually loses.
+- **Common angle** — the take most ranking pages share (e.g. "here are 10 tools" or "here's the step-by-step process"). Note it so the outline can either match reader expectations or deliberately differentiate.
+- **Gaps** — what ranking pages skip, get vague about, or handle poorly (outdated examples, no real numbers, no founder perspective, thin on tradeoffs). These gaps are where this article should go deeper.
+- **Depth and length** — roughly how thorough the top results are, so the suggested length in the outline brief is realistic rather than guessed.
+
+Bring this into the outline: state the dominant format and the differentiation angle explicitly (the "Differentiation Notes" section already asks for this — ground it in what you actually found, not a generic guess). If a web search isn't possible for some reason, say so before presenting the outline and note that the differentiation angle is based on the research file alone.
 
 ## Outline-First Rule
 
@@ -58,7 +72,8 @@ Write like a smart founder talking to another founder: simple, practical, direct
 - Target reader: <value>
 - Suggested length: <value>
 - CTA: <value>
-- Angle: <one-sentence article angle>
+- What's ranking: <dominant SERP format(s) and the common angle among top results>
+- Angle: <one-sentence article angle, informed by SERP gaps>
 
 ## Outline
 

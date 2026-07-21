@@ -27,7 +27,10 @@ export async function getDomainRating(target: string): Promise<number | null> {
   url.searchParams.set("output", "json")
 
   const res = await fetch(url, {
-    headers: { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${process.env.AHREFS_API_KEY}`,
+    },
     signal: AbortSignal.timeout(30_000),
   })
 

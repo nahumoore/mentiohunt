@@ -8,6 +8,7 @@ import { supabaseClient } from "@/lib/supabase/client"
 import { useProfileStore } from "@/stores/profile-store"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 export function PasswordTab() {
   const email = useProfileStore((state) => state.profile?.email)
@@ -103,6 +104,30 @@ export function PasswordTab() {
     })
   }
 
+  if (hasPassword === null) {
+    return (
+      <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
+        <div className="border-b border-border/70 px-5 py-4">
+          <p className="text-sm font-medium">Password</p>
+          <Skeleton className="mt-2 h-3.5 w-full max-w-md" />
+          <Skeleton className="mt-1.5 h-3.5 w-2/3 max-w-sm" />
+        </div>
+        <div className="space-y-4 px-5 py-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-3.5 w-32" />
+              <Skeleton className="h-9 max-w-sm" />
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center justify-between border-t border-border/70 px-5 py-4">
+          <Skeleton className="h-3.5 w-40" />
+          <Skeleton className="h-9 w-32" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
       <div className="border-b border-border/70 px-5 py-4">
@@ -124,7 +149,6 @@ export function PasswordTab() {
               onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Your current password"
               autoComplete="current-password"
-              disabled={hasPassword === null}
               className="max-w-sm"
             />
           </div>
@@ -140,7 +164,6 @@ export function PasswordTab() {
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="At least 8 characters"
             autoComplete="new-password"
-            disabled={hasPassword === null}
             className="max-w-sm"
           />
         </div>
@@ -155,7 +178,6 @@ export function PasswordTab() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Re-enter password"
             autoComplete="new-password"
-            disabled={hasPassword === null}
             className="max-w-sm"
           />
         </div>

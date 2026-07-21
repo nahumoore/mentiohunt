@@ -15,7 +15,7 @@ export type SiteRelevanceInput = {
 
 const BATCH_SIZE = 20
 
-const FALLBACK_MODELS = [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO]
+const FALLBACK_MODELS = [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.OPENAI_GPT_5_6_LUNA]
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = []

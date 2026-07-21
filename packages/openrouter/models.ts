@@ -33,6 +33,16 @@ export const OPENROUTER_MODELS = {
   // Pricing: $0.1875 / 1M input tokens, $1.125 / 1M output tokens.
   // Context window: 1,000,000 tokens.
   QWEN_QWEN3_6_FLASH: "qwen/qwen3.6-flash",
+
+  // GPT-5.6 Luna.
+  // OpenRouter page: https://openrouter.ai/openai/gpt-5.6-luna
+  // Description: fast, cost-efficient OpenAI GPT-5.6 series model for high-volume work
+  // (chat, content classification, lightweight agent ops). Pricier than glm-4.7-flash/
+  // qwen3.6-flash, but a different provider — used as last-resort fallback so a shared
+  // outage across those two doesn't take the whole scoring chain down with them.
+  // Pricing: $1.00 / 1M input tokens, $6.00 / 1M output tokens.
+  // Context window: 1,000,000 tokens.
+  OPENAI_GPT_5_6_LUNA: "openai/gpt-5.6-luna",
 } as const
 
 export type OpenRouterModel =

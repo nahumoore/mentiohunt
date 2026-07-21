@@ -649,7 +649,7 @@ export function PagesClient() {
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative">
           <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground/50" />
           <Input
@@ -657,10 +657,10 @@ export function PagesClient() {
             placeholder="Search pages…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-9 w-64 rounded-md border-border/60 bg-white pl-8 text-sm shadow-sm"
+            className="h-9 w-full rounded-md border-border/60 bg-white pl-8 text-sm shadow-sm sm:w-64"
           />
         </div>
-        <div className="ml-auto shrink-0">
+        <div className="shrink-0 sm:ml-auto">
           <AddPageDialog onAdd={handleAddPage} />
         </div>
       </div>
@@ -699,8 +699,84 @@ export function PagesClient() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
+          {/* Mobile: stacked cards — the fixed-width table doesn't fit phone
+              screens, so each page renders as a card instead of a row. */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {paginated.map((page) => {
+              const favicon = getFaviconUrl(page.url)
+              const displayUrl = getDisplayUrl(page.url)
+              const typeCfg = PAGE_TYPE_CONFIG[page.page_type]
+              const TypeIcon = typeCfg.icon
+
+              return (
+                <div
+                  key={page.id}
+                  className="rounded-xl border border-border bg-card px-4 py-3.5 shadow-sm"
+                >
+                  <div className="flex min-w-0 items-start gap-2.5">
+                    <div className="mt-0.5 shrink-0">
+                      {favicon ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={favicon}
+                          alt=""
+                          width={14}
+                          height={14}
+                          className="size-3.5 rounded-sm"
+                        />
+                      ) : (
+                        <div className="size-3.5 rounded-sm bg-muted" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="truncate text-xs text-muted-foreground">
+                        {displayUrl}
+                      </span>
+                      {page.title && (
+                        <p className="mt-0.5 truncate text-sm font-medium text-foreground">
+                          {page.title}
+                        </p>
+                      )}
+                      {page.description && (
+                        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                          {page.description}
+                        </p>
+                      )}
+                    </div>
+                    <a
+                      href={page.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-muted-foreground/40 hover:text-muted-foreground"
+                      aria-label="Open page"
+                    >
+                      <IconExternalLink className="size-3" />
+                    </a>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <TypeIcon className="size-3.5 shrink-0" />
+                      <span className="truncate text-xs">{typeCfg.label}</span>
+                    </div>
+                    <PriorityDropdown
+                      value={page.priority}
+                      onChange={(p) => handlePriorityChange(page.id, p)}
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <IconLink className="size-4 text-muted-foreground/50" />
+                      <span className="text-sm font-medium text-foreground tabular-nums">
+                        {page.opportunities_count}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
           {/* Table card */}
-          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <div className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-sm md:block">
             <TooltipProvider>
               <table className="w-full table-fixed">
                 <colgroup>

@@ -103,12 +103,58 @@ export function StatusOverviewV1({ prospects, activeStage, onStageChange }: Prop
 
   return (
     <div className="flex w-full items-stretch gap-2">
-      {/* Chevron pipeline — decreasing z-index so each segment's arrow
+      {/* Mobile: compact scrollable stat chips — the chevron pipeline's fixed
+          pixel widths don't fit phone screens, so swap to a horizontal chip
+          row below md. Same tap-to-filter behavior and active/selected colors. */}
+      <div className="flex w-full gap-2 overflow-x-auto pb-1 md:hidden">
+        {PIPELINE.map((stage) => {
+          const count = countFor(prospects, stage.value)
+          const isActive = isAllActive || activeStage === stage.value
+          const isSelected = activeStage === stage.value
+          const Icon = stage.icon
+          const resolvedBg = isSelected && "selectedBg" in stage ? stage.selectedBg : stage.activeBg
+          const resolvedText = isSelected && "selectedText" in stage ? stage.selectedText : stage.activeText
+          const resolvedIcon = isSelected && "selectedIcon" in stage ? stage.selectedIcon : stage.activeIcon
+          const bgColor = isActive ? resolvedBg : "#f5f5f5"
+
+          return (
+            <button
+              key={stage.value}
+              type="button"
+              onClick={() => onStageChange(isSelected ? "all" : stage.value)}
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-2 transition-colors"
+              style={{ backgroundColor: bgColor }}
+            >
+              <Icon
+                className="size-3.5 shrink-0"
+                style={{ color: isActive ? resolvedIcon : "#c0c0c0" }}
+              />
+              <span
+                className="font-heading tabular-nums text-sm font-bold leading-none"
+                style={{ color: isActive ? resolvedText : "#c0c0c0" }}
+              >
+                {count}
+              </span>
+              <span
+                className="text-[10px] font-semibold uppercase whitespace-nowrap"
+                style={{
+                  color: isActive ? resolvedIcon : "#c0c0c0",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                {stage.label}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Desktop: chevron pipeline — decreasing z-index so each segment's arrow
           sits on top of the next segment's left edge, filling the notch.
           No overflow-hidden so hover scale is not clipped; border-radius
           applied directly to first/last buttons instead. */}
       <div
-        className="flex min-w-0 flex-1 rounded-xl border border-border"
+        className="hidden min-w-0 flex-1 rounded-xl border border-border md:flex"
         style={{ height: HALF_H * 2 }}
       >
 

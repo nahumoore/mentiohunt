@@ -78,6 +78,7 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <Tabs defaultValue="profile" className="gap-4">
+        <div className="overflow-x-auto">
         <TabsList>
           <TabsTrigger value="profile">
             <IconUser className="size-4" />
@@ -92,6 +93,7 @@ export default function SettingsPage() {
             <span>Billing</span>
           </TabsTrigger>
         </TabsList>
+        </div>
 
         <TabsContent value="profile">
           <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">

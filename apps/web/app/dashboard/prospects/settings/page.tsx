@@ -304,6 +304,7 @@ export default function DiscoverySetupPage() {
     <>
       <div className="flex flex-col gap-6">
         <Tabs defaultValue="backlink-types" className="gap-4">
+          <div className="overflow-x-auto">
           <TabsList>
             <TabsTrigger value="backlink-types">
               <IconLayoutGrid className="size-4" />
@@ -322,6 +323,7 @@ export default function DiscoverySetupPage() {
               <span>Outreach</span>
             </TabsTrigger>
           </TabsList>
+          </div>
 
           <TabsContent value="backlink-types">
             <BacklinkTypesSection

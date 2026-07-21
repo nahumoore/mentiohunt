@@ -72,22 +72,24 @@ export default function BillingPage() {
       </div>
 
       {currentPlan && !isFreeTrial && (
-        <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blaze-orange/10 text-blaze-orange">
-            <IconCrown className="size-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-foreground">
-              {currentPlan.name} plan — ${currentPlan.price}/month
-            </p>
-            {profile?.billing_period_end_at && (
-              <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <IconCalendar className="size-3.5 shrink-0" />
-                Renews {formatDate(profile.billing_period_end_at)}
+        <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center">
+          <div className="flex items-center gap-4">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blaze-orange/10 text-blaze-orange">
+              <IconCrown className="size-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-foreground">
+                {currentPlan.name} plan — ${currentPlan.price}/month
               </p>
-            )}
+              {profile?.billing_period_end_at && (
+                <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <IconCalendar className="size-3.5 shrink-0" />
+                  Renews {formatDate(profile.billing_period_end_at)}
+                </p>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 sm:ml-auto sm:shrink-0">
             <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[0.65rem] font-semibold text-emerald-600 dark:text-emerald-400">
               Active
             </span>

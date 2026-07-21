@@ -313,7 +313,7 @@ export default async function DashboardLayout({
         <AppSidebar user={sidebarUser} initialProduct={product} />
         <SidebarInset>
           <DashboardHeader />
-          <div className="p-6">{children}</div>
+          <div className="p-4 sm:p-6">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </DashboardStoreHydrator>

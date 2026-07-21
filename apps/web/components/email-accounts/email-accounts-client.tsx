@@ -72,17 +72,19 @@ function AccountCard({ account }: { account: EmailAccount }) {
   return (
     <Link
       href={`/dashboard/email-accounts/${account.id}`}
-      className="group grid grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 rounded-2xl bg-card px-5 py-4 shadow-sm ring-1 ring-foreground/5 transition-shadow hover:shadow-md hover:ring-foreground/10"
+      className="group flex flex-col gap-3 rounded-2xl bg-card px-5 py-4 shadow-sm ring-1 ring-foreground/5 transition-shadow hover:shadow-md hover:ring-foreground/10 sm:grid sm:grid-cols-[auto_1fr_1fr_1fr_auto] sm:items-center sm:gap-4"
     >
-      <ProviderIcon provider={account.provider} />
+      <div className="flex items-center gap-3 sm:contents">
+        <ProviderIcon provider={account.provider} />
 
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate text-sm font-semibold text-foreground">
-          {account.name}
-        </span>
-        <span className="truncate text-xs text-muted-foreground">
-          {PROVIDER_CONFIG[account.provider].label}
-        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-none">
+          <span className="truncate text-sm font-semibold text-foreground">
+            {account.name}
+          </span>
+          <span className="truncate text-xs text-muted-foreground">
+            {PROVIDER_CONFIG[account.provider].label}
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-col gap-0.5">
@@ -105,7 +107,7 @@ function AccountCard({ account }: { account: EmailAccount }) {
 
       <div className="flex items-center gap-3">
         <StatusBadge status={account.status} />
-        <IconChevronRight className="size-4 shrink-0 text-muted-foreground/30 transition-colors group-hover:text-muted-foreground/60" />
+        <IconChevronRight className="size-4 shrink-0 text-muted-foreground/30 transition-colors group-hover:text-muted-foreground/60 sm:ml-auto" />
       </div>
     </Link>
   )
@@ -256,7 +258,7 @@ function CredentialsForm({
         <p className="text-[0.7rem] font-bold uppercase tracking-wide text-muted-foreground">
           Account name
         </p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <label className="text-[0.68rem] text-muted-foreground">Send from</label>
             <Input
@@ -301,7 +303,7 @@ function CredentialsForm({
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="space-y-1.5">
             <label className="text-[0.68rem] text-muted-foreground">Username</label>
             <Input
@@ -359,7 +361,7 @@ function CredentialsForm({
           </div>
         </div>
         {!sameCredentials && (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="space-y-1.5">
               <label className="text-[0.68rem] text-muted-foreground">Username</label>
               <Input
@@ -556,7 +558,7 @@ function LockedFeatureState({ plan }: { plan: Exclude<UserPlan, "active"> }) {
         <p className="mb-4 text-[0.65rem] font-bold uppercase tracking-wider text-primary/70">
           With a paid plan
         </p>
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
           {UNLOCK_BULLETS.map((bullet) => (
             <div key={bullet.title} className="flex flex-col gap-2">
               <span className="flex size-7 items-center justify-center rounded-lg border border-primary/15 bg-primary/8">

@@ -114,8 +114,82 @@ export default function DirectoriesPage() {
             </div>
           </div>
 
+          {/* Mobile: stacked cards — the wide multi-column table doesn't fit
+              phone screens, so each directory renders as a card instead. */}
+          <div className="flex flex-col gap-3 p-4 sm:p-6 md:hidden">
+            {sorted.length === 0 ? (
+              <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+                No directories match your search.
+              </p>
+            ) : (
+              sorted.map((directory) => (
+                <div
+                  key={directory.id}
+                  className="rounded-xl border border-border/60 bg-card px-4 py-3.5 shadow-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${directory.domain}&sz=32`}
+                      alt=""
+                      width={18}
+                      height={18}
+                      className="shrink-0 rounded-sm"
+                    />
+                    <span className="truncate font-medium">{directory.domain}</span>
+                    <a
+                      href={`https://${directory.domain}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-muted-foreground/50 transition-colors hover:text-foreground"
+                      aria-label={`Visit ${directory.domain}`}
+                    >
+                      <IconExternalLink className="size-3" />
+                    </a>
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      DR <DomainRatingCell value={directory.domain_rating} />
+                    </span>
+                    <span className="flex items-center gap-1">
+                      Backlinks{" "}
+                      <span className="font-medium tabular-nums text-foreground">
+                        {directory.backlinks != null
+                          ? Intl.NumberFormat("en", {
+                              notation: "compact",
+                              maximumFractionDigits: 1,
+                            }).format(directory.backlinks)
+                          : "—"}
+                      </span>
+                    </span>
+                    <PaidBadge isFree={directory.is_free} />
+                  </div>
+
+                  {directory.submit_url && (
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="mt-3 h-8 w-full gap-1.5 text-xs"
+                    >
+                      <a
+                        href={directory.submit_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Submit
+                        <IconExternalLink className="size-3" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
           <TooltipProvider>
-          <div className="overflow-x-auto">
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/60">

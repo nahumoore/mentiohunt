@@ -30,11 +30,11 @@ Steps to execute:
 
 Applied 2026-07-21: all 10 monitoring FAQs removed/replaced with "Does Mentiohunt replace X entirely?" positioning FAQs across ahrefs/buzzstream/semrush/respona/pitchbox/backlinkgpt; body copy purged (worst: backlinkgpt's "Monitoring: Backlinks vs Community Conversations" section, ahrefs' "community reply suggestions"/"alerted when a relevant community conversation" lines); postaga's stray "community opportunities" line also fixed even though FAQ was clean. Step 6: linked `saas-backlink-building` pillar → ahrefs/semrush/pitchbox/respona/buzzstream; `how-to-find-backlink-opportunities` → ahrefs/semrush; `link-building-outreach-email` → buzzstream/pitchbox/respona. backlinkgpt/postaga not linked from blog posts yet — no natural anchor found, low priority (backlinkgpt already ranks pos 11.6, postaga is a 404-tool play).
 
-**2. BOFU tools listicle** `articles/best-link-building-tools-for-founders` — highest confidence. Lists Mentiohunt + competitors.
+**2. BOFU tools listicle — DONE 2026-07-21.** `articles/best-link-building-tools-for-founders` — highest confidence. Lists Mentiohunt + competitors.
 - `link building software` (320, KD20, **+85% YoY** growing) · `best link building tools` (320, KD2) · `best seo link building software` (90, KD5, secondary).
 - SERP = all listicles/roundups → format matches. Cover "link building resources" phrase inside (don't build standalone, KD23 weak).
 
-**3. Agencies listicle** `/blog/best-saas-link-building-agencies` — build as **listicle, not pillar**.
+**3. Agencies listicle — DONE 2026-07-21.** `/blog/best-saas-link-building-agencies` — built as **listicle, not pillar**.
 - `saas link building agency` (vol 590 but recent 150–320; **no KD in DB**; navigational). Live SERP = agency homepages + "best agencies" listicles + local pack. Neutral comparison won't rank → match the format, Mentiohunt as an entry.
 - Secondary: `outreach link building services` (110, KD1, navigational — minor).
 
@@ -42,8 +42,8 @@ Applied 2026-07-21: all 10 monitoring FAQs removed/replaced with "Does Mentiohun
 
 | Slug | Primary kw | Vol | KD | Notes |
 |---|---|---|---|---|
-| `free-tools/guest-post-sites-finder` | guest posting sites | 390 | 19 | + `guest post sites list` (90, KD16). Pairs w/ `guest-posting-for-saas`. |
-| `free-tools/outreach-email-generator` | outreach email template | 170 | 6 | + `cold email generator` (70). Direct product CTA. |
+| `free-tools/guest-post-sites-finder` — DONE 2026-07-21 | guest posting sites | 390 | 19 | + `guest post sites list` (90, KD16). Pairs w/ `guest-posting-for-saas`. |
+| `free-tools/backlink-outreach-email-generator` — DONE 2026-07-21 | backlink outreach email generator | n/a (no DataForSEO vol, SERP-validated 2026-07-21) | n/a | Renamed from `outreach-email-generator`: "outreach email template" SERP = static listicles only (Mailshake/Siege/Titan), no tool ranks → unindexable as tool. "backlink outreach email generator" SERP has 7+ live free-tool competitors (Junia, Embarque, LogicBalls, SEO.software, ClipMove, RalfVanVeen, LaughingProfessor) → proven indexable/tool-shaped query. Matches their input types: guest post / broken link / resource page / unlinked mention, each w/ follow-up + client-side templating (no LLM call). |
 | `free-tools/dofollow-link-checker` | do follow backlink checker (**spaced**) | 320 | 21 | Concatenated variant = KD63, 3x harder. Use spaced phrasing in slug/H1. |
 
 Skip: DA/PA checkers, `backlink generator` (spammy). `google-index-checker` = dead (106 impr, all pos 80+) — remove if never earns a click.

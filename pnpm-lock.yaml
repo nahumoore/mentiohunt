@@ -258,6 +258,9 @@ importers:
       '@openrouter/agent':
         specifier: ^0.5.0
         version: 0.5.0
+      p-limit:
+        specifier: ^6.2.0
+        version: 6.2.0
 
   packages/supabase:
     dependencies:

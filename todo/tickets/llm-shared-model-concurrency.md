@@ -1,5 +1,7 @@
 # Known issue: every scorer shares the same primary/fallback model, self-congestion likely cause of 07:00 UTC cascade
 
+**Status: Completed (2026-07-21)** — shipped a process-wide per-model concurrency cap (default 8, `LLM_MODEL_CONCURRENCY`-tunable) in `packages/openrouter/generate-text.ts`, keyed by model ID so it covers every scorer and every model in the fallback chain without touching call sites. Follow-up: confirm via OpenRouter's per-model dashboard graph on a future 07:00 UTC window that failure rate actually drops.
+
 ## Summary
 
 Follow-up to the 07:00 UTC LLM fallback cascade (2026-07-20/21) — after the `openai/gpt-5.6-luna` 2nd-fallback fix shipped, dug into whether the root cause was actually an OpenRouter/provider outage. Evidence points at self-inflicted concurrency instead, which means the gpt-5.6-luna swap treats a symptom, not the likely root cause.

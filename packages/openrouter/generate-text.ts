@@ -1,4 +1,5 @@
 import { OpenRouter } from "@openrouter/agent"
+import pLimit, { type LimitFunction } from "p-limit"
 
 import { DEFAULT_GENERATE_TEXT_MODEL, type OpenRouterModel } from "./models.ts"
 
@@ -17,6 +18,31 @@ function getOpenRouterApiKey() {
   }
 
   return apiKey
+}
+
+/**
+ * Process-wide cap on in-flight requests per model, shared across every scorer
+ * and call site that goes through this wrapper. Without this, each scorer's own
+ * local pLimit(4-5) is independent — overlapping runs (e.g. daily discovery's
+ * PRODUCT_CONCURRENCY x per-scorer pLimit) stack up and hammer whichever model
+ * is primary all at once, which reads as that model "degrading" when it's really
+ * self-inflicted burst pressure. Keyed by model ID so the cap follows the model
+ * wherever it's used — primary or fallback — not the call site.
+ *
+ * Queueing here is free: callModel() creates its AbortSignal.timeout(...) after
+ * this limiter resolves, so time spent queued doesn't burn the request's own
+ * timeout budget (same reasoning as apps/server/src/helpers/scraper-limits.ts).
+ */
+const MODEL_CONCURRENCY = Number(processEnv?.LLM_MODEL_CONCURRENCY ?? 8)
+const modelLimiters = new Map<string, LimitFunction>()
+
+function limiterFor(modelId: string): LimitFunction {
+  let limit = modelLimiters.get(modelId)
+  if (!limit) {
+    limit = pLimit(MODEL_CONCURRENCY)
+    modelLimiters.set(modelId, limit)
+  }
+  return limit
 }
 
 export type GenerateTextOptions = {
@@ -155,7 +181,9 @@ async function generateStructuredText({
     const modelId = modelsToTry[i]!
     const isFallback = i > 0
     try {
-      const result = await callModel(modelId, messages, responseFormat, thinkingBudget, timeoutMs)
+      const result = await limiterFor(modelId)(() =>
+        callModel(modelId, messages, responseFormat, thinkingBudget, timeoutMs)
+      )
       if (isFallback) {
         console.warn(`[openrouter] fallback model succeeded: ${modelId} (primary: ${modelsToTry[0]})`)
       }

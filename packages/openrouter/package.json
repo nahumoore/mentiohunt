@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "@openrouter/agent": "^0.5.0"
+    "@openrouter/agent": "^0.5.0",
+    "p-limit": "^6.2.0"
   },
   "exports": {
     ".": "./index.ts",

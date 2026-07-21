@@ -107,7 +107,7 @@ export function DashboardHeader() {
 
   return (
     <header>
-      <div className="flex h-14 shrink-0 items-center gap-2 px-6">
+      <div className="flex h-14 shrink-0 items-center gap-2 px-4 sm:px-6">
         <SidebarTrigger className="-ml-1" />
         <Separator
           orientation="vertical"
@@ -143,7 +143,7 @@ export function DashboardHeader() {
       </div>
 
       {pageConfig && PageIcon && (
-        <div className="flex items-start justify-between px-6 pb-6 pt-0.5">
+        <div className="flex flex-col gap-3 px-4 pb-4 pt-0.5 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:pb-6">
           <div>
             <h1 className="flex items-center gap-2.5 font-heading text-[1.75rem] font-bold tracking-tight text-foreground sm:text-[2rem]">
               <PageIcon className="size-8 shrink-0 text-foreground/80" />
@@ -156,10 +156,10 @@ export function DashboardHeader() {
           <div className="flex shrink-0 items-center gap-2">
             {pageConfig.action}
             {pageConfig.settingsHref && (
-              <Button asChild variant="ghost" size="default" className="mt-1 shrink-0">
+              <Button asChild variant="ghost" size="default" className="sm:mt-1 shrink-0">
                 <Link href={pageConfig.settingsHref}>
                   <IconSettings className="size-4" />
-                  Settings
+                  <span className="hidden sm:inline">Settings</span>
                 </Link>
               </Button>
             )}

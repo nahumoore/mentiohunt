@@ -18,6 +18,7 @@ import type { ProspectStatus } from "@/app/dashboard/prospects/_data"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
 import { PoolCapacityBanner } from "./pool-capacity-banner"
+import { OpportunityCard } from "./prospect-card"
 import { OpportunityPipelineRow } from "./prospect-pipeline-row"
 import { StatusOverviewV1 } from "./prospect-status-overview"
 
@@ -110,8 +111,22 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
         onStageChange={(s) => setActiveStage(s as StageValue)}
       />
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      {/* Mobile: stacked cards — the fixed-width table doesn't fit phone
+          screens, so each prospect renders as a card instead of a row. */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {filtered.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground shadow-sm">
+            No prospects in this stage.
+          </div>
+        ) : (
+          filtered.map((prospect) => (
+            <OpportunityCard key={prospect.id} prospect={prospect} />
+          ))
+        )}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-sm md:block">
         <TooltipProvider>
           <table className="w-full table-fixed">
             <colgroup>

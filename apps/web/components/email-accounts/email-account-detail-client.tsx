@@ -196,7 +196,7 @@ export function EmailAccountDetailClient({
         <TabsContent value="general" className="flex flex-col gap-6">
           <SectionCard>
             <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Field label="Display name">
                   <Input
                     value={name}
@@ -279,7 +279,7 @@ export function EmailAccountDetailClient({
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <label className="text-[0.68rem] text-muted-foreground">
                     Username
@@ -322,7 +322,7 @@ export function EmailAccountDetailClient({
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <label className="text-[0.68rem] text-muted-foreground">
                       Username

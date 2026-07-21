@@ -52,13 +52,13 @@ function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
     const cfg = STATUS_CONFIG[status]
     const Icon = cfg.icon
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 overflow-x-auto">
         {PIPELINE_STEPS.map((s, index) => {
           const cfg = STATUS_CONFIG[s]
           const Icon = cfg.icon
           return (
-            <div key={s} className="flex items-center gap-1">
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground/20">
+            <div key={s} className="flex shrink-0 items-center gap-1">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground/20 whitespace-nowrap">
                 <Icon className="size-3" />
                 {cfg.label}
               </span>
@@ -68,7 +68,7 @@ function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
             </div>
           )
         })}
-        <span className="ml-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-muted-foreground bg-muted">
+        <span className="ml-2 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-muted-foreground bg-muted whitespace-nowrap">
           <Icon className="size-3.5" />
           {cfg.label}
         </span>
@@ -79,7 +79,7 @@ function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
   const currentIdx = PIPELINE_STEPS.indexOf(status)
 
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-0.5 overflow-x-auto">
       {PIPELINE_STEPS.map((s, index) => {
         const cfg = STATUS_CONFIG[s]
         const Icon = cfg.icon
@@ -87,10 +87,10 @@ function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
         const isPast = index < currentIdx
 
         return (
-          <div key={s} className="flex items-center gap-0.5">
+          <div key={s} className="flex shrink-0 items-center gap-0.5">
             <span
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary ring-1 ring-inset ring-primary/20"
                   : isPast
@@ -484,21 +484,21 @@ export function ProspectClientPage({
 
   return (
     <div
-      className="-mx-6 -mt-6 -mb-6 flex flex-col"
+      className="-mx-4 -mt-4 -mb-4 flex flex-col sm:-mx-6 sm:-mt-6 sm:-mb-6"
       style={{ height: "calc(100svh - 3.5rem)" }}
     >
       {/* Pipeline status header */}
-      <div className="flex shrink-0 items-center gap-4 border-b bg-background px-8 py-3">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
+      <div className="flex shrink-0 items-center gap-4 border-b bg-background px-4 py-3 sm:px-8">
+        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
           Status
         </span>
         <DetailStatusPipeline status={displayStatus} />
       </div>
 
       {/* Two-panel layout */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
         {/* ─── Left sidebar ─── */}
-        <aside className="w-[320px] shrink-0 overflow-y-auto border-r bg-background px-5 py-6">
+        <aside className="w-full shrink-0 border-b bg-background px-4 py-5 lg:w-[320px] lg:overflow-y-auto lg:border-r lg:border-b-0 lg:px-5 lg:py-6">
           {/* Site identity */}
           <div className="flex items-start gap-2.5 mb-4">
             <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white border border-border">
@@ -739,7 +739,7 @@ export function ProspectClientPage({
         </aside>
 
         {/* ─── Main panel ─── */}
-        <div className="flex-1 overflow-y-auto px-8 py-6">
+        <div className="flex-1 px-4 py-5 sm:px-8 sm:py-6 lg:overflow-y-auto">
 
           {isNegotiating ? (
             /* ── Conversation view ── */

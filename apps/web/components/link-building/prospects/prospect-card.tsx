@@ -4,10 +4,12 @@ import {
   IconArrowRight,
   IconCalendar,
   IconFileText,
+  IconLoader2,
   IconMailCheck,
   IconMailOff,
   IconSwords,
 } from "@tabler/icons-react"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 
@@ -15,6 +17,7 @@ import { getContactAvatarUrl } from "@/consts/contact-avatar"
 import { usePagesStore } from "@/stores/pages-store"
 
 import {
+  STATUS_CONFIG,
   TYPE_CONFIG,
   formatDate,
   type ProspectTier,
@@ -53,8 +56,13 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
   const tierCfg = TYPE_CONFIG[prospect.tier]
   if (!tierCfg) return null
   const TierIcon = tierCfg.icon
+  const statusCfg = STATUS_CONFIG[prospect.status]
+  const StatusIcon = statusCfg.icon
   const avatarUrl = getContactAvatarUrl(prospect.domain ?? prospect.id)
   const hasEmail = !!prospect.contact_email?.trim()
+  const isEnriching =
+    prospect.enrichment_status === "pending" ||
+    prospect.enrichment_status === "enriching"
   const competitorHostname =
     prospect.tier === "competitor_backlink"
       ? extractHostname(prospect.target_url)
@@ -65,18 +73,23 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
       ? (pages.find((page) => page.id === prospect.product_page_id) ?? null)
       : null)
 
+  function navigate() {
+    if (isEnriching) return
+    router.push(`/dashboard/prospects/${prospect.id}`)
+  }
+
   return (
     <div
       role="button"
-      tabIndex={0}
-      onClick={() => router.push(`/dashboard/prospects/${prospect.id}`)}
+      tabIndex={isEnriching ? -1 : 0}
+      onClick={navigate}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ")
-          router.push(`/dashboard/prospects/${prospect.id}`)
+        if (e.key === "Enter" || e.key === " ") navigate()
       }}
       className={cn(
-        "group cursor-pointer rounded-lg border border-l-4 border-border/60 bg-card",
-        "transition-all hover:shadow-sm",
+        "group rounded-lg border border-l-4 border-border/60 bg-card",
+        "transition-all",
+        isEnriching ? "cursor-default" : "cursor-pointer hover:shadow-sm",
         TIER_BORDER[prospect.tier]
       )}
     >
@@ -91,6 +104,15 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
           >
             <TierIcon className="size-3" />
             {tierCfg.label}
+          </span>
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
+              statusCfg.color
+            )}
+          >
+            <StatusIcon className="size-3" />
+            {statusCfg.label}
           </span>
           <div className="ml-auto flex items-center gap-1.5">
             {prospect.site_relevance_score != null && (
@@ -156,27 +178,39 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
       <div className="border-t border-border/50" />
 
       <div className="flex items-center justify-between gap-4 px-5 py-3">
-        <div className="flex min-w-0 items-center gap-3 text-xs text-muted-foreground">
-          {/* contact readiness */}
-          {hasEmail ? (
-            <span className="inline-flex items-center gap-1 text-emerald-600">
-              <IconMailCheck className="size-3.5 shrink-0" />
-              {prospect.contact_name ?? prospect.contact_email}
+        {isEnriching ? (
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <Skeleton className="h-3.5 w-24 rounded" />
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/60">
+              <IconLoader2 className="size-3 shrink-0 animate-spin" />
+              {prospect.enrichment_status === "enriching"
+                ? "Finding contact…"
+                : "Queued…"}
             </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 text-muted-foreground/60">
-              <IconMailOff className="size-3.5 shrink-0" />
-              No contact
+          </div>
+        ) : (
+          <div className="flex min-w-0 items-center gap-3 text-xs text-muted-foreground">
+            {/* contact readiness */}
+            {hasEmail ? (
+              <span className="inline-flex items-center gap-1 text-emerald-600">
+                <IconMailCheck className="size-3.5 shrink-0" />
+                {prospect.contact_name ?? prospect.contact_email}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-muted-foreground/60">
+                <IconMailOff className="size-3.5 shrink-0" />
+                No contact
+              </span>
+            )}
+
+            <span className="text-border">·</span>
+
+            <span className="flex items-center gap-1">
+              <IconCalendar className="size-3 shrink-0" />
+              {formatDate(prospect.discovered_at)}
             </span>
-          )}
-
-          <span className="text-border">·</span>
-
-          <span className="flex items-center gap-1">
-            <IconCalendar className="size-3 shrink-0" />
-            {formatDate(prospect.discovered_at)}
-          </span>
-        </div>
+          </div>
+        )}
 
         <IconArrowRight className="size-6 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" />
       </div>

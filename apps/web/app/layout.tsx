@@ -54,7 +54,7 @@ export default function RootLayout({
       <body className="overflow-x-hidden">
         {/* <ThemeProvider> */}
         {children}
-        <Toaster richColors position="top-center" />
+        <Toaster richColors position="top-right" />
 
         {process.env.NODE_ENV !== "development" && (
           <>

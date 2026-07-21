@@ -3,11 +3,12 @@ import type { Metadata } from "next"
 import {
   IconArrowRight,
   IconArticle,
-  IconBolt,
   IconCalculator,
+  IconCheck,
   IconFolderSearch,
   IconLink,
   IconSitemap,
+  IconSparkles,
   IconSwords,
   IconTextSize,
   IconUserSearch,
@@ -128,25 +129,28 @@ export default function FreeToolsPage() {
     <main className="min-h-screen bg-background text-foreground">
       <Navbar overlay />
 
-      {/* Hero — single column */}
-      <section className="relative overflow-hidden px-4 pb-20 pt-28 sm:px-6 sm:pb-24 sm:pt-36 lg:px-8">
+      {/* Hero */}
+      <section className="relative overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-16 sm:pt-36 lg:px-8">
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-0 h-[36rem] w-[36rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-princeton-orange/5 blur-[120px]" />
         </div>
 
         <div className="mx-auto max-w-2xl text-center">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-blaze-orange/25 bg-blaze-orange/7 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-(--color-princeton-orange)">
-            <IconBolt size={12} stroke={2.8} />
-            Free outreach tools
+            Free tools &middot; no sign-up
           </div>
 
           <h1 className="mt-6 font-heading text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-[3.25rem]">
-            Know which outreach is worth your time.
+            Backlink tools,{" "}
+            <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
+              on the house.
+            </span>
           </h1>
 
           <p className="mt-5 text-base leading-7 text-muted-foreground sm:text-lg">
-            Qualify backlink prospects and get a plain next step — without
-            building a spreadsheet.
+            The tedious parts of link building, done for you. Open any tool,
+            drop in your site, and get a plain next step in seconds — no
+            account required.
           </p>
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
@@ -156,7 +160,7 @@ export default function FreeToolsPage() {
               className="h-11 rounded-full px-7 text-sm font-semibold shadow-sm shadow-primary/20"
             >
               <Link href="#tools">
-                Explore the tools
+                Browse the tools
                 <IconArrowRight size={15} stroke={2.5} />
               </Link>
             </Button>
@@ -166,16 +170,16 @@ export default function FreeToolsPage() {
               size="lg"
               className="h-11 rounded-full px-6 text-sm hover:border-blaze-orange/25 hover:bg-blaze-orange/5"
             >
-              <Link href="/signup">Turn checks into a queue</Link>
+              <Link href="/#how-it-works">How Mentiohunt works</Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Tools list */}
-      <section id="tools" className="px-4 pb-24 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <div className="border-t border-border">
+      {/* Tools grid */}
+      <section id="tools" className="px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {tools.map((tool) => {
               const Icon = tool.icon
 
@@ -183,37 +187,61 @@ export default function FreeToolsPage() {
                 <Link
                   key={tool.name}
                   href={tool.href}
-                  className="group relative flex items-start gap-5 border-b border-border py-6 pl-4 transition-colors outline-none hover:bg-blaze-orange/[0.022] focus-visible:bg-blaze-orange/[0.03]"
+                  className="group flex h-full flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm transition-colors hover:border-blaze-orange/25 hover:bg-blaze-orange/[0.025]"
                 >
-                  <div className="absolute bottom-0 left-0 top-0 w-[2px] origin-top scale-y-0 bg-blaze-orange transition-transform duration-200 group-hover:scale-y-100" />
-
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground/50 transition-colors group-hover:border-blaze-orange/30 group-hover:text-(--color-princeton-orange)">
-                    <Icon size={18} stroke={2} />
+                  <div className="flex items-center justify-between">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blaze-orange/8 text-(--color-princeton-orange)">
+                      <Icon size={22} stroke={2} />
+                    </div>
+                    <div className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[0.6rem] font-semibold text-muted-foreground">
+                      <IconCheck size={11} stroke={3} className="text-green-600" />
+                      No login
+                    </div>
                   </div>
 
-                  <div className="min-w-0 flex-1 pr-4">
-                    <p className="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/45">
-                      {tool.eyebrow}
-                    </p>
-                    <h3 className="mt-1 font-heading text-[1.05rem] font-semibold tracking-tight">
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <h3 className="font-heading text-[1.1rem] font-semibold tracking-tight">
                       {tool.name}
                     </h3>
-                    <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                    <p className="text-sm leading-6 text-muted-foreground">
                       {tool.description}
                     </p>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pt-1.5 text-xs font-medium text-muted-foreground/40 transition-colors group-hover:text-(--color-princeton-orange)">
+                  <div className="mt-auto flex items-center gap-1.5 pt-1 text-sm font-semibold text-(--color-princeton-orange)">
                     Try free
                     <IconArrowRight
-                      size={13}
-                      stroke={2.2}
+                      size={14}
+                      stroke={2.5}
                       className="transition-transform group-hover:translate-x-0.5"
                     />
                   </div>
                 </Link>
               )
             })}
+          </div>
+
+          {/* Upsell tile */}
+          <div className="mt-5 flex flex-col items-start justify-between gap-6 rounded-2xl bg-gradient-to-br from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] p-8 text-white shadow-sm sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.1em] text-white/85">
+                <IconSparkles size={14} stroke={2.5} />
+                Want it hands-off?
+              </span>
+              <h3 className="font-heading text-xl font-semibold tracking-tight sm:text-2xl">
+                Let Mentiohunt run every tool for you, on a schedule.
+              </h3>
+            </div>
+            <Button
+              asChild
+              size="lg"
+              className="h-11 shrink-0 rounded-full bg-white px-6 text-sm font-semibold text-(--color-princeton-orange) shadow-sm hover:bg-white/90"
+            >
+              <Link href="/signup">
+                See how
+                <IconArrowRight size={15} stroke={2.5} />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

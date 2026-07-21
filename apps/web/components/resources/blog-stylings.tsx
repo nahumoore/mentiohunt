@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 import { createHeadingId } from "@/lib/mdx-headings"
 import { cn } from "@/lib/utils"
 import type { MDXComponents } from "mdx/types"
+import Image from "next/image"
 import Link from "next/link"
 import type { ReactElement } from "react"
 import { CodeBlock } from "./code-block"
@@ -196,12 +196,26 @@ export default function BlogStylings(): MDXComponents {
         )}
       />
     ),
-    img: (props) => (
-      <img
-        {...props}
-        className={cn("rounded-md opacity-95", props.className)}
-      />
-    ),
+    img: ({ src, alt, className, ...props }) => {
+      if (!src || typeof src !== "string") return null
+
+      return (
+        <span className="group relative my-8 block overflow-hidden rounded-md border border-border/50 transition-shadow duration-500 ease-out hover:shadow-xl hover:shadow-foreground/10">
+          <Image
+            {...props}
+            src={src}
+            alt={alt ?? ""}
+            width={1600}
+            height={900}
+            sizes="(min-width: 1024px) 740px, 100vw"
+            className={cn(
+              "h-auto w-full scale-100 opacity-95 transition-transform duration-500 ease-out group-hover:scale-[1.03]",
+              className
+            )}
+          />
+        </span>
+      )
+    },
     hr: (props) => (
       <hr
         {...props}

@@ -36,6 +36,10 @@ async def lifespan(app: FastAPI):
             max_pages=_STEALTHY_MAX_PAGES,
             headless=True,
             solve_cloudflare=True,
+            # Block WebRTC so a proxied fetch can't leak the Railway origin IP
+            # around the proxy and undermine the residential appearance. Harmless
+            # for the direct path. Per-request proxy is applied in core.fetch_page.
+            block_webrtc=True,
             timeout=60000,
         ) as stealthy_session:
             core._dynamic_session = dynamic_session

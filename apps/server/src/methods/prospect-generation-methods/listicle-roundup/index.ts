@@ -143,11 +143,18 @@ export async function discoverListicleRoundups(
     }
 
     // 3. Fetch page body so the LLM can judge if it's a real, current listicle.
+    // Tally why each fetch resolved so we can see per-run how many candidates
+    // are lost and to what (client timeout vs server 502/CF block vs other) —
+    // safe to mutate across the concurrent callbacks since Node runs them on a
+    // single thread with no await between the read and write.
     const fetchLimit = pLimit(5)
+    const outcomeCounts: Record<string, number> = {}
     const fetched = await Promise.all(
       candidates.map((c) =>
         fetchLimit(async () => {
-          const content = await fetchPageContent(c.url)
+          const content = await fetchPageContent(c.url, (o) => {
+            outcomeCounts[o] = (outcomeCounts[o] ?? 0) + 1
+          })
           return { candidate: c, content }
         })
       )
@@ -157,7 +164,12 @@ export async function discoverListicleRoundups(
       (f): f is { candidate: (typeof candidates)[number]; content: NonNullable<(typeof f)["content"]> } =>
         f.content !== null
     )
-    log.info("content fetched", { productId: product.id, attempted: fetched.length, fetched: withContent.length })
+    log.info("content fetched", {
+      productId: product.id,
+      attempted: fetched.length,
+      fetched: withContent.length,
+      outcomes: outcomeCounts,
+    })
 
     if (withContent.length === 0) {
       if (runId) await completeProspectRun(runId, 0, totalCostUsd)

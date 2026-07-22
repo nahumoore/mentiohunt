@@ -6,6 +6,7 @@ import logging.handlers
 import os
 import re
 import socket
+import time
 import uuid
 from contextlib import asynccontextmanager, contextmanager
 from html.parser import HTMLParser
@@ -87,6 +88,59 @@ _dynamic_session = None
 _stealthy_session = None
 
 _cf_blocked_domains: set[str] = set()
+
+
+# --- Residential proxy for the stealthy (Cloudflare) tier --------------------
+# The Railway host is a datacenter IP, which Cloudflare's managed-challenge tier
+# scores as a bot regardless of fingerprint quality — so the stealthy tier still
+# loses strict-WAF sites. Routing just that tier through a residential IP flips
+# the IP-reputation signal. Applied ONLY to the stealthy escalation: the light
+# (httpx) and dynamic (Chromium) tiers work fine on the datacenter IP, and
+# proxying them would burn metered residential bandwidth for no reputation gain.
+#
+# Fully opt-in: unset or malformed STEALTHY_PROXY -> None -> today's behavior
+# (no proxy). Provider format is host:port:user:pass (what the proxy vendor
+# hands you); parsed into the {'server','username','password'} dict Scrapling
+# expects. Kept out of source — set via .env (gitignored) / Railway env vars.
+def _parse_proxy(raw: str | None) -> dict[str, str] | None:
+    if not raw:
+        return None
+    parts = raw.split(":")
+    if len(parts) != 4 or not all(parts):
+        log.warning("STEALTHY_PROXY set but malformed (want host:port:user:pass) — ignoring, using direct")
+        return None
+    host, port, username, password = parts
+    return {"server": f"http://{host}:{port}", "username": username, "password": password}
+
+
+_STEALTHY_PROXY = _parse_proxy(os.getenv("STEALTHY_PROXY"))
+
+# Circuit breaker: once the proxy itself proves unreachable, skip it for a
+# cooldown so a dead proxy costs one double-attempt every _PROXY_COOLDOWN_S
+# rather than on every stealthy fetch. monotonic() is immune to wall-clock
+# jumps. Single-worker process (see below) so this plain float needs no lock.
+_PROXY_COOLDOWN_S = float(os.getenv("STEALTHY_PROXY_COOLDOWN_S", "300"))
+_proxy_unhealthy_until = 0.0
+
+# Playwright error signatures that mean the PROXY is broken (not the target
+# site) — these fail fast, so falling back to a direct attempt stays within the
+# caller's abort budget. A TimeoutError is deliberately NOT here: a timeout
+# means the proxy connected but the solve ran long, and retrying direct would
+# just double the wait.
+_PROXY_INFRA_SIGNATURES = (
+    "ERR_PROXY_CONNECTION_FAILED",
+    "ERR_TUNNEL_CONNECTION_FAILED",
+    "ERR_NO_SUPPORTED_PROXIES",
+    "ERR_SOCKS_CONNECTION_FAILED",
+    "ERR_PROXY_AUTH",
+    "proxy connection",
+    "connection refused",
+)
+
+# Sentinel distinct from None: the proxy infra failed, so the caller should
+# retry the same fetch directly. None still means "give up on this URL".
+_INFRA_FAILURE = object()
+
 
 # --- Global concurrency gates --------------------------------------------------
 # Single uvicorn worker (see Dockerfile CMD, no --workers flag) so these
@@ -391,8 +445,75 @@ def _is_ok_status(page) -> bool:
 _TERMINAL_STATUSES = {404, 410}
 
 
+def _proxy_in_cooldown() -> bool:
+    return time.monotonic() < _proxy_unhealthy_until
+
+
+def _trip_proxy_cooldown() -> None:
+    global _proxy_unhealthy_until
+    _proxy_unhealthy_until = time.monotonic() + _PROXY_COOLDOWN_S
+    log.warning(f"stealthy proxy tripped cooldown for {_PROXY_COOLDOWN_S:.0f}s — using direct until it clears")
+
+
+async def _stealthy_attempt(url: str, host: str, proxy: dict[str, str] | None):
+    """One stealthy (Camoufox) fetch. Returns the page on success, None to give
+    up on this URL (CF challenge / non-2xx / timeout / non-proxy error), or the
+    _INFRA_FAILURE sentinel when a proxy was used and the proxy itself is
+    unreachable — signalling the caller to retry directly."""
+    via = "proxy" if proxy else "direct"
+    try:
+        # Only pass proxy= when set, so the no-proxy path stays byte-identical
+        # to the original direct call.
+        page = await (_stealthy_session.fetch(url, proxy=proxy) if proxy else _stealthy_session.fetch(url))
+        stealthy_text = str(page.get_all_text()).strip()
+        stealthy_html = (page.html_content or "")
+        stealthy_status = getattr(page, "status", None)
+        is_cf_challenge = "<title>Just a moment" in stealthy_html
+        log.info(
+            f"stealthy result ({via}): status={stealthy_status} "
+            f"text_len={len(stealthy_text)} html_len={len(stealthy_html)} "
+            f"cf_challenge={is_cf_challenge} url={url}"
+        )
+        log.info(f"stealthy html snippet: {stealthy_html[:400]!r}")
+        # A 407 status means the proxy rejected our auth — infra, not the site.
+        if proxy and stealthy_status == 407:
+            log.warning(f"stealthy ({via}): proxy auth failed (407) {url}")
+            log.info(f"fetch_outcome=proxy_infra_failure host={host} url={url}")
+            return _INFRA_FAILURE
+        if is_cf_challenge:
+            log.warning(f"stealthy ({via}): CF challenge not bypassed {url} — marking domain blocked")
+            _cf_blocked_domains.add(host)
+            log.info(f"fetch_outcome=cf_blocked via={via} host={host} url={url}")
+            return None
+        if not _is_ok_status(page):
+            log.info(f"fetch_outcome=non2xx_stealthy via={via} status={stealthy_status} url={url}")
+            return None
+        log.info(f"fetch_outcome=ok_stealthy_{via} status={stealthy_status} url={url}")
+        return page
+    except Exception as e:
+        msg = str(e)
+        if proxy and any(sig.lower() in msg.lower() for sig in _PROXY_INFRA_SIGNATURES):
+            log.warning(f"stealthy ({via}): proxy infra error {url}: {e}")
+            log.info(f"fetch_outcome=proxy_infra_failure host={host} url={url}")
+            return _INFRA_FAILURE
+        log.error(f"stealthy fetch failed ({via}) {url}: {e}")
+        log.info(f"fetch_outcome=error_stealthy via={via} host={host} url={url}")
+        return None
+
+
 async def fetch_page(url: str):
     await _ssrf_check(url)
+
+    # A host that already failed the stealthy (top) tier with a live Cloudflare
+    # challenge earlier in this process won't behave differently for a sibling
+    # URL — CF challenges are enforced per-host, not per-path. Skip the full
+    # light->dynamic->stealthy escalation instead of re-paying it (and burning
+    # the caller's abort budget) to reach the same dead end.
+    host = _normalize_host(urlparse(url).netloc)
+    if host in _cf_blocked_domains:
+        log.info(f"fetch_outcome=cf_skipped host={host} url={url}")
+        return None
+
     try:
         log.info(f"fetching lightweight {url}")
         page = await asyncio.to_thread(
@@ -402,11 +523,11 @@ async def fetch_page(url: str):
         status = getattr(page, "status", None)
         if not _is_ok_status(page):
             if status in _TERMINAL_STATUSES:
-                log.info(f"light fetch terminal status={status}, giving up {url}")
+                log.info(f"fetch_outcome=terminal_light status={status} url={url}")
                 return None
             log.info(f"light fetch non-2xx status={status}, escalating to dynamic {url}")
         elif len(text) >= 500:
-            log.info(f"fetched ok (light) status={status} {url}")
+            log.info(f"fetch_outcome=ok_light status={status} url={url}")
             return page
         else:
             log.info(f"light fetch thin content ({len(text)} chars), escalating to dynamic {url}")
@@ -420,41 +541,35 @@ async def fetch_page(url: str):
         status = getattr(page, "status", None)
         if not _is_ok_status(page):
             if status in _TERMINAL_STATUSES:
-                log.info(f"dynamic fetch terminal status={status}, giving up {url}")
+                log.info(f"fetch_outcome=terminal_dynamic status={status} url={url}")
                 return None
             log.info(f"dynamic fetch non-2xx status={status}, escalating to stealthy {url}")
         elif len(text) >= 500:
-            log.info(f"fetched ok (dynamic) status={status} {url}")
+            log.info(f"fetch_outcome=ok_dynamic status={status} url={url}")
             return page
         else:
             log.info(f"dynamic fetch thin content ({len(text)} chars), escalating to stealthy {url}")
     except Exception as e:
         log.warning(f"dynamic fetch failed {url}: {e}, escalating to stealthy")
 
-    try:
-        log.info(f"fetching stealthy {url}")
-        page = await _stealthy_session.fetch(url)
-        stealthy_text = str(page.get_all_text()).strip()
-        stealthy_html = (page.html_content or "")
-        stealthy_status = getattr(page, "status", None)
-        is_cf_challenge = "<title>Just a moment" in stealthy_html
-        log.info(
-            f"stealthy result: status={stealthy_status} "
-            f"text_len={len(stealthy_text)} html_len={len(stealthy_html)} "
-            f"cf_challenge={is_cf_challenge} url={url}"
-        )
-        log.info(f"stealthy html snippet: {stealthy_html[:400]!r}")
-        if is_cf_challenge:
-            log.warning(f"stealthy: CF challenge not bypassed {url} — marking domain blocked")
-            _cf_blocked_domains.add(_normalize_host(urlparse(url).netloc))
-            return None
-        if not _is_ok_status(page):
-            log.warning(f"stealthy: non-2xx status={stealthy_status} {url}")
-            return None
-        return page
-    except Exception as e:
-        log.error(f"stealthy fetch failed {url}: {e}")
-        return None
+    # Stealthy (Cloudflare) tier. When a residential proxy is configured and
+    # currently healthy, try it first — it's the only tier where the datacenter
+    # IP actually loses. On a proxy INFRA failure (proxy unreachable/auth, which
+    # fails fast) fall back to a direct attempt so a dead proxy never takes down
+    # all stealthy fetches, and trip a cooldown so the next fetches skip straight
+    # to direct. A timeout or genuine CF block is NOT an infra failure: the proxy
+    # worked and the site is just hard, so we don't waste a second full attempt.
+    log.info(f"fetching stealthy {url}")
+    use_proxy = _STEALTHY_PROXY is not None and not _proxy_in_cooldown()
+    if use_proxy:
+        result = await _stealthy_attempt(url, host, proxy=_STEALTHY_PROXY)
+        if result is _INFRA_FAILURE:
+            _trip_proxy_cooldown()
+            result = await _stealthy_attempt(url, host, proxy=None)
+    else:
+        result = await _stealthy_attempt(url, host, proxy=None)
+
+    return None if result is _INFRA_FAILURE else result
 
 
 def find_contact_form_url(page, base_url: str) -> str | None:

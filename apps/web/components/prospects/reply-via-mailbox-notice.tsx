@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { IconArrowUpRight, IconLock, IconMailForward } from "@tabler/icons-react"
+import { IconMailForward, IconPlugConnected } from "@tabler/icons-react"
+import { Button } from "@workspace/ui/components/button"
 
 export function ReplyViaMailboxNotice({
   contactEmail,
@@ -10,21 +11,21 @@ export function ReplyViaMailboxNotice({
 }) {
   if (isPublicMailbox) {
     return (
-      <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
-        <div className="flex items-start gap-2.5">
-          <IconLock className="mt-0.5 size-3.5 shrink-0 text-primary" />
-          <div className="min-w-0">
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              This outreach went out from Mentiohunt&apos;s shared mailbox, so you don&apos;t have an inbox to
-              reply from directly. Connect your own mailbox to take over this conversation personally.
+      <div className="rounded-xl border border-primary/20 bg-primary/5 px-5 py-4">
+        <div className="flex items-start gap-3">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+            <IconPlugConnected className="size-4 text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground">Connect your mailbox to keep talking</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              We sent this outreach from Mentiohunt&apos;s shared mailbox — a disposable inbox we use only to reach
+              out and track opens, never meant for real conversations. Connect your own inbox and take it from
+              here, person to person.
             </p>
-            <Link
-              href="/dashboard/email-accounts"
-              className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-            >
-              Connect your mailbox
-              <IconArrowUpRight className="size-3" />
-            </Link>
+            <Button asChild size="sm" className="mt-3">
+              <Link href="/dashboard/email-accounts">Connect your mailbox</Link>
+            </Button>
           </div>
         </div>
       </div>

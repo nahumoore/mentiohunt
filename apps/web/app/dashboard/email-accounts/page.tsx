@@ -59,23 +59,24 @@ export default async function EmailAccountsPage() {
   const isPaid = profile?.tier === "pro" || profile?.tier === "agency"
   const userPlan: UserPlan = isPaid ? "active" : "free_trial"
 
+  // Every user can connect their own mailbox now, paid or not — free-trial
+  // users need one to reply once a prospect responds, even though new
+  // outreach still routes through the shared pool until they upgrade.
   let accounts: EmailAccount[] = []
 
-  if (isPaid) {
-    const { data: rows, error } = await supabaseAdmin
-      .from("email_accounts")
-      .select(
-        "id, email, name, provider, status, daily_send_cap, created_at, error_message, smtp_host, smtp_port, imap_host, imap_port"
-      )
-      .eq("user_id", user.id)
-      .eq("is_public", false)
-      .order("created_at", { ascending: false })
+  const { data: rows, error } = await supabaseAdmin
+    .from("email_accounts")
+    .select(
+      "id, email, name, provider, status, daily_send_cap, created_at, error_message, smtp_host, smtp_port, imap_host, imap_port"
+    )
+    .eq("user_id", user.id)
+    .eq("is_public", false)
+    .order("created_at", { ascending: false })
 
-    if (error) {
-      console.error("Failed to fetch email accounts:", error)
-    } else {
-      accounts = (rows ?? []).map(mapRow)
-    }
+  if (error) {
+    console.error("Failed to fetch email accounts:", error)
+  } else {
+    accounts = (rows ?? []).map(mapRow)
   }
 
   return <EmailAccountsClient userPlan={userPlan} accounts={accounts} />

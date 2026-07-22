@@ -196,14 +196,14 @@ async function classifyWithLlm(input: {
       const systemInstructions =
         "Classify a matched inbound email reply to a backlink outreach email. Return only the requested JSON. Distinguish an explicit unsubscribe from a negative reply that only declines this pitch. Be conservative and use needs_review when uncertain."
       log.info("llm request", {
-        model: OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5,
-        fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.OPENAI_GPT_5_6_LUNA],
         systemInstructions,
         input: llmInput,
       })
       const { text } = await generateText({
-        model: OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5,
-        fallbackModels: [OPENROUTER_MODELS.GOOGLE_GEMINI_2_5_FLASH],
+        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.OPENAI_GPT_5_6_LUNA],
         timeoutMs: 15_000,
         systemInstructions,
         input: llmInput,

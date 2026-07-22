@@ -53,7 +53,7 @@ export default async function ProspectPage({
   const { data: prospect, error } = await supabase
     .from("backlink_prospects")
     .select(
-      "id, product_id, product_page_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, email_subject, email_body, created_at, found_url, contact_social_links, raw_metadata, domain_rating, site_relevance_score, outreach_stopped_at, outreach_stopped_reason"
+      "id, product_id, product_page_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, email_subject, email_body, created_at, found_url, contact_social_links, raw_metadata, domain_rating, site_relevance_score, outreach_stopped_at, outreach_stopped_reason, email_account_id"
     )
     .eq("id", slug)
     .maybeSingle()
@@ -66,7 +66,7 @@ export default async function ProspectPage({
     notFound()
   }
 
-  const [productResult, sequencesResult, profileResult] = await Promise.all([
+  const [productResult, sequencesResult, profileResult, emailAccountResult] = await Promise.all([
     supabase
       .from("products")
       .select("id, product_name, website_url")
@@ -83,7 +83,16 @@ export default async function ProspectPage({
       .select("tier")
       .eq("id", user.id)
       .maybeSingle(),
+    prospect.email_account_id
+      ? supabaseAdmin
+          .from("email_accounts")
+          .select("is_public")
+          .eq("id", prospect.email_account_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
   ])
+
+  const isPublicMailbox = emailAccountResult.data?.is_public ?? true
 
   if (!productResult.data) {
     notFound()
@@ -136,6 +145,7 @@ export default async function ProspectPage({
       messages={messages}
       isFreeUser={isFreeUser}
       hasEmailAccount={hasEmailAccount}
+      isPublicMailbox={isPublicMailbox}
     />
   )
 }

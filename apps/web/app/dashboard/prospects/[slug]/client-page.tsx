@@ -44,6 +44,8 @@ import { useProspectStore } from "@/stores/prospect-store"
 import { usePagesStore } from "@/stores/pages-store"
 import { STATUS_CONFIG, formatDate, type ProspectStatus } from "@/app/dashboard/prospects/_data"
 import { EmailSequenceNav } from "@/components/prospects/email-sequence-nav"
+import { SequenceStoppedNotice } from "@/components/prospects/sequence-stopped-notice"
+import { ReplyViaMailboxNotice } from "@/components/prospects/reply-via-mailbox-notice"
 import { ManualCompletionForm } from "@/components/link-building/prospects/manual-completion-form"
 
 const PIPELINE_STEPS: ProspectStatus[] = ["new", "contacted", "negotiating", "won"]
@@ -216,10 +218,12 @@ function ConversationView({
   prospect,
   sequences,
   messages,
+  isPublicMailbox,
 }: {
   prospect: ProspectDetail
   sequences: ProspectSequence[]
   messages: ProspectMessage[]
+  isPublicMailbox: boolean
 }) {
   const subject = prospect.email_subject ?? "Collaboration opportunity"
   const sentSteps = sequences.filter((s) => s.status === "sent")
@@ -265,10 +269,11 @@ function ConversationView({
       </div>
 
       {prospect.outreach_stopped_reason && (
-        <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
-          Sequence stopped: <span className="font-semibold text-foreground">{prospect.outreach_stopped_reason.replace(/_/g, " ")}</span>
-          {prospect.outreach_stopped_at ? ` · ${formatRelative(new Date(prospect.outreach_stopped_at))}` : null}
-        </div>
+        <SequenceStoppedNotice
+          className="mb-4"
+          reason={prospect.outreach_stopped_reason}
+          stoppedAt={prospect.outreach_stopped_at}
+        />
       )}
 
       {/* Thread messages */}
@@ -358,9 +363,7 @@ function ConversationView({
         <div ref={bottomRef} />
       </div>
 
-      <p className="rounded-xl border border-border bg-muted/20 px-4 py-3 text-xs text-muted-foreground">
-        Reply from the connected mailbox to preserve the email thread.
-      </p>
+      <ReplyViaMailboxNotice contactEmail={prospect.contact_email} isPublicMailbox={isPublicMailbox} />
     </div>
   )
 }
@@ -371,6 +374,7 @@ export function ProspectClientPage({
   messages,
   isFreeUser,
   hasEmailAccount,
+  isPublicMailbox,
 }: {
   prospect: ProspectDetail
   product: ProspectProduct
@@ -378,6 +382,7 @@ export function ProspectClientPage({
   messages: ProspectMessage[]
   isFreeUser: boolean
   hasEmailAccount: boolean
+  isPublicMailbox: boolean
 }) {
   const router = useRouter()
   const upsertProspectDetail = useProspectStore((s) => s.upsertProspectDetail)
@@ -744,7 +749,7 @@ export function ProspectClientPage({
 
           {isNegotiating ? (
             /* ── Conversation view ── */
-            <ConversationView prospect={current} sequences={sequences} messages={messages} />
+            <ConversationView prospect={current} sequences={sequences} messages={messages} isPublicMailbox={isPublicMailbox} />
           ) : current.status === "email_not_found" && emailSequence.length === 0 ? (
             /* ── Manual completion form ── */
             <ManualCompletionForm
@@ -778,10 +783,11 @@ export function ProspectClientPage({
             /* ── Email sequence / draft view ── */
             <>
               {current.outreach_stopped_reason && (
-                <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
-                  Outreach stopped: <span className="font-semibold text-foreground">{current.outreach_stopped_reason.replace(/_/g, " ")}</span>
-                  {current.outreach_stopped_at ? ` · ${formatRelative(new Date(current.outreach_stopped_at))}` : null}
-                </div>
+                <SequenceStoppedNotice
+                  className="mb-5"
+                  reason={current.outreach_stopped_reason}
+                  stoppedAt={current.outreach_stopped_at}
+                />
               )}
 
               <EmailSequenceNav

@@ -1,5 +1,6 @@
 import { normalizeUrl } from "@/consts/onboarding"
 import { generateText } from "@workspace/openrouter/generate-text"
+import { extractHostname, validateDomains } from "@/lib/onboarding/validate-domain"
 import { supabaseServer } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { z } from "zod"
@@ -38,6 +39,57 @@ function extractJsonObject(input: string): string {
   return input.slice(first, last + 1)
 }
 
+/**
+ * One retry only — onboarding is a synchronous wait for the user, not a
+ * background job. Domains still invalid after this are dropped; the user
+ * fills gaps in manually rather than the whole request failing.
+ */
+async function retryInvalidDomains({
+  input,
+  valid,
+  invalid,
+  websiteUrl,
+}: {
+  input: string
+  valid: string[]
+  invalid: string[]
+  websiteUrl: string
+}): Promise<string[]> {
+  const retryInput = [
+    input,
+    "",
+    "You previously suggested these root domains:",
+    [...valid, ...invalid].map(extractHostname).join(", "),
+    "",
+    `These do not resolve to a real domain and must be replaced: ${invalid.map(extractHostname).join(", ")}.`,
+    `Keep these unchanged, they're valid: ${valid.map(extractHostname).join(", ") || "(none)"}.`,
+    "Replace only the invalid ones with different real competitor domains. Return the same JSON shape with 8 to 10 total unique root domains.",
+  ].join("\n")
+
+  try {
+    const retryOutput = await generateText({ input: retryInput, systemInstructions })
+    const retryResult = competitorsSchema.safeParse(JSON.parse(extractJsonObject(retryOutput.text)))
+
+    if (!retryResult.success) {
+      return valid
+    }
+
+    const retryCompetitors = Array.from(
+      new Set(
+        retryResult.data.competitors
+          .map((c) => normalizeUrl(c))
+          .filter((c) => c !== websiteUrl)
+      )
+    ).slice(0, 10)
+
+    const retryValidation = await validateDomains(retryCompetitors)
+
+    return Array.from(new Set([...valid, ...retryValidation.valid])).slice(0, 10)
+  } catch {
+    return valid
+  }
+}
+
 export async function POST(request: Request) {
   const supabase = await supabaseServer()
   const { data: claimsData, error: authError } = await supabase.auth.getClaims()
@@ -70,7 +122,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to generate competitors." }, { status: 502 })
     }
 
-    const competitors = Array.from(
+    const firstPass = Array.from(
       new Set(
         result.data.competitors
           .map((c) => normalizeUrl(c))
@@ -78,8 +130,21 @@ export async function POST(request: Request) {
       )
     ).slice(0, 10)
 
-    if (competitors.length < 8) {
-      return NextResponse.json({ error: "Failed to generate enough competitors." }, { status: 502 })
+    const { valid, invalid } = await validateDomains(firstPass)
+
+    let competitors = valid
+
+    if (invalid.length > 0) {
+      competitors = await retryInvalidDomains({
+        input,
+        valid,
+        invalid,
+        websiteUrl: parsed.data.websiteUrl,
+      })
+    }
+
+    if (competitors.length === 0) {
+      return NextResponse.json({ error: "Failed to generate competitors." }, { status: 502 })
     }
 
     return NextResponse.json({ competitors })

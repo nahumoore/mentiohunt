@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import type { LimitFunction } from "p-limit"
 import { createLogger } from "../../../helpers/logger.js"
+import { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
 import type { ResolvedSender } from "../shared/resolve-sender-name.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
@@ -152,6 +153,15 @@ export async function processCompetitor(
       return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
     }
 
+    // Real domain rating — only when the user has set a DR floor. item.domainRating
+    // up to this point is DataForSEO's own rank (used for the DataForSEO-side fetch
+    // filter and local dedup/cap), not Ahrefs DR — don't persist it as domain_rating.
+    let drByDomain = new Map<string, number | null>()
+    if (settings.dr_min > 0) {
+      const domains = [...new Set(toProcess.map((item) => extractDomainFromUrl(item.urlFrom)))]
+      drByDomain = await enrichDomainRatings(domains)
+    }
+
     // Insert bare rows immediately so the UI shows discovered sites right
     // away; enrichment (contact + outreach email) fills each row in after.
     const bareRows = toProcess.map((item) => {
@@ -160,7 +170,7 @@ export async function processCompetitor(
       return {
         product_id: product.id,
         domain,
-        domain_rating: item.domainRating,
+        domain_rating: settings.dr_min > 0 ? (drByDomain.get(domain) ?? null) : null,
         found_url: item.urlFrom,
         target_url: item.urlTo,
         tier: "competitor_backlink" as const,

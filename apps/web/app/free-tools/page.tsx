@@ -8,6 +8,7 @@ import {
   IconFolderSearch,
   IconLink,
   IconMail,
+  IconShieldCheck,
   IconSitemap,
   IconSparkles,
   IconSwords,
@@ -124,6 +125,14 @@ const tools = [
       "Enter your details and a target site to generate four ready-to-send outreach emails — guest post, broken link, resource page, and unlinked mention — each with a follow-up.",
     icon: IconMail,
     href: `/free-tools/${FREE_TOOL_NAMES.backlinkOutreachEmailGenerator}`,
+  },
+  {
+    name: "Dofollow Link Checker",
+    eyebrow: "Page to link breakdown",
+    description:
+      "Paste any page URL and see every outbound link on it — dofollow, nofollow, ugc, or sponsored — split by internal and external.",
+    icon: IconShieldCheck,
+    href: `/free-tools/${FREE_TOOL_NAMES.dofollowLinkChecker}`,
   },
 ]
 

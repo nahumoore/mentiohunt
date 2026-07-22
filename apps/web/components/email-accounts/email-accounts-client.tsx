@@ -513,18 +513,23 @@ const UNLOCK_BULLETS = [
   },
 ]
 
-function LockedFeatureState() {
+function LockedFeatureState({ plan }: { plan: Exclude<UserPlan, "active"> }) {
+  const isTrial = plan === "free_trial"
+
   return (
     <div className="max-w-3xl">
-      <div className="mb-5 flex items-center gap-3">
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-red-500/10 px-2.5 py-1 text-[0.65rem] font-semibold text-red-600 ring-1 ring-red-500/20">
-          <IconX className="size-3" />
-          Subscription inactive
-        </span>
-        <p className="text-sm text-muted-foreground">
-          Your subscription is inactive. Outreach has paused.
-        </p>
-      </div>
+      {/* Plan badge + context */}
+      {!isTrial && (
+        <div className="mb-5 flex items-center gap-3">
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-red-500/10 px-2.5 py-1 text-[0.65rem] font-semibold text-red-600 ring-1 ring-red-500/20">
+            <IconX className="size-3" />
+            Subscription inactive
+          </span>
+          <p className="text-sm text-muted-foreground">
+            Your subscription is inactive. Outreach has paused.
+          </p>
+        </div>
+      )}
 
       {/* Current state card */}
       <div className="mb-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
@@ -541,13 +546,17 @@ function LockedFeatureState() {
               mentiohuntapp.com · not your brand
             </p>
           </div>
+          <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-[0.65rem] font-semibold text-amber-700 ring-1 ring-amber-500/20">
+            <IconShieldLock className="size-3" />
+            Free trial
+          </span>
         </div>
       </div>
 
       {/* Unlock bullets — 3 columns to stay compact */}
       <div className="mb-5 rounded-2xl border border-primary/15 bg-primary/4 px-5 py-5">
         <p className="mb-4 text-[0.65rem] font-bold uppercase tracking-wider text-primary/70">
-          With an active plan
+          With a paid plan
         </p>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
           {UNLOCK_BULLETS.map((bullet) => (
@@ -568,38 +577,12 @@ function LockedFeatureState() {
           href="/dashboard/billing"
           className="inline-flex h-9 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-crimson-carrot"
         >
-          Reactivate plan
+          {isTrial ? "Upgrade now" : "Reactivate plan"}
         </Link>
         <p className="text-xs text-muted-foreground">
           Unlimited inboxes · custom domains · reply tracking
         </p>
       </div>
-    </div>
-  )
-}
-
-function TrialContextBanner() {
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-primary/15 bg-primary/4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-start gap-3">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-          <IconShieldLock className="size-4 text-primary" />
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-foreground">You&apos;re on a free trial</p>
-          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-            New outreach still sends from Mentiohunt&apos;s shared pool. Connect a mailbox below so you have
-            somewhere to reply from the moment a prospect responds — upgrading later moves all outreach,
-            sends and replies, onto your own domain from day one.
-          </p>
-        </div>
-      </div>
-      <Link
-        href="/dashboard/billing"
-        className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-crimson-carrot"
-      >
-        Upgrade
-      </Link>
     </div>
   )
 }
@@ -611,18 +594,16 @@ export function EmailAccountsClient({
   userPlan?: UserPlan
   accounts: EmailAccount[]
 }) {
-  if (userPlan === "canceled") {
-    return <LockedFeatureState />
+  if (userPlan === "free_trial" || userPlan === "canceled") {
+    return <LockedFeatureState plan={userPlan} />
   }
 
-  const isTrial = userPlan === "free_trial"
   const activeCount = accounts.filter((a) => a.status === "active").length
   const totalCap = accounts.reduce((sum, a) => sum + a.dailySendCap, 0)
 
   if (accounts.length === 0) {
     return (
       <div className="flex flex-col gap-6">
-        {isTrial && <TrialContextBanner />}
         <div className="flex flex-col items-center gap-3 rounded-4xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
           <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
             <IconMailOff className="size-5 text-primary" />
@@ -631,9 +612,9 @@ export function EmailAccountsClient({
             No email accounts connected
           </h2>
           <p className="max-w-sm text-sm text-muted-foreground">
-            {isTrial
-              ? "Connect a mailbox so you have somewhere to reply from once a prospect responds. New outreach keeps sending from Mentiohunt's shared pool until you upgrade."
-              : "Connect your sending mailbox to let Mentiohunt run outreach on autopilot. Replies get classified automatically — you only see what needs a decision."}
+            Connect your sending mailbox to let Mentiohunt run outreach on
+            autopilot. Replies get classified automatically — you only see what
+            needs a decision.
           </p>
           <ConnectAccountDialog />
         </div>
@@ -643,22 +624,11 @@ export function EmailAccountsClient({
 
   return (
     <div className="flex flex-col gap-6">
-      {isTrial && <TrialContextBanner />}
-
       <div className="flex items-center gap-3">
         <p className="text-xs text-muted-foreground">
-          {isTrial ? (
-            <>
-              <span className="font-medium text-foreground tabular-nums">{activeCount}</span> connected for
-              replies · new outreach still sends from the shared pool
-            </>
-          ) : (
-            <>
-              <span className="font-medium text-foreground tabular-nums">{activeCount}</span> active ·{" "}
-              <span className="font-medium text-foreground tabular-nums">{totalCap}</span> emails/day
-              capacity
-            </>
-          )}
+          <span className="font-medium text-foreground tabular-nums">{activeCount}</span> active ·{" "}
+          <span className="font-medium text-foreground tabular-nums">{totalCap}</span> emails/day
+          capacity
         </p>
         <div className="ml-auto">
           <ConnectAccountDialog />

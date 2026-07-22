@@ -47,7 +47,7 @@ const features: Row[] = [
     mentiohunt: "yes",
   },
   {
-    label: "Managed end-to-end execution",
+    label: "Automated outreach through first reply",
     agencies: "yes",
     outreachSoftware: "no",
     manual: "no",
@@ -135,8 +135,8 @@ export function Comparisons() {
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
             Agencies are opaque. Outreach software still makes you run
-            campaigns. Mentiohunt handles execution while you stay in control of
-            every placement.
+            campaigns. Mentiohunt handles outreach through the first reply
+            while you stay in control of every placement.
           </p>
         </div>
 

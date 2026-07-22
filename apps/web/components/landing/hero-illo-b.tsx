@@ -2,6 +2,7 @@
 
 import {
   IconCheck,
+  IconHandStop,
   IconId,
   IconLoader2,
   IconMailFast,
@@ -9,7 +10,6 @@ import {
   IconSparkles,
   IconUserCheck,
   IconWorldSearch,
-  IconX,
 } from "@tabler/icons-react"
 import { motion, useInView } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -50,8 +50,9 @@ const messageIn = {
  * Illustration B — the agent scraping a prospect, then a live outreach thread.
  * Phase 1 runs a checklist (scrape → extract → match contact → validate email) with
  * spinner-to-check states, full width, no sidebar yet. Once done the card reflows
- * into a sidebar (now-verified contact) + the email thread on the right, where Marcus
- * asks for something in return and the founder approves or rejects the agent's reply.
+ * into a sidebar (now-verified contact) + the email thread on the right: the agent
+ * sends the pitch, Marcus replies, and automation hands off there — the founder
+ * takes the thread over from their own inbox rather than the agent drafting a reply.
  * Plays once, triggered on scroll into view.
  */
 export function HeroIlloB() {
@@ -62,7 +63,7 @@ export function HeroIlloB() {
   const [revealedCount, setRevealedCount] = useState(0)
   const [doneCount, setDoneCount] = useState(0)
   const [messageCount, setMessageCount] = useState(0)
-  const [showApproval, setShowApproval] = useState(false)
+  const [showHandoff, setShowHandoff] = useState(false)
 
   useEffect(() => {
     if (!inView) return
@@ -85,7 +86,7 @@ export function HeroIlloB() {
     if (phase !== "conversation") return
 
     const timers: ReturnType<typeof setTimeout>[] = []
-    const messageDelays = [500, 2000, 3500]
+    const messageDelays = [500, 2000]
 
     messageDelays.forEach((delay, i) => {
       timers.push(setTimeout(() => setMessageCount(i + 1), delay))
@@ -93,7 +94,7 @@ export function HeroIlloB() {
 
     timers.push(
       setTimeout(
-        () => setShowApproval(true),
+        () => setShowHandoff(true),
         messageDelays[messageDelays.length - 1]! + 1200
       )
     )
@@ -288,7 +289,7 @@ export function HeroIlloB() {
                 </span>
               </motion.div>
 
-              {/* Marcus → us: asks for something in return */}
+              {/* Marcus → us: a genuine reply */}
               <motion.div
                 className="flex flex-col items-start gap-1"
                 variants={messageIn}
@@ -297,62 +298,31 @@ export function HeroIlloB() {
                 transition={{ duration: 0.5, ease }}
               >
                 <div className="max-w-[85%] rounded-2xl rounded-bl-md border border-border/60 bg-background px-3.5 py-2.5 text-sm leading-5 text-foreground shadow-sm">
-                  Great read! Happy to add it. Could you link back to our
-                  integrations page from the article in return?
+                  Great read! Happy to take a look — send it over?
                 </div>
                 <span className="pl-1 text-[0.65rem] font-medium text-muted-foreground">
                   Marcus · just now
                 </span>
               </motion.div>
 
-              {/* Agent's drafted reply — pending approval */}
+              {/* Handoff — automation pauses, founder takes the thread from here */}
               <motion.div
-                className="flex flex-col items-end gap-1"
-                variants={messageIn}
-                initial="initial"
-                animate={messageCount >= 3 ? "animate" : "initial"}
-                transition={{ duration: 0.5, ease }}
-              >
-                <div className="max-w-[85%] rounded-2xl rounded-br-md border border-dashed border-(--color-blaze-orange)/50 bg-(--color-blaze-orange)/5 px-3.5 py-2.5 text-sm leading-5 text-foreground">
-                  Happy to — I&rsquo;ll add a contextual link to your
-                  integrations page. Fair trade. Sending the draft over now.
-                </div>
-                <span className="flex items-center gap-1 pr-1 text-[0.65rem] font-bold text-(--color-blaze-orange)">
-                  <IconSparkles className="h-3 w-3" />
-                  Agent drafted a reply · needs your OK
-                </span>
-              </motion.div>
-
-              {/* Approval bar — the one moment you step in */}
-              <motion.div
-                className="mt-1 rounded-2xl border-t border-border/50 bg-muted/40 px-4 py-4"
+                className="mt-1 flex items-start gap-3 rounded-2xl border-t border-border/50 bg-muted/40 px-4 py-4"
                 initial={{ opacity: 0, y: 8 }}
-                animate={showApproval ? { opacity: 1, y: 0 } : {}}
+                animate={showHandoff ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, ease }}
               >
-                <p className="text-xs font-medium text-muted-foreground">
-                  Marcus wants a reciprocal link. Approve the agent&rsquo;s
-                  reply?
-                </p>
-                <div className="mt-2.5 flex gap-2.5">
-                  <motion.button
-                    type="button"
-                    className="flex items-center justify-center gap-1.5 rounded-full border border-border/60 bg-background px-5 py-2.5 text-sm font-semibold text-muted-foreground"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <IconX className="h-4 w-4" />
-                    Reject
-                  </motion.button>
-                  <motion.button
-                    type="button"
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[var(--color-blaze-orange-2)] to-[var(--color-amber-flame)] py-2.5 text-sm font-bold text-white shadow-md shadow-primary/20"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <IconCheck className="h-4 w-4" />
-                    Approve &amp; send
-                  </motion.button>
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-(--color-blaze-orange)/10 text-(--color-blaze-orange)">
+                  <IconHandStop className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-bold text-foreground">
+                    Marcus replied
+                  </p>
+                  <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+                    Automation paused here — reply from your own inbox to keep
+                    it a real conversation.
+                  </p>
                 </div>
               </motion.div>
             </motion.div>

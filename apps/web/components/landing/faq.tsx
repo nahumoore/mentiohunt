@@ -7,12 +7,17 @@ const faqs: FaqItem[] = [
   {
     question: "What is Mentiohunt?",
     answer:
-      "Mentiohunt is a managed backlink placement autopilot for founder-led B2B SaaS teams. It handles prospect discovery, outreach, and placement coordination end-to-end. Your only job is to approve or reject opportunities before anything goes live.",
+      "Mentiohunt is a managed backlink placement autopilot for founder-led B2B SaaS teams. It runs prospect discovery and outreach automatically, up to a prospect's first reply — then you take the conversation over yourself. Your job is to approve or reject opportunities before anything goes live, and to reply once someone responds.",
   },
   {
     question: "How does it work?",
     answer:
       "You provide your site or article URLs. Mentiohunt runs daily discovery to find websites where your content is a relevant fit, surfaces contact details, and runs outreach on your behalf. Every opportunity includes a fit rationale, placement angle, and expected SEO value before you approve it.",
+  },
+  {
+    question: "Who replies once a prospect responds?",
+    answer:
+      "You do. Mentiohunt automates discovery, sending, and follow-ups right up to the first reply. The moment a prospect responds, we pause the automated sequence and hand the thread to you — you reply from your own connected mailbox so it stays a real, person-to-person conversation instead of coming from a shared outreach inbox.",
   },
   {
     question: "How does the approval workflow work?",
@@ -42,7 +47,7 @@ const faqs: FaqItem[] = [
   {
     question: "How long until my first placed backlink?",
     answer:
-      "Most customers see their first placed backlink within 14–21 days of setup. Discovery starts immediately after you add your URLs, but placement timelines depend on site owner response rates. We follow up on your behalf so you don't have to track any threads.",
+      "Most customers see their first placed backlink within 14–21 days of setup. Discovery starts immediately after you add your URLs, but placement timelines depend on site owner response rates. We handle follow-ups automatically until a site owner replies — then it's your inbox from there.",
   },
   {
     question: "What's your outreach reply rate?",
@@ -67,12 +72,12 @@ const faqs: FaqItem[] = [
   {
     question: "What happens when my 7-day free trial ends?",
     answer:
-      "Discovery and outreach pause and dashboard access locks until you upgrade — no card is taken at signup, so you're never charged automatically. Nothing is deleted: your opportunity queue, contacts, drafts, and conversations are all saved and waiting when you come back.",
+      "Discovery and outreach pause and dashboard access locks until you upgrade — no card is taken at signup, so you're never charged automatically. Nothing is deleted: your opportunity queue, contacts, drafts, and any replies received are all saved and waiting when you come back.",
   },
   {
-    question: "If a prospect replies after my trial ends, do I lose the conversation?",
+    question: "If a prospect replies after my trial ends, do I lose the reply?",
     answer:
-      "No. Replies keep being collected and stored even after your trial expires, and they're waiting in your dashboard when you upgrade. If you're mid-conversation and need more time, you can also get 7 extra trial days by sharing Mentiohunt in a public post on X or LinkedIn.",
+      "No. Replies keep being collected and stored even after your trial expires, and they're waiting in your dashboard when you upgrade. If a prospect has already replied and you need more time to connect a mailbox and respond, you can also get 7 extra trial days by sharing Mentiohunt in a public post on X or LinkedIn.",
   },
 ]
 

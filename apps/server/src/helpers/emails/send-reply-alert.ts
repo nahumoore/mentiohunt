@@ -30,11 +30,11 @@ export async function sendReplyAlertEmail({
     body: `
       <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 18px; line-height:1.7;">${escapeHtml(greeting)}</p>
       <h1 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:28px; color:#241611; margin:0 0 16px; line-height:1.2; letter-spacing:-0.5px;">You got a reply</h1>
-      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 26px; line-height:1.7;"><strong style="color:#241611;">${from}</strong> replied to outreach sent for <strong style="color:#241611;">${escapeHtml(productName)}</strong>. Outreach for this prospect has been paused so you can take it from here.</p>
+      <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:16px; color:#4F423A; margin:0 0 26px; line-height:1.7;"><strong style="color:#241611;">${from}</strong> replied to outreach sent for <strong style="color:#241611;">${escapeHtml(productName)}</strong>. Outreach for this prospect has been paused — reply directly from your own inbox to keep it there. Our sending mailbox isn't monitored for conversations.</p>
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="border-radius:10px; background-color:#FF5400;">
-            <a href="${APP_URL}/dashboard" style="display:inline-block; padding:13px 18px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:14px; font-weight:700; color:#FFFFFF; text-decoration:none; border-radius:10px;">View the conversation</a>
+            <a href="${APP_URL}/dashboard" style="display:inline-block; padding:13px 18px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:14px; font-weight:700; color:#FFFFFF; text-decoration:none; border-radius:10px;">View reply details</a>
           </td>
         </tr>
       </table>

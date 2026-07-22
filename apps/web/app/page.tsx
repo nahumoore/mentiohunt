@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   description:
     "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
   openGraph: {
-    title: "Mentiohunt – Backlink Placement Autopilot for Founders",
+    title: "Mentiohunt – Backlink Outreach Autopilot for Founders",
     description:
       "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
     url: "https://mentiohunt.com",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mentiohunt – Backlink Placement Autopilot for Founders",
+    title: "Mentiohunt – Backlink Outreach Autopilot for Founders",
     description:
       "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
   },

@@ -9,7 +9,7 @@ import { Toaster } from "sonner"
 export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
   title: {
-    default: "Mentiohunt – Backlink Placement Autopilot for Founders",
+    default: "Mentiohunt – Backlink Outreach Autopilot for Founders",
     template: "%s — Mentiohunt",
   },
   description:

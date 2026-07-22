@@ -429,7 +429,7 @@ const BENEFITS: Benefit[] = [
     eyebrow: "No tool stack needed",
     title: "Replaces the whole function, not just the tools.",
     description:
-      "Ahrefs, Instantly, Hunter — each one adds cost without removing the work. You still own prospecting, email writing, follow-ups, and tracking. Mentiohunt replaces the entire workflow: discovery, outreach, and placement coordination. You approve or reject — nothing else required.",
+      "Ahrefs, Instantly, Hunter — each one adds cost without removing the work. You still own prospecting, email writing, follow-ups, and tracking. Mentiohunt replaces the entire workflow up to the first reply: discovery, outreach, and follow-ups. You approve or reject — then take over once someone responds.",
     Illustration: ToolStackIllustration,
   },
   {
@@ -509,8 +509,9 @@ export function WhyMentiohunt() {
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Agency minimums start at $1,000–5,000/mo. DIY link building takes
-            10–15 hrs/week. Mentiohunt handles execution end-to-end — you just
-            approve what goes live.
+            10–15 hrs/week. Mentiohunt handles discovery and outreach through
+            the first reply — you just approve what goes live and take over
+            once a prospect responds.
           </p>
         </div>
 

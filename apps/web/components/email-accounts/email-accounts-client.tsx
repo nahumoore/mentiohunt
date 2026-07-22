@@ -6,12 +6,11 @@ import {
   IconChevronRight,
   IconCircleCheckFilled,
   IconInfoCircle,
+  IconLink,
+  IconMailForward,
   IconMailOff,
   IconPlus,
   IconShieldLock,
-  IconStar,
-  IconUsers,
-  IconMailCheck,
   IconTrendingUp,
   IconX,
 } from "@tabler/icons-react"
@@ -495,21 +494,21 @@ function ConnectAccountDialog() {
 
 export type UserPlan = "active" | "free_trial" | "canceled"
 
-const UNLOCK_BULLETS = [
+const REPLY_BULLETS = [
   {
-    icon: <IconMailCheck className="size-4 text-primary" />,
-    title: "Your own sending domain",
-    body: "Outreach goes out from your brand — not a shared pool recipients have seen from dozens of other senders.",
+    icon: <IconMailForward className="size-4 text-primary" />,
+    title: "Reply as yourself",
+    body: "The moment a prospect responds, you continue the conversation from your own address — not Mentiohunt's shared pool.",
+  },
+  {
+    icon: <IconLink className="size-4 text-primary" />,
+    title: "Keep every thread intact",
+    body: "Your reply matches the original message headers, so it lands in the same thread instead of starting a new email.",
   },
   {
     icon: <IconTrendingUp className="size-4 text-primary" />,
-    title: "Higher deliverability",
-    body: "Dedicated inboxes hold their own reputation. One bad actor in a shared pool hurts everyone.",
-  },
-  {
-    icon: <IconStar className="size-4 text-primary" />,
-    title: "Founder-level trust signal",
-    body: "Personalized from-addresses get meaningfully higher reply rates. Founders respond to founders.",
+    title: "Protect your sending reputation",
+    body: "Dedicated inboxes hold their own reputation. One bad actor in a shared pool doesn't affect you.",
   },
 ]
 
@@ -531,24 +530,26 @@ function LockedFeatureState({ plan }: { plan: Exclude<UserPlan, "active"> }) {
         </div>
       )}
 
-      {/* Current state card */}
+      {/* Current state card — what happens today when a prospect replies */}
       <div className="mb-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
         <p className="mb-3 text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground/50">
-          Currently sending from
+          Where replies land today
         </p>
         <div className="flex items-center gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted ring-1 ring-border/60">
-            <IconUsers className="size-4 text-muted-foreground" />
+            <IconMailOff className="size-4 text-muted-foreground" />
           </span>
           <div>
-            <p className="text-sm font-medium text-foreground">Shared domain pool</p>
+            <p className="text-sm font-medium text-foreground">
+              Mentiohunt&apos;s shared inbox
+            </p>
             <p className="text-xs text-muted-foreground">
-              mentiohuntapp.com · not your brand
+              You can see a reply arrived — you can&apos;t respond from it
             </p>
           </div>
           <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-[0.65rem] font-semibold text-amber-700 ring-1 ring-amber-500/20">
             <IconShieldLock className="size-3" />
-            Free trial
+            {isTrial ? "Free trial" : "Subscription inactive"}
           </span>
         </div>
       </div>
@@ -556,10 +557,10 @@ function LockedFeatureState({ plan }: { plan: Exclude<UserPlan, "active"> }) {
       {/* Unlock bullets — 3 columns to stay compact */}
       <div className="mb-5 rounded-2xl border border-primary/15 bg-primary/4 px-5 py-5">
         <p className="mb-4 text-[0.65rem] font-bold uppercase tracking-wider text-primary/70">
-          With a paid plan
+          Connect your inbox on a paid plan to
         </p>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          {UNLOCK_BULLETS.map((bullet) => (
+          {REPLY_BULLETS.map((bullet) => (
             <div key={bullet.title} className="flex flex-col gap-2">
               <span className="flex size-7 items-center justify-center rounded-lg border border-primary/15 bg-primary/8">
                 {bullet.icon}
@@ -577,10 +578,10 @@ function LockedFeatureState({ plan }: { plan: Exclude<UserPlan, "active"> }) {
           href="/dashboard/billing"
           className="inline-flex h-9 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-crimson-carrot"
         >
-          {isTrial ? "Upgrade now" : "Reactivate plan"}
+          {isTrial ? "Upgrade to reply personally" : "Reactivate to reply personally"}
         </Link>
         <p className="text-xs text-muted-foreground">
-          Unlimited inboxes · custom domains · reply tracking
+          Reply as yourself · keep threads intact · protect your reputation
         </p>
       </div>
     </div>
@@ -609,12 +610,12 @@ export function EmailAccountsClient({
             <IconMailOff className="size-5 text-primary" />
           </span>
           <h2 className="text-base font-semibold text-foreground">
-            No email accounts connected
+            No inbox connected yet
           </h2>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Connect your sending mailbox to let Mentiohunt run outreach on
-            autopilot. Replies get classified automatically — you only see what
-            needs a decision.
+            Connect your own mailbox so you&apos;re ready the moment a prospect
+            replies. Outreach keeps sending automatically either way — this is
+            what lets you pick up the conversation personally.
           </p>
           <ConnectAccountDialog />
         </div>

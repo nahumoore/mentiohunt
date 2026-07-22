@@ -2,7 +2,7 @@
 
 Mentiohunt is a managed backlink placement autopilot for founder-led B2B SaaS teams.
 
-**Core offer:** user provides sitemap or article URLs. System auto-fetches daily, finds websites where each article fits well, surfaces contact details for the site owner/founder, generates a ready-to-send email draft, and coordinates placement. Outreach sequences are auto-scheduled on discovery — the customer's role is to monitor and cancel opportunities that aren't a fit, not to approve each one before it sends.
+**Core offer:** user provides sitemap or article URLs. System auto-fetches daily, finds websites where each article fits well, surfaces contact details for the site owner/founder, generates a ready-to-send email draft, and runs outreach automatically through a prospect's first reply. Outreach sequences are auto-scheduled on discovery — the customer's role is to monitor and cancel opportunities that aren't a fit, not to approve each one before it sends. Once a prospect replies, automation stops and the customer continues the conversation personally from their own connected mailbox — not from Mentiohunt's shared sending pool.
 
 **Positioning:** more transparent than an agency, less work than outreach software. Every opportunity surfaces a fit rationale (topical relevance, audience overlap, placement angle, expected SEO value) — not just domain metrics.
 

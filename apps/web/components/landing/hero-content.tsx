@@ -38,7 +38,7 @@ export function HeroContent() {
         animate="animate"
         transition={{ duration: 0.65, delay: 0.08, ease }}
       >
-        Backlinks,
+        Backlink outreach,
         <br />
         <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
           on autopilot.
@@ -53,9 +53,9 @@ export function HeroContent() {
         animate="animate"
         transition={{ duration: 0.55, delay: 0.16, ease }}
       >
-        We find sites where your articles belong, run outreach, and coordinate
-        placement. You just approve or reject — every opportunity comes with a
-        fit rationale, not vanity metrics.
+        We find sites where your articles belong and run outreach through the
+        first reply. You just approve or reject — every opportunity comes
+        with a fit rationale, not vanity metrics.
       </motion.p>
 
       {/* CTA */}

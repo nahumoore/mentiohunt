@@ -68,7 +68,7 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
   "/dashboard/email-accounts": {
     title: "Email Accounts",
     description:
-      "Connect the mailboxes Mentiohunt uses to send outreach and read replies. Outreach and follow-ups send automatically — dismiss any prospect you don't want, and reply once someone responds.",
+      "Connect your own inbox so you can reply personally once a prospect responds. Outreach and follow-ups still send automatically until then.",
     icon: IconMailBolt,
   },
   "/dashboard/settings": {

@@ -54,7 +54,7 @@ const steps: Step[] = [
     eyebrow: "Action",
     title: "We send it, you just review",
     description:
-      "Each opportunity comes with a ready email draft that sends itself — the contact, the send, and the follow-up are all handled automatically. Pass on anything that isn't a fit. Most customers see their first placed backlink within 14–21 days of setup.",
+      "Each opportunity comes with a ready email draft that sends itself — the contact, the send, and the pre-reply follow-ups are all handled automatically. Once a site owner replies, you take the thread over yourself. Pass on anything that isn't a fit. Most customers see their first placed backlink within 14–21 days of setup.",
     Illustration: ActionIllustration,
   },
 ]

@@ -88,7 +88,7 @@ export default function FeaturesPage() {
               </span>
               <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
               <h1 className="mt-5 font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-6xl lg:text-[76px] lg:leading-[0.9]">
-                Backlink building on autopilot for founders.
+                Backlink outreach on autopilot for founders.
               </h1>
               <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
                 Mentiohunt turns your content into a daily backlink opportunity

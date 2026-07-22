@@ -45,7 +45,7 @@ const legalLinks = [
 const stats = [
   { value: "Daily", label: "opportunity queue" },
   { value: "AI", label: "fit scoring" },
-  { value: "Zero", label: "outreach work for you" },
+  { value: "Zero", label: "outreach work until they reply" },
 ]
 
 export function Footer() {
@@ -86,9 +86,10 @@ export function Footer() {
               </h2>
 
               <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-                Mentiohunt discovers backlink opportunities, runs outreach, and
-                manages placements end-to-end. You approve or reject — nothing
-                else required.
+                Mentiohunt discovers backlink opportunities and runs outreach
+                automatically through a prospect&apos;s first reply. You
+                approve or reject — then take the conversation over yourself
+                once someone responds.
               </p>
 
               <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -155,7 +156,8 @@ export function Footer() {
             </div>
             <p className="max-w-xs text-sm leading-6 text-muted-foreground">
               Managed backlink placements for lean B2B SaaS teams. We handle
-              discovery, outreach, and placement — you approve or reject.
+              discovery and outreach through the first reply — you approve or
+              reject, and take it from there.
             </p>
             <div className="space-y-1 text-xs leading-5 text-muted-foreground/65">
               <p>Made with ❤️ from 🇺🇸</p>

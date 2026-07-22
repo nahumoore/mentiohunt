@@ -2,10 +2,10 @@ import { lookup } from "node:dns/promises"
 import { isIP } from "node:net"
 import { parse } from "node-html-parser"
 
-const REQUEST_TIMEOUT_MS = 12_000
-const MAX_HTML_BYTES = 200_000
-const MAX_REDIRECTS = 5
-const HTML_CONTENT_TYPES = ["text/html", "application/xhtml+xml"]
+export const REQUEST_TIMEOUT_MS = 12_000
+export const MAX_HTML_BYTES = 200_000
+export const MAX_REDIRECTS = 5
+export const HTML_CONTENT_TYPES = ["text/html", "application/xhtml+xml"]
 const BLOCKED_HOSTNAMES = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"])
 
 type ExtractedMeta = {
@@ -83,7 +83,7 @@ function isBlockedIpAddress(ip: string) {
   return false
 }
 
-async function assertSafeUrl(rawUrl: string) {
+export async function assertSafeUrl(rawUrl: string) {
   const url = new URL(rawUrl)
 
   if (url.protocol !== "http:" && url.protocol !== "https:") {
@@ -107,7 +107,7 @@ async function assertSafeUrl(rawUrl: string) {
   }
 }
 
-async function fetchWithValidatedRedirects(
+export async function fetchWithValidatedRedirects(
   initialUrl: string,
   signal: AbortSignal
 ) {
@@ -145,7 +145,7 @@ async function fetchWithValidatedRedirects(
   throw new Error("Homepage redirected too many times")
 }
 
-async function readHtmlBody(response: Response) {
+export async function readHtmlBody(response: Response) {
   if (!response.body) {
     return { html: "", wasTruncated: false }
   }
@@ -254,7 +254,7 @@ function extractMainParagraphs(root: ReturnType<typeof parse>) {
   )
 }
 
-function isHtmlContentType(contentType: string) {
+export function isHtmlContentType(contentType: string) {
   const normalized = contentType.toLowerCase()
   return HTML_CONTENT_TYPES.some((allowedType) => normalized.includes(allowedType))
 }

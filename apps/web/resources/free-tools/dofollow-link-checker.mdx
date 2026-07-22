@@ -1,0 +1,50 @@
+---
+title: "Dofollow Link Checker — Free Tool"
+description: "Paste any page URL and see every outbound link on it — dofollow, nofollow, ugc, or sponsored — split by internal and external, free with no login required."
+slug: "dofollow-link-checker"
+date: "2026-07-22"
+dateModified: "2026-07-22"
+author: "Nicolas More"
+tags: ["dofollow link checker", "nofollow", "backlink checker", "link building", "seo", "free tool"]
+category: "Free Tool"
+faqs:
+  - question: "What is a dofollow link?"
+    answer: "A dofollow link is a normal HTML link with no rel attribute (or none of nofollow, ugc, sponsored) telling search engines to ignore it. By default, every link is dofollow — search engines follow it and can pass ranking signal through it. \"Dofollow\" isn't an actual HTML attribute; it's just the term the SEO industry uses for \"a link without a nofollow-family rel value.\""
+  - question: "What is the difference between dofollow and nofollow links?"
+    answer: "A nofollow link has rel=\"nofollow\" in its HTML, which tells search engines not to pass ranking credit through it. Sites add nofollow to links they don't want to vouch for — paid placements, comments, forum posts, widgets. A dofollow link has no such attribute, so search engines treat it as a normal editorial endorsement."
+  - question: "How do I check if a link is dofollow or nofollow?"
+    answer: "Right-click the link and inspect its HTML, or use a tool like the one above — paste the page URL and it scans every link on the page and shows you which are dofollow versus nofollow, ugc, or sponsored, without needing to open dev tools for each one."
+  - question: "What are ugc and sponsored link attributes?"
+    answer: "They're more specific versions of nofollow, introduced so sites and search engines can distinguish why a link shouldn't pass ranking signal. rel=\"ugc\" marks links inside user-generated content, like blog comments or forum posts. rel=\"sponsored\" marks paid or affiliate links. Both behave like nofollow for ranking purposes — they just label the reason more precisely."
+  - question: "Do nofollow links help SEO at all?"
+    answer: "They don't pass direct ranking credit the way dofollow links do, but they still matter. Nofollow links drive referral traffic, build brand awareness, and contribute to a natural-looking backlink profile — a site with only dofollow links can look manipulated. A healthy backlink profile has a mix of both."
+  - question: "Why would a site make my backlink nofollow instead of dofollow?"
+    answer: "Most commonly because the link comes from a comment, forum signature, guest post byline, or paid placement — sites default those to nofollow to stay compliant with search engine guidelines. If you were expecting a dofollow link and got nofollow instead, it's worth checking the placement type before assuming anything went wrong."
+---
+
+## Why the dofollow / nofollow distinction matters
+
+Not every backlink is worth the same. A dofollow link is a normal editorial link — no `rel` attribute telling search engines to disregard it — and it's the kind of link that actually contributes ranking signal. A nofollow, ugc, or sponsored link still sends traffic and can still matter for visibility, but it doesn't pass the same weight.
+
+When you're evaluating a placement — whether it's one you just landed or one a competitor has — knowing which type it is changes how much it's actually worth to your link building effort.
+
+## What the checker looks at
+
+Paste any page URL above and it scans the live HTML for every `<a>` tag, resolves relative links to full URLs, and classifies each one:
+
+- **Dofollow** — no nofollow-family `rel` value, passes ranking signal.
+- **Nofollow** — explicitly marked to not pass signal.
+- **Ugc** — nofollow variant for user-generated content like comments.
+- **Sponsored** — nofollow variant for paid or affiliate links.
+
+It also splits every link into **internal** (same domain) and **external** (off the site), since the dofollow/nofollow question usually only matters for external links — internal link structure is a separate concern.
+
+## How to use it when checking your own backlinks
+
+If a site agreed to link to you, don't just confirm the link exists — check whether it's dofollow. Paste the page URL where your link lives, filter to external links, and find your domain in the list. If it came back nofollow and you expected dofollow, that's worth a follow-up email before you count the placement as done.
+
+Pair this with the [dofollow backlink outreach email generator](/free-tools/backlink-outreach-email-generator) when you need to follow up on a placement or ask a site to update a nofollow link to dofollow.
+
+## Where link checking fits in a link building system
+
+Checking one page at a time tells you about one placement. A recurring link building effort needs to track link type across every placement you land, not just the ones you remember to check — see the full breakdown in the [backlink building playbook](/blog/saas-backlink-building) for how link quality checks fit into the rest of the process.

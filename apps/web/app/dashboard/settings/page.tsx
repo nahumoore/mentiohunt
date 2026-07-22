@@ -4,12 +4,14 @@ import {
   IconBellRinging,
   IconCreditCard,
   IconExternalLink,
+  IconLock,
   IconSparkles,
   IconUser,
 } from "@tabler/icons-react"
 import { useEffect, useState, useTransition } from "react"
 import Link from "next/link"
 
+import { PasswordTab } from "@/components/dashboard/settings/password-tab"
 import { SettingsSaveFooter } from "@/components/link-building/sources/settings-save-footer"
 import {
   updateEmailSettings,
@@ -78,7 +80,7 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <Tabs defaultValue="profile" className="gap-4">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-hidden">
         <TabsList>
           <TabsTrigger value="profile">
             <IconUser className="size-4" />
@@ -91,6 +93,10 @@ export default function SettingsPage() {
           <TabsTrigger value="billing">
             <IconCreditCard className="size-4" />
             <span>Billing</span>
+          </TabsTrigger>
+          <TabsTrigger value="password">
+            <IconLock className="size-4" />
+            <span>Password</span>
           </TabsTrigger>
         </TabsList>
         </div>
@@ -198,6 +204,10 @@ export default function SettingsPage() {
               </Button>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="password">
+          <PasswordTab />
         </TabsContent>
       </Tabs>
     </div>

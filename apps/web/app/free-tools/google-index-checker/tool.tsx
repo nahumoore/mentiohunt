@@ -5,7 +5,6 @@ import Link from "next/link"
 import {
   IconAlertCircle,
   IconArrowRight,
-  IconBolt,
   IconCheck,
   IconChevronDown,
   IconChevronUp,
@@ -13,18 +12,17 @@ import {
   IconCircleX,
   IconClipboard,
   IconClipboardCheck,
-  IconExternalLink,
   IconLayoutList,
   IconLoader2,
   IconLock,
   IconSearch,
-  IconSend,
   IconSitemap,
   IconSparkles,
   IconTargetArrow,
   IconTrendingUp,
 } from "@tabler/icons-react"
 
+import { AutomationCta, ToolHero } from "@/components/free-tools"
 import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
@@ -320,23 +318,12 @@ export function GoogleIndexChecker() {
         </div>
 
         <div className="mx-auto max-w-2xl text-center">
-          <Link
-            href="/free-tools"
-            className="inline-flex items-center gap-1.5 rounded-full border border-blaze-orange/25 bg-blaze-orange/7 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-(--color-princeton-orange) transition-colors hover:bg-blaze-orange/12"
-          >
-            <IconBolt size={12} stroke={2.8} />
-            Free SEO tools
-          </Link>
-
-          <h1 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[2.75rem]">
-            Google Index Checker
-          </h1>
-
-          <p className="mt-4 text-base leading-7 text-muted-foreground">
-            Paste your sitemap URL and instantly see which pages Google has
-            indexed, which aren&apos;t discovered yet, and where keyword
-            opportunities exist — free, no login required.
-          </p>
+          <ToolHero
+            icon={IconSitemap}
+            title="Google Index"
+            highlight="Checker"
+            description="Paste your sitemap URL and instantly see which pages Google has indexed, which aren't discovered yet, and where keyword opportunities exist — free, no login required."
+          />
 
           <div className="mt-8 rounded-2xl border border-border bg-card p-6 text-left">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -686,49 +673,14 @@ export function GoogleIndexChecker() {
         </div>
       </section>
 
-      <section className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <div className="container mx-auto max-w-7xl">
-          <div className="relative overflow-hidden rounded-[2.25rem] border border-[var(--color-blaze-orange)]/20 bg-card p-7 shadow-[0_30px_100px_-55px_rgba(255,96,0,0.55)] sm:p-10 lg:p-12">
-            <div className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-[var(--color-blaze-orange)]/12 blur-3xl" />
-            <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
-                  More than one scan
-                </p>
-                <h2 className="mt-4 max-w-2xl font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">
-                  Know when new pages go unindexed before they cost you traffic.
-                </h2>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-                  Mentiohunt monitors your sitemap continuously, surfaces keyword ranking
-                  gaps as they open, and connects both signals to your backlink outreach queue.
-                </p>
-              </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-                <Button
-                  asChild
-                  size="lg"
-                  className="h-11 rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
-                >
-                  <Link href="/signup">
-                    Start monitoring
-                    <IconSend size={16} stroke={2.4} />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="h-11 rounded-full border-[var(--color-blaze-orange)]/25 bg-background/70 px-7 text-sm hover:bg-[var(--color-blaze-orange)]/8"
-                >
-                  <Link href="/free-tools">
-                    <IconExternalLink size={15} stroke={2.2} />
-                    All free tools
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
+      <section className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="container mx-auto max-w-6xl">
+          <AutomationCta
+            eyebrow="More than one scan"
+            heading="Know when new pages go unindexed before they cost you traffic."
+            body="Mentiohunt monitors your sitemap continuously, surfaces keyword ranking gaps as they open, and connects both signals to your backlink outreach queue."
+          />
         </div>
       </section>
     </>

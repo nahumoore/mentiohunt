@@ -4,7 +4,9 @@ import Script from "next/script"
 import remarkGfm from "remark-gfm"
 
 import { Footer, Navbar } from "@/components/landing"
+import { RelatedFreeTools } from "@/components/free-tools"
 import BlogStylings from "@/components/resources/blog-stylings"
+import { FREE_TOOL_NAMES } from "@/consts/free-tools"
 import { getPostBySlug } from "@/lib/mdx"
 
 import { DirectoryBacklinkOpportunityFinder } from "./tool"
@@ -134,6 +136,8 @@ export default async function DirectoryBacklinkOpportunityFinderPage() {
           </div>
         </section>
       )}
+
+      <RelatedFreeTools currentSlug={FREE_TOOL_NAMES.directoryBacklinkOpportunityFinder} />
 
       <Footer />
     </main>

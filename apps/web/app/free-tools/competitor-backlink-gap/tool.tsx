@@ -12,12 +12,14 @@ import {
   IconLock,
   IconLoader2,
   IconSearch,
-  IconSend,
   IconSparkles,
   IconSwords,
+  IconTarget,
   IconTargetArrow,
+  IconTrendingUp,
 } from "@tabler/icons-react"
 
+import { AutomationCta, StatCard, ToolHero } from "@/components/free-tools"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 
@@ -102,6 +104,13 @@ export function CompetitorBacklinkGap() {
       ...gap,
     }))
   )
+
+  const gapsWithDa = allGapRows.filter((gap) => gap.da !== null)
+  const avgDa = gapsWithDa.length
+    ? Math.round(
+        gapsWithDa.reduce((sum, gap) => sum + (gap.da ?? 0), 0) / gapsWithDa.length
+      )
+    : null
 
   useEffect(() => {
     if (phase !== "loading") return
@@ -205,23 +214,13 @@ export function CompetitorBacklinkGap() {
         </div>
 
         <div className="mx-auto max-w-2xl text-center">
-          <Link
-            href="/free-tools"
-            className="inline-flex items-center gap-1.5 rounded-full border border-blaze-orange/25 bg-blaze-orange/7 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-(--color-princeton-orange) transition-colors hover:bg-blaze-orange/12"
-          >
-            <IconBolt size={12} stroke={2.8} />
-            Free backlink tools
-          </Link>
-
-          <h1 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[2.75rem]">
-            Competitor Backlink Gap Analysis
-          </h1>
-
-          <p className="mt-4 text-base leading-7 text-muted-foreground">
-            Enter your website URL and see which sites link to likely competitors
-            but not to you. Built for founders who want to close real gaps, not
-            guess at outreach targets.
-          </p>
+          <ToolHero
+            icon={IconSwords}
+            eyebrow="Free tool · no sign-up"
+            title="Backlink Gap"
+            highlight="Finder"
+            description="See exactly which sites link to your competitors but not to you yet — then reach out with a pitch that already fits."
+          />
 
           <div className="mt-8 rounded-2xl border border-border bg-card p-6 text-left">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -376,6 +375,30 @@ export function CompetitorBacklinkGap() {
                 </div>
               ) : (
                 <>
+                  <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <StatCard
+                      label="Link gaps found"
+                      value={String(summary?.totalGaps ?? 0)}
+                      icon={IconTarget}
+                      tone="orange"
+                      footnote={`across ${summary?.competitorsFound ?? 0} competitors`}
+                    />
+                    <StatCard
+                      label="High-priority gaps"
+                      value={String(summary?.highPriority ?? 0)}
+                      icon={IconBolt}
+                      tone="amber"
+                      footnote="DR 20-65 · realistic to earn"
+                    />
+                    <StatCard
+                      label="Avg domain rating"
+                      value={avgDa !== null ? `DR ${avgDa}` : "—"}
+                      icon={IconTrendingUp}
+                      tone="success"
+                      footnote="of the sites you're missing"
+                    />
+                  </div>
+
                   <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/22 bg-card shadow-[0_28px_90px_-58px_rgba(255,96,0,0.7)]">
                     <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-amber-flame)]/80 to-transparent" />
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--color-amber-glow)_0,transparent_18rem)] opacity-[0.08]" />
@@ -638,46 +661,12 @@ export function CompetitorBacklinkGap() {
       </section>
 
       <section className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <div className="container mx-auto max-w-7xl">
-          <div className="relative overflow-hidden rounded-[2.25rem] border border-[var(--color-blaze-orange)]/20 bg-card p-7 shadow-[0_30px_100px_-55px_rgba(255,96,0,0.55)] sm:p-10 lg:p-12">
-            <div className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-[var(--color-blaze-orange)]/12 blur-3xl" />
-            <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
-                  More than a one-off check
-                </p>
-                <h2 className="mt-4 max-w-2xl font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">
-                  Turn gap analysis into a recurring outreach queue.
-                </h2>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-                  Mentiohunt tracks your competitors&apos; new backlinks and
-                  surfaces fresh gaps as they appear — so you always have a
-                  prioritized list of outreach targets.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-                <Button
-                  asChild
-                  size="lg"
-                  className="h-11 rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
-                >
-                  <Link href="/signup">
-                    Build your queue
-                    <IconSend size={16} stroke={2.4} />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="h-11 rounded-full border-[var(--color-blaze-orange)]/25 bg-background/70 px-7 text-sm hover:bg-[var(--color-blaze-orange)]/8"
-                >
-                  <Link href="/free-tools">Back to free tools</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
+        <div className="container mx-auto max-w-6xl">
+          <AutomationCta
+            eyebrow="Stop chasing links by hand"
+            heading="Let Mentiohunt close every gap for you."
+            body="We find the sites, verify the owner's contact, draft the outreach, and coordinate placement. You just approve or reject — every opportunity comes with a fit rationale, not vanity metrics."
+          />
         </div>
       </section>
     </>

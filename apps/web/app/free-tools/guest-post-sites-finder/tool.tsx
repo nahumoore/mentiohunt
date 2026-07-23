@@ -6,17 +6,16 @@ import {
   IconAlertCircle,
   IconArrowRight,
   IconArticle,
-  IconBolt,
   IconCheck,
   IconExternalLink,
   IconLock,
   IconLoader2,
   IconSearch,
-  IconSend,
   IconSparkles,
   IconTargetArrow,
 } from "@tabler/icons-react"
 
+import { AutomationCta, ToolHero } from "@/components/free-tools"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 
@@ -160,23 +159,12 @@ export function GuestPostSitesFinder() {
         </div>
 
         <div className="mx-auto max-w-2xl text-center">
-          <Link
-            href="/free-tools"
-            className="inline-flex items-center gap-1.5 rounded-full border border-blaze-orange/25 bg-blaze-orange/7 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-(--color-princeton-orange) transition-colors hover:bg-blaze-orange/12"
-          >
-            <IconBolt size={12} stroke={2.8} />
-            Free backlink tools
-          </Link>
-
-          <h1 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[2.75rem]">
-            Guest Post Sites Finder
-          </h1>
-
-          <p className="mt-4 text-base leading-7 text-muted-foreground">
-            Enter your website URL and find sites in your niche that publicly
-            invite guest contributors. Built for founders who want real
-            pitching targets, not a generic domain list.
-          </p>
+          <ToolHero
+            icon={IconArticle}
+            title="Guest Post Sites"
+            highlight="Finder"
+            description="Enter your website URL and find sites in your niche that publicly invite guest contributors. Built for founders who want real pitching targets, not a generic domain list."
+          />
 
           <div className="mt-8 rounded-2xl border border-border bg-card p-6 text-left">
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -470,47 +458,14 @@ export function GuestPostSitesFinder() {
         </div>
       </section>
 
-      <section className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <div className="container mx-auto max-w-7xl">
-          <div className="relative overflow-hidden rounded-[2.25rem] border border-[var(--color-blaze-orange)]/20 bg-card p-7 shadow-[0_30px_100px_-55px_rgba(255,96,0,0.55)] sm:p-10 lg:p-12">
-            <div className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-[var(--color-blaze-orange)]/12 blur-3xl" />
-            <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground/60">
-                  More than one search
-                </p>
-                <h2 className="mt-4 max-w-2xl font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">
-                  Turn one-off searches into a recurring guest post queue.
-                </h2>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-                  Mentiohunt keeps surfacing backlink opportunities from your
-                  product, competitors, keywords, and content — so you always
-                  know which site to pitch next.
-                </p>
-              </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-                <Button
-                  asChild
-                  size="lg"
-                  className="h-11 rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
-                >
-                  <Link href="/signup">
-                    Build your queue
-                    <IconSend size={16} stroke={2.4} />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="h-11 rounded-full border-[var(--color-blaze-orange)]/25 bg-background/70 px-7 text-sm hover:bg-[var(--color-blaze-orange)]/8"
-                >
-                  <Link href="/free-tools">Back to free tools</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
+      <section className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="container mx-auto max-w-6xl">
+          <AutomationCta
+            eyebrow="More than one search"
+            heading="Turn one-off searches into a recurring guest post queue."
+            body="Mentiohunt keeps surfacing backlink opportunities from your product, competitors, keywords, and content — so you always know which site to pitch next."
+          />
         </div>
       </section>
     </>

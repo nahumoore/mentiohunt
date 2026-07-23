@@ -1,29 +1,14 @@
 import Link from "next/link"
 import type { Metadata } from "next"
-import {
-  IconArrowRight,
-  IconArticle,
-  IconCalculator,
-  IconCheck,
-  IconFolderSearch,
-  IconLink,
-  IconMail,
-  IconShieldCheck,
-  IconSitemap,
-  IconSparkles,
-  IconSwords,
-  IconTextSize,
-  IconUserSearch,
-  IconWorldSearch,
-} from "@tabler/icons-react"
+import { IconArrowRight, IconCheck, IconSparkles } from "@tabler/icons-react"
 
 import { IconBrandMentiohunt } from "@/components/custom-icons/brand-mentiohunt"
 import { Footer, Navbar } from "@/components/landing"
-import { FREE_TOOL_NAMES } from "@/consts/free-tools"
+import { FREE_TOOLS_DIRECTORY } from "@/consts/free-tools-directory"
 import { Button } from "@workspace/ui/components/button"
 
 export const metadata: Metadata = {
-  title: "Free Tools - Mentiohunt",
+  title: "Free Tools",
   description:
     "Free founder tools for checking backlink fit, discovering placement opportunities, and turning distribution research into a clearer next step.",
   alternates: {
@@ -44,97 +29,6 @@ export const metadata: Metadata = {
       "Free founder tools for checking backlink fit, discovering placement opportunities, and turning distribution research into a clearer next step.",
   },
 }
-
-const tools = [
-  {
-    name: "Startup Directory Browser",
-    eyebrow: "Directory index",
-    description:
-      "Browse a startup directory table by category, pricing, authority, backlink, and submission signals before running a gap scan.",
-    icon: IconFolderSearch,
-    href: "/free-tools/startup-directories",
-  },
-  {
-    name: "Directory Backlink Opportunity Finder",
-    eyebrow: "Product to directories",
-    description:
-      "Paste your product URL and find startup directories where you can apply for relevant backlink opportunities.",
-    icon: IconLink,
-    href: `/free-tools/${FREE_TOOL_NAMES.directoryBacklinkOpportunityFinder}`,
-  },
-  {
-    name: "Backlink Price Calculator",
-    eyebrow: "Site authority to price",
-    description:
-      "Enter any website URL to pull live Ahrefs authority metrics and estimate a fair market price for a backlink, adjusted for link type, placement, and content format.",
-    icon: IconCalculator,
-    href: `/free-tools/${FREE_TOOL_NAMES.backlinkPriceCalculator}`,
-  },
-  {
-    name: "Backlink Opportunity Finder",
-    eyebrow: "Website to opportunities",
-    description:
-      "Enter your website URL and surface relevant blogs, resource pages, and content hubs where a backlink to your product would be a strong fit.",
-    icon: IconWorldSearch,
-    href: `/free-tools/${FREE_TOOL_NAMES.backlinkOpportunityFinder}`,
-  },
-  {
-    name: "Competitor Backlink Gap Analysis",
-    eyebrow: "Competitor gaps to outreach",
-    description:
-      "Enter your website URL and see which sites link to your competitors but not to you. Turn gap analysis into a prioritized outreach list.",
-    icon: IconSwords,
-    href: `/free-tools/${FREE_TOOL_NAMES.competitorBacklinkGap}`,
-  },
-  {
-    name: "Google Index Checker",
-    eyebrow: "Sitemap to index status",
-    description:
-      "Paste your sitemap URL and instantly see which pages Google has indexed, which are missing, and where keyword opportunities exist for each page.",
-    icon: IconSitemap,
-    href: `/free-tools/${FREE_TOOL_NAMES.googleIndexChecker}`,
-  },
-  {
-    name: "Anchor Text Generator",
-    eyebrow: "Keyword to anchor variants",
-    description:
-      "Enter a keyword and an optional target URL to generate a full set of anchor text variants — exact match, partial, branded, LSI, and generic — each with a safety label and plain-language guidance.",
-    icon: IconTextSize,
-    href: `/free-tools/${FREE_TOOL_NAMES.anchorTextGenerator}`,
-  },
-  {
-    name: "Author Contact Finder",
-    eyebrow: "Article to contact",
-    description:
-      "Paste a blog post URL and find the author's name, role, and most likely contact email — labelled with a confidence level, for backlink outreach.",
-    icon: IconUserSearch,
-    href: `/free-tools/${FREE_TOOL_NAMES.authorContactFinder}`,
-  },
-  {
-    name: "Guest Post Sites Finder",
-    eyebrow: "Website to guest-post targets",
-    description:
-      "Enter your website URL and find sites in your niche that publicly invite guest contributors, each with a fit score and rationale.",
-    icon: IconArticle,
-    href: `/free-tools/${FREE_TOOL_NAMES.guestPostSitesFinder}`,
-  },
-  {
-    name: "Backlink Outreach Email Generator",
-    eyebrow: "Details to outreach draft",
-    description:
-      "Enter your details and a target site to generate four ready-to-send outreach emails — guest post, broken link, resource page, and unlinked mention — each with a follow-up.",
-    icon: IconMail,
-    href: `/free-tools/${FREE_TOOL_NAMES.backlinkOutreachEmailGenerator}`,
-  },
-  {
-    name: "Dofollow Link Checker",
-    eyebrow: "Page to link breakdown",
-    description:
-      "Paste any page URL and see every outbound link on it — dofollow, nofollow, ugc, or sponsored — split by internal and external.",
-    icon: IconShieldCheck,
-    href: `/free-tools/${FREE_TOOL_NAMES.dofollowLinkChecker}`,
-  },
-]
 
 const operatingNotes = [
   "No guaranteed backlinks, just clearer outreach judgment.",
@@ -198,13 +92,13 @@ export default function FreeToolsPage() {
       <section id="tools" className="px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {tools.map((tool) => {
+            {FREE_TOOLS_DIRECTORY.map((tool) => {
               const Icon = tool.icon
 
               return (
                 <Link
-                  key={tool.name}
-                  href={tool.href}
+                  key={tool.slug}
+                  href={`/free-tools/${tool.slug}`}
                   className="group flex h-full flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm transition-colors hover:border-blaze-orange/25 hover:bg-blaze-orange/[0.025]"
                 >
                   <div className="flex items-center justify-between">

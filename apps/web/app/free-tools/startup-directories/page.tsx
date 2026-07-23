@@ -5,7 +5,9 @@ import remarkGfm from "remark-gfm"
 import type { Tables } from "@workspace/supabase/database-types"
 
 import { Footer, Navbar } from "@/components/landing"
+import { RelatedFreeTools } from "@/components/free-tools"
 import BlogStylings from "@/components/resources/blog-stylings"
+import { FREE_TOOL_NAMES } from "@/consts/free-tools"
 import { getPostBySlug } from "@/lib/mdx"
 import { supabaseServer } from "@/lib/supabase/server"
 
@@ -150,6 +152,8 @@ export default async function StartupDirectoriesPage() {
           </div>
         </section>
       )}
+
+      <RelatedFreeTools currentSlug={FREE_TOOL_NAMES.startupDirectories} />
 
       <Footer />
     </main>

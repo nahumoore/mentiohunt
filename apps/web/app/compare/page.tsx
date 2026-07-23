@@ -11,10 +11,11 @@ import Link from "next/link"
 
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
+import { RelatedHubsSection } from "@/components/resources/related-hubs-section"
 import { getAllResources, type BlogPostMeta } from "@/lib/mdx"
 
 export const metadata: Metadata = {
-  title: "Tool Comparisons — Mentiohunt",
+  title: "Tool Comparisons",
   description:
     "Honest head-to-head comparisons of backlink building tools. We'll tell you when a competitor is the better fit.",
   openGraph: {
@@ -245,6 +246,37 @@ export default function ComparePage() {
             </p>
           </div>
         </div>
+
+        <RelatedHubsSection
+          heading="See the full picture before you switch."
+          subheading="A head-to-head tells you how two tools stack up. These guides help you decide what to replace them with, and how to fill the queue once you do."
+          links={[
+            {
+              label: "Full landscape",
+              title: "Link Building Tool Alternatives",
+              href: "/alternatives",
+              description:
+                "Every tool we get compared against, reviewed on its own — including when it's genuinely the better fit.",
+              cta: "Browse alternatives",
+            },
+            {
+              label: "Pillar guide",
+              title: "How to Find Backlink Opportunities",
+              href: "/blog/how-to-find-backlink-opportunities",
+              description:
+                "The broader workflow for discovering, scoring, and prioritizing link opportunities before you commit to a tool.",
+              cta: "Read the guide",
+            },
+            {
+              label: "Platform guides",
+              title: "Backlinks From Reddit, Quora, Pinterest & More",
+              href: "/backlinks-from",
+              description:
+                "Founder-friendly playbooks for earning links from platforms where your audience already spends time.",
+              cta: "Browse platform guides",
+            },
+          ]}
+        />
       </main>
 
       <Footer />

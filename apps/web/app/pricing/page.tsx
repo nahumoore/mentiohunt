@@ -5,7 +5,7 @@ import { Navbar, Footer, Testimonials, Faq } from "@/components/landing"
 import { PricingClientPage } from "./client-page"
 
 export const metadata: Metadata = {
-  title: "Pricing – Mentiohunt",
+  title: "Pricing",
   description:
     "Simple, transparent pricing for managed backlink placement. Start free, upgrade when ready.",
   openGraph: {

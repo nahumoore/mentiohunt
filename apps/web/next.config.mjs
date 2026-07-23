@@ -23,27 +23,27 @@ const nextConfig = {
       },
       {
         source: "/blog/reddit-marketing",
-        destination: "/blog/how-to-find-backlink-opportunities",
+        destination: "/backlinks-from/reddit",
         permanent: true,
       },
       {
         source: "/reddit-monitoring",
-        destination: "/blog/how-to-find-backlink-opportunities",
+        destination: "/backlinks-from/reddit",
         permanent: true,
       },
       {
         source: "/twitter-monitoring",
-        destination: "/blog/how-to-find-backlink-opportunities",
+        destination: "/",
         permanent: true,
       },
       {
         source: "/quora-monitoring",
-        destination: "/blog/how-to-find-backlink-opportunities",
+        destination: "/backlinks-from/quora",
         permanent: true,
       },
       {
         source: "/free-tools/reddit-user-analyzer",
-        destination: "/blog/how-to-find-backlink-opportunities",
+        destination: "/backlinks-from/reddit",
         permanent: true,
       },
       {

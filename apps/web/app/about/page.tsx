@@ -16,7 +16,7 @@ import { Navbar } from "@/components/landing/navbar"
 import { Button } from "@workspace/ui/components/button"
 
 export const metadata: Metadata = {
-  title: "About Mentiohunt - Built by Nicolas More",
+  title: { absolute: "About Mentiohunt - Built by Nicolas More" },
   description:
     "Founder note from Nicolas More on why Mentiohunt exists: helping founders build backlinks without turning outreach into a full-time job.",
   openGraph: {

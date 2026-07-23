@@ -11,10 +11,11 @@ import Link from "next/link"
 
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
+import { RelatedHubsSection } from "@/components/resources/related-hubs-section"
 import { getAllResources, type BlogPostMeta } from "@/lib/mdx"
 
 export const metadata: Metadata = {
-  title: "Link Building Tool Alternatives — Mentiohunt",
+  title: "Link Building Tool Alternatives",
   description:
     "Honest comparisons of link building and backlink outreach tools — Pitchbox, BuzzStream, Ahrefs, Semrush, Respona, and more. We'll tell you when the other tool is actually better.",
   openGraph: {
@@ -219,6 +220,37 @@ export default function AlternativesPage() {
             </p>
           </div>
         </div>
+
+        <RelatedHubsSection
+          heading="Pick a tool, then pick a channel."
+          subheading="A comparison tells you which tool fits. These guides help you turn that decision into an actual queue of backlink opportunities."
+          links={[
+            {
+              label: "Pillar guide",
+              title: "How to Find Backlink Opportunities",
+              href: "/blog/how-to-find-backlink-opportunities",
+              description:
+                "The broader workflow for discovering, scoring, and prioritizing link opportunities before you commit to a tool.",
+              cta: "Read the guide",
+            },
+            {
+              label: "Platform guides",
+              title: "Backlinks From Reddit, Quora, Pinterest & More",
+              href: "/backlinks-from",
+              description:
+                "Founder-friendly playbooks for earning links from platforms where your audience already spends time.",
+              cta: "Browse platform guides",
+            },
+            {
+              label: "Head-to-head",
+              title: "Tool Comparisons",
+              href: "/compare",
+              description:
+                "Direct comparisons between the tools on this page — Pitchbox vs BuzzStream, Respona vs Pitchbox, and more.",
+              cta: "See the comparisons",
+            },
+          ]}
+        />
       </main>
 
       <Footer />

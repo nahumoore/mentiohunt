@@ -10,10 +10,11 @@ import Link from "next/link"
 
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
+import { RelatedHubsSection } from "@/components/resources/related-hubs-section"
 import { getAllResources, type BlogPostMeta } from "@/lib/mdx"
 
 export const metadata: Metadata = {
-  title: "Blog — Mentiohunt",
+  title: "Blog",
   description:
     "Practical backlink prospecting, opportunity scoring, and founder-led distribution guides from Mentiohunt.",
   openGraph: {
@@ -149,6 +150,36 @@ export default function BlogPage() {
             </div>
           )}
         </section>
+
+        <RelatedHubsSection
+          heading="Turn a guide into a queue."
+          subheading="These articles teach the workflow. The rest of the site helps you act on it — pick a channel, compare tools, or let Mentiohunt run the queue for you."
+          links={[
+            {
+              label: "Platform guides",
+              title: "Backlinks From Reddit, Quora, Pinterest & More",
+              href: "/backlinks-from",
+              description:
+                "Founder-friendly playbooks for earning links from platforms where your audience already spends time.",
+              cta: "Browse platform guides",
+            },
+            {
+              label: "Tool alternatives",
+              title: "Link Building Tool Alternatives",
+              href: "/alternatives",
+              description:
+                "Honest comparisons of Pitchbox, BuzzStream, Ahrefs, and other outreach tools — including when they're the better fit.",
+              cta: "See the comparisons",
+            },
+            {
+              label: "Product angle",
+              title: "Mentiohunt Discovery Queue",
+              href: "/signup",
+              description:
+                "Turn your articles, keywords, and competitors into a recurring queue of backlink opportunities instead of starting research from zero.",
+            },
+          ]}
+        />
       </main>
 
       <Footer />

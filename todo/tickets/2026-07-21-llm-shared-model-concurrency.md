@@ -2,6 +2,8 @@
 
 **Status: Completed (2026-07-21)** — shipped a process-wide per-model concurrency cap (default 8, `LLM_MODEL_CONCURRENCY`-tunable) in `packages/openrouter/generate-text.ts`, keyed by model ID so it covers every scorer and every model in the fallback chain without touching call sites. Follow-up: confirm via OpenRouter's per-model dashboard graph on a future 07:00 UTC window that failure rate actually drops.
 
+**Update (2026-07-23):** Still happening. 07:00 UTC window same day logged `glm-4.7-flash` primary timeout → `qwen3.6-flash` fallback `Provider returned error`, same signature as original incident, cap notwithstanding. Cap alone hasn't resolved it — need the OpenRouter per-model dashboard check (see Recommendation) to tell whether cap value (8) is still too high for this window's burst size, or whether congestion isn't self-inflicted after all.
+
 ## Summary
 
 Follow-up to the 07:00 UTC LLM fallback cascade (2026-07-20/21) — after the `openai/gpt-5.6-luna` 2nd-fallback fix shipped, dug into whether the root cause was actually an OpenRouter/provider outage. Evidence points at self-inflicted concurrency instead, which means the gpt-5.6-luna swap treats a symptom, not the likely root cause.

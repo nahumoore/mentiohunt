@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto"
-import { generateCompetitorDomains } from "../methods/prospect-generation-methods/competitor-backlink/generate-competitors.js"
+import { generateCompetitorDomains } from "../methods/competitor-domains/generate-competitors.js"
 import { Router, type IRouter } from "express"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
 import { checkRateLimit } from "../helpers/rate-limit.js"

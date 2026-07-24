@@ -80,13 +80,13 @@ async function scoreBatch(
     return await withLlmRetries(log, async () => {
       const input = `Sites:\n${JSON.stringify(payload, null, 2)}`
       log.info("llm request", {
-        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
         fallbackModels: FALLBACK_MODELS,
         systemInstructions: SYSTEM_INSTRUCTIONS(product),
         input,
       })
       const { text, cost, modelUsed } = await generateTextWithUsage({
-        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+        model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
         fallbackModels: FALLBACK_MODELS,
         systemInstructions: SYSTEM_INSTRUCTIONS(product),
         input,

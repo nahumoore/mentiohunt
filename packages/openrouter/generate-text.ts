@@ -1,7 +1,7 @@
 import { OpenRouter } from "@openrouter/agent"
 import pLimit, { type LimitFunction } from "p-limit"
 
-import { DEFAULT_GENERATE_TEXT_MODEL, type OpenRouterModel } from "./models.ts"
+import { DEFAULT_GENERATE_TEXT_MODEL, OPENROUTER_MODELS, type OpenRouterModel } from "./models.ts"
 
 type ProcessEnv = {
   env?: Record<string, string | undefined>
@@ -34,12 +34,30 @@ function getOpenRouterApiKey() {
  * timeout budget (same reasoning as apps/server/src/helpers/scraper-limits.ts).
  */
 const MODEL_CONCURRENCY = Number(processEnv?.LLM_MODEL_CONCURRENCY ?? 8)
+
+/**
+ * A flat cap is only safe for models with a deep OpenRouter provider pool.
+ * Checked live via OpenRouter's public `/models/{model}/endpoints` API
+ * (2026-07-24): under our `provider.require_parameters: true` filter (we
+ * always send structured_outputs + reasoning together), qwen3.6-flash has
+ * exactly 1 eligible provider (Alibaba — it's their own model, not rehosted
+ * elsewhere) and glm-4.7-flash has 2 (DeepInfra, Cloudflare). deepseek-v4-pro
+ * and gpt-5.6-luna both have 5+ and were left at the default. A cap of 8 is
+ * trivial to a 7-provider pool but can saturate a 1-provider one outright —
+ * this is why the flat cap shipped 2026-07-21 had no effect on the recurrence.
+ */
+const MODEL_CONCURRENCY_OVERRIDES: Partial<Record<OpenRouterModel, number>> = {
+  [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH]: 2,
+  [OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH]: 3,
+}
+
 const modelLimiters = new Map<string, LimitFunction>()
 
 function limiterFor(modelId: string): LimitFunction {
   let limit = modelLimiters.get(modelId)
   if (!limit) {
-    limit = pLimit(MODEL_CONCURRENCY)
+    const cap = MODEL_CONCURRENCY_OVERRIDES[modelId as OpenRouterModel] ?? MODEL_CONCURRENCY
+    limit = pLimit(cap)
     modelLimiters.set(modelId, limit)
   }
   return limit

@@ -19,7 +19,7 @@ Market price anchors: roughly **$160–$500 per link** in productized offers, wi
 ### Option C: Hybrid
 
 - Base monthly platform/service fee
-- Plus per approved placement
+- Plus per confirmed placement
 
 ## Pricing principle
 
@@ -27,6 +27,6 @@ Charge for:
 - quality tier
 - relevance tier
 - content type / placement type
-- optional manual approvals / higher control
+- optional manual review / higher control tiers
 
 Do **not** compete on cheapest-links positioning.

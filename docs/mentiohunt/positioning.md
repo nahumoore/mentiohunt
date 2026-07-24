@@ -2,15 +2,15 @@
 
 ## Positioning statement
 
-**Mentiohunt helps founder-led B2B SaaS teams acquire relevant backlinks without running outreach themselves. We handle prospect discovery, outreach, and placement coordination, while the customer simply approves or rejects opportunities.**
+**Mentiohunt helps founder-led B2B SaaS teams acquire relevant backlinks without running outreach themselves. We handle prospect discovery, outreach, and placement coordination automatically — the customer's role is to monitor the queue and cancel anything that isn't a fit.**
 
 ### Short version
 
-**Managed backlink placements with approval control.**
+**Managed backlink placements on autopilot.**
 
 ### Even tighter version
 
-**You approve. We build the backlinks.**
+**We build the backlinks. You stay in control.**
 
 ---
 
@@ -18,11 +18,11 @@
 
 ### Best overall
 
-**Mentiohunt is a managed backlink placement autopilot for lean B2B SaaS teams: we discover opportunities, run outreach, and manage placements while you simply approve or reject them.**
+**Mentiohunt is a managed backlink placement autopilot for lean B2B SaaS teams: we discover opportunities, run outreach, and manage placements automatically while you monitor progress and cancel what isn't a fit.**
 
 ### Best punchy version
 
-**You approve. We handle backlink discovery and outreach.**
+**We handle backlink discovery and outreach. You stay in control.**
 
 ### Best agency-contrast version
 
@@ -38,7 +38,7 @@
 
 ### Best concise category description
 
-**Mentiohunt is the approval layer for managed backlink acquisition.**
+**Mentiohunt is the autopilot layer for managed backlink acquisition.**
 
 ### Best expanded version
 

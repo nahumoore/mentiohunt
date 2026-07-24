@@ -3,10 +3,11 @@
 ## What Mentiohunt should be differentiated on
 
 1. **Managed end-to-end execution** — not just software
-2. **Approval-based control** — customers can review domains/opportunities before placement
+2. **Autopilot with monitor-and-cancel control** — outreach auto-schedules on discovery, customers can cancel anything that isn't a fit
 3. **Transparency** — show why each opportunity is a fit
 4. **Relevance over volume** — fewer, better placements
 5. **Operational simplicity** — customer doesn't manage outreach
+6. **Clean sending** — outreach runs from Mentiohunt's pool accounts, not the customer's mailbox or domain, until a prospect replies
 
 ## What Mentiohunt should NOT lead with
 
@@ -30,7 +31,7 @@ Three broad buckets currently exist:
 
 2. **Managed placements / done-for-you services** (uSERP, Jeenam, Editorial.Link)
    - Strength: convenience, end-to-end execution
-   - Weakness: black-box, minimum $1K–5K/mo, recycled domain inventory across clients, no pre-placement approval
+   - Weakness: black-box, minimum $1K–5K/mo, recycled domain inventory across clients, no visibility or cancel control before placement
 
 3. **Backlink-adjacent management tools** (backlink CRMs / monitoring)
    - Strength: tracking and reporting
@@ -40,7 +41,7 @@ Three broad buckets currently exist:
 
 ### Competitive landscape (named players)
 
-| Product | Type | Min. Entry | Approval Workflow | SaaS-Specific | Fit for Tier 1 ICP |
+| Product | Type | Min. Entry | Monitor & Cancel Control | SaaS-Specific | Fit for Tier 1 ICP |
 |---|---|---|---|---|---|
 | uSERP | Agency | $5,000/mo | No | Yes | ❌ Priced out |
 | Editorial.Link | Per-link marketplace | $300/link | No | Partial | ⚠️ Expensive at scale |
@@ -58,13 +59,13 @@ The most frequent specific complaint across agencies and marketplaces is not jus
 
 ## Differentiation pillars
 
-### 1. Approval-first by default
+### 1. Autopilot by default, with cancel control
 
 Competitor weakness: control often costs extra or sits inside a heavier process.
 
 Mentiohunt response:
-- approval is a core product behavior, not an upsell
-- customers can review each opportunity or define rules and stay hands-off
+- outreach auto-schedules the moment an opportunity is discovered — no queue to babysit
+- customers monitor the queue and cancel anything that isn't a fit, instead of gatekeeping every send
 
 **You control the standards. We run the outreach.**
 
@@ -89,9 +90,9 @@ Mentiohunt response:
 - no complex outreach workstation
 - no campaign babysitting
 - no heavy operational setup
-- just a compact approval workflow and clear status visibility
+- just a compact monitoring queue and clear status visibility
 
-**Not another outreach workstation. Just a backlink approval queue.**
+**Not another outreach workstation. Just a backlink opportunity queue.**
 
 ### 4. Transparent managed execution
 
@@ -102,7 +103,7 @@ Mentiohunt response — show for each opportunity:
 - fit rationale
 - placement type
 - pricing context if relevant
-- outreach / approval / placement status
+- outreach / reply / placement status
 - user guardrails applied
 
 **Agency-grade execution, without agency opacity.**
@@ -131,4 +132,4 @@ Avoid leading with:
 - generic cold email automation
 - "more campaigns faster" messaging
 
-Why: pulls Mentiohunt toward the crowded outbound-tool category, attracts operator/tool buyers rather than founder-led buyers, and weakens the approval-based, trust-based positioning advantage.
+Why: pulls Mentiohunt toward the crowded outbound-tool category, attracts operator/tool buyers rather than founder-led buyers, and weakens the autopilot, trust-based positioning advantage.

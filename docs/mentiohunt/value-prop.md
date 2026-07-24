@@ -6,7 +6,8 @@
 - Run outreach on the customer's behalf
 - Secure placements
 - Reduce founder/marketing team time spent on link building
-- Give visibility into each opportunity before approval
+- Give visibility into each opportunity as it moves through outreach, with the ability to cancel anything that isn't a fit
+- Keep the customer's inbox and domain reputation clean — outreach runs from Mentiohunt's pool accounts until a prospect replies
 
 ## Emotional value
 

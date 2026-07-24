@@ -1,4 +1,12 @@
-import { IconCheck, IconDatabase, IconX } from "@tabler/icons-react"
+import {
+  IconArrowBackUp,
+  IconCheck,
+  IconDatabase,
+  IconMailForward,
+  IconMailOpened,
+  IconSend,
+  IconX,
+} from "@tabler/icons-react"
 import { type ComponentType } from "react"
 
 type Benefit = {
@@ -172,6 +180,82 @@ function AgencyIllustration() {
               <span className="font-bold text-red-500">$250.</span>
             </p>
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const INBOX_STEPS = [
+  {
+    Icon: IconSend,
+    title: "Sent from pool inbox #14",
+    subtitle: "warmed account, not your domain",
+  },
+  {
+    Icon: IconMailOpened,
+    title: "Prospect opens & reads",
+    subtitle: "your sender reputation untouched",
+  },
+  {
+    Icon: IconArrowBackUp,
+    title: "Prospect replies",
+    subtitle: "automation stops here",
+  },
+  {
+    Icon: IconMailForward,
+    title: "Forwarded to your inbox",
+    subtitle: "you take it from there",
+    final: true,
+  },
+]
+
+function InboxSafetyIllustration() {
+  return (
+    <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-card p-5 shadow-[0_18px_60px_-32px_rgba(0,0,0,0.45)] sm:p-6">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-blaze-orange)]/60 to-transparent" />
+      <div className="pointer-events-none absolute -bottom-12 -right-12 h-36 w-36 rounded-full bg-[var(--color-princeton-orange)]/10 blur-3xl" />
+
+      <div className="relative">
+        <p className="mb-4 text-[0.62rem] font-bold text-muted-foreground uppercase">
+          What happens to a reply
+        </p>
+
+        <div className="space-y-0">
+          {INBOX_STEPS.map((step, i) => (
+            <div key={step.title} className="flex gap-3.5">
+              <div className="flex flex-col items-center">
+                <div
+                  className={
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full " +
+                    (step.final
+                      ? "bg-[var(--color-blaze-orange)] text-white"
+                      : "bg-[var(--color-blaze-orange)]/10 text-[var(--color-blaze-orange)]")
+                  }
+                >
+                  <step.Icon className="h-4 w-4" />
+                </div>
+                {i < INBOX_STEPS.length - 1 && (
+                  <div className="my-1 w-px flex-1 bg-border" />
+                )}
+              </div>
+              <div className={i < INBOX_STEPS.length - 1 ? "pb-5" : ""}>
+                <p
+                  className={
+                    "pt-1 text-sm font-semibold " +
+                    (step.final
+                      ? "text-[var(--color-blaze-orange)]"
+                      : "text-foreground")
+                  }
+                >
+                  {step.title}
+                </p>
+                <p className="mt-0.5 text-[0.68rem] text-muted-foreground">
+                  {step.subtitle}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -438,6 +522,13 @@ const BENEFITS: Benefit[] = [
     description:
       "Agencies charge 2–3× the link value and pocket the difference. Mentiohunt charges for the software — 0% commission, no hidden markup. You see every number: what the site asked, what we evaluated, what you pay. If you've paid an agency retainer and have nothing to show for it, this is built for you.",
     Illustration: AgencyIllustration,
+  },
+  {
+    eyebrow: "Outreach, isolated",
+    title: "Your inbox and domain never touch outreach volume.",
+    description:
+      "Outreach sends from Mentiohunt's warmed sending pool, never your domain or inbox. Bounces and spam complaints stay on our infrastructure, not your reputation. The moment a prospect replies, we forward the thread to your personal email — you take it from there.",
+    Illustration: InboxSafetyIllustration,
   },
   {
     eyebrow: "Live, not stale",

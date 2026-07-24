@@ -46,5 +46,5 @@ export async function getDomainRating(target: string): Promise<number | null> {
 
   const json = (await res.json()) as AhrefsDomainRatingResponse
   const value = json.domain_rating?.domain_rating
-  return typeof value === "number" && Number.isFinite(value) ? value : null
+  return typeof value === "number" && Number.isFinite(value) ? Math.round(value) : null
 }

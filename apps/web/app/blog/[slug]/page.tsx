@@ -55,6 +55,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
+
+  if (!getResourceSlugs("articles").includes(slug)) return {}
+
   const post = getPostBySlug(slug, "articles")
 
   if (!post) return {}
@@ -88,6 +91,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogArticlePage({ params }: Props) {
   const { slug } = await params
+
+  if (!getResourceSlugs("articles").includes(slug)) notFound()
+
   const post = getPostBySlug(slug, "articles")
 
   if (!post) notFound()

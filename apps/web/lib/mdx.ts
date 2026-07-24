@@ -131,6 +131,10 @@ export function getPostBySlug(
       content,
     }
   } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return null
+    }
+
     console.error(`Error processing ${slug}.mdx:`, error)
     return null
   }

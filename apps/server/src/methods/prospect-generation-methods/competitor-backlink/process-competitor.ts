@@ -42,7 +42,7 @@ export async function processCompetitor(
     const { items: rawItems, nextCursor, costUsd: fetchCost } = await extractBacklinks(competitorDomain, { ...settings, mozCursor, limit: fetchLimit })
     const tagged: TaggedBacklinkItem[] = rawItems.map((item) => ({ ...item, competitorDomain }))
 
-    const filtered = filterBacklinks(tagged, settings)
+    const filtered = filterBacklinks(tagged, settings, product.website_url)
     if (filtered.length === 0) {
       log.info("competitor digest", {
         competitorDomain,

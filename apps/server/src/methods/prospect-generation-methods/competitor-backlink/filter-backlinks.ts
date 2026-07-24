@@ -17,7 +17,8 @@ export type FilterSettings = {
 
 export function filterBacklinks(
   items: TaggedBacklinkItem[],
-  settings: FilterSettings
+  settings: FilterSettings,
+  ownDomain?: string
 ): TaggedBacklinkItem[] {
   // Apply DR range filter
   const drFiltered = items.filter((item) => {
@@ -36,13 +37,29 @@ export function filterBacklinks(
   })
 
   // Remove noise
-  const clean = drFiltered.filter((item) => !isNoisyUrl(item.urlFrom))
+  const noiseFiltered = drFiltered.filter((item) => !isNoisyUrl(item.urlFrom))
 
   log.info("noise filter", {
     before: drFiltered.length,
-    after: clean.length,
-    dropped: drFiltered.length - clean.length,
+    after: noiseFiltered.length,
+    dropped: drFiltered.length - noiseFiltered.length,
   })
+
+  // Drop backlinks that originate from the product's own site — a self-referencing
+  // comparison/blog page is not an outreach prospect, it's the user's own domain.
+  const normalizedOwnDomain = ownDomain ? extractDomainFromUrl(ownDomain) : null
+  const clean = normalizedOwnDomain
+    ? noiseFiltered.filter((item) => extractDomainFromUrl(item.urlFrom) !== normalizedOwnDomain)
+    : noiseFiltered
+
+  if (normalizedOwnDomain) {
+    log.info("own-domain filter", {
+      before: noiseFiltered.length,
+      after: clean.length,
+      dropped: noiseFiltered.length - clean.length,
+      ownDomain: normalizedOwnDomain,
+    })
+  }
 
   // Group by competitor domain, dedup by linking domain (keep highest DR), cap at 15
   const byCompetitor = new Map<string, TaggedBacklinkItem[]>()

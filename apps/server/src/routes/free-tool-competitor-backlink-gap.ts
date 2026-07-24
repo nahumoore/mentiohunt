@@ -100,10 +100,11 @@ freeToolCompetitorBacklinkGapRouter.post("/free-tool/competitor-backlink-gap", a
       )
 
       const allTagged = extracted.flatMap((e) => e.tagged)
-      const filtered = filterBacklinks(allTagged, {
-        dr_min: MIN_DOMAIN_RATING,
-        dr_max: MAX_DOMAIN_RATING,
-      })
+      const filtered = filterBacklinks(
+        allTagged,
+        { dr_min: MIN_DOMAIN_RATING, dr_max: MAX_DOMAIN_RATING },
+        hostname
+      )
 
       const byCompetitor = new Map<string, TaggedBacklinkItem[]>()
       for (const item of filtered) {

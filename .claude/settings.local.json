@@ -22,7 +22,9 @@
       "WebFetch(domain:docs.ahrefs.com)",
       "WebFetch(domain:moz.com)",
       "WebFetch(domain:developers.moz.com)",
-      "mcp__plugin_posthog_posthog__exec"
+      "mcp__plugin_posthog_posthog__exec",
+      "Bash(awk '/^---/{c++; print; next} c==1{print} c==2{exit}' resources/backlinks-from/reddit.mdx)",
+      "Bash(awk '/^---/{c++; print; next} c==1{print} c==2{exit}' resources/articles/how-to-find-backlink-opportunities.mdx)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -16,8 +16,8 @@ export const OPENROUTER_MODELS = {
   // DeepSeek V4 Pro.
   // OpenRouter page: https://openrouter.ai/deepseek/deepseek-v4-pro
   // Description: DeepSeek reasoning model for capable production chat and extraction use cases.
-  // Pricing: see OpenRouter model page.
-  // Context window: see OpenRouter model page.
+  // Pricing: $0.435 / 1M input tokens, $0.87 / 1M output tokens.
+  // Context window: 1,000,000 tokens.
   DEEPSEEK_DEEPSEEK_V4_PRO: "deepseek/deepseek-v4-pro",
 
   // Z AI GLM 4.7 Flash.

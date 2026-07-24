@@ -11,9 +11,9 @@ from pydantic import BaseModel
 
 log = logging.getLogger("scraper")
 
-MODEL = "deepseek/deepseek-v4-pro"
+MODEL = "z-ai/glm-4.7-flash"
 FALLBACK_MODEL = "google/gemini-2.5-flash"
-EMPTY_RESPONSE_FALLBACK_MODEL = "z-ai/glm-4.7-flash"  # retried when a model returns 200 OK with no tool_calls (OpenRouter "zero completion" glitch), distinct from FALLBACK_MODEL used for hard exceptions
+EMPTY_RESPONSE_FALLBACK_MODEL = "deepseek/deepseek-v4-flash"  # retried when a model returns 200 OK with no tool_calls (OpenRouter "zero completion" glitch), distinct from FALLBACK_MODEL used for hard exceptions
 MAX_PAGES = 6
 AGENT_BUDGET_SECONDS = 100  # wall-clock cap; must land under the server's 120s AbortSignal
 MODEL_CALL_TIMEOUT_SECONDS = 30  # hard backstop — the SDK's `timeout=` kwarg only bounds gaps between chunks, not total call duration, and deepseek-v4-pro has been observed taking 150s+ on OpenRouter; the fast fallback model makes bailing out early worth it
@@ -714,6 +714,10 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 log.error(f"agent: fallback model also failed ({type(e2).__name__}: {e2}), stopping with data gathered so far")
                 break
 
+        if not resp.choices:
+            log.error("agent: model response had no choices (malformed 200), stopping with data gathered so far")
+            break
+
         msg = resp.choices[0].message
         tool_names = [tc.function.name for tc in (msg.tool_calls or [])]
         if len(tool_names) > 5:
@@ -738,9 +742,12 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                         ),
                         timeout=MODEL_CALL_TIMEOUT_SECONDS,
                     )
-                    msg = resp.choices[0].message
-                    tool_names = [tc.function.name for tc in (msg.tool_calls or [])]
-                    log.info(f"agent response (empty-retry): finish_reason={resp.choices[0].finish_reason} tool_calls={tool_names}")
+                    if not resp.choices:
+                        log.error("agent: empty-response fallback returned no choices (malformed 200), stopping with data gathered so far")
+                    else:
+                        msg = resp.choices[0].message
+                        tool_names = [tc.function.name for tc in (msg.tool_calls or [])]
+                        log.info(f"agent response (empty-retry): finish_reason={resp.choices[0].finish_reason} tool_calls={tool_names}")
                 except Exception as e:
                     log.error(f"agent: empty-response fallback also failed ({type(e).__name__}: {e}), stopping with data gathered so far")
 
@@ -847,7 +854,10 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
 
     # Cross-check: only keep social links actually seen during the crawl.
     # Drops hallucinated LinkedIn/Twitter URLs that never appeared on the site.
-    llm_socials: dict = finish_result.get("social_links") or {}
+    raw_socials = finish_result.get("social_links")
+    if raw_socials and not isinstance(raw_socials, dict):
+        log.warning(f"agent: social_links came back as {type(raw_socials).__name__}, not object — ignoring: {raw_socials!r}")
+    llm_socials: dict = raw_socials if isinstance(raw_socials, dict) else {}
     final_social: dict = {}
     for platform, link in llm_socials.items():
         if platform in seen_socials:

@@ -135,6 +135,10 @@ _PROXY_INFRA_SIGNATURES = (
     "ERR_PROXY_AUTH",
     "proxy connection",
     "connection refused",
+    # Session-wiring mismatch (e.g. AsyncStealthySession started without
+    # proxy_rotator so self.browser is None) — not proxy-reachability, but same
+    # dead end for a proxied call, so treat it as infra and fall back direct.
+    "browser not initialized",
 )
 
 # Sentinel distinct from None: the proxy infra failed, so the caller should

@@ -87,6 +87,12 @@ def _execution_log(route: str):
 _dynamic_session = None
 _stealthy_session = None
 
+# Async factory that builds + starts a fresh AsyncStealthySession with the same
+# kwargs as the original (set by main.py's lifespan). Used to replace
+# _stealthy_session after its shared browser context dies — see
+# _restart_stealthy_session_if_needed below.
+_stealthy_session_factory = None
+
 _cf_blocked_domains: set[str] = set()
 
 
@@ -145,6 +151,40 @@ _PROXY_INFRA_SIGNATURES = (
 # retry the same fetch directly. None still means "give up on this URL".
 _INFRA_FAILURE = object()
 
+# The one shared persistent browser context backing _stealthy_session died
+# (Chromium/Camoufox process crashed or was torn down, most likely OOM under a
+# cron-burst concurrency spike — see 2026-07-22-stealthy-browser-context-crash.md).
+# Every concurrent caller hits this identically until the session is replaced,
+# so it's a distinct sentinel from a plain fetch error: the caller should
+# restart the shared session (once, not once per caller) and retry.
+_CONTEXT_DEAD = object()
+_CONTEXT_DEAD_SIGNATURE = "context or browser has been closed"
+
+# Serializes session restarts so a burst of callers hitting the same dead
+# context trigger exactly one restart, not one each. Callers that lose the
+# race just wait for the lock, then see the fresh session already swapped in
+# by the winner (checked via identity, not a counter).
+_stealthy_restart_lock = asyncio.Lock()
+
+
+async def _restart_stealthy_session_if_needed(dead_session) -> None:
+    """Replace the shared stealthy session after its browser context died.
+    `dead_session` is whatever the caller observed _stealthy_session to be
+    before it hit the error — if it no longer matches the live
+    _stealthy_session by the time this acquires the lock, another caller
+    already restarted it, so this is a no-op."""
+    global _stealthy_session
+    async with _stealthy_restart_lock:
+        if _stealthy_session is not dead_session:
+            return
+        log.error("stealthy browser context died — restarting shared stealthy session")
+        try:
+            await dead_session.close()
+        except Exception as e:
+            log.warning(f"error closing dead stealthy session (ignoring): {e}")
+        _stealthy_session = await _stealthy_session_factory()
+        log.info("stealthy session restarted")
+
 
 # --- Global concurrency gates --------------------------------------------------
 # Single uvicorn worker (see Dockerfile CMD, no --workers flag) so these
@@ -169,11 +209,26 @@ _LIGHT_CONCURRENCY = int(os.getenv("SCRAPE_LIGHT_CONCURRENCY", "16"))
 _heavy_semaphore = asyncio.Semaphore(_HEAVY_CONCURRENCY)
 _light_semaphore = asyncio.Semaphore(_LIGHT_CONCURRENCY)
 
+# Third pool gating entry into fetch_page's stealthy (Camoufox) escalation tier
+# specifically — independent of heavy/light route-entry caps. Up to
+# _HEAVY_CONCURRENCY + _LIGHT_CONCURRENCY callers can independently escalate
+# into the stealthy tier at once (route-level caps don't protect against that,
+# see 2026-07-22-stealthy-browser-context-crash.md); Scrapling's own
+# _STEALTHY_MAX_PAGES page-pool queues callers for a free page but does not cap
+# how many pile up waiting, which is plausibly what starves/crashes the single
+# shared browser context under cron-burst concurrency. Sized well below
+# STEALTHY_MAX_PAGES's page pool by default so this queues before that does.
+_STEALTHY_CONCURRENCY = int(os.getenv("SCRAPE_STEALTHY_CONCURRENCY", "3"))
+_stealthy_semaphore = asyncio.Semaphore(_STEALTHY_CONCURRENCY)
+
+_SEMAPHORES = {"heavy": _heavy_semaphore, "light": _light_semaphore, "stealthy": _stealthy_semaphore}
+
 # Live occupancy per pool, for the /health endpoint and queue logging. Guarded
 # only by the single-threaded event loop — no lock needed.
 _pool_stats = {
     "heavy": {"active": 0, "waiting": 0, "capacity": _HEAVY_CONCURRENCY},
     "light": {"active": 0, "waiting": 0, "capacity": _LIGHT_CONCURRENCY},
+    "stealthy": {"active": 0, "waiting": 0, "capacity": _STEALTHY_CONCURRENCY},
 }
 
 
@@ -183,9 +238,10 @@ def pool_stats() -> dict:
 
 @asynccontextmanager
 async def _scrape_slot(pool: str):
-    """Acquire a global concurrency slot for the given pool ("heavy" | "light").
-    Blocks (does not fail) while the pool is full — callers just wait in line."""
-    semaphore = _heavy_semaphore if pool == "heavy" else _light_semaphore
+    """Acquire a global concurrency slot for the given pool ("heavy" | "light" |
+    "stealthy"). Blocks (does not fail) while the pool is full — callers just
+    wait in line."""
+    semaphore = _SEMAPHORES[pool]
     stats = _pool_stats[pool]
     waited = semaphore.locked()
     if waited:
@@ -496,6 +552,10 @@ async def _stealthy_attempt(url: str, host: str, proxy: dict[str, str] | None):
         return page
     except Exception as e:
         msg = str(e)
+        if _CONTEXT_DEAD_SIGNATURE in msg.lower():
+            log.error(f"stealthy ({via}): shared browser context dead {url}: {e}")
+            log.info(f"fetch_outcome=context_dead via={via} host={host} url={url}")
+            return _CONTEXT_DEAD
         if proxy and any(sig.lower() in msg.lower() for sig in _PROXY_INFRA_SIGNATURES):
             log.warning(f"stealthy ({via}): proxy infra error {url}: {e}")
             log.info(f"fetch_outcome=proxy_infra_failure host={host} url={url}")
@@ -556,24 +616,51 @@ async def fetch_page(url: str):
     except Exception as e:
         log.warning(f"dynamic fetch failed {url}: {e}, escalating to stealthy")
 
-    # Stealthy (Cloudflare) tier. When a residential proxy is configured and
-    # currently healthy, try it first — it's the only tier where the datacenter
-    # IP actually loses. On a proxy INFRA failure (proxy unreachable/auth, which
-    # fails fast) fall back to a direct attempt so a dead proxy never takes down
-    # all stealthy fetches, and trip a cooldown so the next fetches skip straight
-    # to direct. A timeout or genuine CF block is NOT an infra failure: the proxy
-    # worked and the site is just hard, so we don't waste a second full attempt.
+    # Stealthy (Cloudflare) tier. Gated by its own semaphore (separate from the
+    # heavy/light route-entry pools) so a cron burst can't pile every concurrent
+    # task onto the single shared browser context at once.
     log.info(f"fetching stealthy {url}")
+    async with _scrape_slot("stealthy"):
+        return await _stealthy_fetch_with_recovery(url, host)
+
+
+async def _stealthy_fetch_with_recovery(url: str, host: str):
+    """Run the stealthy tier, recovering once from a dead shared browser
+    context: restart the shared session and retry the whole tier exactly once,
+    then give up rather than retry forever against a context that keeps dying."""
+    for attempt in range(2):
+        session_before = _stealthy_session
+        result = await _stealthy_tier_attempt(url, host)
+
+        if result is _CONTEXT_DEAD:
+            if attempt == 0:
+                await _restart_stealthy_session_if_needed(session_before)
+                continue
+            log.error(f"stealthy fetch still failing after session restart {url}")
+            return None
+
+        return None if result is _INFRA_FAILURE else result
+
+    return None  # pragma: no cover — loop always returns or continues once
+
+
+async def _stealthy_tier_attempt(url: str, host: str):
+    """One pass through the stealthy tier: proxy-first with a direct fallback
+    on proxy infra failure. When a residential proxy is configured and
+    currently healthy, try it first — it's the only tier where the datacenter
+    IP actually loses. On a proxy INFRA failure (proxy unreachable/auth, which
+    fails fast) fall back to a direct attempt so a dead proxy never takes down
+    all stealthy fetches, and trip a cooldown so the next fetches skip straight
+    to direct. A timeout or genuine CF block is NOT an infra failure: the proxy
+    worked and the site is just hard, so we don't waste a second full attempt."""
     use_proxy = _STEALTHY_PROXY is not None and not _proxy_in_cooldown()
     if use_proxy:
         result = await _stealthy_attempt(url, host, proxy=_STEALTHY_PROXY)
         if result is _INFRA_FAILURE:
             _trip_proxy_cooldown()
             result = await _stealthy_attempt(url, host, proxy=None)
-    else:
-        result = await _stealthy_attempt(url, host, proxy=None)
-
-    return None if result is _INFRA_FAILURE else result
+        return result
+    return await _stealthy_attempt(url, host, proxy=None)
 
 
 def find_contact_form_url(page, base_url: str) -> str | None:

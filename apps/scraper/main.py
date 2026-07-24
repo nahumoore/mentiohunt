@@ -21,6 +21,38 @@ _DYNAMIC_MAX_PAGES = int(os.getenv("DYNAMIC_MAX_PAGES", "12"))
 _STEALTHY_MAX_PAGES = int(os.getenv("STEALTHY_MAX_PAGES", "3"))
 
 
+def _stealthy_session_kwargs() -> dict:
+    kwargs = dict(
+        max_pages=_STEALTHY_MAX_PAGES,
+        headless=True,
+        solve_cloudflare=True,
+        # Block WebRTC so a proxied fetch can't leak the Railway origin IP
+        # around the proxy and undermine the residential appearance. Harmless
+        # for the direct path. Per-request proxy is applied in core.fetch_page.
+        block_webrtc=True,
+        timeout=60000,
+    )
+    if core._STEALTHY_PROXY is not None:
+        # proxy_rotator just needs to be set (truthy) at session-start so
+        # scrapling launches self.browser instead of a persistent context —
+        # core.fetch_page always passes an explicit per-request proxy=, so
+        # the rotator's own get_proxy() is never actually called.
+        kwargs["proxy_rotator"] = ProxyRotator([core._STEALTHY_PROXY])
+    return kwargs
+
+
+async def _create_stealthy_session() -> AsyncStealthySession:
+    """Build + start a fresh stealthy session. Registered on core as the
+    restart factory so core._restart_stealthy_session_if_needed can replace
+    the shared session in place after its browser context dies — see
+    2026-07-22-stealthy-browser-context-crash.md. Not context-managed (no
+    `async with`) because the instance this creates may not be the one still
+    live at shutdown; lifespan below closes whichever is current instead."""
+    session = AsyncStealthySession(**_stealthy_session_kwargs())
+    await session.start()
+    return session
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if not os.getenv("API_KEY"):
@@ -33,26 +65,15 @@ async def lifespan(app: FastAPI):
         block_ads=True,
         timeout=60000,
     ) as dynamic_session:
-        stealthy_kwargs = dict(
-            max_pages=_STEALTHY_MAX_PAGES,
-            headless=True,
-            solve_cloudflare=True,
-            # Block WebRTC so a proxied fetch can't leak the Railway origin IP
-            # around the proxy and undermine the residential appearance. Harmless
-            # for the direct path. Per-request proxy is applied in core.fetch_page.
-            block_webrtc=True,
-            timeout=60000,
-        )
-        if core._STEALTHY_PROXY is not None:
-            # proxy_rotator just needs to be set (truthy) at session-start so
-            # scrapling launches self.browser instead of a persistent context —
-            # core.fetch_page always passes an explicit per-request proxy=, so
-            # the rotator's own get_proxy() is never actually called.
-            stealthy_kwargs["proxy_rotator"] = ProxyRotator([core._STEALTHY_PROXY])
-        async with AsyncStealthySession(**stealthy_kwargs) as stealthy_session:
-            core._dynamic_session = dynamic_session
-            core._stealthy_session = stealthy_session
+        core._dynamic_session = dynamic_session
+        core._stealthy_session_factory = _create_stealthy_session
+        core._stealthy_session = await _create_stealthy_session()
+        try:
             yield
+        finally:
+            # Close whichever session is current — a mid-run restart (core.py)
+            # may have swapped this out from the one created above.
+            await core._stealthy_session.close()
 
 
 app = FastAPI(title="Scraper Service", lifespan=lifespan)

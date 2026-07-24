@@ -24,3 +24,22 @@ When it hits, every in-flight stealthy-tier fetch across every concurrent produc
 - If confirmed, add a supervisor around `_stealthy_session`: detect a dead/closed context (e.g. catch the `new_page` "closed" exception once, then `restart()` the session) rather than letting every queued caller hit the same dead context independently.
 - Consider whether the stealthy tier needs its own semaphore (like the light/heavy tiers) sized to what the single shared browser context can actually survive under concurrent load, separate from `_STEALTHY_MAX_PAGES`'s page-pool queuing.
 - Same recurring theme as `apify-actor-500-no-retry.md` and `llm-shared-model-concurrency.md`: shared process-wide resources with no cap tuned to actual capacity, hit hardest at cron-burst concurrency peaks. Worth treating as one class of problem across all three rather than three separate fixes.
+
+## Update 2026-07-24 — supervisor + semaphore actioned
+
+Confirmed the root cause against the actual scrapling 0.4.11 source (the local `.venv` had a stale 0.2.9 install with a different module layout): `AsyncSession._get_page()` in `_browsers/_base.py` calls `await ctx.new_page()` on the shared persistent context with no try/except around it, and `fetch()`'s retry loop in `_browsers/_stealth.py` doesn't wrap that call either — so a dead context surfaces uncaught to every concurrent caller with no library-level recovery path. Ticket's analysis was accurate.
+
+Changes in `apps/scraper/core.py`:
+- `_CONTEXT_DEAD` sentinel — `_stealthy_attempt` now recognizes the `"context or browser has been closed"` signature and returns it instead of falling through to the generic error path.
+- `_restart_stealthy_session_if_needed()` — lock + identity-check supervisor so a burst of callers hitting the same dead context triggers exactly one restart; the rest just retry against the session the winner already swapped in.
+- `_stealthy_fetch_with_recovery()` — restart once, retry the stealthy tier once, then give up (bounded, no infinite retry loop).
+- New `stealthy` concurrency pool (`SCRAPE_STEALTHY_CONCURRENCY`, default 3) gating entry into the stealthy escalation tier itself, addressing the "no concurrency cap protects the shared context" root cause directly — separate from `_STEALTHY_MAX_PAGES`'s internal page-pool queuing.
+
+Changes in `apps/scraper/main.py`:
+- Stealthy session is now built via a restartable async factory (`_create_stealthy_session`, registered on `core._stealthy_session_factory`) instead of a fixed `async with`-managed singleton, so `core.py` can swap it out mid-run; shutdown closes whichever session is current.
+
+### Still open
+- **Not yet verified against a real crash.** Code compiles and the logic has been reasoned through, but there's no confirmation the restart-and-recover path fires correctly until it's deployed and observed through a real 07:00/19:00 UTC cron burst.
+- **Crash mechanism still unconfirmed.** The recommendation above to check Railway memory/restart metrics for the `scraping` service was not done — this fix makes the service self-heal from the crash, it doesn't address why the browser process dies in the first place. If it's OOM, may still need to tune `SCRAPE_STEALTHY_CONCURRENCY` down further or increase Railway memory.
+- After deploy, watch `/health`'s new `stealthy` pool stats and grep logs for `"stealthy session restarted"` to confirm this actually fires when expected.
+- The cross-cutting "shared resource, no cap" theme across `apify-actor-500-no-retry.md` and `llm-shared-model-concurrency.md` is still unaddressed — this ticket only fixes the stealthy-context instance of it.

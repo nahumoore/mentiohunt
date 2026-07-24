@@ -47,7 +47,7 @@ _NAME_FAILURE_SUBSTRINGS = [
 
 def _clean_name(name: str | None) -> str | None:
     """Sanitize LLM-produced contact name; returns None for garbage values."""
-    if not name:
+    if not isinstance(name, str) or not name:
         return None
     trimmed = name.strip()
     if not trimmed or len(trimmed) > 60:
@@ -66,7 +66,7 @@ def _clean_name(name: str | None) -> str | None:
 
 def _clean_bio(bio: str | None) -> str | None:
     """Drop LLM-produced bio text that actually describes a scrape/access failure."""
-    if not bio:
+    if not isinstance(bio, str) or not bio:
         return None
     trimmed = bio.strip()
     if not trimmed:

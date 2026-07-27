@@ -30,6 +30,7 @@ const productLinks = [
 const resourceLinks = [
   { href: "/blog", label: "Blog" },
   { href: "/backlinks-from", label: "Backlinks From" },
+  { href: "/outreach-templates", label: "Outreach Templates" },
   { href: "/free-tools", label: "Free Tools" },
   { href: "/directory-submission", label: "Submit a Directory" },
   { href: "/about", label: "About" },

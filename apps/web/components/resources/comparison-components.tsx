@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 import {
   IconArrowRight,
   IconArrowUp,
@@ -7,6 +8,7 @@ import {
   IconCheck,
   IconStar,
   IconTargetArrow,
+  IconTrendingUp,
 } from "@tabler/icons-react"
 
 /* ── QuickVerdict ─────────────────────────────────────────────────── */
@@ -409,6 +411,92 @@ export function PricingComparison({ toolA, toolB, plansA, plansB, noteA, noteB }
           ))}
         </div>
         {noteB && <p className="mt-3 text-xs text-muted-foreground">{noteB}</p>}
+      </div>
+    </div>
+  )
+}
+
+/* ── StatGrid ─────────────────────────────────────────────────────── */
+// stats: pipe-delimited "value:label:source?"  source may be a bare label or a full URL
+// e.g. "15–22%:Guest post reply rate:https://reachinbox.ai/blog/guest-posting-outreach/"
+// title: optional eyebrow above the grid
+
+interface StatGridProps {
+  title?: string
+  stats: string
+}
+
+function parseSource(source: string): { text: string; href?: string } {
+  if (!/^https?:\/\//.test(source)) return { text: source }
+
+  try {
+    const hostname = new URL(source).hostname.replace(/^www\./, "")
+    return { text: hostname, href: source }
+  } catch {
+    return { text: source }
+  }
+}
+
+export function StatGrid({ title, stats }: StatGridProps) {
+  const items = stats.split("|").map((s) => {
+    const parts = s.split(":")
+    return {
+      value: parts[0] ?? "",
+      label: parts[1] ?? "",
+      source: parts.length > 2 ? parts.slice(2).join(":") : "",
+    }
+  })
+
+  const cols =
+    items.length >= 4
+      ? "sm:grid-cols-4"
+      : items.length === 3
+        ? "sm:grid-cols-3"
+        : "sm:grid-cols-2"
+
+  return (
+    <div className="my-8 overflow-hidden rounded-xl border border-border">
+      {title && (
+        <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-5 py-3">
+          <IconTrendingUp
+            className="size-3.5 shrink-0 text-(--color-princeton-orange)"
+            stroke={2.5}
+          />
+          <p className="text-[10px] font-bold uppercase text-muted-foreground">
+            {title}
+          </p>
+        </div>
+      )}
+      <div className={cn("grid grid-cols-1 divide-y divide-border sm:divide-x sm:divide-y-0", cols)}>
+        {items.map((item, i) => {
+          const source = item.source ? parseSource(item.source) : null
+
+          return (
+            <div key={i} className="flex flex-col gap-1 p-5">
+              <span className="font-heading text-3xl font-semibold tracking-tight text-(--color-princeton-orange) tabular-nums">
+                {item.value}
+              </span>
+              <span className="text-sm leading-snug text-foreground/85">
+                {item.label}
+              </span>
+              {source &&
+                (source.href ? (
+                  <Link
+                    href={source.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 text-[10px] text-muted-foreground underline decoration-muted-foreground/40 underline-offset-2 transition-colors hover:text-(--color-princeton-orange)"
+                  >
+                    {source.text}
+                  </Link>
+                ) : (
+                  <span className="mt-1 text-[10px] text-muted-foreground">
+                    {source.text}
+                  </span>
+                ))}
+            </div>
+          )
+        })}
       </div>
     </div>
   )

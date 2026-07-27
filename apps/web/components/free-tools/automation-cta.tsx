@@ -7,12 +7,14 @@ export function AutomationCta({
   body,
   ctaLabel = "See how it works",
   ctaHref = "/#how-it-works",
+  helperText,
 }: {
   eyebrow: string
   heading: string
   body: string
   ctaLabel?: string
   ctaHref?: string
+  helperText?: string
 }) {
   return (
     <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[var(--color-blaze-orange-2)] via-[var(--color-blaze-orange)] to-[var(--color-amber-flame)] p-8 shadow-[0_28px_90px_-40px_rgba(255,96,0,0.65)] sm:p-10">
@@ -31,13 +33,18 @@ export function AutomationCta({
           </p>
         </div>
 
-        <Link
-          href={ctaHref}
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-bold text-(--color-blaze-orange) shadow-sm transition-transform hover:-translate-y-0.5"
-        >
-          {ctaLabel}
-          <IconArrowRight size={16} stroke={2.5} />
-        </Link>
+        <div className="flex shrink-0 flex-col items-start gap-3">
+          <Link
+            href={ctaHref}
+            className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-bold text-(--color-blaze-orange) shadow-sm transition-transform hover:-translate-y-0.5"
+          >
+            {ctaLabel}
+            <IconArrowRight size={16} stroke={2.5} />
+          </Link>
+          {helperText && (
+            <span className="text-xs text-white/85">{helperText}</span>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -10,6 +10,7 @@ import {
   PricingNote,
   QuickVerdict,
   ScoreCard,
+  StatGrid,
   ToolStrengths,
   UserOpinion,
   WhenToChoose,
@@ -231,5 +232,6 @@ export default function BlogStylings(): MDXComponents {
     UserOpinion,
     ScoreCard,
     PricingComparison,
+    StatGrid,
   }
 }

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next"
 
+import { getOutreachTemplateSlugs } from "@/components/outreach-templates"
 import { features } from "@/consts/features"
 import { ALL_FREE_TOOL_SLUGS } from "@/consts/free-tools"
 import { getResourceSlugs } from "@/lib/mdx"
@@ -9,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const articleSlugs = getResourceSlugs("articles")
   const backlinksFromSlugs = getResourceSlugs("backlinks-from")
   const compareSlugs = getResourceSlugs("compare")
+  const outreachTemplateSlugs = getOutreachTemplateSlugs()
 
   return [
     {
@@ -87,6 +89,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-05-15"),
       priority: 0.7,
     },
+    {
+      url: "https://mentiohunt.com/outreach-templates",
+      lastModified: new Date("2026-07-25"),
+      priority: 0.8,
+    },
+    ...outreachTemplateSlugs.map((slug) => ({
+      url: `https://mentiohunt.com/outreach-templates/${slug}`,
+      lastModified: new Date("2026-07-25"),
+      priority: 0.75 as const,
+    })),
     { url: "https://mentiohunt.com/privacy", priority: 0.3 as const },
     { url: "https://mentiohunt.com/tos", priority: 0.3 as const },
   ]

@@ -1,70 +1,71 @@
-## Programmatic SEO
+# Programmatic SEO — Mentiohunt
 
-### Secondary Template: `/link-building-for/[niche]`
+_Last validated: 2026-07-25 (DataForSEO Labs US/en + live SERP checks). Original research: 2026-07-21._
 
-Founder/ICP-aligned landing pages. All LOW competition, commercial intent.
+## What this actually is
 
-- [ ] `/link-building-for/ecommerce` — 260/mo, ~24 backlinks to rank. **SERP check (2026-07-21) flags this harder than KD suggests** — live results are dominated by neilpatel.com, wix.com, and conductor.com (enterprise SEO platform), not niche blogs. Beatable eventually, but not the easy win the KD number implies. Don't build first.
-- [ ] `/link-building-for/saas` — 110/mo, ~6 backlinks to rank. DataForSEO KD 1, confirms low-comp. **SERP check confirms**: ranking pages are SEO-agency blogs (seoprofy, linkbuilder.io, cuttingedgepr, digitalgratified, brimcove) — no massive generalist authority sites, genuinely winnable. **Build first, ahead of ecommerce.**
-- [ ] `/link-building-for/startups` — 40/mo
-- [ ] `/link-building-for/b2b` — no volume confirmed, skip for now
-- [ ] `/link-building-for/small-business` — 10/mo, skip
+Two page templates, each spun into multiple URLs from one layout:
 
-**New niches found (DataForSEO Labs, 2026-07-21, US):**
+- **Template A** — `/link-building-for/[niche]` — landing pages for "link building for lawyers", "link building for saas", etc. Audience: someone Googling for a link-building approach/agency in their specific industry.
+- **Template B** — `/outreach-templates/[type]` — landing pages for outreach email templates by scenario (guest post, broken link, backlink request). Same cluster as the blog-post plan in [outreach-email-content-cluster.md](outreach-email-content-cluster.md) — **these are not the same thing**. Template B here = a tool/landing page ("generate your blogger outreach email"). The other doc = blog articles ("how to write a broken-link outreach email"). Decide per-keyword which format wins before building both — don't ship a landing page and a blog post targeting the identical query.
 
-- [ ] `/link-building-for/lawyers` — combine "lawyers" (140) + "attorneys" (140) + "law firms" (50) + "law firm" (50) into one page, target "lawyers" + "law firms" in copy. No KD data (too low comp to have SERP history). **SERP check confirms winnable**: ranking pages are legal-marketing niche sites (Clio, Consultwebs, Custom Legal) plus one SEO blog (seoprofy) — no generalist giants. Strong ICP fit: legal is a common agency-served niche with money to spend.
-- [ ] `/link-building-for/real-estate` — 50/mo, no KD data. **SERP check confirms winnable**: real-estate-marketing niche sites (Carrot, Promodo, LinkBuilder.io, TheHoth, SERPsGrowth, editorial.link) — same pattern as lawyers, no generalist authority blocking it.
-- [ ] `/link-building-for/agencies` — "link building for agencies" 70/mo (KD 33) + "link building for seo agencies" 170/mo (KD 21). **SERP check flags this as the hardest page in the whole cluster, despite LOW competition_level from DataForSEO** — the entire first page is competing link-building agencies (Loganix, Omniscient Digital, KlientBoost, Siege Media, uSERP, Scalerrs), i.e. well-resourced direct competitors writing exactly this content as their own acquisition page. Deprioritize below lawyers/real-estate despite higher volume.
-- [ ] `/link-building-for/local-seo` — 170/mo, KD 10. Distinct intent from niche pages (discipline, not industry) — evaluate as blog angle instead of slug if it reads awkward as "link building for local-seo". Not SERP-checked yet.
+## Verdict: worth building, but only part of it
 
-**Long-tail, low volume (10-30/mo) — watchlist only, don't build standalone yet:** dentists (30), healthcare (10), hvac, automotive, travel websites, photographers, affiliate sites, local businesses (KD 2, easiest of the batch but only 10/mo). Bundle into a future `/link-building-for/[industry]` batch once the first wave proves out, or fold into one longer "link building for local businesses" page covering dentists/hvac/automotive as subsections.
+Yes, build this — cheap pages, real (if small) search volume, no big platform risk. But the original doc mixed genuinely-easy pages with two pages that are harder than the KD score suggested. Re-checked live SERPs for the two flagship claims:
 
----
+- **"link building for saas"** — still winnable, but **not as clean as the July 21 note claimed**. Live SERP now includes `wix.com` (a real generalist authority domain) alongside the expected agency-tier sites (saaslinkbuilder, seoprofy, linkbuilder.io, outreachdesk, digitalgratified). One big domain in the mix, not zero. Still buildable — avg referring domains needed to rank is only ~5 — but "genuinely winnable, no generalist authority sites" is no longer fully accurate.
+- **"link building for lawyers"** — claim holds. Live SERP is 100% legal-marketing/SEO-agency sites (Clio, Consultwebs, PressWhizz, Dagmar, Eversparkinteractive, LinkBuilder.io) — zero generalist giants. Real volume 140/mo, only ~3 referring domains needed on average. This is the actual easiest page in the batch, not saas.
 
-### New Template: `/outreach-templates/[type]`
+Ecommerce, agencies, real estate, startups were **not re-checked live this session** — table below carries forward the July 21 SERP notes with that caveat flagged.
 
-Direct product tie-in — Mentiohunt generates email drafts. Each page: templates for outreach type + CTA to generate for real prospects. All LOW competition.
+## Recommended pages, ranked (Template A)
 
-- [ ] `/outreach-templates/blogger-outreach` — 90/mo, ~21 backlinks to rank. Build first. **SERP check (2026-07-21) confirms winnable**: ranking pages are outreach-tool blogs (Reply.io, Mailshake, Siege Media, Stripo, Roojet, doctorspin, SerpLogic, nightwatch) — same competitive tier as Mentiohunt itself, not generalist authority sites. Product-tie-in angle (real generated drafts, not static templates) is a genuine differentiator against this set.
-- [ ] `/outreach-templates/guest-post` — 30/mo, KD 7
-- [ ] `/outreach-templates/backlink-request` — 20/mo, KD 2 (easiest)
-- [ ] `/outreach-templates/broken-link-building` — 10/mo
-- [ ] `/outreach-templates/podcast` — 10/mo
+| Order | Page | Vol/mo (validated) | Backlinks to compete | SERP composition | Verdict |
+|---|---|---|---|---|---|
+| 1 | `/link-building-for/lawyers` | 140 | ~3 refdomains avg | 100% legal-marketing agencies, no giants | **Build first** — easiest confirmed |
+| 2 | `/link-building-for/saas` | 110 | ~5 refdomains avg | Mostly agency blogs + **one Wix page** | Build second — still soft, but not the zero-competition read from before |
+| 3 | `/link-building-for/real-estate` | 50 | ~1 refdomain avg | Real-estate-marketing niche sites only (not rechecked live, July 21 note) | Build third |
+| 4 | `/link-building-for/startups` | 40 | not pulled | Not SERP-checked | Build after above prove out |
+| 5 | `/link-building-for/ecommerce` | 170 | ~4 refdomains avg | July 21 note: neilpatel.com, wix.com, conductor.com present — **harder than KD implies**. Not rechecked live. | Hold — volume looks good but treat the July 21 warning as current until rechecked |
+| — | `/link-building-for/agencies` | 70 | ~100 refdomains avg | Entire page 1 is competing link-building agencies (Loganix, Omniscient, KlientBoost, Siege Media, uSERP) — this is their own acquisition content | **Skip** — real competitors, not soft |
+| — | `/link-building-for/local-seo` | 170 | not pulled | Different intent (discipline, not industry) — awkward as this slug | Reframe as blog angle, not a niche-template page |
+| — | `/link-building-for/b2b`, `/link-building-for/small-business` | too low/unconfirmed | — | — | Skip |
 
-**GSC validation (mentiohunt.com, 2026-07-21, last 180 days):** real, unanswered demand already hitting the site pre-launch of this cluster — 0 clicks, all ranking below position 40 with no dedicated page targeting these queries:
+Long-tail industries (dentists, healthcare, hvac, automotive, photographers — all 10-30/mo): don't build standalone. Batch into one `/link-building-for/local-businesses` page as subsections once the top 3 prove out.
 
-- "link building outreach" — 33 impressions, pos 83.3
-- "link building email outreach" — 8 impressions, pos 68.6
-- "outreach linkbuilding" — 8 impressions, pos 45.2
-- "link building email" — 4 impressions, pos 63.5
-- "link building follow up" — 4 impressions, pos 44.8
-- "link building email template" — 2 impressions, pos 88.5
-- "link building outreach email templates" — 1 impression, pos 91
+## Template B — `/outreach-templates/[type]` landing pages
 
-Confirms `/outreach-templates/blogger-outreach` as the right page to build first — the site is already getting impressions on adjacent queries with nothing to rank.
+| Page | Vol/mo | KD | Notes |
+|---|---|---|---|
+| `/outreach-templates/blogger-outreach` | 210 (validated, was 90 in July 21 note) | 18 | Volume corrected upward this session. Still low-tier competitors (Reply.io, Mailshake, Siege Media) per July 21 SERP check, not rechecked live. |
+| `/outreach-templates/guest-post` | 30 | 7 | |
+| `/outreach-templates/backlink-request` | 20 | 2 | Easiest in this set |
+| `/outreach-templates/broken-link-building` | 10 (narrow/long-tail phrasing — do not confuse with generic "broken link building" which is 210/mo, KD34, ~107 refdomains and much harder) | — | |
+| `/outreach-templates/podcast` | 10 | — | |
 
-**New keyword found (DataForSEO Labs, 2026-07-21):** "backlink email template" — 70/mo, KD 2, LOW competition. Near-duplicate of `/outreach-templates/backlink-request` (20/mo, KD 2) — same page can likely target both via H2/FAQ rather than a separate slug.
+**"backlink email template"** — 70/mo, KD2, confirmed exactly matching the July 21 find. Near-duplicate of `backlink-request` — cover both via H2/FAQ on one page rather than a second slug.
 
----
+**GSC signal (still valid, from July 21 pull, 180d):** real unanswered impressions already hitting the site with nothing dedicated ranking — "link building outreach" (33 impr, pos 83.3), "link building email outreach" (8 impr, pos 68.6), "outreach linkbuilding" (8 impr, pos 45.2), plus smaller variants. Confirms `blogger-outreach` as the right page to build first in this template.
 
-### Content Asset: Email Templates (deprioritized)
+## Skip entirely
 
-`link building email template` = KD 50, needs ~104 backlinks. Too hard at current authority. Covered better by `/outreach-templates/` template above.
+- **Standalone "link building email template" content** — KD50, ~104 backlinks needed. Too hard at current authority. `/outreach-templates/` covers the same intent at a fraction of the difficulty.
 
----
-
-### Already Built
+## Already built
 
 - [x] `/alternatives` pages
-- [x] `/blog/how-to-find-backlink-opportunities` — pillar page for `/backlinks-from/` cluster
+- [x] `/blog/how-to-find-backlink-opportunities` — pillar for `/backlinks-from/` cluster
 
----
+## Methodology notes
 
-### Notes
+- DataForSEO `competition_level`/KD is directional, not final — it undersold "agencies" (real SERP = direct competitor agencies) and oversold "ecommerce" (real SERP = neilpatel.com/wix.com) back in July. Always confirm the top pick with a live SERP pull before building, not just the KD number.
+- Site (mentiohunt.com) currently has zero clicks on any backlink/link-building query — every ranking sits past position 20. At this authority level, KD and live SERP composition are the real gate, not existing rank.
+- 14 distinct `/backlinks-from/[platform]` pages confirmed via Google Suggest — low competition expected, agencies ignore purely informational platform queries. `/backlinks-from/reddit` is the strongest unbuilt spoke (high ICP overlap).
+- "how to get backlinks from chatgpt" — real demand, early AI-search angle, worth owning before competitors notice.
 
-- Verify volume/difficulty for top 3 pages in Ahrefs or Semrush before building at scale.
-- Platform pages dominate — 14 distinct platforms confirmed via Google Suggest. Low competition expected (agencies ignore informational).
-- "how to get backlinks from chatgpt" has real demand — early AI-search angle worth owning.
-- `/backlinks-from/reddit` strong spoke to launch first — high ICP overlap with founder-led link building.
-- 2026-07-21: niche and outreach-template expansions above sourced from DataForSEO Labs `keyword_suggestions` (US, en) + GSC `sc-domain:mentiohunt.com` search analytics (180d). Site currently has zero clicks on any backlink/link-building query — every ranking sits past position 20, so KD/competition_level reads here are the real gate, not current authority.
-- 2026-07-21: cross-checked the above against live Google SERPs (web search, not just DataForSEO's KD score). Takeaway — DataForSEO's `competition_level`/KD undersells how hard "agencies" is (real SERP is competing link-building agencies) and oversells how easy "ecommerce" is (real SERP has neilpatel.com/wix.com). Lawyers, real estate, and saas checked clean — niche/tool-tier competitors only, no generalist authority sites. Revised build order: saas → lawyers → real estate → ecommerce → agencies.
+## Next steps
+
+- [ ] Build `/link-building-for/lawyers` first — cheapest, cleanest confirmed win
+- [ ] Build `/link-building-for/saas` second
+- [ ] Re-check `/link-building-for/ecommerce` and `/link-building-for/real-estate` SERPs live before committing (currently running on July 21 data only)
+- [ ] Reconcile Template B slugs against [outreach-email-content-cluster.md](outreach-email-content-cluster.md) before drafting either — pick landing page vs blog post per keyword, not both

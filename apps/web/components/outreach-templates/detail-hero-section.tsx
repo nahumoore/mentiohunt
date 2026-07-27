@@ -1,9 +1,28 @@
-import { IconArrowLeft } from "@tabler/icons-react"
+import {
+  IconArrowLeft,
+  IconBrandX,
+  IconCalendar,
+  IconClock,
+} from "@tabler/icons-react"
 import Image from "next/image"
 import Link from "next/link"
 
 import type { OutreachTemplateDefinition } from "./data"
 import { getOutreachTemplateIcon } from "./icon-map"
+
+function formatDate(date: string): string {
+  const parsedDate = new Date(date)
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(parsedDate)
+}
 
 export function OutreachTemplateDetailHeroSection({
   template,
@@ -47,6 +66,30 @@ export function OutreachTemplateDetailHeroSection({
             <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
               {template.description}
             </p>
+
+            <div className="mt-7 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <IconClock size={14} stroke={2} />
+                {template.readTime}
+              </span>
+              {template.date && (
+                <span className="inline-flex items-center gap-1.5">
+                  <IconCalendar size={14} stroke={2} />
+                  {template.dateModified
+                    ? `Updated ${formatDate(template.dateModified)}`
+                    : formatDate(template.date)}
+                </span>
+              )}
+              <a
+                href="https://x.com/nicolasmore_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
+              >
+                <IconBrandX size={14} stroke={2} />
+                Nicolas More
+              </a>
+            </div>
           </div>
 
           {template.image && (

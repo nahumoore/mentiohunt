@@ -36,9 +36,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: template.title,
       description: template.description,
+      type: "article",
       url: `https://mentiohunt.com/outreach-templates/${template.slug}`,
       siteName: "Mentiohunt",
-      type: "article",
+      publishedTime: template.date,
+      modifiedTime: template.dateModified ?? template.date,
+      authors: ["Nicolas More"],
+      images: template.image ? [template.image] : undefined,
     },
     twitter: {
       card: "summary_large_image",
@@ -56,6 +60,29 @@ export default async function OutreachTemplateDetailPage({ params }: Props) {
 
   const relatedTemplates = getRelatedOutreachTemplates(template.slug)
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: template.title,
+    description: template.description,
+    datePublished: template.date,
+    dateModified: template.dateModified ?? template.date,
+    author: {
+      "@type": "Person",
+      name: "Nicolas More",
+      url: "https://x.com/nicolasmore_",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Mentiohunt",
+      url: "https://mentiohunt.com",
+    },
+    url: `https://mentiohunt.com/outreach-templates/${template.slug}`,
+    ...(template.image
+      ? { image: `https://mentiohunt.com${template.image}` }
+      : {}),
+  }
+
   const faqSchema =
     template.faqs.length > 0
       ? {
@@ -71,6 +98,11 @@ export default async function OutreachTemplateDetailPage({ params }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <Script
+        id="article-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       {faqSchema && (
         <Script
           id="faq-schema"

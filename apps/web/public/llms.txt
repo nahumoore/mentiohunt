@@ -29,3 +29,4 @@
 
 - [Backlink Opportunity Finder](https://mentiohunt.com/free-tools/backlink-opportunity-finder): Enter a URL and surface relevant websites where a backlink would be a strong topical fit — useful for seeding a prospecting list.
 - [Competitor Backlink Gap Analysis](https://mentiohunt.com/free-tools/competitor-backlink-gap): Identify sites that link to your competitors but not to you, and turn the gap into a prioritized outreach list.
+- [Free Directory Submission Sites](https://mentiohunt.com/free-tools/free-directory-submission-sites): Scan a product URL against 100+ free directory submission sites and get a prioritized shortlist of the ones you're not listed on yet.

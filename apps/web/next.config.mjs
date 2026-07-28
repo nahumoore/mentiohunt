@@ -51,6 +51,11 @@ const nextConfig = {
         destination: "/blog/how-to-find-backlink-opportunities",
         permanent: true,
       },
+      {
+        source: "/free-tools/directory-backlink-opportunity-finder",
+        destination: "/free-tools/free-directory-submission-sites",
+        permanent: true,
+      },
     ]
   },
 }

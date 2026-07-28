@@ -12,44 +12,44 @@ import { getPostBySlug } from "@/lib/mdx"
 import { DirectoryBacklinkOpportunityFinder } from "./tool"
 
 export const metadata: Metadata = {
-  title: "Directory Backlink Opportunity Finder - Free Tool",
+  title: "Free Directory Submission Sites for B2B SaaS - Free Tool",
   description:
-    "Find startup directories where your product could earn a backlink. Enter your product URL and review directory opportunities to apply for next.",
+    "Scan your product URL against 100+ free directory submission sites and see which ones you're missing. No sign-up. Built for B2B SaaS founders.",
   alternates: {
-    canonical: "/free-tools/directory-backlink-opportunity-finder",
+    canonical: "/free-tools/free-directory-submission-sites",
   },
   openGraph: {
-    title: "Directory Backlink Opportunity Finder - Free Tool",
+    title: "Free Directory Submission Sites for B2B SaaS - Free Tool",
     description:
-      "Find startup directories where your product could earn a backlink. Enter your product URL and review directory opportunities to apply for next.",
-    url: "https://mentiohunt.com/free-tools/directory-backlink-opportunity-finder",
+      "Scan your product URL against 100+ free directory submission sites and see which ones you're missing. No sign-up. Built for B2B SaaS founders.",
+    url: "https://mentiohunt.com/free-tools/free-directory-submission-sites",
     siteName: "Mentiohunt",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Directory Backlink Opportunity Finder - Free Tool",
+    title: "Free Directory Submission Sites for B2B SaaS - Free Tool",
     description:
-      "Find startup directories where your product could earn a backlink. Enter your product URL and review directory opportunities to apply for next.",
+      "Scan your product URL against 100+ free directory submission sites and see which ones you're missing. No sign-up. Built for B2B SaaS founders.",
   },
 }
 
-export default async function DirectoryBacklinkOpportunityFinderPage() {
+export default async function FreeDirectorySubmissionSitesPage() {
   const post = getPostBySlug(
-    "directory-backlink-opportunity-finder",
+    "free-directory-submission-sites",
     "free-tools"
   )
 
   const toolSchema = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "Directory Backlink Opportunity Finder",
+    name: "Free Directory Submission Sites",
     applicationCategory: "UtilitiesApplication",
     operatingSystem: "Web",
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
     description:
-      "Find startup directories where your product could submit for relevant backlink opportunities. Enter your product URL and get a prioritized submission queue.",
-    url: "https://mentiohunt.com/free-tools/directory-backlink-opportunity-finder",
+      "Scan your product URL against 100+ free directory submission sites and get a prioritized shortlist of the ones you're not listed on yet.",
+    url: "https://mentiohunt.com/free-tools/free-directory-submission-sites",
     publisher: {
       "@type": "Organization",
       name: "Mentiohunt",
@@ -57,9 +57,10 @@ export default async function DirectoryBacklinkOpportunityFinderPage() {
     },
     featureList: [
       "Product URL analysis",
+      "Checks against 100+ free directory submission sites",
       "Directory category fit matching",
       "Free and paid submission filtering",
-      "Prioritized next-action queue",
+      "Prioritized top-10 next-action queue",
     ],
   }
 

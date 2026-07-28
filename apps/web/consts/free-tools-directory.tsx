@@ -36,10 +36,10 @@ export const FREE_TOOLS_DIRECTORY: FreeToolDirectoryEntry[] = [
   },
   {
     slug: FREE_TOOL_NAMES.directoryBacklinkOpportunityFinder,
-    name: "Directory Backlink Opportunity Finder",
-    eyebrow: "Product to directories",
+    name: "Free Directory Submission Sites",
+    eyebrow: "Directory gap check",
     description:
-      "Paste your product URL and find startup directories where you can apply for relevant backlink opportunities.",
+      "Paste your product URL and check it against 100+ free directory submission sites to see which ones you're missing.",
     icon: IconLink,
   },
   {

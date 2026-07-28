@@ -40,13 +40,13 @@ type Summary = {
 
 const loadingStages = [
   "Reading your product URL",
-  "Checking known startup directory indexes",
+  "Checking 100+ free directory submission sites",
   "Comparing likely submission footprints",
-  "Preparing directory backlink opportunities",
+  "Preparing your submission shortlist",
 ]
 
 const proofPoints = [
-  "Checks directory-style opportunities, not generic backlink lists.",
+  "Checks 100+ free directory submission sites, not generic backlink lists.",
   "Prioritizes next actions founders can complete without an agency workflow.",
   "Designed to become a recurring backlink opportunity queue.",
 ]
@@ -172,9 +172,9 @@ export function DirectoryBacklinkOpportunityFinder() {
         <div className="mx-auto max-w-2xl text-center">
           <ToolHero
             icon={IconLink}
-            title="Directory Backlink Opportunity"
-            highlight="Finder"
-            description="Enter your product URL and prepare a focused scan for startup directories worth applying to next. Built for founders who want directory backlink opportunities without sorting a giant generic list."
+            title="Free Directory"
+            highlight="Submission Sites"
+            description="Scan your product URL against 100+ free directory submission sites and see which ones you're not listed on yet. Built for B2B SaaS founders who want the shortlist that fits — not a 300-row spreadsheet."
           />
 
           <div className="mt-8 rounded-2xl border border-border bg-card p-6 text-left">
@@ -246,8 +246,8 @@ export function DirectoryBacklinkOpportunityFinder() {
                       Ready when your URL is.
                     </p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      Enter a product URL to start the directory opportunity scan
-                      flow.
+                      Enter a product URL to start the free directory
+                      submission sites scan.
                     </p>
                   </div>
                 </div>
@@ -328,12 +328,12 @@ export function DirectoryBacklinkOpportunityFinder() {
                 Results
               </p>
               <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.055em] text-balance sm:text-5xl">
-                Directories your startup can work through next.
+                Submission sites your startup can work through next.
               </h2>
               <p className="mt-5 max-w-md text-sm leading-7 text-muted-foreground">
-                The scanner returns a clear queue of directory backlink
-                opportunities, why each directory might fit, and the next
-                preparation step before applying.
+                The scanner checks 100+ free directory submission sites and
+                returns a clear top-10 queue, why each directory might fit,
+                and the next preparation step before applying.
               </p>
 
               <div className="mt-7 space-y-3">
@@ -360,8 +360,8 @@ export function DirectoryBacklinkOpportunityFinder() {
                     Results appear after the scan.
                   </h3>
                   <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
-                    Enter a product URL above to start the directory backlink
-                    opportunity scan.
+                    Enter a product URL above to start the free directory
+                    submission sites scan.
                   </p>
                 </div>
               ) : (

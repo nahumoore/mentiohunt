@@ -27,6 +27,16 @@ export const EVENTS = {
   ONBOARDING_COMPLETED: "onboarding_completed",
   ONBOARDING_FAILED: "onboarding_failed",
 
+  // Activation — how a new user gets from "signed up" to "understands this"
+  WALKTHROUGH_SHOWN: "walkthrough_shown",
+  WALKTHROUGH_OPENED: "walkthrough_opened",
+  WALKTHROUGH_COMPLETED: "walkthrough_completed",
+  DISCOVERY_WAIT_TASK_OPENED: "discovery_wait_task_opened",
+  ACTIVATION_STEP_COMPLETED: "activation_step_completed",
+  ACTIVATION_CHECKLIST_ITEM_OPENED: "activation_checklist_item_opened",
+  ACTIVATION_CHECKLIST_DISMISSED: "activation_checklist_dismissed",
+  NEEDS_YOU_TASK_OPENED: "needs_you_task_opened",
+
   // Backlink opportunities
   OPPORTUNITIES_LIST_VIEWED: "opportunities_list_viewed",
   OPPORTUNITY_VIEWED: "opportunity_viewed",

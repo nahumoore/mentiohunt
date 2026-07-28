@@ -12,9 +12,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
+import { useSearchParams } from "next/navigation"
 import { useMemo, useState } from "react"
 
-import type { ProspectStatus } from "@/app/dashboard/prospects/_data"
+import { STATUS_FILTERS, type ProspectStatus } from "@/app/dashboard/prospects/_data"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
 import { PoolCapacityBanner } from "./pool-capacity-banner"
@@ -80,8 +81,25 @@ interface OpportunityPipelineProps {
   prospects: ProspectListItem[]
 }
 
+/**
+ * Lets a caller deep-link straight to a stage — the dashboard "Needs you" panel
+ * points at `?stage=negotiating` and `?stage=email_not_found`, which would
+ * otherwise dump the user on the default "new" queue with no sign of the
+ * prospects they clicked through to handle.
+ *
+ * Read once, on mount: this only ever runs on a fresh navigation into the page.
+ */
+function useInitialStage(): StageValue {
+  const searchParams = useSearchParams()
+  const stage = searchParams.get("stage")
+
+  return stage && STATUS_FILTERS.some((filter) => filter.value === stage)
+    ? (stage as StageValue)
+    : "new"
+}
+
 export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
-  const [activeStage, setActiveStage] = useState<StageValue>("new")
+  const [activeStage, setActiveStage] = useState<StageValue>(useInitialStage())
   const [sortKey, setSortKey] = useState<SortKey>("contact")
   const [sortDir, setSortDir] = useState<SortDir>("asc")
 

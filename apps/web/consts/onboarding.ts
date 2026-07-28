@@ -29,7 +29,7 @@ export const ONBOARDING_STEPS = [
   {
     title: "Launch",
     description:
-      "Backlink discovery will activate immediately.",
+      "Discovery starts immediately, and outreach sends automatically as prospects are found.",
   },
 ] as const
 

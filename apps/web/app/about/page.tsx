@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   title: { absolute: "About Mentiohunt - Built by Nicolas More" },
   description:
     "Founder note from Nicolas More on why Mentiohunt exists: helping founders build backlinks without turning outreach into a full-time job.",
+  alternates: {
+    canonical: "/about",
+  },
   openGraph: {
     title: "About Mentiohunt - Built by Nicolas More",
     description:

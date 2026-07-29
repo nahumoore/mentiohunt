@@ -11,7 +11,6 @@ const nextConfig = {
     "/blog/[slug]": ["./resources/articles/**"],
     "/backlinks-from/[slug]": ["./resources/backlinks-from/**"],
     "/compare/[slug]": ["./resources/compare/**"],
-    "/features/[slug]": ["./resources/free-tools/**"],
     "/free-tools/[slug]": ["./resources/free-tools/**"],
   },
   async redirects() {

@@ -17,7 +17,13 @@ import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
 import { ArticleTableOfContents } from "@/components/resources/article-table-of-contents"
 import BlogStylings from "@/components/resources/blog-stylings"
-import { getPostBySlug, getResourceSlugs, type BlogPostMeta } from "@/lib/mdx"
+import { RelatedResourcesSection } from "@/components/resources/related-resources-section"
+import {
+  getPostBySlug,
+  getRelatedWithFallback,
+  getResourceSlugs,
+  type BlogPostMeta,
+} from "@/lib/mdx"
 import { getArticleHeadings } from "@/lib/mdx-headings"
 
 type Props = { params: Promise<{ slug: string }> }
@@ -93,6 +99,7 @@ export default async function AlternativePage({ params }: Props) {
   const headings = getArticleHeadings(content)
   const author =
     meta.author === "Unknown" ? "Nicolas More" : (meta.author ?? "Nicolas More")
+  const relatedAlternatives = getRelatedWithFallback(slug, "alternatives")
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -278,6 +285,19 @@ export default async function AlternativePage({ params }: Props) {
 
             <ArticleTableOfContents headings={headings} />
           </div>
+        </div>
+
+        <div className="container mx-auto px-4 pb-14 sm:px-6 lg:px-8">
+          <RelatedResourcesSection
+            eyebrow="Pick a tool, then pick a channel"
+            heading="More alternatives worth comparing."
+            description="See how the other tools in this space stack up before you commit to a switch."
+            items={relatedAlternatives}
+            basePath="/alternatives"
+            browseAllHref="/alternatives"
+            browseAllLabel="Browse all alternatives"
+            showImages={false}
+          />
         </div>
       </main>
 

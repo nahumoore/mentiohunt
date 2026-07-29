@@ -6,7 +6,7 @@
 
 - [Homepage](https://mentiohunt.com): What Mentiohunt is, who it's for, and the core workflow — article URLs in, backlink opportunity queue out.
 - [Features](https://mentiohunt.com/features): Overview of the full feature set — opportunity discovery, fit scoring, contact enrichment, and outreach draft generation.
-- [Pricing](https://mentiohunt.com/pricing): Plan tiers, what's included, and how to get started; transparent pricing with a free entry point.
+- [Pricing](https://mentiohunt.com/pricing): Plan tiers, what's included, and how to get started; transparent pricing with a free entry point. Machine-readable version: https://mentiohunt.com/pricing.md
 - [About](https://mentiohunt.com/about): Founder note from Nicolas More explaining why Mentiohunt exists and what problem it solves.
 
 ## Product

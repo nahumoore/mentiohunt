@@ -17,11 +17,14 @@ import { getAllResources, type BlogPostMeta } from "@/lib/mdx"
 export const metadata: Metadata = {
   title: "Tool Comparisons",
   description:
-    "Honest head-to-head comparisons of backlink building tools. We'll tell you when a competitor is the better fit.",
+    "Honest head-to-head comparisons of backlink building and outreach tools. We'll tell you when a competitor is actually the better fit for your team.",
+  alternates: {
+    canonical: "/compare",
+  },
   openGraph: {
     title: "Tool Comparisons — Mentiohunt",
     description:
-      "Honest head-to-head comparisons of backlink building tools. We'll tell you when a competitor is the better fit.",
+      "Honest head-to-head comparisons of backlink building and outreach tools. We'll tell you when a competitor is actually the better fit for your team.",
     url: "https://mentiohunt.com/compare",
     siteName: "Mentiohunt",
     type: "website",
@@ -30,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Tool Comparisons — Mentiohunt",
     description:
-      "Honest head-to-head comparisons of backlink building tools. We'll tell you when a competitor is the better fit.",
+      "Honest head-to-head comparisons of backlink building and outreach tools. We'll tell you when a competitor is actually the better fit for your team.",
   },
 }
 

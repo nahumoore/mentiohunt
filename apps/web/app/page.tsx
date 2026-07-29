@@ -11,6 +11,7 @@ import {
   HowItWorks,
   LandingPageTracker,
   Navbar,
+  OrganizationSchema,
   Pricing,
   SoftwareApplicationSchema,
   TargetPersonas,
@@ -18,13 +19,18 @@ import {
   WhyMentiohunt,
 } from "@/components/landing"
 import type { Metadata } from "next"
+import Script from "next/script"
+import { LANDING_FAQS } from "@/consts/faq"
 
 export const metadata: Metadata = {
   title: "Mentiohunt – Backlink Placement Autopilot for Founders",
   description:
     "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "Mentiohunt – Backlink Outreach Autopilot for Founders",
+    title: "Mentiohunt – Backlink Placement Autopilot for Founders",
     description:
       "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
     url: "https://mentiohunt.com",
@@ -33,10 +39,20 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mentiohunt – Backlink Outreach Autopilot for Founders",
+    title: "Mentiohunt – Backlink Placement Autopilot for Founders",
     description:
       "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
   },
+}
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: LANDING_FAQS.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+  })),
 }
 
 export default function Page() {
@@ -44,6 +60,12 @@ export default function Page() {
     <>
       <LandingPageTracker />
       <SoftwareApplicationSchema />
+      <OrganizationSchema />
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <main className="min-h-screen bg-background text-foreground">
         <Navbar />
         <Hero />

@@ -177,3 +177,25 @@ export function getRelatedResources(
     .slice(0, 3)
     .map(({ post }) => post)
 }
+
+/**
+ * Tag-matched related resources, topped up with the newest other posts when
+ * there aren't enough tag matches to fill `limit`. `getRelatedResources` is
+ * hard-capped at 3 internally, so `limit` above 3 still yields at most 3
+ * tag-matched items plus fillers.
+ */
+export function getRelatedWithFallback(
+  inputSlug: string,
+  contentType: ContentType = "blog",
+  limit = 3
+): BlogPostMeta[] {
+  const tagged = getRelatedResources(inputSlug, contentType)
+  if (tagged.length >= limit) return tagged.slice(0, limit)
+
+  const seen = new Set(tagged.map((post) => post.slug))
+  const filler = getAllResources(contentType).filter(
+    (post) => post.slug !== inputSlug && !seen.has(post.slug)
+  )
+
+  return [...tagged, ...filler].slice(0, limit)
+}

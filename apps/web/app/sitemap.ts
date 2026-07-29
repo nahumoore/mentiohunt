@@ -3,13 +3,13 @@ import type { MetadataRoute } from "next"
 import { getOutreachTemplateSlugs } from "@/components/outreach-templates"
 import { features } from "@/consts/features"
 import { ALL_FREE_TOOL_SLUGS } from "@/consts/free-tools"
-import { getResourceSlugs } from "@/lib/mdx"
+import { getAllResources } from "@/lib/mdx"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const altSlugs = getResourceSlugs("alternatives")
-  const articleSlugs = getResourceSlugs("articles")
-  const backlinksFromSlugs = getResourceSlugs("backlinks-from")
-  const compareSlugs = getResourceSlugs("compare")
+  const alternatives = getAllResources("alternatives")
+  const articles = getAllResources("articles")
+  const backlinksFrom = getAllResources("backlinks-from")
+  const compare = getAllResources("compare")
   const outreachTemplateSlugs = getOutreachTemplateSlugs()
 
   return [
@@ -43,8 +43,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-05-13"),
       priority: 0.8,
     },
-    ...articleSlugs.map((slug) => ({
-      url: `https://mentiohunt.com/blog/${slug}`,
+    ...articles.map((post) => ({
+      url: `https://mentiohunt.com/blog/${post.slug}`,
+      lastModified: new Date(post.dateModified ?? post.date),
       priority: 0.75 as const,
     })),
     {
@@ -52,8 +53,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-05-16"),
       priority: 0.8,
     },
-    ...backlinksFromSlugs.map((slug) => ({
-      url: `https://mentiohunt.com/backlinks-from/${slug}`,
+    ...backlinksFrom.map((post) => ({
+      url: `https://mentiohunt.com/backlinks-from/${post.slug}`,
+      lastModified: new Date(post.dateModified ?? post.date),
       priority: 0.75 as const,
     })),
     {
@@ -61,8 +63,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-05-08"),
       priority: 0.8,
     },
-    ...altSlugs.map((slug) => ({
-      url: `https://mentiohunt.com/alternatives/${slug}`,
+    ...alternatives.map((post) => ({
+      url: `https://mentiohunt.com/alternatives/${post.slug}`,
+      lastModified: new Date(post.dateModified ?? post.date),
       priority: 0.7 as const,
     })),
     {
@@ -70,8 +73,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-05-26"),
       priority: 0.8,
     },
-    ...compareSlugs.map((slug) => ({
-      url: `https://mentiohunt.com/compare/${slug}`,
+    ...compare.map((post) => ({
+      url: `https://mentiohunt.com/compare/${post.slug}`,
+      lastModified: new Date(post.dateModified ?? post.date),
       priority: 0.75 as const,
     })),
     {

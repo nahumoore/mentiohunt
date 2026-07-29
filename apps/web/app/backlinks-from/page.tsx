@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: "Backlinks From Platforms",
   description:
     "Founder-friendly guides for getting backlinks from Reddit, Medium, Quora, news websites, and other platforms where attention already exists.",
+  alternates: {
+    canonical: "/backlinks-from",
+  },
   openGraph: {
     title: "Backlinks From Platforms — Mentiohunt",
     description:

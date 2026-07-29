@@ -8,14 +8,14 @@ import { FREE_TOOLS_DIRECTORY } from "@/consts/free-tools-directory"
 import { Button } from "@workspace/ui/components/button"
 
 export const metadata: Metadata = {
-  title: "Free Tools",
+  title: "Free Backlink & Link Building Tools",
   description:
     "Free founder tools for checking backlink fit, discovering placement opportunities, and turning distribution research into a clearer next step.",
   alternates: {
     canonical: "/free-tools",
   },
   openGraph: {
-    title: "Free Tools - Mentiohunt",
+    title: "Free Backlink & Link Building Tools - Mentiohunt",
     description:
       "Free founder tools for checking backlink fit, discovering placement opportunities, and turning distribution research into a clearer next step.",
     url: "https://mentiohunt.com/free-tools",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Free Tools - Mentiohunt",
+    title: "Free Backlink & Link Building Tools - Mentiohunt",
     description:
       "Free founder tools for checking backlink fit, discovering placement opportunities, and turning distribution research into a clearer next step.",
   },

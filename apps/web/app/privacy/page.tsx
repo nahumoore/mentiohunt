@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { LegalPage } from "@/components/landing/legal-page"
 
 export const metadata: Metadata = {
-  title: "Privacy Policy – Mentiohunt",
+  title: "Privacy Policy",
   description: "How Mentiohunt collects, uses, and protects your information.",
 }
 

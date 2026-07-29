@@ -1,4 +1,5 @@
 import Script from "next/script"
+import { PLANS } from "@/consts/billing"
 
 const softwareApplicationSchema = {
   "@context": "https://schema.org",
@@ -11,11 +12,11 @@ const softwareApplicationSchema = {
     "Distribution tool for founders and small marketing teams. Build backlinks from your articles and monitor Reddit for posts where your product fits — with contact details, outreach drafts, and real-time alerts.",
   offers: {
     "@type": "Offer",
-    price: "49",
+    price: PLANS[0]!.price,
     priceCurrency: "USD",
     priceSpecification: {
       "@type": "UnitPriceSpecification",
-      price: "49",
+      price: PLANS[0]!.price,
       priceCurrency: "USD",
       billingDuration: "P1M",
     },

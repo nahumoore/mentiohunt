@@ -19,8 +19,8 @@ import { Navbar } from "@/components/landing/navbar"
 import { ArticleTableOfContents } from "@/components/resources/article-table-of-contents"
 import BlogStylings from "@/components/resources/blog-stylings"
 import {
-  getAllResources,
   getPostBySlug,
+  getRelatedWithFallback,
   getResourceSlugs,
   type BlogPostMeta,
 } from "@/lib/mdx"
@@ -102,9 +102,7 @@ export default async function ComparePage({ params }: Props) {
   const { meta, content } = post
   const headings = getArticleHeadings(content)
   const tools = getToolNames(meta)
-  const related = getAllResources("compare")
-    .filter((c) => c.slug !== slug)
-    .slice(0, 3)
+  const related = getRelatedWithFallback(slug, "compare")
   const author =
     meta.author === "Unknown" ? "Nicolas More" : (meta.author ?? "Nicolas More")
 

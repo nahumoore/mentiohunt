@@ -14,22 +14,25 @@ import { RelatedHubsSection } from "@/components/resources/related-hubs-section"
 import { getAllResources, type BlogPostMeta } from "@/lib/mdx"
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: "Backlink Building Blog for Founders",
   description:
-    "Practical backlink prospecting, opportunity scoring, and founder-led distribution guides from Mentiohunt.",
+    "Practical backlink prospecting, opportunity scoring, and founder-led distribution guides from Mentiohunt — for SaaS teams building outreach without an agency.",
+  alternates: {
+    canonical: "/blog",
+  },
   openGraph: {
-    title: "Blog — Mentiohunt",
+    title: "Backlink Building Blog for Founders — Mentiohunt",
     description:
-      "Practical backlink prospecting, opportunity scoring, and founder-led distribution guides from Mentiohunt.",
+      "Practical backlink prospecting, opportunity scoring, and founder-led distribution guides from Mentiohunt — for SaaS teams building outreach without an agency.",
     url: "https://mentiohunt.com/blog",
     siteName: "Mentiohunt",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blog — Mentiohunt",
+    title: "Backlink Building Blog for Founders — Mentiohunt",
     description:
-      "Practical backlink prospecting, opportunity scoring, and founder-led distribution guides from Mentiohunt.",
+      "Practical backlink prospecting, opportunity scoring, and founder-led distribution guides from Mentiohunt — for SaaS teams building outreach without an agency.",
   },
 }
 

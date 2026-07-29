@@ -17,11 +17,14 @@ import { getAllResources, type BlogPostMeta } from "@/lib/mdx"
 export const metadata: Metadata = {
   title: "Link Building Tool Alternatives",
   description:
-    "Honest comparisons of link building and backlink outreach tools — Pitchbox, BuzzStream, Ahrefs, Semrush, Respona, and more. We'll tell you when the other tool is actually better.",
+    "Honest comparisons of link building and outreach tools — Pitchbox, BuzzStream, Ahrefs, Semrush, Respona. We'll tell you when the other tool is better.",
+  alternates: {
+    canonical: "/alternatives",
+  },
   openGraph: {
     title: "Link Building Tool Alternatives — Mentiohunt",
     description:
-      "Honest comparisons of link building and backlink outreach tools — Pitchbox, BuzzStream, Ahrefs, Semrush, Respona, and more. We'll tell you when the other tool is actually better.",
+      "Honest comparisons of link building and outreach tools — Pitchbox, BuzzStream, Ahrefs, Semrush, Respona. We'll tell you when the other tool is better.",
     url: "https://mentiohunt.com/alternatives",
     siteName: "Mentiohunt",
     type: "website",
@@ -30,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Link Building Tool Alternatives — Mentiohunt",
     description:
-      "Honest comparisons of link building and backlink outreach tools — Pitchbox, BuzzStream, Ahrefs, Semrush, Respona, and more. We'll tell you when the other tool is actually better.",
+      "Honest comparisons of link building and outreach tools — Pitchbox, BuzzStream, Ahrefs, Semrush, Respona. We'll tell you when the other tool is better.",
   },
 }
 

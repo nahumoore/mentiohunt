@@ -17,7 +17,13 @@ import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
 import { ArticleTableOfContents } from "@/components/resources/article-table-of-contents"
 import BlogStylings from "@/components/resources/blog-stylings"
-import { getPostBySlug, getResourceSlugs, type BlogPostMeta } from "@/lib/mdx"
+import { RelatedResourcesSection } from "@/components/resources/related-resources-section"
+import {
+  getPostBySlug,
+  getRelatedWithFallback,
+  getResourceSlugs,
+  type BlogPostMeta,
+} from "@/lib/mdx"
 import { getArticleHeadings } from "@/lib/mdx-headings"
 
 type Props = { params: Promise<{ slug: string }> }
@@ -102,6 +108,7 @@ export default async function BlogArticlePage({ params }: Props) {
   const articleBody = getArticleBody(content)
   const headings = getArticleHeadings(articleBody)
   const author = meta.author === "Unknown" ? "Nicolas More" : meta.author
+  const relatedArticles = getRelatedWithFallback(slug, "articles")
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -294,6 +301,18 @@ export default async function BlogArticlePage({ params }: Props) {
 
             <ArticleTableOfContents headings={headings} />
           </div>
+        </div>
+
+        <div className="container mx-auto px-4 pb-14 sm:px-6 lg:px-8">
+          <RelatedResourcesSection
+            eyebrow="Keep reading"
+            heading="More field notes worth opening next."
+            description="Jump to the adjacent guides where this same article could sharpen your outreach angle or fill out your queue."
+            items={relatedArticles}
+            basePath="/blog"
+            browseAllHref="/blog"
+            browseAllLabel="Browse all articles"
+          />
         </div>
       </main>
 

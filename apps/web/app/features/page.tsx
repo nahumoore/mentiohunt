@@ -16,14 +16,14 @@ import { Navbar } from "@/components/landing/navbar"
 import { features } from "@/consts/features"
 
 export const metadata: Metadata = {
-  title: "Features",
+  title: "Backlink Outreach Automation Features",
   description:
     "Mentiohunt surfaces high-fit backlink opportunities from your article URLs — with fit rationale, contact details, and outreach drafts ready to review.",
   alternates: {
     canonical: "https://mentiohunt.com/features",
   },
   openGraph: {
-    title: "Features — Mentiohunt",
+    title: "Backlink Outreach Automation Features — Mentiohunt",
     description:
       "Mentiohunt surfaces high-fit backlink opportunities from your article URLs — with fit rationale, contact details, and outreach drafts ready to review.",
     url: "https://mentiohunt.com/features",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Features — Mentiohunt",
+    title: "Backlink Outreach Automation Features — Mentiohunt",
     description:
       "Mentiohunt surfaces high-fit backlink opportunities from your article URLs — with fit rationale, contact details, and outreach drafts ready to review.",
   },

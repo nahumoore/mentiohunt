@@ -7,6 +7,8 @@ import { IconCircleCheck, IconCircleX, IconLoader2 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 
 import { OpportunityReportIssueDialog } from "@/components/link-building/prospects/prospect-report-issue-dialog"
+import { captureEvent } from "@/lib/analytics"
+import { useActivationStore } from "@/stores/activation-store"
 import { useProspectStore } from "@/stores/prospect-store"
 
 interface OpportunityActionsProps {
@@ -25,6 +27,7 @@ export function OpportunityActions({
   const updateProspectStatuses = useProspectStore(
     (state) => state.updateProspectStatuses
   )
+  const completeActivationStep = useActivationStore((state) => state.complete)
 
   async function updateStatus(status: "contacted" | "dismissed") {
     setLoading(status)
@@ -39,6 +42,13 @@ export function OpportunityActions({
       )
       if (res.ok) {
         updateProspectStatuses([prospectId], status)
+        captureEvent("prospect_status_changed", {
+          prospect_id: prospectId,
+          status,
+        })
+        if (status === "dismissed") {
+          completeActivationStep("dismissed_prospect")
+        }
         router.push("/dashboard/prospects")
       }
     } finally {

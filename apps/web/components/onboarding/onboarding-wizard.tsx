@@ -512,7 +512,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
                 </>
               ) : (
                 <>
-                  Find Opportunities
+                  Start Discovery &amp; Outreach
                   <IconCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
                 </>
               )}

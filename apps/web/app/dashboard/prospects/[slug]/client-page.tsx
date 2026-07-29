@@ -39,6 +39,7 @@ import { Switch } from "@workspace/ui/components/switch"
 import { captureEvent } from "@/lib/analytics"
 import { formatRelative } from "@/lib/format-date"
 import { PROSPECT_TIER_CONFIG } from "@/lib/opportunity-types"
+import { useActivationStore } from "@/stores/activation-store"
 import type { ProspectDetail, ProspectMessage, ProspectSequence } from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import { usePagesStore } from "@/stores/pages-store"
@@ -388,6 +389,8 @@ export function ProspectClientPage({
   const upsertProspectDetail = useProspectStore((s) => s.upsertProspectDetail)
   const storedProspect = useProspectStore((s) => s.prospectDetailsById[prospect.id])
   const updateProspectStatuses = useProspectStore((s) => s.updateProspectStatuses)
+  const completeActivationStep = useActivationStore((s) => s.complete)
+  const activationHydrated = useActivationStore((s) => s.hasHydrated)
   const pages = usePagesStore((s) => s.pages)
   const current = storedProspect ?? prospect
   const sourcePage =
@@ -416,6 +419,13 @@ export function ProspectClientPage({
     captureEvent("opportunity_viewed", { prospect_id: prospect.id, tier: prospect.tier })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prospect.id])
+
+  // Separate from the view effect: the activation store persists to
+  // localStorage, so writing before rehydration would be overwritten.
+  useEffect(() => {
+    if (!activationHydrated) return
+    completeActivationStep("opened_prospect")
+  }, [activationHydrated, completeActivationStep])
 
   const socialLinks = parseSocialLinks(current.contact_social_links)
   const bio = parseRawMetadataBio(current.raw_metadata)

@@ -1,6 +1,9 @@
+import { ActivationTracker } from "@/components/dashboard/activation-tracker"
 import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardStoreHydrator } from "@/components/dashboard/dashboard-store-hydrator"
+import { FirstLoginWalkthrough } from "@/components/dashboard/first-login-walkthrough"
+import { GettingStartedChecklist } from "@/components/dashboard/getting-started-checklist"
 import { supabaseServer } from "@/lib/supabase/server"
 import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
 import type { DirectoryListItem } from "@/stores/directory-store"
@@ -81,7 +84,7 @@ export default async function DashboardLayout({
     supabase
       .from("profiles")
       .select(
-        "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at, email_settings"
+        "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at, email_settings, walkthrough_seen_at"
       )
       .eq("id", user.id)
       .maybeSingle(),
@@ -315,6 +318,9 @@ export default async function DashboardLayout({
           <DashboardHeader />
           <div className="p-4 sm:p-6">{children}</div>
         </SidebarInset>
+        <GettingStartedChecklist />
+        <ActivationTracker />
+        <FirstLoginWalkthrough />
       </SidebarProvider>
     </DashboardStoreHydrator>
   )

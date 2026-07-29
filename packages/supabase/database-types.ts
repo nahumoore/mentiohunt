@@ -675,6 +675,7 @@ export type Database = {
           stripe_customer_id: string | null
           tier: Database["public"]["Enums"]["billing_tier"]
           updated_at: string
+          walkthrough_seen_at: string | null
         }
         Insert: {
           active_trial?: boolean
@@ -692,6 +693,7 @@ export type Database = {
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string
+          walkthrough_seen_at?: string | null
         }
         Update: {
           active_trial?: boolean
@@ -709,6 +711,7 @@ export type Database = {
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string
+          walkthrough_seen_at?: string | null
         }
         Relationships: []
       }

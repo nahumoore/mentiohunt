@@ -37,7 +37,7 @@ export function ChatPanel({ chat }: { chat: ReturnType<typeof useSupportChat> })
           </Avatar>
           <div>
             <p className="font-heading text-sm font-semibold">Chat with Nicolas</p>
-            <p className="text-xs text-muted-foreground">Usually replies within a day</p>
+            <p className="text-xs text-muted-foreground">Usually replies within a few minutes</p>
           </div>
         </div>
         <button

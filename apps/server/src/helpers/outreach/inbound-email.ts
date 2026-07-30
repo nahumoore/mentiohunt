@@ -194,7 +194,15 @@ async function classifyWithLlm(input: {
     return await withLlmRetries(log, async () => {
       const llmInput = JSON.stringify({ subject: input.subject, body: input.body.slice(0, 4000) })
       const systemInstructions =
-        "Classify a matched inbound email reply to a backlink outreach email. Return only the requested JSON. Distinguish an explicit unsubscribe from a negative reply that only declines this pitch. Be conservative and use needs_review when uncertain."
+        "Classify a matched inbound email reply to a backlink outreach email. Return only the requested JSON. Distinguish an explicit unsubscribe from a negative reply that only declines this pitch. If the recipient asks for payment, names a price to include the link, or counter-proposes a different arrangement (e.g. a link exchange), classify as human_reply, not negative_reply — this is a live negotiation that needs the founder's decision, not a decline. Be conservative and use needs_review when uncertain.\n\n" +
+        "Examples:\n" +
+        '- "We provide paid guest post service" -> human_reply (they will place the link for a fee; founder needs to decide on price)\n' +
+        '- "Happy to add you, do you have a monthly budget for this link?" -> human_reply (same — paid placement ask)\n' +
+        '- "Wanna do a link exchange with our site instead?" -> human_reply (counter-proposes a different arrangement; founder needs to decide whether to take it)\n' +
+        '- "Not interested, please remove me from your list" -> unsubscribe (explicit opt-out request)\n' +
+        '- "Not a fit for us right now, thanks" -> negative_reply (plain decline, no counter-offer, no opt-out request)\n' +
+        '- "I no longer work here, try jane@company.com" -> wrong_person\n' +
+        "- A bulk marketing/sales pitch for the sender's own product or pricing list, unrelated to our specific ask -> auto_reply (automated sales blast, not a genuine human reply to our outreach)"
       log.info("llm request", {
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.OPENAI_GPT_5_6_LUNA],

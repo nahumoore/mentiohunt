@@ -124,7 +124,7 @@ async function recordEvent({
   recipientEmail,
   metadata,
 }: {
-  prospectId: string
+  prospectId: string | null
   sequenceId: string | null
   emailAccountId: string | null
   eventType: string
@@ -263,18 +263,28 @@ async function loadRecentSentSequences(accountId: string): Promise<MatchedSequen
   })
 }
 
-async function matchInbound(accountId: string, inbound: ParsedInbound): Promise<MatchedSequence | null> {
+type MatchResult =
+  | { status: "matched"; sequence: MatchedSequence }
+  | { status: "unmatched_candidate"; candidate: MatchedSequence; reason: string }
+  | { status: "unmatched_threaded"; reason: string }
+  | { status: "no_signal" }
+
+async function matchInbound(accountId: string, inbound: ParsedInbound): Promise<MatchResult> {
   const sequenceId = extractSequenceId(inbound.headers, inbound.rawText)
   if (sequenceId) {
     const match = await loadSequenceById(sequenceId, accountId)
-    if (match) return match
+    if (match) return { status: "matched", sequence: match }
   }
 
-  const messageIds = new Set([
-    ...extractMessageIds(inbound.inReplyTo),
-    ...inbound.references,
-    ...extractMessageIds(inbound.rawText.match(/message-id:\s*(<[^>]+>)/i)?.[1]),
-  ])
+  // Bounce DSNs quote the original message's headers in the body, so scan every
+  // Message-ID in the raw source, not just the first — the first is always the
+  // inbound's own header, which is not a threading signal and would otherwise
+  // make every unrelated email in the mailbox look like a threaded reply.
+  const rawMessageIds = [...inbound.rawText.matchAll(/message-id:\s*(<[^>]+>)/gi)].flatMap((match) =>
+    extractMessageIds(match[1])
+  )
+  const messageIds = new Set([...extractMessageIds(inbound.inReplyTo), ...inbound.references, ...rawMessageIds])
+  if (inbound.messageId) messageIds.delete(inbound.messageId)
 
   const recentSequences = await loadRecentSentSequences(accountId)
 
@@ -283,26 +293,53 @@ async function matchInbound(accountId: string, inbound: ParsedInbound): Promise<
       const sentMessageId = normalizeMessageId(sequence.message_id)
       return sentMessageId ? messageIds.has(sentMessageId) : false
     })
-    if (headerMatch) return headerMatch
+    if (headerMatch) return { status: "matched", sequence: headerMatch }
   }
 
   const fromEmail = normalizeEmail(inbound.fromEmail)
   const normalizedInboundSubject = normalizeSubject(inbound.subject)
   const receivedAt = new Date(inbound.receivedAt).getTime()
 
-  const fallbackMatches = recentSequences.filter((sequence) => {
+  // Subject-only candidates ignore the sender address entirely. A reply that
+  // breaks Message-ID threading (new compose, forwarded copy, a gateway that
+  // strips headers) and also arrives from an address other than the recorded
+  // contact_email — e.g. sent to hello@example.com, replied from
+  // hi@example.com — would otherwise match nothing here and get dropped
+  // silently below. Subject overlap is still a real signal worth a human
+  // look, even though it's not confident enough to auto-match.
+  const subjectMatches = normalizedInboundSubject
+    ? recentSequences.filter((sequence) => {
+        const sentAt = sequence.sent_at ? new Date(sequence.sent_at).getTime() : 0
+        return normalizeSubject(sequence.subject) === normalizedInboundSubject && receivedAt >= sentAt
+      })
+    : []
+
+  const addressMatches = subjectMatches.filter((sequence) => {
     const contactEmail = normalizeEmail(sequence.prospect.contact_email)
-    const sentAt = sequence.sent_at ? new Date(sequence.sent_at).getTime() : 0
-    return (
-      !!fromEmail &&
-      !!contactEmail &&
-      fromEmail === contactEmail &&
-      normalizeSubject(sequence.subject) === normalizedInboundSubject &&
-      receivedAt >= sentAt
-    )
+    return !!fromEmail && !!contactEmail && fromEmail === contactEmail
   })
 
-  return fallbackMatches.length === 1 ? fallbackMatches[0]! : null
+  if (addressMatches.length === 1) return { status: "matched", sequence: addressMatches[0]! }
+
+  if (subjectMatches.length > 0) {
+    const ambiguous = addressMatches.length > 1
+    const reason = ambiguous
+      ? `Subject and sender address matched ${addressMatches.length} recent sequences for this account — ambiguous, needs manual review.`
+      : `Subject matched ${subjectMatches.length} recent sequence(s), but sender ${fromEmail ?? "(unknown)"} didn't match the recorded contact email for any of them.`
+    // On the ambiguous branch the candidate has to come from the sequences that
+    // actually caused the ambiguity, not the most recent subject-only match.
+    const candidate = ambiguous ? addressMatches[0]! : subjectMatches[0]!
+    return { status: "unmatched_candidate", candidate, reason }
+  }
+
+  if (messageIds.size > 0) {
+    return {
+      status: "unmatched_threaded",
+      reason: "Reply threading headers present but didn't match any recent sent sequence for this account.",
+    }
+  }
+
+  return { status: "no_signal" }
 }
 
 async function parseInbound(source: Buffer, uid: number, uidValidity: number | null): Promise<ParsedInbound> {
@@ -373,6 +410,42 @@ async function storeMessage({
 
   log.warn("failed to store prospect message", { sequenceId: match.id, prospectId: match.prospect_id, error: error.message })
   return false
+}
+
+async function recordUnmatchedInbound(
+  accountId: string,
+  inbound: ParsedInbound,
+  result: Extract<MatchResult, { status: "unmatched_candidate" | "unmatched_threaded" }>
+): Promise<void> {
+  const candidate = result.status === "unmatched_candidate" ? result.candidate : null
+
+  await recordEvent({
+    prospectId: candidate?.prospect_id ?? null,
+    sequenceId: candidate?.id ?? null,
+    emailAccountId: accountId,
+    eventType: "unmatched_inbound_email",
+    recipientEmail: inbound.fromEmail,
+    metadata: {
+      reason: result.reason,
+      subject: inbound.subject,
+      fromEmail: inbound.fromEmail,
+      fromName: inbound.fromName,
+      toEmails: inbound.toEmails,
+      messageId: inbound.messageId,
+      inReplyTo: inbound.inReplyTo,
+      references: inbound.references,
+      imapUid: inbound.uid,
+      imapUidValidity: inbound.uidValidity,
+      receivedAt: inbound.receivedAt,
+      textBody: inbound.textBody.slice(0, 4000),
+    },
+  })
+
+  log.info("flagged unmatched inbound email for review", {
+    accountId,
+    reason: result.reason,
+    candidateProspectId: candidate?.prospect_id ?? null,
+  })
 }
 
 async function notifyUserOfReply(match: MatchedSequence): Promise<void> {
@@ -503,8 +576,16 @@ async function applyClassification(match: MatchedSequence, inbound: ParsedInboun
 
 async function processMessage(accountId: string, source: Buffer, uid: number, uidValidity: number | null): Promise<boolean> {
   const inbound = await parseInbound(source, uid, uidValidity)
-  const match = await matchInbound(accountId, inbound)
-  if (!match) return false
+  const matchResult = await matchInbound(accountId, inbound)
+
+  if (matchResult.status === "no_signal") return false
+
+  if (matchResult.status === "unmatched_candidate" || matchResult.status === "unmatched_threaded") {
+    await recordUnmatchedInbound(accountId, inbound, matchResult)
+    return false
+  }
+
+  const match = matchResult.sequence
 
   const result = await classifyInboundEmail({
     headers: inbound.headers,

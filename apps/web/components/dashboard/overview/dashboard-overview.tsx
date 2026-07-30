@@ -7,7 +7,6 @@ import { useProspectStore } from "@/stores/prospect-store"
 import { buildOverviewMetrics } from "./_metrics"
 import { ContactedOverTime } from "./contacted-over-time"
 import { ByOpportunityType } from "./distribution"
-import { NeedsYou } from "./needs-you"
 import { OpportunityMix } from "./opportunity-mix"
 import { StatusFunnel } from "./status-funnel"
 
@@ -18,7 +17,6 @@ export function DashboardOverview() {
 
   return (
     <div className="flex flex-col gap-6">
-      <NeedsYou metrics={metrics} />
       <StatusFunnel metrics={metrics} />
       <ContactedOverTime />
       <div className="grid gap-6 lg:grid-cols-[1.55fr_1fr]">

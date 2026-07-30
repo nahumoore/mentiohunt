@@ -3,14 +3,13 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardStoreHydrator } from "@/components/dashboard/dashboard-store-hydrator"
 import { FirstLoginWalkthrough } from "@/components/dashboard/first-login-walkthrough"
-import { GettingStartedChecklist } from "@/components/dashboard/getting-started-checklist"
 import { supabaseServer } from "@/lib/supabase/server"
 import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
 import type { DirectoryListItem } from "@/stores/directory-store"
 import type { DiscoverySettings } from "@/stores/discovery-settings-store"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
-import type { ProspectListItem } from "@/stores/prospect-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
+import type { ProspectListItem } from "@/stores/prospect-store"
 import type { Tables } from "@workspace/supabase/database-types"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { redirect } from "next/navigation"
@@ -241,7 +240,8 @@ export default async function DashboardLayout({
       console.error("Error fetching backlink prospects:", prospectsError)
     }
 
-    hasCompletedProspectRun = !lastProspectRunResult.error && lastProspectRunResult.data !== null
+    hasCompletedProspectRun =
+      !lastProspectRunResult.error && lastProspectRunResult.data !== null
 
     if (directoriesResult.error) {
       console.error("Error fetching directories:", directoriesResult.error)
@@ -318,7 +318,6 @@ export default async function DashboardLayout({
           <DashboardHeader />
           <div className="p-4 sm:p-6">{children}</div>
         </SidebarInset>
-        <GettingStartedChecklist />
         <ActivationTracker />
         <FirstLoginWalkthrough />
       </SidebarProvider>

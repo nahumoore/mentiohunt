@@ -1014,6 +1014,103 @@ export type Database = {
           },
         ]
       }
+      support_conversations: {
+        Row: {
+          agent_read_at: string | null
+          created_at: string
+          current_path: string | null
+          email: string | null
+          id: string
+          last_agent_message_at: string | null
+          last_message_at: string | null
+          last_notified_at: string | null
+          last_visitor_message_at: string | null
+          metadata: Json
+          name: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          visitor_id: string
+        }
+        Insert: {
+          agent_read_at?: string | null
+          created_at?: string
+          current_path?: string | null
+          email?: string | null
+          id?: string
+          last_agent_message_at?: string | null
+          last_message_at?: string | null
+          last_notified_at?: string | null
+          last_visitor_message_at?: string | null
+          metadata?: Json
+          name?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          visitor_id: string
+        }
+        Update: {
+          agent_read_at?: string | null
+          created_at?: string
+          current_path?: string | null
+          email?: string | null
+          id?: string
+          last_agent_message_at?: string | null
+          last_message_at?: string | null
+          last_notified_at?: string | null
+          last_visitor_message_at?: string | null
+          metadata?: Json
+          name?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          page_url: string | null
+          sender: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          page_url?: string | null
+          sender: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          page_url?: string | null
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1030,6 +1127,7 @@ export type Database = {
           email_account_id: string
           id: string
           last_attempt_at: string | null
+          last_deferred_at: string | null
           last_error: string | null
           locked_at: string | null
           message_id: string | null

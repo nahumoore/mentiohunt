@@ -42,3 +42,6 @@ apps/scraper/__pycache__/
 
 # Local skill with embedded API key
 .agents/skills/keyword-research/
+
+# Supabase CLI local link artifacts
+supabase/.temp/

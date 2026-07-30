@@ -6,6 +6,8 @@ import { Bricolage_Grotesque, Figtree, Inter } from "next/font/google"
 import Script from "next/script"
 import { Toaster } from "sonner"
 
+import { SupportChatWidget } from "@/components/support-chat/support-chat-widget"
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
   title: {
@@ -55,6 +57,7 @@ export default function RootLayout({
         {/* <ThemeProvider> */}
         {children}
         <Toaster richColors position="top-right" />
+        <SupportChatWidget />
 
         {process.env.NODE_ENV !== "development" && (
           <>
@@ -71,11 +74,6 @@ export default function RootLayout({
             <Script id="plausible-init" strategy="afterInteractive">{`
               window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
               plausible.init()
-            `}</Script>
-
-            {/* CRISP */}
-            <Script id="crisp-chat" strategy="afterInteractive">{`
-              window.$crisp=[];window.CRISP_WEBSITE_ID="a5eafad7-0838-4b9a-af68-808afe9d0535";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();
             `}</Script>
           </>
         )}

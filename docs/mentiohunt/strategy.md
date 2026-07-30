@@ -9,7 +9,7 @@
 - Backlink acquisition is a clearer, already-budgeted SEO spend.
 - The market is showing demand for **managed placements**, not just DIY outreach tooling.
 - Social/community reply automation has rising platform risk and moderation friction.
-- Monitoring without handling the reply end-to-end creates weaker perceived value.
+- Monitoring without automating the outreach that follows creates weaker perceived value.
 - A narrower promise is easier to explain, sell, fulfill, and optimize.
 
 ### Category definition

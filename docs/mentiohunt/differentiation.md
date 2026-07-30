@@ -2,7 +2,7 @@
 
 ## What Mentiohunt should be differentiated on
 
-1. **Managed end-to-end execution** — not just software
+1. **Managed prospecting and outreach execution** — not just software
 2. **Autopilot with monitor-and-cancel control** — outreach auto-schedules on discovery, customers can cancel anything that isn't a fit
 3. **Transparency** — show why each opportunity is a fit
 4. **Relevance over volume** — fewer, better placements

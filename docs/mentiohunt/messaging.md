@@ -39,13 +39,13 @@ Every headline, subheadline, feature description, and CTA should map to one of t
 ### Headline options
 
 - **Backlink placements on autopilot**
-- **We build the backlinks. You stay in control.**
+- **We run the outreach. You stay in control.**
 - **Done-for-you backlink acquisition for lean SaaS teams**
 - **Authority-building backlinks without running outreach yourself**
 
 ### Subheadline options
 
-- We find opportunities, run outreach, and manage placements end-to-end automatically. You simply monitor and cancel anything that isn't a fit.
+- We find opportunities and run outreach automatically through the first reply. You simply monitor and cancel anything that isn't a fit.
 - Stop managing link building like an internal function. Mentiohunt handles discovery and outreach while you stay in control.
 - Get relevant backlink placements without hiring an agency, chasing freelancers, or running cold outreach yourself.
 

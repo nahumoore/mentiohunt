@@ -29,7 +29,7 @@ function buildPricingMarkdown(): string {
 
   return `# Mentiohunt Pricing
 
-> Managed backlink placement autopilot for founder-led B2B SaaS teams. ${PLANS.length} plans, both starting with a ${FREE_TRIAL_DAYS}-day free trial — no card required to sign up. Full page: https://mentiohunt.com/pricing
+> Mentiohunt automates backlink prospecting and outreach for B2B SaaS founders — you take over once a prospect replies. ${PLANS.length} plans, both starting with a ${FREE_TRIAL_DAYS}-day free trial — no card required to sign up. Full page: https://mentiohunt.com/pricing
 
 ## Plans
 

@@ -1,6 +1,6 @@
 # Mentiohunt
 
-> Mentiohunt is a backlink placement autopilot for founder-led B2B SaaS companies. It turns article URLs into a scored opportunity queue — surfacing fit-matched websites, contact details, and outreach drafts so founders can approve placements without running outreach as a full-time job.
+> Mentiohunt automates backlink prospecting and outreach for founder-led B2B SaaS teams — you take over once a prospect replies. It turns article URLs into a scored opportunity queue — surfacing fit-matched websites, contact details, and outreach drafts so founders can approve placements without running outreach as a full-time job.
 
 ## Primary Pages
 

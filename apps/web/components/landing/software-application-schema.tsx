@@ -9,7 +9,7 @@ const softwareApplicationSchema = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description:
-    "Distribution tool for founders and small marketing teams. Build backlinks from your articles and monitor Reddit for posts where your product fits — with contact details, outreach drafts, and real-time alerts.",
+    "Mentiohunt automates backlink prospecting and outreach for B2B SaaS founders — you take over once a prospect replies. Turns article URLs into a scored opportunity queue with contact details and outreach drafts.",
   offers: {
     "@type": "Offer",
     price: PLANS[0]!.price,

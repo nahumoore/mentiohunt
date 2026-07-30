@@ -7,7 +7,7 @@ const organizationSchema = {
   url: "https://mentiohunt.com",
   logo: "https://mentiohunt.com/icon.png",
   description:
-    "Managed backlink placement autopilot for founder-led B2B SaaS teams.",
+    "Mentiohunt automates backlink prospecting and outreach for B2B SaaS founders — you take over once a prospect replies.",
   sameAs: ["https://x.com/nicolasmore_"],
 }
 

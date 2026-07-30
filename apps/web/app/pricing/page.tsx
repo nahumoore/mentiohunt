@@ -33,7 +33,7 @@ const pricingSchema = {
   "@type": "Product",
   name: "Mentiohunt",
   description:
-    "Managed backlink placement autopilot for founder-led B2B SaaS teams.",
+    "Mentiohunt automates backlink prospecting and outreach for B2B SaaS founders — you take over once a prospect replies.",
   url: "https://mentiohunt.com/pricing",
   brand: { "@type": "Brand", name: "Mentiohunt" },
   offers: PLANS.map((plan) => ({

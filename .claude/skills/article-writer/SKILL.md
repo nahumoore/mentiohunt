@@ -17,10 +17,10 @@ Write like a smart founder talking to another founder: simple, practical, direct
 
 ## Product Context
 
-- Mentiohunt is a self-serve distribution tool for founders and small marketing teams.
+- Mentiohunt automates backlink prospecting and outreach for founder-led B2B SaaS teams — through the first reply. After that, the founder takes over the relationship personally.
 - Backlink Building: users provide sitemap or article URLs, and Mentiohunt helps find relevant websites where each article fits, surfaces contact details when available, and prepares a ready-to-send outreach draft.
 - Mentiohunt helps users find opportunities and prepare better outreach. It does not guarantee backlinks, placements, rankings, replies, or community acceptance.
-- Mentiohunt does not post, comment, submit forms, or send outreach on the user's behalf unless a future feature explicitly supports that.
+- Mentiohunt sends the initial outreach automatically on the user's behalf, up to a prospect's first reply — the user does not send it manually and does not need to approve each send before it goes out.
 
 ## Audience
 

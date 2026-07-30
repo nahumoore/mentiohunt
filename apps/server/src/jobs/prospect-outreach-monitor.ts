@@ -566,6 +566,13 @@ async function processAccount(account: EmailAccount): Promise<void> {
       connectionTimeout: 15_000,
     })
 
+    // Without this listener, an async 'error' emitted after connect()/logout()
+    // has already settled (e.g. a mid-handshake socket close racing imapflow's
+    // internal session retry) is unhandled and crashes the whole process.
+    client.on("error", (err) => {
+      log.warn("imap client error", { accountId: account.id, error: err instanceof Error ? err.message : String(err) })
+    })
+
     await client.connect()
     const lock = await client.getMailboxLock(MAILBOX)
 

@@ -11,7 +11,8 @@ import { runApifyActor } from "../../../helpers/actors/run-apify-actor.js"
 import { createLogger } from "../../../helpers/logger.js"
 import { scraperHeavyLimit, scraperLightLimit } from "../../../helpers/scraper-limits.js"
 import type { PageType } from "./score-backlink-relevance.js"
-import { isValidContactEmail, sanitizeContactName } from "./contact-validation.js"
+import { isValidContactEmail } from "./contact-validation.js"
+import { sanitizeContactName } from "../shared/contact-name.js"
 
 const log = createLogger("enrich-contact")
 

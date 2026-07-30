@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import { createLogger } from "../../helpers/logger.js"
 import { buildProspectSequenceSchedule } from "../../helpers/emails/outreach-schedule.js"
 import type { ProspectCreatedPayload } from "../../methods/prospect-generation-methods/shared/prospect-types.js"
+import { sanitizeContactName } from "../../methods/prospect-generation-methods/shared/contact-name.js"
 import { resolveEmailAccount, type ResolvedEmailAccount } from "./resolve-email-account.js"
 
 const log = createLogger("onboarding-prospect-sequences")
@@ -27,7 +28,7 @@ export async function createSequencesForProspect(
   const schedule = buildProspectSequenceSchedule()
 
   const reSubject = prospect.emailSubject ? `Re: ${prospect.emailSubject}` : null
-  const firstName = prospect.contactName?.split(" ")[0] ?? "there"
+  const firstName = sanitizeContactName(prospect.contactName)?.split(" ")[0] ?? "there"
   const senderFirstName = account.name?.split(" ")[0] ?? ""
 
   const { step2Body, step3Body } = buildFollowupBodies(firstName, senderFirstName)
@@ -120,7 +121,7 @@ export async function assignSequences(
   const sequences = prospects.flatMap((p) => {
     const schedule = buildProspectSequenceSchedule()
     const reSubject = p.email_subject ? `Re: ${p.email_subject}` : null
-    const firstName = p.contact_name?.split(" ")[0] ?? "there"
+    const firstName = sanitizeContactName(p.contact_name)?.split(" ")[0] ?? "there"
     const { step2Body, step3Body } = buildFollowupBodies(firstName, senderFirstName)
 
     return [

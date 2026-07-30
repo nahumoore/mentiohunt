@@ -1,45 +1,10 @@
 /**
  * Validation helpers for scraped contact data before persisting to backlink_prospects.
- * Guards against LLM hallucinations (e.g. name="null", name="finish") and
- * placeholder email addresses (e.g. john@example.com).
+ * Guards against placeholder email addresses (e.g. john@example.com).
+ *
+ * Contact-name sanitization lives in `../shared/contact-name.ts` — it's used
+ * across every discovery method, not just competitor-backlink.
  */
-
-// Substrings that indicate the LLM returned a scraper failure description or a
-// refusal to name a real person, instead of a real name.
-const NAME_FAILURE_SUBSTRINGS = [
-  "unable",
-  "cannot",
-  "could not",
-  "access denied",
-  "site could",
-  "error",
-  "no real person",
-  "not identified",
-  "no individual",
-  "not able to identify",
-  "no author",
-  "no name",
-  "not found",
-  "not available",
-  "no person",
-]
-
-const NAME_BLOCKLIST = new Set([
-  "null",
-  "none",
-  "n/a",
-  "na",
-  "undefined",
-  "unknown",
-  "finish",
-  "scrape_page",
-  "anonymous",
-  "author",
-  "admin",
-  "editor",
-  "staff",
-  "team",
-])
 
 const PLACEHOLDER_DOMAINS = new Set([
   "example.com",
@@ -68,24 +33,6 @@ const PLACEHOLDER_LOCAL_PARTS = new Set([
   "test",
   "demo",
 ])
-
-/**
- * Sanitize a contact name returned by the scraper LLM agent.
- * Returns null for garbage values, strings like "null", tool names, no-letter
- * strings, and implausibly long values. Otherwise returns the trimmed name.
- */
-export function sanitizeContactName(name: string | null | undefined): string | null {
-  if (!name) return null
-  const trimmed = name.trim()
-  if (!trimmed) return null
-  if (trimmed.length > 60) return null
-  if (!/[a-zA-Z]/.test(trimmed)) return null
-  const lower = trimmed.toLowerCase()
-  if (NAME_BLOCKLIST.has(lower)) return null
-  if (NAME_FAILURE_SUBSTRINGS.some((s) => lower.includes(s))) return null
-  if (trimmed.split(/\s+/).length > 5) return null
-  return trimmed
-}
 
 /**
  * Validate a contact email address.

@@ -11,8 +11,9 @@ import { discoverListicleRoundups } from "../methods/prospect-generation-methods
 import { discoverResourcePageInclusions } from "../methods/prospect-generation-methods/resource-page-inclusion/index.js"
 import { discoverUnlinkedMentions } from "../methods/prospect-generation-methods/unlinked-mention/index.js"
 import { ALL_OPPORTUNITY_TYPES } from "../methods/prospect-generation-methods/shared/opportunity-types.js"
-import type { EmailSettings } from "../methods/prospect-generation-methods/shared/prospect-types.js"
-import { assignSequences } from "../processes/onboarding/prospect-sequences.js"
+import type { EmailSettings, ProspectCreatedPayload } from "../methods/prospect-generation-methods/shared/prospect-types.js"
+import { assignSequences, createSequencesForProspect } from "../processes/onboarding/prospect-sequences.js"
+import { resolveEmailAccount } from "../processes/onboarding/resolve-email-account.js"
 
 const log = createLogger("daily-backlink-discovery")
 
@@ -48,7 +49,8 @@ type StrategyHandler = {
   discover: (
     product: DiscoveryProduct,
     filterSettings: FilterSettings,
-    emailSettings: EmailSettings
+    emailSettings: EmailSettings,
+    onProspectCreated?: (p: ProspectCreatedPayload) => void
   ) => Promise<DiscoveryResult>
   sendAlert: (args: {
     to: string
@@ -62,24 +64,27 @@ type StrategyHandler = {
 const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
   competitor_backlink: {
     isRunnable: (product) => (product.competitors ?? []).length > 0,
-    discover: (product, filterSettings, emailSettings) =>
+    discover: (product, filterSettings, emailSettings, onProspectCreated) =>
       discoverCompetitorBacklinks(
         { ...product, competitors: product.competitors ?? [] },
         filterSettings,
-        emailSettings
+        emailSettings,
+        {},
+        undefined,
+        onProspectCreated
       ),
     sendAlert: sendCompetitorBacklinkAlertEmail,
   },
   unlinked_mention: {
     isRunnable: (product) => (product.product_name?.trim() ?? "") !== "",
-    discover: (product, filterSettings, emailSettings) =>
-      discoverUnlinkedMentions(product, filterSettings, emailSettings),
+    discover: (product, filterSettings, emailSettings, onProspectCreated) =>
+      discoverUnlinkedMentions(product, filterSettings, emailSettings, {}, undefined, onProspectCreated),
     sendAlert: sendUnlinkedMentionAlertEmail,
   },
   listicle_roundup: {
     isRunnable: (product) => (product.product_name?.trim() ?? "") !== "",
-    discover: (product, filterSettings, emailSettings) =>
-      discoverListicleRoundups(product, filterSettings, emailSettings),
+    discover: (product, filterSettings, emailSettings, onProspectCreated) =>
+      discoverListicleRoundups(product, filterSettings, emailSettings, {}, undefined, onProspectCreated),
     sendAlert: sendListicleAlertEmail,
   },
   resource_page_inclusion: {
@@ -91,11 +96,14 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         .eq("crawl_status", "crawled")
       return (count ?? 0) > 0
     },
-    discover: async (product, filterSettings, emailSettings) => {
+    discover: async (product, filterSettings, emailSettings, onProspectCreated) => {
       const { prospectsCreated, totalCostUsd } = await discoverResourcePageInclusions(
         product,
         filterSettings,
-        emailSettings
+        emailSettings,
+        {},
+        undefined,
+        onProspectCreated
       )
       return { prospectsCreated, totalCostUsd }
     },
@@ -197,12 +205,26 @@ export async function runDiscoveryForProduct(
 
   log.info("strategy selected", { productId: product.id, strategy })
 
-  const result = await STRATEGY_HANDLERS[strategy].discover(product, filterSettings, emailSettings)
+  // Resolve the sending account once so newly-created prospects get their sequence
+  // rows written in-flight with the LLM-generated step2/step3 bodies, the same way
+  // onboarding does (run-onboarding-jobs.ts) — otherwise the safety-net sweep below
+  // can't see them and always falls back to the templated follow-up.
+  const account = await resolveEmailAccount(product.user_id)
+  const seqLimit = pLimit(3)
+  const seqPromises: Promise<void>[] = []
+  const onProspectCreated: ((p: ProspectCreatedPayload) => void) | undefined = account
+    ? (p) => {
+        seqPromises.push(seqLimit(() => createSequencesForProspect(p, account)))
+      }
+    : undefined
+
+  const result = await STRATEGY_HANDLERS[strategy].discover(product, filterSettings, emailSettings, onProspectCreated)
+  await Promise.allSettled(seqPromises)
   log.info("discovery done", { productId: product.id, strategy, ...result })
 
   let emailSent = false
   if (result.prospectsCreated > 0) {
-    await assignSequences(product.user_id, product.id)
+    await assignSequences(product.user_id, product.id, account)
 
     if (profile?.email) {
       await STRATEGY_HANDLERS[strategy].sendAlert({

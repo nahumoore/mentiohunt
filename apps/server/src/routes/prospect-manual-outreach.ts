@@ -61,7 +61,7 @@ type StoredOutreachContext =
  * context persisted at discovery time (raw_metadata.outreach_context); falls
  * back to a minimal context derived from the row for legacy prospects that
  * predate that persistence. */
-function buildOutreachContext(prospect: {
+export function buildOutreachContext(prospect: {
   tier: "competitor_backlink" | "unlinked_mention" | "listicle_roundup" | "resource_page_inclusion"
   domain: string | null
   target_url: string | null

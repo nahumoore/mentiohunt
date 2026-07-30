@@ -2,7 +2,7 @@ import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../../helpers/logger.js"
 import { withLlmRetries } from "../../../helpers/llm-retry.js"
-import { sanitizeContactName } from "../competitor-backlink/contact-validation.js"
+import { sanitizeContactName } from "./contact-name.js"
 import type { PageType } from "../competitor-backlink/score-backlink-relevance.js"
 
 const log = createLogger("generate-outreach-sequence")
@@ -65,9 +65,23 @@ function ensureSignOff(body: string, senderFirstName: string): string {
   return `${trimmed}\n\nBest,\n${senderFirstName}`
 }
 
+/** The system prompt tells the model "no em-dashes" but the model still writes them
+ * fairly often (they're a strong LLM-prose habit). Rather than trust the instruction,
+ * deterministically strip them the same way `ensureSignOff` backfills sign-offs. */
+function stripDashes(body: string): string {
+  return body
+    .replace(/P\.S\.\s*[—–]\s*/g, "P.S. ") // "P.S. — Love that..." -> "P.S. Love that..."
+    .replace(/\s+[—–]\s+/g, ", ") // spaced em/en-dash aside -> comma
+    .replace(/(\d)[–—](\d)/g, "$1-$2") // "3–4" -> "3-4"
+    .replace(/([a-zA-Z])[—–]([a-zA-Z])/g, "$1, $2") // unspaced "cut—we" -> "cut, we"
+    .replace(/[—–]/g, ", ") // any remaining stray dash
+    .replace(/,\s*,/g, ",") // collapse ", ," artifacts
+    .replace(/,\s*\./g, ".") // collapse ", ." artifacts
+}
+
 function sanitizeUserInput(input: string | null | undefined): string | null {
   if (!input) return null
-  return input.trim().slice(0, MAX_USER_INPUT_LENGTH)
+  return stripDashes(input.trim().slice(0, MAX_USER_INPUT_LENGTH))
 }
 
 function buildAngle(pageType: PageType, competitorDomain: string): string {
@@ -90,8 +104,8 @@ function buildFraming(context: OutreachContext): { situation: string; opening: s
   if (context.opportunityType === "unlinked_mention") {
     return {
       situation: `Page URL: ${context.foundUrl}\nSituation: This page already mentions the product by name but does not link to it. The ask is to turn that existing mention into a link to the product website.`,
-      opening: `One sentence thanking them for mentioning the product — reference the page naturally, not templated.`,
-      ask: `One short, direct ask — would they mind linking the mention to the product website.`,
+      opening: `One sentence thanking them for mentioning the product, referencing the page naturally, not templated.`,
+      ask: `One short, direct ask: would they mind linking the mention to the product website.`,
     }
   }
 
@@ -102,15 +116,15 @@ function buildFraming(context: OutreachContext): { situation: string; opening: s
     return {
       situation: `Prospect guide/resource page URL: ${context.foundUrl}\nProspect page title: ${context.title || "(unknown)"}\nSelected page to pitch: ${context.targetUrl}\nSelected page title: ${targetTitle}${targetDescription}\nSelected page type: ${context.targetPageType || "resource"}\nWhy it fits: ${context.reason || "The selected page appears useful for this prospect page's readers."}\nSituation: This is a resource page inclusion opportunity. The email must pitch the selected page, not the product homepage. Say that we have or created "${targetTitle}" and that it could be a good addition to their guide/resource page. The ask is to consider adding the selected page as an additional helpful resource for readers.`,
       opening: `One sentence showing you noticed their specific guide/resource page by topic or title, not just the domain.\n- One sentence saying we have or created "${targetTitle}" and why that selected page would be useful for their readers, using the fit reason without sounding like an SEO pitch.`,
-      ask: `One short, direct ask — would they consider adding or referencing "${targetTitle}" on their guide/resource page if useful.`,
+      ask: `One short, direct ask: would they consider adding or referencing "${targetTitle}" on their guide/resource page if useful.`,
     }
   }
 
   const angle = buildAngle(context.pageType, context.competitorDomain)
   return {
     situation: `Anchor text used for competitor: ${context.anchor || "(unknown)"}\nOutreach angle: ${angle}`,
-    opening: `One sentence showing you noticed their specific page — make it feel real, not templated.\n- One sentence on why this product belongs alongside ${context.competitorDomain} — specific, no buzzwords.`,
-    ask: `One short, direct ask — inclusion, mention, or link.`,
+    opening: `One sentence showing you noticed their specific page, making it feel real, not templated.\n- One sentence on why this product belongs alongside ${context.competitorDomain}, specific, no buzzwords.`,
+    ask: `One short, direct ask: inclusion, mention, or link.`,
   }
 }
 
@@ -156,21 +170,21 @@ Generate all 3 emails. Rules that apply to all:
 - Sign off each email with "Best,\\n${senderFirstName}"
 - Do not invent offers, benefits, or claims not stated in the offering field above.${voiceTone ? "\n- Follow the tone described in <voice_tone>." : ""}${sender.isPublicAccount ? "" : "\n- This is sent from the founder's own inbox, so it's fine to say you read replies personally."}
 
-Email 1 — first contact. Tone: casual, direct, like tapping a fellow builder on the shoulder.
-- ${opening}${offering ? "\n- One sentence naturally offering something from <offering> to make it worth their time — pick the most fitting option, don't list all of them." : ""}
+Email 1, first contact. Tone: casual, direct, like tapping a fellow builder on the shoulder.
+- ${opening}${offering ? "\n- One sentence naturally offering something from <offering> to make it worth their time, picking the most fitting option, not listing all of them." : ""}
 - ${ask}
-- 3–4 sentences total.${authorBio ? "\n- Only if <author_bio> contains an actual specific, concrete detail (a hobby, interest, past project, hometown, something like that — not generic bio boilerplate), add one P.S. line after the sign-off referencing it warmly and briefly, like a genuine aside from one human to another. It does not need to relate to the outreach ask. Skip this P.S. entirely if <author_bio> has nothing concrete to reference — never invent a detail." : ""}
+- 3 to 4 sentences total.${authorBio ? "\n- Only if <author_bio> contains an actual specific, concrete detail (a hobby, interest, past project, hometown, something like that, not generic bio boilerplate), add one P.S. line after the sign-off referencing it warmly and briefly, like a genuine aside from one human to another. It does not need to relate to the outreach ask. Skip this P.S. entirely if <author_bio> has nothing concrete to reference, never invent a detail." : ""}
 
-Email 2 — follow-up:
+Email 2, follow-up:
 - Do not reference when email 1 was sent (no "last week", "a few days ago", "recently", or any time reference).
 - Do not open with "just following up" or any variant.
-- Do not just restate email 1's ask in different words — bring something new: a different outcome, use case, or social proof, and${offering ? " a different item from <offering> than email 1 used, if <offering> lists more than one" : " a fresh concrete reason this is worth a reply"}.
-- 3–4 sentences total.
+- Do not just restate email 1's ask in different words, bring something new: a different outcome, use case, or social proof, and${offering ? " a different item from <offering> than email 1 used, if <offering> lists more than one" : " a fresh concrete reason this is worth a reply"}.
+- 3 to 4 sentences total.
 
-Email 3 — final outreach:
+Email 3, final outreach:
 - Do not reference when previous emails were sent.
 - Make clear this is the last outreach, warmly.
-- Lead with the most compelling angle not yet covered${offering ? " — if <offering> has an item unused by emails 1 and 2, lead with that one" : ""}. Do not just repeat the ask again with no new substance.
+- Lead with the most compelling angle not yet covered${offering ? ", and if <offering> has an item unused by emails 1 and 2, lead with that one" : ""}. Do not just repeat the ask again with no new substance.
 - End with a genuine goodbye, e.g. "No hard feelings if timing isn't right, I won't follow up after this."
 - After the sign-off, add a P.S. line reinforcing the goodbye.`
 
@@ -213,10 +227,17 @@ Email 3 — final outreach:
         step2_body: string
         step3_body: string
       }
-      const step1Body = ensureSignOff(parsed.step1_body, senderFirstName)
-      const step2Body = ensureSignOff(parsed.step2_body, senderFirstName)
-      const step3Body = ensureSignOff(parsed.step3_body, senderFirstName)
-      if (step1Body !== parsed.step1_body || step2Body !== parsed.step2_body || step3Body !== parsed.step3_body) {
+      const dashStripped1 = stripDashes(parsed.step1_body)
+      const dashStripped2 = stripDashes(parsed.step2_body)
+      const dashStripped3 = stripDashes(parsed.step3_body)
+      if (dashStripped1 !== parsed.step1_body || dashStripped2 !== parsed.step2_body || dashStripped3 !== parsed.step3_body) {
+        log.info("em-dash present in LLM output, stripped", { opportunityType: context.opportunityType })
+      }
+
+      const step1Body = ensureSignOff(dashStripped1, senderFirstName)
+      const step2Body = ensureSignOff(dashStripped2, senderFirstName)
+      const step3Body = ensureSignOff(dashStripped3, senderFirstName)
+      if (step1Body !== dashStripped1 || step2Body !== dashStripped2 || step3Body !== dashStripped3) {
         log.info("sign-off missing from LLM output, backfilled", { opportunityType: context.opportunityType, senderFirstName })
       }
 

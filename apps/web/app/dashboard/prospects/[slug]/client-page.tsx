@@ -451,6 +451,7 @@ export function ProspectClientPage({
   const emailSequence = sequences.map((seq) => {
     const date = new Date(seq.sent_at ?? seq.scheduled_at ?? current.created_at)
     return {
+      id: seq.id,
       number: seq.step,
       label: stepLabel(seq.step),
       subject: seq.subject ?? "",
@@ -462,8 +463,57 @@ export function ProspectClientPage({
 
   const displayStatus = current.status
 
-  const activeEmail = emailSequence[activeEmailIdx]!
+  const activeEmailUnsafe = emailSequence[activeEmailIdx]
+  const activeEmail = activeEmailUnsafe!
   const isNegotiating = current.status === "negotiating"
+
+  const subjectSourceEmail =
+    sameThread && activeEmailIdx > 0 ? emailSequence[0] : activeEmailUnsafe
+  const [subjectDraft, setSubjectDraft] = useState(subjectSourceEmail?.subject ?? "")
+  const [bodyDraft, setBodyDraft] = useState(activeEmailUnsafe?.body ?? "")
+  const [subjectSaveState, setSubjectSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle")
+  const [bodySaveState, setBodySaveState] = useState<"idle" | "saving" | "saved" | "error">("idle")
+
+  useEffect(() => {
+    setSubjectDraft(subjectSourceEmail?.subject ?? "")
+    setSubjectSaveState("idle")
+    setBodyDraft(activeEmailUnsafe?.body ?? "")
+    setBodySaveState("idle")
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeEmailIdx, sameThread])
+
+  async function saveSequenceField(
+    sequenceId: string,
+    field: "subject" | "body",
+    value: string,
+    originalValue: string,
+    setSaveState: (state: "idle" | "saving" | "saved" | "error") => void
+  ) {
+    if (value === originalValue) return
+    setSaveState("saving")
+    try {
+      const res = await fetch(`/api/link-building/prospect-sequences/${sequenceId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      })
+      if (res.ok) {
+        setSaveState("saved")
+        router.refresh()
+      } else {
+        setSaveState("error")
+      }
+    } catch {
+      setSaveState("error")
+    }
+  }
+
+  function saveIndicator(state: "idle" | "saving" | "saved" | "error") {
+    if (state === "saving") return <span className="text-[10px] text-muted-foreground">Saving…</span>
+    if (state === "saved") return <span className="text-[10px] text-emerald-600">Saved</span>
+    if (state === "error") return <span className="text-[10px] text-destructive">Failed to save</span>
+    return null
+  }
 
   async function handlePause() {
     setStatusLoading("pausing")
@@ -816,25 +866,38 @@ export function ProspectClientPage({
                 <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
                   Subject
                 </p>
-                {activeEmailIdx > 0 && (
-                  <label className={cn("flex items-center gap-2", isFreeUser ? "cursor-not-allowed opacity-40" : "cursor-pointer")}>
-                    <span className="text-[10px] text-muted-foreground">Reply on same thread</span>
-                    <Switch
-                      checked={sameThread}
-                      onCheckedChange={isFreeUser ? undefined : setSameThread}
-                      disabled={isFreeUser}
-                      aria-label="Reply on same thread"
-                    />
-                  </label>
-                )}
+                <div className="flex items-center gap-2">
+                  {saveIndicator(subjectSaveState)}
+                  {activeEmailIdx > 0 && (
+                    <label className={cn("flex items-center gap-2", isFreeUser ? "cursor-not-allowed opacity-40" : "cursor-pointer")}>
+                      <span className="text-[10px] text-muted-foreground">Reply on same thread</span>
+                      <Switch
+                        checked={sameThread}
+                        onCheckedChange={isFreeUser ? undefined : setSameThread}
+                        disabled={isFreeUser}
+                        aria-label="Reply on same thread"
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
               {(!sameThread || activeEmailIdx === 0) && (
                 <div className="mb-4">
                   <input
                     type="text"
                     readOnly={activeEmail.status === "sent" || isFreeUser}
-                    defaultValue={activeEmailIdx > 0 ? emailSequence[0]!.subject : activeEmail.subject}
-                    key={`subject-${activeEmailIdx}-${sameThread}`}
+                    value={subjectDraft}
+                    onChange={(e) => setSubjectDraft(e.target.value)}
+                    onBlur={() =>
+                      subjectSourceEmail &&
+                      saveSequenceField(
+                        subjectSourceEmail.id,
+                        "subject",
+                        subjectDraft,
+                        subjectSourceEmail.subject,
+                        setSubjectSaveState
+                      )
+                    }
                     placeholder="Email subject…"
                     className={cn(
                       "w-full rounded-lg border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition",
@@ -854,9 +917,12 @@ export function ProspectClientPage({
               )}
 
               {/* Body */}
-              <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground mb-1">
-                Message
-              </p>
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+                  Message
+                </p>
+                {!isFreeUser && saveIndicator(bodySaveState)}
+              </div>
               <div className="mb-5">
                 {isFreeUser ? (
                   <div className="overflow-hidden rounded-lg border">
@@ -882,8 +948,17 @@ export function ProspectClientPage({
                   <textarea
                     rows={12}
                     readOnly={activeEmail.status === "sent"}
-                    defaultValue={activeEmail.body}
-                    key={`body-${activeEmailIdx}`}
+                    value={bodyDraft}
+                    onChange={(e) => setBodyDraft(e.target.value)}
+                    onBlur={() =>
+                      saveSequenceField(
+                        activeEmail.id,
+                        "body",
+                        bodyDraft,
+                        activeEmail.body,
+                        setBodySaveState
+                      )
+                    }
                     placeholder="Email body…"
                     className={cn(
                       "w-full rounded-lg border bg-card px-4 py-3 text-sm text-foreground leading-relaxed resize-none transition font-sans",

@@ -11,12 +11,36 @@ from pydantic import BaseModel
 
 log = logging.getLogger("scraper")
 
-MODEL = "z-ai/glm-4.7-flash"
+# Two primaries, picked round-robin per run_agent_scrape() call, so a 07:00/19:00 UTC
+# congestion burst spreads across both providers instead of every concurrent task
+# hammering the same shallow-pooled model (mirrors packages/openrouter/generate-text.ts).
+PRIMARY_MODELS = ("z-ai/glm-4.7-flash", "deepseek/deepseek-v4-pro")
 FALLBACK_MODEL = "google/gemini-2.5-flash"
 EMPTY_RESPONSE_FALLBACK_MODEL = "deepseek/deepseek-v4-flash"  # retried when a model returns 200 OK with no tool_calls (OpenRouter "zero completion" glitch), distinct from FALLBACK_MODEL used for hard exceptions
 MAX_PAGES = 6
 AGENT_BUDGET_SECONDS = 100  # wall-clock cap; must land under the server's 120s AbortSignal
 MODEL_CALL_TIMEOUT_SECONDS = 30  # hard backstop — the SDK's `timeout=` kwarg only bounds gaps between chunks, not total call duration, and deepseek-v4-pro has been observed taking 150s+ on OpenRouter; the fast fallback model makes bailing out early worth it
+
+MODEL_CONCURRENCY_CAP = int(os.environ.get("SCRAPER_LLM_MODEL_CONCURRENCY", "8"))
+_model_semaphores: dict[str, asyncio.Semaphore] = {}
+_primary_model_counter = 0
+
+
+def _semaphore_for(model: str) -> asyncio.Semaphore:
+    """Per-model concurrency gate so concurrent agent_enrich tasks can't all pile
+    onto the same OpenRouter model at once during a congestion burst."""
+    sem = _model_semaphores.get(model)
+    if sem is None:
+        sem = asyncio.Semaphore(MODEL_CONCURRENCY_CAP)
+        _model_semaphores[model] = sem
+    return sem
+
+
+def _pick_primary_model() -> str:
+    global _primary_model_counter
+    model = PRIMARY_MODELS[_primary_model_counter % len(PRIMARY_MODELS)]
+    _primary_model_counter += 1
+    return model
 
 _GENERIC_PREFIXES = {"noreply", "no-reply", "support", "team", "hello", "info", "contact", "admin", "enquiries", "enquiry", "mail", "office", "sales", "marketing", "press", "media", "billing", "accounts", "hr", "jobs", "careers", "legal", "privacy", "abuse", "postmaster", "webmaster", "newsletter", "notifications"}
 
@@ -545,7 +569,8 @@ def _rank_candidate_urls(internal_links: list[str], author_url: str | None) -> l
 async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
     base_url = helpers["get_base_url"](url)
     domain = urlparse(base_url).netloc
-    log.info(f"agent-scrape start: url={url} domain={domain} model={MODEL}")
+    model = _pick_primary_model()
+    log.info(f"agent-scrape start: url={url} domain={domain} model={model}")
 
     client = AsyncOpenAI(
         api_key=os.environ["OPENROUTER_API_KEY"],
@@ -680,27 +705,10 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
         )
 
         try:
-            resp = await asyncio.wait_for(
-                client.chat.completions.create(
-                    model=MODEL,
-                    messages=messages,
-                    tools=tools,
-                    tool_choice="required",
-                    temperature=0,
-                    max_tokens=2048,
-                    timeout=MODEL_CALL_TIMEOUT_SECONDS,
-                ),
-                timeout=MODEL_CALL_TIMEOUT_SECONDS,
-            )
-        except Exception as e:
-            log.warning(f"agent: primary model failed ({type(e).__name__}: {e}), retrying with fallback {FALLBACK_MODEL}")
-            if time.monotonic() >= deadline:
-                log.warning("agent: budget exceeded before fallback attempt, stopping with data gathered so far")
-                break
-            try:
+            async with _semaphore_for(model):
                 resp = await asyncio.wait_for(
                     client.chat.completions.create(
-                        model=FALLBACK_MODEL,
+                        model=model,
                         messages=messages,
                         tools=tools,
                         tool_choice="required",
@@ -710,6 +718,25 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                     ),
                     timeout=MODEL_CALL_TIMEOUT_SECONDS,
                 )
+        except Exception as e:
+            log.warning(f"agent: primary model failed ({type(e).__name__}: {e}), retrying with fallback {FALLBACK_MODEL}")
+            if time.monotonic() >= deadline:
+                log.warning("agent: budget exceeded before fallback attempt, stopping with data gathered so far")
+                break
+            try:
+                async with _semaphore_for(FALLBACK_MODEL):
+                    resp = await asyncio.wait_for(
+                        client.chat.completions.create(
+                            model=FALLBACK_MODEL,
+                            messages=messages,
+                            tools=tools,
+                            tool_choice="required",
+                            temperature=0,
+                            max_tokens=2048,
+                            timeout=MODEL_CALL_TIMEOUT_SECONDS,
+                        ),
+                        timeout=MODEL_CALL_TIMEOUT_SECONDS,
+                    )
             except Exception as e2:
                 log.error(f"agent: fallback model also failed ({type(e2).__name__}: {e2}), stopping with data gathered so far")
                 break
@@ -730,18 +757,19 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 log.warning("agent: budget exceeded before empty-response fallback, stopping with data gathered so far")
             else:
                 try:
-                    resp = await asyncio.wait_for(
-                        client.chat.completions.create(
-                            model=EMPTY_RESPONSE_FALLBACK_MODEL,
-                            messages=messages,
-                            tools=tools,
-                            tool_choice="required",
-                            temperature=0,
-                            max_tokens=2048,
+                    async with _semaphore_for(EMPTY_RESPONSE_FALLBACK_MODEL):
+                        resp = await asyncio.wait_for(
+                            client.chat.completions.create(
+                                model=EMPTY_RESPONSE_FALLBACK_MODEL,
+                                messages=messages,
+                                tools=tools,
+                                tool_choice="required",
+                                temperature=0,
+                                max_tokens=2048,
+                                timeout=MODEL_CALL_TIMEOUT_SECONDS,
+                            ),
                             timeout=MODEL_CALL_TIMEOUT_SECONDS,
-                        ),
-                        timeout=MODEL_CALL_TIMEOUT_SECONDS,
-                    )
+                        )
                     if not resp.choices:
                         log.error("agent: empty-response fallback returned no choices (malformed 200), stopping with data gathered so far")
                     else:

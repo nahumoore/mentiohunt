@@ -511,7 +511,14 @@ async def _execute_scrape_page(url: str, domain: str, visited: list[str], helper
         internal_links.append(normalized)
 
     article_el = _first_el(page, "article", "main", '[role="main"]')
-    raw = strip_html_attrs(article_el.html_content or "") if article_el else strip_html_attrs(page.html_content or "")
+    try:
+        raw = strip_html_attrs((article_el or page).html_content or "")
+    except Exception as e:
+        # Malformed markup shouldn't sink the whole enrichment run — the emails,
+        # social links and internal links gathered above are still usable, so
+        # degrade to empty page text and let the agent work from those.
+        log.warning(f"agent tool: failed to flatten HTML for {url}: {e}")
+        raw = ""
 
     author_hints = _extract_author_hints(page)
     email_name_pairs = _extract_email_name_pairs(page)

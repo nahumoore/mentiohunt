@@ -321,7 +321,10 @@ class _TextLinksExtractor(HTMLParser):
             return
         if tag == "a":
             self._in_link = True
-            self._current_href = dict(attrs).get("href", "").strip() or None
+            # Bare `<a href>` is valid HTML and stdlib's parser reports its value as
+            # None (not ""), so guard before .strip() — the `or ""` covers both the
+            # missing-key and present-but-None cases.
+            self._current_href = (dict(attrs).get("href") or "").strip() or None
             self._current_link_text = []
 
     def handle_endtag(self, tag):

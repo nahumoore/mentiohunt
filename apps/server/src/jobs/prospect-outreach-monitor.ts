@@ -4,6 +4,7 @@ import type { Json, Tables } from "@workspace/supabase/database-types"
 import { ImapFlow } from "imapflow"
 import { simpleParser, type AddressObject, type ParsedMail } from "mailparser"
 import { classifyInboundEmail, extractMessageIds, normalizeEmail, normalizeMessageId, normalizeSubject, type HeaderMap, type InboundClassification } from "../helpers/outreach/inbound-email.js"
+import { CONTACT_ENRICHABLE_CLASSIFICATIONS, enrichContactFromReply } from "../helpers/outreach/enrich-contact-from-reply.js"
 import { stopProspectSequence } from "../helpers/outreach/stop-prospect-sequence.js"
 import { sendReplyAlertEmail } from "../helpers/emails/send-reply-alert.js"
 import { createLogger } from "../helpers/logger.js"
@@ -496,7 +497,7 @@ async function recordUnmatchedInbound(
   })
 }
 
-async function notifyUserOfReply(match: MatchedSequence): Promise<void> {
+async function notifyUserOfReply(match: MatchedSequence, contactName: string | null): Promise<void> {
   const { data: product, error: productError } = await supabaseAdmin
     .from("products")
     .select("user_id, product_name")
@@ -525,12 +526,24 @@ async function notifyUserOfReply(match: MatchedSequence): Promise<void> {
     userName: profile.name,
     productName: product.product_name,
     domain: match.prospect.domain,
-    contactName: match.prospect.contact_name,
+    contactName,
   })
 }
 
 async function applyClassification(match: MatchedSequence, inbound: ParsedInbound, classification: InboundClassification, reason: string): Promise<void> {
   const metadata = { classificationReason: reason, inboundMessageId: inbound.messageId, imapUid: inbound.uid }
+
+  // Runs before the branches below so the reply alert email carries the name
+  // the person just told us, instead of "Unknown contact".
+  const contactName = CONTACT_ENRICHABLE_CLASSIFICATIONS.has(classification)
+    ? ((await enrichContactFromReply({
+        prospectId: match.prospect_id,
+        sequenceId: match.id,
+        emailAccountId: match.email_account_id,
+        fromName: inbound.fromName,
+        fromEmail: inbound.fromEmail,
+      })) ?? match.prospect.contact_name)
+    : match.prospect.contact_name
 
   if (classification === "bounce") {
     await supabaseAdmin
@@ -563,7 +576,7 @@ async function applyClassification(match: MatchedSequence, inbound: ParsedInboun
       prospectStatus: "negotiating",
       metadata,
     })
-    await notifyUserOfReply(match)
+    await notifyUserOfReply(match, contactName)
     return
   }
 

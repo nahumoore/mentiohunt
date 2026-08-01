@@ -18,6 +18,27 @@ const STALE_LOCK_MINUTES = 10
 const RECENT_SEQUENCE_LIMIT = 500
 const RECENT_SEQUENCE_DAYS = 120
 
+// Shared inboxes where "same domain" is not a meaningful signal — unrelated
+// people share these providers, so a domain match here would be a coincidence,
+// not evidence the reply came from the same company we emailed.
+const FREEMAIL_DOMAINS = new Set([
+  "gmail.com",
+  "yahoo.com",
+  "hotmail.com",
+  "outlook.com",
+  "icloud.com",
+  "aol.com",
+  "protonmail.com",
+  "proton.me",
+  "live.com",
+  "msn.com",
+  "me.com",
+  "mail.com",
+  "gmx.com",
+  "yandex.com",
+  "zoho.com",
+])
+
 type EmailAccount = Pick<
   Tables<"email_accounts">,
   | "id"
@@ -69,6 +90,11 @@ function toJson(value: Record<string, unknown>): Json {
 
 function daysAgo(days: number): string {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+}
+
+function emailDomain(email: string | null): string | null {
+  const at = email?.lastIndexOf("@") ?? -1
+  return at > -1 ? email!.slice(at + 1) : null
 }
 
 function headerToString(value: unknown): string {
@@ -321,14 +347,36 @@ async function matchInbound(accountId: string, inbound: ParsedInbound): Promise<
 
   if (addressMatches.length === 1) return { status: "matched", sequence: addressMatches[0]! }
 
+  // A different person at the same company replies (sent to info@notion.com,
+  // reply from john@notion.com) breaks the exact-address check above. Subject
+  // match + matching company domain is still confident enough to auto-match,
+  // as long as it's not a shared freemail domain (where "same domain" means
+  // nothing) and it resolves to exactly one recent sequence.
+  const inboundDomain = emailDomain(fromEmail)
+  const domainMatches =
+    addressMatches.length === 0 && inboundDomain && !FREEMAIL_DOMAINS.has(inboundDomain)
+      ? subjectMatches.filter((sequence) => emailDomain(normalizeEmail(sequence.prospect.contact_email)) === inboundDomain)
+      : []
+
+  if (domainMatches.length === 1) {
+    log.info("matched inbound reply via subject + sender domain fallback", {
+      accountId,
+      sequenceId: domainMatches[0]!.id,
+      fromEmail,
+      contactEmail: domainMatches[0]!.prospect.contact_email,
+    })
+    return { status: "matched", sequence: domainMatches[0]! }
+  }
+
   if (subjectMatches.length > 0) {
-    const ambiguous = addressMatches.length > 1
+    const ambiguous = addressMatches.length > 1 || domainMatches.length > 1
+    const signal = domainMatches.length > 1 ? "domain" : "address"
     const reason = ambiguous
-      ? `Subject and sender address matched ${addressMatches.length} recent sequences for this account — ambiguous, needs manual review.`
-      : `Subject matched ${subjectMatches.length} recent sequence(s), but sender ${fromEmail ?? "(unknown)"} didn't match the recorded contact email for any of them.`
+      ? `Subject and sender ${signal} matched ${Math.max(addressMatches.length, domainMatches.length)} recent sequences for this account — ambiguous, needs manual review.`
+      : `Subject matched ${subjectMatches.length} recent sequence(s), but sender ${fromEmail ?? "(unknown)"} didn't match the recorded contact email or domain for any of them.`
     // On the ambiguous branch the candidate has to come from the sequences that
     // actually caused the ambiguity, not the most recent subject-only match.
-    const candidate = ambiguous ? addressMatches[0]! : subjectMatches[0]!
+    const candidate = addressMatches.length > 1 ? addressMatches[0]! : domainMatches.length > 1 ? domainMatches[0]! : subjectMatches[0]!
     return { status: "unmatched_candidate", candidate, reason }
   }
 

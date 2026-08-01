@@ -66,7 +66,7 @@ export default async function ProspectPage({
     notFound()
   }
 
-  const [productResult, sequencesResult, profileResult, emailAccountResult] = await Promise.all([
+  const [productResult, sequencesResult, profileResult] = await Promise.all([
     supabase
       .from("products")
       .select("id, product_name, website_url")
@@ -83,16 +83,7 @@ export default async function ProspectPage({
       .select("tier")
       .eq("id", user.id)
       .maybeSingle(),
-    prospect.email_account_id
-      ? supabaseAdmin
-          .from("email_accounts")
-          .select("is_public")
-          .eq("id", prospect.email_account_id)
-          .maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
   ])
-
-  const isPublicMailbox = emailAccountResult.data?.is_public ?? true
 
   if (!productResult.data) {
     notFound()
@@ -122,6 +113,22 @@ export default async function ProspectPage({
   const isFreeUser = profileResult.data == null ? true : profileResult.data.tier === "free"
   const isPaid = profileResult.data?.tier === "pro" || profileResult.data?.tier === "agency"
 
+  const { data: ownAccounts } = isPaid
+    ? await supabaseAdmin
+        .from("email_accounts")
+        .select("id, email, name")
+        .eq("user_id", user.id)
+        .eq("is_public", false)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+    : { data: null }
+
+  // Outreach always sends from the shared pool for now, but once the prospect
+  // replies the founder takes over from their own connected mailbox — so this
+  // reflects whether that mailbox is currently connected, not which account
+  // sent the original outreach.
+  const isPublicMailbox = !ownAccounts?.length
+
   const { data: messagesData, error: messagesError } = await supabaseAdmin
     .from("prospect_messages")
     .select("id, sequence_id, direction, classification, classification_reason, from_email, from_name, subject, text_body, received_at")
@@ -146,6 +153,7 @@ export default async function ProspectPage({
       isFreeUser={isFreeUser}
       hasEmailAccount={hasEmailAccount}
       isPublicMailbox={isPublicMailbox}
+      ownEmailAccounts={ownAccounts ?? []}
     />
   )
 }

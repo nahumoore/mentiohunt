@@ -47,6 +47,7 @@ import { STATUS_CONFIG, formatDate, type ProspectStatus } from "@/app/dashboard/
 import { EmailSequenceNav } from "@/components/prospects/email-sequence-nav"
 import { SequenceStoppedNotice } from "@/components/prospects/sequence-stopped-notice"
 import { ReplyViaMailboxNotice } from "@/components/prospects/reply-via-mailbox-notice"
+import { ReplyComposer } from "@/components/prospects/reply-composer"
 import { ManualCompletionForm } from "@/components/link-building/prospects/manual-completion-form"
 
 const PIPELINE_STEPS: ProspectStatus[] = ["new", "contacted", "negotiating", "won"]
@@ -215,16 +216,20 @@ function ScoreTile({
   )
 }
 
+type OwnEmailAccount = { id: string; email: string; name: string }
+
 function ConversationView({
   prospect,
   sequences,
   messages,
   isPublicMailbox,
+  ownEmailAccounts,
 }: {
   prospect: ProspectDetail
   sequences: ProspectSequence[]
   messages: ProspectMessage[]
   isPublicMailbox: boolean
+  ownEmailAccounts: OwnEmailAccount[]
 }) {
   const subject = prospect.email_subject ?? "Collaboration opportunity"
   const sentSteps = sequences.filter((s) => s.status === "sent")
@@ -253,6 +258,10 @@ function ConversationView({
       fromEmail: message.from_email,
     })),
   ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  // Reply to whoever last actually wrote in — they often answer from a
+  // different personal address than the one outreach was originally sent to.
+  const lastInboundEmail = [...threadItems].reverse().find((item) => item.direction === "inbound")?.fromEmail
+  const replyToEmail = lastInboundEmail ?? prospect.contact_email
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -364,7 +373,15 @@ function ConversationView({
         <div ref={bottomRef} />
       </div>
 
-      <ReplyViaMailboxNotice contactEmail={prospect.contact_email} isPublicMailbox={isPublicMailbox} />
+      {isPublicMailbox ? (
+        <ReplyViaMailboxNotice />
+      ) : (
+        <ReplyComposer
+          prospectId={prospect.id}
+          contactEmail={replyToEmail}
+          emailAccounts={ownEmailAccounts}
+        />
+      )}
     </div>
   )
 }
@@ -376,6 +393,7 @@ export function ProspectClientPage({
   isFreeUser,
   hasEmailAccount,
   isPublicMailbox,
+  ownEmailAccounts,
 }: {
   prospect: ProspectDetail
   product: ProspectProduct
@@ -384,6 +402,7 @@ export function ProspectClientPage({
   isFreeUser: boolean
   hasEmailAccount: boolean
   isPublicMailbox: boolean
+  ownEmailAccounts: OwnEmailAccount[]
 }) {
   const router = useRouter()
   const upsertProspectDetail = useProspectStore((s) => s.upsertProspectDetail)
@@ -809,7 +828,13 @@ export function ProspectClientPage({
 
           {isNegotiating ? (
             /* ── Conversation view ── */
-            <ConversationView prospect={current} sequences={sequences} messages={messages} isPublicMailbox={isPublicMailbox} />
+            <ConversationView
+              prospect={current}
+              sequences={sequences}
+              messages={messages}
+              isPublicMailbox={isPublicMailbox}
+              ownEmailAccounts={ownEmailAccounts}
+            />
           ) : current.status === "email_not_found" && emailSequence.length === 0 ? (
             /* ── Manual completion form ── */
             <ManualCompletionForm

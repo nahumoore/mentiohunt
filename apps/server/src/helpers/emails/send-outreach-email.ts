@@ -45,14 +45,16 @@ export async function sendOutreachEmail({
   subject,
   body,
   inReplyTo,
+  references,
 }: {
   account: OutreachEmailAccount
   senderName: string | null
-  sequenceId: string
+  sequenceId?: string
   to: string
   subject: string
   body: string
   inReplyTo?: string | null
+  references?: string[]
 }): Promise<OutreachSendResult> {
   if (!account.smtp_host || !account.smtp_port || !account.smtp_user || !account.smtp_pass) {
     throw new Error("Email account is missing SMTP configuration.")
@@ -78,10 +80,12 @@ export async function sendOutreachEmail({
     text: body,
     html: htmlFromPlainText(body),
     inReplyTo: inReplyTo ?? undefined,
-    references: inReplyTo ? [inReplyTo] : undefined,
-    headers: {
-      "X-Mentiohunt-Sequence-ID": sequenceId,
-    },
+    references: references ?? (inReplyTo ? [inReplyTo] : undefined),
+    headers: sequenceId
+      ? {
+          "X-Mentiohunt-Sequence-ID": sequenceId,
+        }
+      : undefined,
   })
 
   return {

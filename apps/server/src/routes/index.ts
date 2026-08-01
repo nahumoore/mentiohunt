@@ -20,6 +20,7 @@ import { freeToolGuestPostSitesRouter } from "./free-tool-guest-post-sites.js"
 import { googleIndexCheckerRouter } from "./google-index-checker.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
 import { prospectManualOutreachRouter } from "./prospect-manual-outreach.js"
+import { prospectReplyRouter } from "./prospect-reply.js"
 import { resendInboundWebhookRouter } from "./resend-inbound-webhook.js"
 import { verifyDirectoryUrlsRouter } from "./verify-directory-urls.js"
 
@@ -32,6 +33,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(freeToolGuestPostSitesRouter)
   app.use(onboardingCompleteRouter)
   app.use(prospectManualOutreachRouter)
+  app.use(prospectReplyRouter)
   app.use(crawlSinglePageRouter)
   app.use(resendInboundWebhookRouter)
   app.use(googleIndexCheckerRouter)

@@ -27,3 +27,7 @@ This repository is a pnpm monorepo with three apps and shared packages.
 ## Server Rules
 
 - When adding logs for debugging, only use the helper `apps/server/src/helpers/logger.ts`
+
+## SEO
+
+Principal Target keyword `automated link building tool`

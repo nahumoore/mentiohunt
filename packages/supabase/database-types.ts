@@ -371,6 +371,7 @@ export type Database = {
           is_public: boolean
           name: string
           provider: Database["public"]["Enums"]["email_account_provider"]
+          send_automated_outreach: boolean
           smtp_host: string | null
           smtp_pass: string | null
           smtp_port: number | null
@@ -391,6 +392,7 @@ export type Database = {
           is_public?: boolean
           name: string
           provider: Database["public"]["Enums"]["email_account_provider"]
+          send_automated_outreach?: boolean
           smtp_host?: string | null
           smtp_pass?: string | null
           smtp_port?: number | null
@@ -411,6 +413,7 @@ export type Database = {
           is_public?: boolean
           name?: string
           provider?: Database["public"]["Enums"]["email_account_provider"]
+          send_automated_outreach?: boolean
           smtp_host?: string | null
           smtp_pass?: string | null
           smtp_port?: number | null
@@ -672,7 +675,6 @@ export type Database = {
           onboarding_completed: boolean
           referral_source: string | null
           role: string | null
-          send_outreach_from_private_inbox: boolean
           stripe_customer_id: string | null
           tier: Database["public"]["Enums"]["billing_tier"]
           updated_at: string
@@ -691,7 +693,6 @@ export type Database = {
           onboarding_completed?: boolean
           referral_source?: string | null
           role?: string | null
-          send_outreach_from_private_inbox?: boolean
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string
@@ -710,7 +711,6 @@ export type Database = {
           onboarding_completed?: boolean
           referral_source?: string | null
           role?: string | null
-          send_outreach_from_private_inbox?: boolean
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string

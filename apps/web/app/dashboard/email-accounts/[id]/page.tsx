@@ -19,16 +19,10 @@ export default async function EmailAccountDetailPage({
 
   if (!user) redirect("/signin")
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("send_outreach_from_private_inbox")
-    .eq("id", user.id)
-    .single()
-
   const { data: row } = await supabaseAdmin
     .from("email_accounts")
     .select(
-      "id, email, name, provider, status, daily_send_cap, created_at, error_message, smtp_host, smtp_port, imap_host, imap_port"
+      "id, email, name, provider, status, daily_send_cap, send_automated_outreach, created_at, error_message, smtp_host, smtp_port, imap_host, imap_port"
     )
     .eq("id", id)
     .eq("user_id", user.id)
@@ -44,6 +38,7 @@ export default async function EmailAccountDetailPage({
     provider: row.provider,
     status: row.status,
     dailySendCap: row.daily_send_cap,
+    sendAutomatedOutreach: row.send_automated_outreach,
     connectedAt: row.created_at.slice(0, 10),
     errorMessage: row.error_message ?? undefined,
     smtpHost: row.smtp_host ?? undefined,
@@ -52,10 +47,5 @@ export default async function EmailAccountDetailPage({
     imapPort: row.imap_port ?? undefined,
   }
 
-  return (
-    <EmailAccountDetailClient
-      account={account}
-      sendFromPrivateInbox={profile?.send_outreach_from_private_inbox ?? false}
-    />
-  )
+  return <EmailAccountDetailClient account={account} />
 }

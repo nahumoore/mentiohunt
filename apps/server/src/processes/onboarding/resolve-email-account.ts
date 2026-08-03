@@ -2,20 +2,22 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 
 export type ResolvedEmailAccount = { id: string; name: string | null; isPublic: boolean }
 
+type CandidateAccount = { id: string; daily_send_cap: number }
+
 function utcDayStart(date = new Date()): string {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())).toISOString()
 }
 
-async function resolvePublicPoolAccount(profileName: string | null): Promise<ResolvedEmailAccount | null> {
-  const { data: publicAccounts } = await supabaseAdmin
-    .from("email_accounts")
-    .select("id, daily_send_cap")
-    .eq("is_public", true)
-    .eq("status", "active")
+/**
+ * Picks the least-loaded account (by today's sent count vs. its daily cap)
+ * from a set of candidates. Falls back to the first candidate if every
+ * account is at or over its cap, so sending never stalls outright.
+ */
+async function pickLeastLoadedAccount(candidates: CandidateAccount[]): Promise<string | null> {
+  const firstCandidate = candidates[0]
+  if (!firstCandidate) return null
 
-  if (!publicAccounts?.length) return null
-
-  const accountIds = publicAccounts.map((account) => account.id)
+  const accountIds = candidates.map((account) => account.id)
   const { data: sentToday } = await supabaseAdmin
     .from("prospect_sequences")
     .select("email_account_id")
@@ -28,7 +30,7 @@ async function resolvePublicPoolAccount(profileName: string | null): Promise<Res
     sentCountByAccount.set(row.email_account_id, (sentCountByAccount.get(row.email_account_id) ?? 0) + 1)
   }
 
-  const selected = [...publicAccounts]
+  const selected = [...candidates]
     .map((account) => ({
       ...account,
       sentToday: sentCountByAccount.get(account.id) ?? 0,
@@ -36,42 +38,59 @@ async function resolvePublicPoolAccount(profileName: string | null): Promise<Res
     .filter((account) => account.sentToday < account.daily_send_cap)
     .sort((a, b) => a.sentToday - b.sentToday || a.daily_send_cap - b.daily_send_cap)[0]
 
-  const fallback = selected ?? publicAccounts[0]
-  return fallback ? { id: fallback.id, name: profileName, isPublic: true } : null
+  return (selected ?? firstCandidate).id
+}
+
+async function resolvePublicPoolAccount(profileName: string | null): Promise<ResolvedEmailAccount | null> {
+  const { data: publicAccounts } = await supabaseAdmin
+    .from("email_accounts")
+    .select("id, daily_send_cap")
+    .eq("is_public", true)
+    .eq("status", "active")
+
+  if (!publicAccounts?.length) return null
+
+  const selectedId = await pickLeastLoadedAccount(publicAccounts)
+  return selectedId ? { id: selectedId, name: profileName, isPublic: true } : null
 }
 
 /**
  * Resolves which email_accounts row a prospect's sequence sends through
- * (shared pool vs. the customer's own connected mailbox), plus the name to
- * sign emails with — always the customer's own name, never the account's.
+ * (shared pool vs. one of the customer's own connected mailboxes), plus the
+ * name to sign emails with — always the customer's own name, never the
+ * account's.
  *
- * Defaults to the shared pool. Paid users only send automated outreach from
- * their own connected mailbox if they've explicitly opted in via
- * profiles.send_outreach_from_private_inbox — otherwise their mailbox stays
- * reserved for replying personally once a prospect responds.
+ * Defaults to the shared pool. A paid user's connected mailbox is only used
+ * for automated outreach if that specific account has opted in via
+ * email_accounts.send_automated_outreach — this is per mailbox, not
+ * per-user, so someone with several connected inboxes can automate through
+ * some and keep others reserved purely for replying personally once a
+ * prospect responds.
  */
 export async function resolveEmailAccount(
   userId: string
 ): Promise<ResolvedEmailAccount | null> {
   const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("tier, name, send_outreach_from_private_inbox")
+    .select("tier, name")
     .eq("id", userId)
     .single()
 
   const isPaid = profile?.tier === "pro" || profile?.tier === "agency"
 
-  if (isPaid && profile?.send_outreach_from_private_inbox) {
-    const { data: userAccount } = await supabaseAdmin
+  if (isPaid) {
+    const { data: optedInAccounts } = await supabaseAdmin
       .from("email_accounts")
-      .select("id")
+      .select("id, daily_send_cap")
       .eq("user_id", userId)
       .eq("is_public", false)
       .eq("status", "active")
-      .limit(1)
-      .single()
+      .eq("send_automated_outreach", true)
 
-    if (userAccount) return { id: userAccount.id, name: profile?.name ?? null, isPublic: false }
+    if (optedInAccounts?.length) {
+      const selectedId = await pickLeastLoadedAccount(optedInAccounts)
+      if (selectedId) return { id: selectedId, name: profile?.name ?? null, isPublic: false }
+    }
   }
 
   return resolvePublicPoolAccount(profile?.name ?? null)

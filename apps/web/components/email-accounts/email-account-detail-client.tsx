@@ -81,7 +81,13 @@ function SaveFooter({
   )
 }
 
-function OutreachSendingPreference({ initialValue }: { initialValue: boolean }) {
+function OutreachSendingPreference({
+  accountId,
+  initialValue,
+}: {
+  accountId: string
+  initialValue: boolean
+}) {
   const router = useRouter()
   const [checked, setChecked] = useState(initialValue)
   const [saving, setSaving] = useState(false)
@@ -94,7 +100,7 @@ function OutreachSendingPreference({ initialValue }: { initialValue: boolean }) 
       const res = await fetch("/api/email-accounts/outreach-preference", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sendFromPrivateInbox: next }),
+        body: JSON.stringify({ accountId, sendAutomatedOutreach: next }),
       })
       if (!res.ok) {
         setChecked(previous)
@@ -128,10 +134,8 @@ function OutreachSendingPreference({ initialValue }: { initialValue: boolean }) 
 
 export function EmailAccountDetailClient({
   account,
-  sendFromPrivateInbox,
 }: {
   account: EmailAccount
-  sendFromPrivateInbox: boolean
 }) {
   const upsertEmailAccountDetail = useEmailAccountStore((s) => s.upsertEmailAccountDetail)
 
@@ -278,7 +282,10 @@ export function EmailAccountDetailClient({
                 </div>
               </Field>
 
-              <OutreachSendingPreference initialValue={sendFromPrivateInbox} />
+              <OutreachSendingPreference
+                accountId={account.id}
+                initialValue={account.sendAutomatedOutreach}
+              />
             </div>
           </SectionCard>
 

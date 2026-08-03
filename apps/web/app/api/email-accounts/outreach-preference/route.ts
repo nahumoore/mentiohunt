@@ -9,7 +9,8 @@ function err(message: string, status = 400) {
 }
 
 const putSchema = z.object({
-  sendFromPrivateInbox: z.boolean(),
+  accountId: z.string().uuid("Invalid account id."),
+  sendAutomatedOutreach: z.boolean(),
 })
 
 export async function PUT(request: Request) {
@@ -36,15 +37,23 @@ export async function PUT(request: Request) {
     return err(parsed.error.issues[0]?.message ?? "Invalid request payload.")
   }
 
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({ send_outreach_from_private_inbox: parsed.data.sendFromPrivateInbox })
-    .eq("id", user.id)
+  const { accountId, sendAutomatedOutreach } = parsed.data
+
+  const { data: updated, error: updateError } = await supabase
+    .from("email_accounts")
+    .update({ send_automated_outreach: sendAutomatedOutreach })
+    .eq("id", accountId)
+    .eq("user_id", user.id)
+    .eq("is_public", false)
+    .select("id")
+    .maybeSingle()
 
   if (updateError) {
     console.error("Failed to update outreach sending preference:", updateError)
     return err("Failed to update preference.", 500)
   }
 
-  return NextResponse.json({ ok: true, sendFromPrivateInbox: parsed.data.sendFromPrivateInbox })
+  if (!updated) return err("Email account not found.", 404)
+
+  return NextResponse.json({ ok: true, sendAutomatedOutreach })
 }

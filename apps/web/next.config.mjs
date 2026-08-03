@@ -55,6 +55,11 @@ const nextConfig = {
         destination: "/free-tools/free-directory-submission-sites",
         permanent: true,
       },
+      {
+        source: "/blog/best-link-building-tools-for-founders",
+        destination: "/blog/best-automated-link-building-tools-for-founders",
+        permanent: true,
+      },
     ]
   },
 }

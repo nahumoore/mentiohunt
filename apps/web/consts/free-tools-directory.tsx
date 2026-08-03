@@ -3,6 +3,7 @@ import {
   IconCalculator,
   IconFolderSearch,
   IconLink,
+  IconLinkOff,
   IconMail,
   IconShieldCheck,
   IconSitemap,
@@ -114,6 +115,14 @@ export const FREE_TOOLS_DIRECTORY: FreeToolDirectoryEntry[] = [
       "Paste any page URL and see every outbound link on it — dofollow, nofollow, ugc, or sponsored — split by internal and external.",
     icon: IconShieldCheck,
   },
+  {
+    slug: FREE_TOOL_NAMES.brokenLinkFinder,
+    name: "Broken Link Finder",
+    eyebrow: "Website to dead-link outreach",
+    description:
+      "Enter your website URL and find real pages in your niche with dead outbound links — each one a ready-made pitch to suggest your resource as the replacement.",
+    icon: IconLinkOff,
+  },
 ]
 
 export function getFreeToolEntry(slug: FreeToolName) {
@@ -173,9 +182,14 @@ export const RELATED_FREE_TOOLS: Record<FreeToolName, FreeToolName[]> = {
     FREE_TOOL_NAMES.guestPostSitesFinder,
   ],
   [FREE_TOOL_NAMES.dofollowLinkChecker]: [
+    FREE_TOOL_NAMES.brokenLinkFinder,
     FREE_TOOL_NAMES.googleIndexChecker,
     FREE_TOOL_NAMES.backlinkPriceCalculator,
-    FREE_TOOL_NAMES.competitorBacklinkGap,
+  ],
+  [FREE_TOOL_NAMES.brokenLinkFinder]: [
+    FREE_TOOL_NAMES.backlinkOutreachEmailGenerator,
+    FREE_TOOL_NAMES.dofollowLinkChecker,
+    FREE_TOOL_NAMES.backlinkOpportunityFinder,
   ],
   // Registered in FREE_TOOL_NAMES but has no live page yet — no related-tools entry needed.
   [FREE_TOOL_NAMES.directoryOpportunityFinder]: [],

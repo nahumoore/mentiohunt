@@ -5,6 +5,7 @@ import { crawlSinglePageRouter } from "./crawl-single-page.js"
 import { devDiscoverCompetitorBacklinksRouter } from "./dev-discover-competitor-backlinks.js"
 import { devDiscoverListicleRoundupsRouter } from "./dev-discover-listicle-roundups.js"
 import { devDiscoverResourcePageInclusionsRouter } from "./dev-discover-resource-page-inclusions.js"
+import { freeToolBrokenLinkBuildingRouter } from "./free-tool-broken-link-building.js"
 import { freeToolCompetitorBacklinkGapRouter } from "./free-tool-competitor-backlink-gap.js"
 import { devDiscoverUnlinkedMentionsRouter } from "./dev-discover-unlinked-mentions.js"
 import { devRunDailyBacklinkDiscoveryRouter } from "./dev-run-daily-backlink-discovery.js"
@@ -31,6 +32,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(freeToolCompetitorBacklinkGapRouter)
   app.use(freeToolAuthorContactFinderRouter)
   app.use(freeToolGuestPostSitesRouter)
+  app.use(freeToolBrokenLinkBuildingRouter)
   app.use(onboardingCompleteRouter)
   app.use(prospectManualOutreachRouter)
   app.use(prospectReplyRouter)

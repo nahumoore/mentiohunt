@@ -9,7 +9,12 @@ const log = createLogger("generate-outreach-sequence")
 
 const MAX_USER_INPUT_LENGTH = 400
 
-export type OpportunityType = "competitor_backlink" | "unlinked_mention" | "listicle_roundup" | "resource_page_inclusion"
+export type OpportunityType =
+  | "competitor_backlink"
+  | "unlinked_mention"
+  | "listicle_roundup"
+  | "resource_page_inclusion"
+  | "user_submitted"
 
 export type OutreachContext =
   | {
@@ -26,6 +31,20 @@ export type OutreachContext =
     }
   | {
       opportunityType: "resource_page_inclusion"
+      title: string
+      foundUrl: string
+      targetUrl: string
+      targetTitle: string
+      targetDescription?: string | null
+      targetPageType: string
+      reason: string
+    }
+  | {
+      // A user-submitted prospect article URL — kept as its own variant
+      // (rather than folded into resource_page_inclusion) so buildFraming
+      // and buildOutreachContext can discriminate and frame this as "pitch
+      // this page into an article the sender read", not a curated list.
+      opportunityType: "user_submitted"
       title: string
       foundUrl: string
       targetUrl: string
@@ -120,6 +139,17 @@ function buildFraming(context: OutreachContext): { situation: string; opening: s
     }
   }
 
+  if (context.opportunityType === "user_submitted") {
+    const targetTitle = context.targetTitle || "this page"
+    const targetDescription = context.targetDescription ? `\nTarget page description: ${context.targetDescription}` : ""
+
+    return {
+      situation: `Prospect article URL: ${context.foundUrl}\nArticle title: ${context.title || "(unknown)"}\nSelected page to pitch: ${context.targetUrl}\nSelected page title: ${targetTitle}${targetDescription}\nSelected page type: ${context.targetPageType || "resource"}\nWhy it fits: ${context.reason || "The selected page appears useful for readers of this article."}\nSituation: The sender read this specific article. The email must pitch the selected page, not the product homepage. Say that we have or created "${targetTitle}" and that it could be useful further reading for this article's readers. The ask is to consider linking to or mentioning it where it fits in the article.`,
+      opening: `One sentence showing you actually read their article, referencing its specific angle or argument, not just the domain.\n- One sentence saying we have or created "${targetTitle}" and why it would be useful for the readers of that article, using the fit reason without sounding like an SEO pitch.`,
+      ask: `One short, direct ask: would they consider linking to or mentioning "${targetTitle}" in that article if it's useful.`,
+    }
+  }
+
   const angle = buildAngle(context.pageType, context.competitorDomain)
   return {
     situation: `Anchor text used for competitor: ${context.anchor || "(unknown)"}\nOutreach angle: ${angle}`,
@@ -141,14 +171,18 @@ export async function generateOutreachSequence(
   const offering = sanitizeUserInput(sender.offering)
   const authorBio = sanitizeUserInput(sender.authorBio)
   const { situation, opening, ask } = buildFraming(context)
+  // Same instructions govern resource_page_inclusion and user_submitted — both
+  // pitch a selected page of ours into an external surface rather than the
+  // product itself — with only the noun for that surface differing.
+  const surfaceNoun = context.opportunityType === "user_submitted" ? "article" : "guide/resource page"
   const resourcePageInstructions =
-    context.opportunityType === "resource_page_inclusion"
+    context.opportunityType === "resource_page_inclusion" || context.opportunityType === "user_submitted"
       ? `
 Resource page inclusion rules:
 - Prioritize the selected page over the product. The product is only background; the selected page is the thing being suggested for inclusion.
-- Email 1 must say we have or created the selected page and that it could be a good addition to their guide/resource page.
-- Email 2 must bring one new reason the selected page would make their guide/resource page more useful. Keep the selected page as the subject of the note.
-- Email 3 must add a final useful angle or make it easy to ignore if they do not update that page anymore. Do not say only "happy to share more details" with no substance.
+- Email 1 must say we have or created the selected page and that it could be a good addition to their ${surfaceNoun}.
+- Email 2 must bring one new reason the selected page would make their ${surfaceNoun} more useful. Keep the selected page as the subject of the note.
+- Email 3 must add a final useful angle or make it easy to ignore if they do not update that ${surfaceNoun} anymore. Do not say only "happy to share more details" with no substance.
 `
       : ""
 

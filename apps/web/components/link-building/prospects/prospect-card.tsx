@@ -29,6 +29,7 @@ const TIER_BORDER: Record<ProspectTier, string> = {
   unlinked_mention: "border-l-violet-500",
   listicle_roundup: "border-l-blue-500",
   resource_page_inclusion: "border-l-emerald-500",
+  user_submitted: "border-l-sky-500",
 }
 
 function extractHostname(url: string | null): string | null {

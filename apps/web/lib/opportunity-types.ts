@@ -1,4 +1,4 @@
-import { IconLink, IconListNumbers, IconSwords } from "@tabler/icons-react"
+import { IconLink, IconLinkPlus, IconListNumbers, IconSwords } from "@tabler/icons-react"
 import type { Database } from "@workspace/supabase/database-types"
 import type { ElementType } from "react"
 
@@ -86,5 +86,17 @@ export const PROSPECT_TIER_CONFIG: Record<ProspectTier, TypeConfig> = {
     label: "Resource page inclusion",
     description:
       "A curated resource page where one of your existing pages would be a useful addition.",
+  },
+  // Deliberately NOT added to TYPE_CONFIG/DEFAULT_PROSPECT_TIERS above — this
+  // tier is user-triggered only (submit-url-dialog.tsx), never a discovery
+  // rotation strategy. Keeping it out of TYPE_CONFIG is what keeps it out of
+  // the discovery-settings picker and its API schema, both of which derive
+  // from Object.keys(TYPE_CONFIG).
+  user_submitted: {
+    label: "Submitted by you",
+    description:
+      "An article you submitted. We found the contact, picked the best page of yours to pitch, and scheduled the outreach.",
+    icon: IconLinkPlus,
+    color: "text-sky-600 bg-sky-500/10",
   },
 }

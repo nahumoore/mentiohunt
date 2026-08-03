@@ -1207,6 +1207,7 @@ export type Database = {
         | "unlinked_mention"
         | "listicle_roundup"
         | "resource_page_inclusion"
+        | "user_submitted"
       route_log_status: "running" | "success" | "error"
       run_status: "pending" | "running" | "completed" | "failed"
     }
@@ -1377,6 +1378,7 @@ export const Constants = {
         "unlinked_mention",
         "listicle_roundup",
         "resource_page_inclusion",
+        "user_submitted",
       ],
       route_log_status: ["running", "success", "error"],
       run_status: ["pending", "running", "completed", "failed"],

@@ -769,7 +769,44 @@ async function processAccount(account: EmailAccount): Promise<void> {
   }
 }
 
+const STUCK_SUBMISSION_MINUTES = 30
+
+/**
+ * The submit-url pipeline (routes/prospect-submitted-url.ts) has no queue —
+ * it runs fire-and-forget after a 202 response. A Railway deploy or crash
+ * mid-pipeline leaves the row stuck at enrichment_status='enriching' forever,
+ * with no retry and no signal to the user beyond a permanent spinner. This
+ * sweep (piggybacking on the outreach monitor's existing 5-minute cron tick)
+ * finds those and marks them failed so the user lands on the existing
+ * manual-completion escape hatch instead of waiting indefinitely.
+ */
+async function sweepStuckUserSubmittedProspects(): Promise<void> {
+  const staleBefore = new Date(Date.now() - STUCK_SUBMISSION_MINUTES * 60 * 1000).toISOString()
+
+  const { data: stuck, error } = await supabaseAdmin
+    .from("backlink_prospects")
+    .update({
+      enrichment_status: "failed",
+      status: "email_not_found",
+    })
+    .eq("tier", "user_submitted")
+    .eq("enrichment_status", "enriching")
+    .lt("discovered_at", staleBefore)
+    .select("id")
+
+  if (error) {
+    log.warn("failed to sweep stuck user-submitted prospects", { error: error.message })
+    return
+  }
+
+  if (stuck?.length) {
+    log.info("swept stuck user-submitted prospects", { count: stuck.length, ids: stuck.map((p) => p.id) })
+  }
+}
+
 export async function runProspectOutreachMonitor(userId?: string): Promise<void> {
+  await sweepStuckUserSubmittedProspects()
+
   if (userId) {
     const prospectIds = await loadProspectIdsForUser(userId)
     if (!prospectIds.length) {

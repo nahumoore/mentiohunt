@@ -14,6 +14,7 @@ import { usePathname } from "next/navigation"
 import * as React from "react"
 
 import { HowItWorksDialog } from "@/components/link-building/prospects/how-it-works-dialog"
+import { SubmitUrlDialog } from "@/components/link-building/prospects/submit-url-dialog"
 import { useEmailAccountStore } from "@/stores/email-account-store"
 import { useProfileStore } from "@/stores/profile-store"
 import { useProspectStore } from "@/stores/prospect-store"
@@ -39,7 +40,12 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
       "Prioritized sites and next actions where there is a realistic path toward a backlink.",
     icon: IconSparkles,
     settingsHref: "/dashboard/prospects/settings",
-    action: <HowItWorksDialog />,
+    action: (
+      <>
+        <SubmitUrlDialog />
+        <HowItWorksDialog />
+      </>
+    ),
   },
   "/dashboard/prospects/settings": {
     title: "Prospect Settings",

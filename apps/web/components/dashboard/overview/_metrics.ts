@@ -17,6 +17,7 @@ const ALL_TIERS: ProspectTier[] = [
   "unlinked_mention",
   "listicle_roundup",
   "resource_page_inclusion",
+  "user_submitted",
 ]
 
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000

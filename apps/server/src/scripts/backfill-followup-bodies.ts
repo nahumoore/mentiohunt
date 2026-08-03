@@ -130,7 +130,12 @@ async function backfillProspect(prospectId: string, rows: TemplatedRow[]): Promi
   const sender = await resolveSenderName(product.user_id)
   const context = buildOutreachContext(
     prospect as {
-      tier: "competitor_backlink" | "unlinked_mention" | "listicle_roundup" | "resource_page_inclusion"
+      tier:
+        | "competitor_backlink"
+        | "unlinked_mention"
+        | "listicle_roundup"
+        | "resource_page_inclusion"
+        | "user_submitted"
       domain: string | null
       target_url: string | null
       found_url: string | null

@@ -56,13 +56,28 @@ type StoredOutreachContext =
       targetPageType: string
       reason: string
     }
+  | {
+      opportunityType: "user_submitted"
+      title: string
+      foundUrl: string
+      targetUrl: string
+      targetTitle: string
+      targetDescription?: string | null
+      targetPageType: string
+      reason: string
+    }
 
 /** Rebuild the OutreachContext used to generate the original draft. Prefers the
  * context persisted at discovery time (raw_metadata.outreach_context); falls
  * back to a minimal context derived from the row for legacy prospects that
  * predate that persistence. */
 export function buildOutreachContext(prospect: {
-  tier: "competitor_backlink" | "unlinked_mention" | "listicle_roundup" | "resource_page_inclusion"
+  tier:
+    | "competitor_backlink"
+    | "unlinked_mention"
+    | "listicle_roundup"
+    | "resource_page_inclusion"
+    | "user_submitted"
   domain: string | null
   target_url: string | null
   found_url: string | null
@@ -95,6 +110,18 @@ export function buildOutreachContext(prospect: {
       targetTitle: "",
       targetPageType: "resource",
       reason: "The target page may be a useful additional resource for this page's readers.",
+    }
+  }
+
+  if (prospect.tier === "user_submitted") {
+    return {
+      opportunityType: "user_submitted",
+      title: prospect.domain ?? "",
+      foundUrl: prospect.found_url ?? "",
+      targetUrl: prospect.target_url ?? "",
+      targetTitle: "",
+      targetPageType: "resource",
+      reason: "The selected page may be useful further reading for this article's readers.",
     }
   }
 

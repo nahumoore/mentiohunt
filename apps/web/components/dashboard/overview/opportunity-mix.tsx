@@ -10,6 +10,7 @@ const TIER_ORDER: ProspectTier[] = [
   "unlinked_mention",
   "listicle_roundup",
   "resource_page_inclusion",
+  "user_submitted",
 ]
 
 // Same brand-orange ramp used for the opportunity-type bars, so the two
@@ -19,6 +20,8 @@ const TIER_RING_COLOR: Record<ProspectTier, string> = {
   unlinked_mention: "var(--color-blaze-orange-2)",
   listicle_roundup: "var(--color-harvest-orange)",
   resource_page_inclusion: "var(--color-deep-saffron)",
+  // Outside the ramp on purpose — user-triggered, not a rotation strategy.
+  user_submitted: "#0ea5e9",
 }
 
 const RADIUS = 52

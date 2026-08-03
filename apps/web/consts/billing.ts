@@ -3,6 +3,12 @@ import type { Database } from "@workspace/supabase/database-types"
 export const FREE_TRIAL_DAYS = 7
 export const FREE_TRIAL_MAX_PAGES = 50
 
+// Each submitted URL costs a real scrape + email verification + LLM calls, so
+// it needs a per-day throttle. Paid-plan only — free/trial users see a
+// paywall instead of the form (submit-url-dialog.tsx, enforced server-side
+// in app/api/link-building/opportunities/submit/route.ts).
+export const PAID_MAX_URL_SUBMISSIONS_PER_DAY = 20
+
 export type BillingTier = Database["public"]["Enums"]["billing_tier"]
 
 export const PLAN_TIERS = {
@@ -34,6 +40,7 @@ export const PLANS: Plan[] = [
       "Up to 10 competitors tracked",
       "2 opportunity scans a day (~50 prospects weekly)",
       "Fit rationale, contacts & ready-to-send drafts",
+      `Submit up to ${PAID_MAX_URL_SUBMISSIONS_PER_DAY} of your own prospect URLs a day`,
       "Export to CSV",
       "Priority support",
       `${FREE_TRIAL_DAYS}-day free trial`,

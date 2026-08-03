@@ -42,6 +42,8 @@ export const EVENTS = {
   OPPORTUNITY_VIEWED: "opportunity_viewed",
   PROSPECT_STATUS_CHANGED: "prospect_status_changed",
   OUTREACH_EMAIL_COPIED: "outreach_email_copied",
+  PROSPECT_URL_SUBMITTED: "prospect_url_submitted",
+  PROSPECT_URL_SUBMIT_FAILED: "prospect_url_submit_failed",
 
   // Discovery settings
   DISCOVERY_SETTINGS_SAVED: "discovery_settings_saved",

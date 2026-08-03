@@ -39,18 +39,28 @@ type DiscoverySettingsRow = Pick<
   "opportunity_types" | "dr_min" | "dr_max" | "voice_tone" | "offering"
 >
 
+// Explicit map + filter, not a catch-all fallback: a stray value here (e.g.
+// the user-triggered "user_submitted" tier, which is never a discovery
+// strategy and should never reach this settings picker) must be dropped, not
+// silently relabeled as resource_page_inclusions.
+const TIER_TO_OPPORTUNITY_TYPE: Partial<
+  Record<DiscoverySettingsRow["opportunity_types"][number], DiscoverySettings["opportunityTypes"][number]>
+> = {
+  competitor_backlink: "competitor_backlinks",
+  unlinked_mention: "unlinked_mentions",
+  listicle_roundup: "listicle_roundups",
+  resource_page_inclusion: "resource_page_inclusions",
+}
+
 function mapDiscoverySettings(
   settings: DiscoverySettingsRow | null
 ): DiscoverySettings {
   if (!settings) return DEFAULT_DISCOVERY_SETTINGS
 
   return {
-    opportunityTypes: settings.opportunity_types.map((type) => {
-      if (type === "competitor_backlink") return "competitor_backlinks"
-      if (type === "unlinked_mention") return "unlinked_mentions"
-      if (type === "listicle_roundup") return "listicle_roundups"
-      return "resource_page_inclusions"
-    }),
+    opportunityTypes: settings.opportunity_types
+      .map((type) => TIER_TO_OPPORTUNITY_TYPE[type])
+      .filter((type): type is DiscoverySettings["opportunityTypes"][number] => Boolean(type)),
     drMin: settings.dr_min,
     drMax: settings.dr_max,
   }

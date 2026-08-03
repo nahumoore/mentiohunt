@@ -156,6 +156,17 @@ function parseRawMetadataBio(raw: Json | null | undefined): string | null {
   return typeof obj.bio === "string" ? nullishString(obj.bio) : null
 }
 
+/** Surfaces why the AI picked this page for a user-submitted article, so the
+ * user can judge the auto-pick before the first email sends 45–180 min later. */
+function parseUserSubmittedFitReason(raw: Json | null | undefined): string | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
+  const obj = raw as Record<string, Json>
+  const userSubmitted = obj.user_submitted
+  if (!userSubmitted || typeof userSubmitted !== "object" || Array.isArray(userSubmitted)) return null
+  const reason = (userSubmitted as Record<string, Json>).fitReason
+  return typeof reason === "string" ? nullishString(reason) : null
+}
+
 function getHostname(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, "")
@@ -448,6 +459,7 @@ export function ProspectClientPage({
 
   const socialLinks = parseSocialLinks(current.contact_social_links)
   const bio = parseRawMetadataBio(current.raw_metadata)
+  const fitReason = current.tier === "user_submitted" ? parseUserSubmittedFitReason(current.raw_metadata) : null
   const contactName = nullishString(current.contact_name)
   const contactEmail = nullishString(current.contact_email)
   const tierCfg = PROSPECT_TIER_CONFIG[current.tier]
@@ -771,7 +783,9 @@ export function ProspectClientPage({
                       ? "Links to competitor"
                       : current.tier === "resource_page_inclusion"
                         ? "Suggested target page"
-                        : "Target"}
+                        : current.tier === "user_submitted"
+                          ? "Page we're pitching"
+                          : "Target"}
                   </p>
                   <a
                     href={current.target_url}
@@ -781,6 +795,11 @@ export function ProspectClientPage({
                   >
                     {getHostname(current.target_url)}
                   </a>
+                  {fitReason && (
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      {fitReason}
+                    </p>
+                  )}
                 </div>
               )}
               {current.found_url && (

@@ -22,8 +22,10 @@ import { googleIndexCheckerRouter } from "./google-index-checker.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
 import { prospectManualOutreachRouter } from "./prospect-manual-outreach.js"
 import { prospectReplyRouter } from "./prospect-reply.js"
+import { prospectSubmittedUrlRouter } from "./prospect-submitted-url.js"
 import { resendInboundWebhookRouter } from "./resend-inbound-webhook.js"
 import { verifyDirectoryUrlsRouter } from "./verify-directory-urls.js"
+import { devSubmitUrlRouter } from "./dev-submit-url.js"
 
 export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(directoryOpportunitiesByUrlRouter)
@@ -36,6 +38,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(onboardingCompleteRouter)
   app.use(prospectManualOutreachRouter)
   app.use(prospectReplyRouter)
+  app.use(prospectSubmittedUrlRouter)
   app.use(crawlSinglePageRouter)
   app.use(resendInboundWebhookRouter)
   app.use(googleIndexCheckerRouter)
@@ -53,5 +56,6 @@ export function registerRoutes(app: Application, isDev: boolean): void {
     app.use(devDiscoverResourcePageInclusionsRouter)
     app.use(devTestScraperRouter)
     app.use(devRunOutreachJobsRouter)
+    app.use(devSubmitUrlRouter)
   }
 }

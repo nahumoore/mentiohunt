@@ -13,6 +13,7 @@ export type EmailAccount = {
   provider: AccountProvider
   status: AccountStatus
   dailySendCap: number
+  sendAutomatedOutreach: boolean
   connectedAt: string
   errorMessage?: string
   smtpHost?: string

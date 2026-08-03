@@ -49,6 +49,19 @@ Each model has its own consistent, distinct failure signature (timeout vs explic
 
 The shipped fix (swap 2nd fallback to a different provider) helps the tail case where all 3 already-shared models are congested — it's a real improvement. But if the actual driver is our own concurrency hammering 2 shared models, the fix doesn't address why glm/qwen degrade in the first place; it just gives the chain a 3rd, differently-congested-risk model to fall back to. If self-congestion is confirmed, the more direct fix is reducing concurrent pressure on any single model, not diversifying the fallback chain further.
 
+**Update (2026-08-03):** Pulled Railway `server` error logs for the last two 07:00/19:00 UTC burst windows (2026-08-02 07:00 & 19:00, 2026-08-03 07:00) via `/logcheck`. Same shape as every prior recurrence — but one new signal: in the 2026-08-03 07:01:49-07:02:55 window, `deepseek/deepseek-v4-pro` — the model added 2026-07-24 specifically to spread burst load across a 3rd, deep-pool provider — timed out in **both** its primary role and its fallback role:
+
+```
+07:01:49  primary model failed, trying fallback: deepseek/deepseek-v4-pro — TimeoutError
+07:01:55  primary model failed, trying fallback: deepseek/deepseek-v4-pro — TimeoutError
+07:02:45  fallback model failed: deepseek/deepseek-v4-pro — TimeoutError
+07:02:55  fallback model failed: z-ai/glm-4.7-flash — TimeoutError
+```
+
+Same burst also still shows `glm-4.7-flash` and `qwen3.6-flash` failing per their established signatures (timeout / "Provider returned error" respectively) — nothing new there. The new part is `deepseek-v4-pro`, which per the 2026-07-24 provider-pool research has 7+ healthy providers and was supposed to be the reliable 3rd leg, now degrading under the same 07:00 UTC burst it was added to relieve. Consistent with the 07-24 caveat that `deepseek-v4-pro` was never a "clean bill of health" (it failed 3/6 times in the original 07-04-07-17 tally too) — this reads as burst size outgrowing all three models' combined capacity, not one model uniquely failing.
+
+**Severity check:** grepped Railway `server` logs for `All models failed` (the only place `packages/openrouter/generate-text.ts:219` throws — it only fires once *every* model in a call's chain, including `openai/gpt-5.6-luna` last-resort, is exhausted) across both 2026-08-02 windows and the 2026-08-03 window — **zero hits**. So despite the added deepseek failures, every affected call still eventually succeeded on some model in its chain this time; no confirmed data loss from this burst. But the margin is shrinking — a 3rd previously-reliable model joining the failure pattern in the same burst window means the diversification fix from 07-24 is losing effectiveness, not that the underlying pressure has gone away. Worth revisiting the still-unactioned OpenRouter per-model dashboard check (see Recommendation) to see if burst concurrency has grown since 07-24, or if provider capacity itself has tightened project-wide.
+
 ## Recommendation (not yet actioned)
 
 - Add a process-wide concurrency cap per model (mirror `scraper-limits.ts`'s shared `pLimit` pattern) so the 5 scorers + build-listicle-queries don't independently stack requests against `glm-4.7-flash` during a cron burst.

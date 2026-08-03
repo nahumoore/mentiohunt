@@ -67,6 +67,20 @@ _file_handler.setFormatter(_SCRAPER_LOG_FORMAT)
 _file_handler.addFilter(_RequestIdFilter())
 log.addHandler(_file_handler)
 
+class _ScraplingCloudflareNoiseFilter(logging.Filter):
+    """scrapling's own `_stealth.py` logs 'No Cloudflare challenge found.' at
+    ERROR level on the benign no-challenge-present path (not a failure) —
+    downgrade just that message so it stops flooding error-level log queries."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if record.levelno == logging.ERROR and record.getMessage() == "No Cloudflare challenge found.":
+            record.levelno = logging.WARNING
+            record.levelname = "WARNING"
+        return True
+
+
+logging.getLogger("scrapling").addFilter(_ScraplingCloudflareNoiseFilter())
+
 
 @contextmanager
 def _execution_log(route: str):

@@ -672,6 +672,7 @@ export type Database = {
           onboarding_completed: boolean
           referral_source: string | null
           role: string | null
+          send_outreach_from_private_inbox: boolean
           stripe_customer_id: string | null
           tier: Database["public"]["Enums"]["billing_tier"]
           updated_at: string
@@ -690,6 +691,7 @@ export type Database = {
           onboarding_completed?: boolean
           referral_source?: string | null
           role?: string | null
+          send_outreach_from_private_inbox?: boolean
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string
@@ -708,6 +710,7 @@ export type Database = {
           onboarding_completed?: boolean
           referral_source?: string | null
           role?: string | null
+          send_outreach_from_private_inbox?: boolean
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string

@@ -588,12 +588,64 @@ function LockedFeatureState({ plan }: { plan: Exclude<UserPlan, "active"> }) {
   )
 }
 
+function OutreachSendingPreference({
+  initialValue,
+}: {
+  initialValue: boolean
+}) {
+  const router = useRouter()
+  const [checked, setChecked] = useState(initialValue)
+  const [saving, setSaving] = useState(false)
+
+  async function handleChange(next: boolean) {
+    const previous = checked
+    setChecked(next)
+    setSaving(true)
+    try {
+      const res = await fetch("/api/email-accounts/outreach-preference", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sendFromPrivateInbox: next }),
+      })
+      if (!res.ok) {
+        setChecked(previous)
+        return
+      }
+      router.refresh()
+    } catch {
+      setChecked(previous)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+      <div className="flex-1">
+        <p className="text-sm font-medium text-foreground">
+          Send automated outreach from this mailbox
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Off by default — automated outreach sends from Mentiohunt&apos;s
+          shared pool, keeping your mailbox reserved for replying personally
+          once a prospect responds. Turning this on sends cold outreach and
+          follow-ups from your own address instead, which uses your sending
+          reputation.
+        </p>
+      </div>
+      <Switch checked={checked} onCheckedChange={handleChange} disabled={saving} />
+    </div>
+  )
+}
+
 export function EmailAccountsClient({
   userPlan = "active",
   accounts,
+  sendFromPrivateInbox = false,
 }: {
   userPlan?: UserPlan
   accounts: EmailAccount[]
+  sendFromPrivateInbox?: boolean
 }) {
   if (userPlan === "free_trial" || userPlan === "canceled") {
     return <LockedFeatureState plan={userPlan} />
@@ -635,6 +687,10 @@ export function EmailAccountsClient({
           <ConnectAccountDialog />
         </div>
       </div>
+
+      {activeCount > 0 && (
+        <OutreachSendingPreference initialValue={sendFromPrivateInbox} />
+      )}
 
       <div className="flex flex-col gap-3">
         {accounts.map((account) => (

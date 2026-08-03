@@ -52,7 +52,7 @@ export default async function EmailAccountsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("tier")
+    .select("tier, send_outreach_from_private_inbox")
     .eq("id", user.id)
     .single()
 
@@ -78,5 +78,11 @@ export default async function EmailAccountsPage() {
     }
   }
 
-  return <EmailAccountsClient userPlan={userPlan} accounts={accounts} />
+  return (
+    <EmailAccountsClient
+      userPlan={userPlan}
+      accounts={accounts}
+      sendFromPrivateInbox={profile?.send_outreach_from_private_inbox ?? false}
+    />
+  )
 }

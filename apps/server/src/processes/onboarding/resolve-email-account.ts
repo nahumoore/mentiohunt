@@ -44,19 +44,24 @@ async function resolvePublicPoolAccount(profileName: string | null): Promise<Res
  * Resolves which email_accounts row a prospect's sequence sends through
  * (shared pool vs. the customer's own connected mailbox), plus the name to
  * sign emails with — always the customer's own name, never the account's.
+ *
+ * Defaults to the shared pool. Paid users only send automated outreach from
+ * their own connected mailbox if they've explicitly opted in via
+ * profiles.send_outreach_from_private_inbox — otherwise their mailbox stays
+ * reserved for replying personally once a prospect responds.
  */
 export async function resolveEmailAccount(
   userId: string
 ): Promise<ResolvedEmailAccount | null> {
   const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("tier, name")
+    .select("tier, name, send_outreach_from_private_inbox")
     .eq("id", userId)
     .single()
 
   const isPaid = profile?.tier === "pro" || profile?.tier === "agency"
 
-  if (isPaid) {
+  if (isPaid && profile?.send_outreach_from_private_inbox) {
     const { data: userAccount } = await supabaseAdmin
       .from("email_accounts")
       .select("id")

@@ -1,11 +1,15 @@
 "use client"
 
 import {
+  IconAlertCircle,
   IconChevronDown,
+  IconFileText,
   IconLinkPlus,
   IconLoader2,
   IconLock,
+  IconSearch,
   IconSparkles,
+  IconWorld,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -15,16 +19,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
 import Link from "next/link"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import { PAID_MAX_URL_SUBMISSIONS_PER_DAY } from "@/consts/billing"
 import { captureEvent } from "@/lib/analytics"
@@ -91,6 +94,8 @@ export function SubmitUrlDialog() {
   const [open, setOpen] = useState(false)
   const [url, setUrl] = useState("")
   const [targetPageId, setTargetPageId] = useState<string>(AUTO_PICK_VALUE)
+  const [pagePickerOpen, setPagePickerOpen] = useState(false)
+  const [pageQuery, setPageQuery] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [duplicateId, setDuplicateId] = useState<string | null>(null)
@@ -102,9 +107,21 @@ export function SubmitUrlDialog() {
 
   const selectedPage = pages.find((p) => p.id === targetPageId)
 
+  const filteredPages = useMemo(() => {
+    const q = pageQuery.trim().toLowerCase()
+    if (!q) return pages
+    return pages.filter(
+      (p) =>
+        p.title?.toLowerCase().includes(q) || p.url.toLowerCase().includes(q)
+    )
+  }, [pages, pageQuery])
+
+  const showAutoPick = "auto-pick with ai".includes(pageQuery.trim().toLowerCase())
+
   function reset() {
     setUrl("")
     setTargetPageId(AUTO_PICK_VALUE)
+    setPageQuery("")
     setError(null)
     setDuplicateId(null)
   }
@@ -184,33 +201,47 @@ export function SubmitUrlDialog() {
           <SubmitUrlPaywall />
         ) : (
           <>
-            <DialogTitle>Submit a prospect URL</DialogTitle>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-blaze-orange)/10 text-(--color-blaze-orange)">
+                <IconLinkPlus className="size-4" />
+              </div>
+              <DialogTitle>Submit a prospect URL</DialogTitle>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
               Found an article that&apos;s a great fit? Paste it below —
               we&apos;ll find the site owner&apos;s contact, pick the best page
-              of yours to pitch, and schedule the outreach automatically. Up to{" "}
-              {PAID_MAX_URL_SUBMISSIONS_PER_DAY} a day.
+              of yours to pitch, and schedule the outreach automatically. Up
+              to {PAID_MAX_URL_SUBMISSIONS_PER_DAY} a day.
             </p>
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
               <div className="space-y-1.5">
                 <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
                   Article URL
                 </label>
-                <Input
-                  placeholder="https://theirsite.com/their-article"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  autoFocus
-                  className="rounded-md"
-                />
+                <div className="relative">
+                  <IconWorld className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="https://theirsite.com/their-article"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    autoFocus
+                    className="rounded-md pl-9"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
                   Which of your pages to pitch
                 </label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                <Popover
+                  open={pagePickerOpen}
+                  onOpenChange={(next) => {
+                    setPagePickerOpen(next)
+                    if (!next) setPageQuery("")
+                  }}
+                >
+                  <PopoverTrigger asChild>
                     <button
                       type="button"
                       className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted/50"
@@ -222,56 +253,101 @@ export function SubmitUrlDialog() {
                             Auto-pick with AI
                           </>
                         ) : (
-                          <span className="truncate">
-                            {selectedPage?.title || selectedPage?.url}
-                          </span>
+                          <>
+                            <IconFileText className="size-3.5 shrink-0 text-muted-foreground" />
+                            <span className="truncate">
+                              {selectedPage?.title || selectedPage?.url}
+                            </span>
+                          </>
                         )}
                       </span>
                       <IconChevronDown className="size-4 shrink-0 text-muted-foreground" />
                     </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
+                  </PopoverTrigger>
+                  <PopoverContent
                     align="start"
-                    className="max-h-64 w-(--radix-dropdown-menu-trigger-width) overflow-y-auto rounded-xl"
+                    className="w-(--radix-popover-trigger-width) rounded-xl p-0"
                   >
-                    <DropdownMenuItem
-                      onSelect={() => setTargetPageId(AUTO_PICK_VALUE)}
-                      className={cn(
-                        targetPageId === AUTO_PICK_VALUE && "bg-accent"
+                    <div className="relative border-b border-border">
+                      <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        autoFocus
+                        value={pageQuery}
+                        onChange={(e) => setPageQuery(e.target.value)}
+                        placeholder="Type a page title or URL..."
+                        className="h-10 w-full rounded-t-xl bg-transparent pr-3 pl-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                      />
+                    </div>
+                    <div className="max-h-64 overflow-y-auto p-1">
+                      {showAutoPick && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTargetPageId(AUTO_PICK_VALUE)
+                            setPagePickerOpen(false)
+                          }}
+                          className={cn(
+                            "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/50",
+                            targetPageId === AUTO_PICK_VALUE && "bg-accent"
+                          )}
+                        >
+                          <IconSparkles className="size-3.5 shrink-0 text-muted-foreground" />
+                          Auto-pick with AI
+                        </button>
                       )}
-                    >
-                      <IconSparkles className="size-3.5 text-muted-foreground" />
-                      Auto-pick with AI
-                    </DropdownMenuItem>
-                    {pages.map((page) => (
-                      <DropdownMenuItem
-                        key={page.id}
-                        onSelect={() => setTargetPageId(page.id)}
-                        className={cn(targetPageId === page.id && "bg-accent")}
-                      >
-                        <span className="truncate">
-                          {page.title || page.url}
-                        </span>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      {filteredPages.map((page) => (
+                        <button
+                          key={page.id}
+                          type="button"
+                          onClick={() => {
+                            setTargetPageId(page.id)
+                            setPagePickerOpen(false)
+                          }}
+                          className={cn(
+                            "flex w-full min-w-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/50",
+                            targetPageId === page.id && "bg-accent"
+                          )}
+                        >
+                          <IconFileText className="size-3.5 shrink-0 text-muted-foreground" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate">
+                              {page.title || page.url}
+                            </span>
+                            {page.title && (
+                              <span className="block truncate text-xs text-muted-foreground">
+                                {page.url}
+                              </span>
+                            )}
+                          </span>
+                        </button>
+                      ))}
+                      {!showAutoPick && filteredPages.length === 0 && (
+                        <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                          No pages match &ldquo;{pageQuery}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {error && (
-                <div className="text-xs text-destructive">
-                  {error}
-                  {duplicateId && (
-                    <>
-                      {" "}
-                      <Link
-                        href={`/dashboard/prospects/${duplicateId}`}
-                        className="font-medium underline underline-offset-2"
-                      >
-                        View the existing opportunity.
-                      </Link>
-                    </>
-                  )}
+                <div className="flex items-start gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  <IconAlertCircle className="mt-0.5 size-3.5 shrink-0" />
+                  <span>
+                    {error}
+                    {duplicateId && (
+                      <>
+                        {" "}
+                        <Link
+                          href={`/dashboard/prospects/${duplicateId}`}
+                          className="font-medium underline underline-offset-2"
+                        >
+                          View the existing opportunity.
+                        </Link>
+                      </>
+                    )}
+                  </span>
                 </div>
               )}
 

@@ -19,6 +19,12 @@ export default async function EmailAccountDetailPage({
 
   if (!user) redirect("/signin")
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("send_outreach_from_private_inbox")
+    .eq("id", user.id)
+    .single()
+
   const { data: row } = await supabaseAdmin
     .from("email_accounts")
     .select(
@@ -46,5 +52,10 @@ export default async function EmailAccountDetailPage({
     imapPort: row.imap_port ?? undefined,
   }
 
-  return <EmailAccountDetailClient account={account} />
+  return (
+    <EmailAccountDetailClient
+      account={account}
+      sendFromPrivateInbox={profile?.send_outreach_from_private_inbox ?? false}
+    />
+  )
 }

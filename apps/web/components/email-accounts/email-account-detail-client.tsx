@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { Switch } from "@workspace/ui/components/switch"
 import {
   Tabs,
   TabsContent,
@@ -19,6 +20,7 @@ import {
 } from "@workspace/ui/components/tabs"
 import { cn } from "@workspace/ui/lib/utils"
 import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 
 import type { EmailAccount } from "@/app/dashboard/email-accounts/_data"
 import { useEmailAccountStore } from "@/stores/email-account-store"
@@ -79,10 +81,57 @@ function SaveFooter({
   )
 }
 
+function OutreachSendingPreference({ initialValue }: { initialValue: boolean }) {
+  const router = useRouter()
+  const [checked, setChecked] = useState(initialValue)
+  const [saving, setSaving] = useState(false)
+
+  async function handleChange(next: boolean) {
+    const previous = checked
+    setChecked(next)
+    setSaving(true)
+    try {
+      const res = await fetch("/api/email-accounts/outreach-preference", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sendFromPrivateInbox: next }),
+      })
+      if (!res.ok) {
+        setChecked(previous)
+        return
+      }
+      router.refresh()
+    } catch {
+      setChecked(previous)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-4 border-t border-border/50 pt-4">
+      <div className="flex-1">
+        <p className="text-sm font-medium text-foreground">
+          Send automated outreach from this mailbox
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Off by default — automated outreach sends from Mentiohunt&apos;s
+          shared pool, keeping this mailbox reserved for replying personally
+          once a prospect responds. Turning this on sends cold outreach and
+          follow-ups from here instead, which uses your sending reputation.
+        </p>
+      </div>
+      <Switch checked={checked} onCheckedChange={handleChange} disabled={saving} />
+    </div>
+  )
+}
+
 export function EmailAccountDetailClient({
   account,
+  sendFromPrivateInbox,
 }: {
   account: EmailAccount
+  sendFromPrivateInbox: boolean
 }) {
   const upsertEmailAccountDetail = useEmailAccountStore((s) => s.upsertEmailAccountDetail)
 
@@ -228,6 +277,8 @@ export function EmailAccountDetailClient({
                   </span>
                 </div>
               </Field>
+
+              <OutreachSendingPreference initialValue={sendFromPrivateInbox} />
             </div>
           </SectionCard>
 

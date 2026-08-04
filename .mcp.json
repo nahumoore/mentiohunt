@@ -10,6 +10,13 @@
       "env": {
         "GSC_OAUTH_CLIENT_SECRETS_FILE": "../mcp-gsc/client_secrets.json"
       }
+    },
+    "bwtServer": {
+      "command": "/Users/nahuelmoreno/.local/share/mcp-envs/bwt/bin/python",
+      "args": ["-m", "mcp_server_bwt"],
+      "env": {
+        "BING_WEBMASTER_API_KEY": "663f968970e942f79910eb268ba3e419"
+      }
     }
   }
 }

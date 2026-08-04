@@ -6,7 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { Button } from "@workspace/ui/components/button"
-import { HeroIlloB } from "./hero-illo-b"
+import { HeroDemoVideo } from "./hero-demo-video"
 
 const ease = [0.21, 0.47, 0.32, 0.98] as const
 
@@ -141,7 +141,7 @@ export function HeroIllustration() {
       viewport={{ once: true, margin: "-10% 0px" }}
       transition={{ duration: 0.55, ease }}
     >
-      <HeroIlloB />
+      <HeroDemoVideo />
     </motion.div>
   )
 }

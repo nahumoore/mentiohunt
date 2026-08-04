@@ -34,10 +34,15 @@ function sortProspects(
   dir: SortDir
 ): ProspectListItem[] {
   return [...list].sort((a, b) => {
+    if (key === "contact") {
+      const aEmpty = !a.contact_name
+      const bEmpty = !b.contact_name
+      if (aEmpty !== bEmpty) return aEmpty ? 1 : -1
+      const cmp = (a.contact_name ?? "").localeCompare(b.contact_name ?? "")
+      return dir === "asc" ? cmp : -cmp
+    }
     let cmp = 0
-    if (key === "contact")
-      cmp = (a.contact_name ?? "").localeCompare(b.contact_name ?? "")
-    else if (key === "domain")
+    if (key === "domain")
       cmp = (a.domain ?? "").localeCompare(b.domain ?? "")
     else if (key === "dr")
       cmp = (a.domain_rating ?? 0) - (b.domain_rating ?? 0)

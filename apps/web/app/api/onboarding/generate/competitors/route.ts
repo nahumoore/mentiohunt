@@ -1,5 +1,6 @@
 import { normalizeUrl } from "@/consts/onboarding"
 import { generateText } from "@workspace/openrouter/generate-text"
+import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { extractHostname, validateDomains } from "@/lib/onboarding/validate-domain"
 import { supabaseServer } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
@@ -10,6 +11,39 @@ export const runtime = "nodejs"
 const competitorsSchema = z.object({
   competitors: z.array(z.string().min(3)).min(8).max(10),
 })
+
+const RESPONSE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["competitors"],
+  properties: {
+    competitors: {
+      type: "array",
+      minItems: 8,
+      maxItems: 10,
+      items: {
+        type: "string",
+      },
+    },
+  },
+} as const
+
+const GENERATE_OPTIONS: Pick<
+  Parameters<typeof generateText>[0],
+  "model" | "fallbackModels" | "timeoutMs" | "responseFormat"
+> = {
+  model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
+  fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+  timeoutMs: 30_000,
+  responseFormat: {
+    type: "json_schema",
+    json_schema: {
+      name: "competitor_domains",
+      strict: true,
+      schema: RESPONSE_SCHEMA as unknown as Record<string, unknown>,
+    },
+  },
+}
 
 const requestSchema = z.object({
   site: z.record(z.unknown()),
@@ -67,7 +101,7 @@ async function retryInvalidDomains({
   ].join("\n")
 
   try {
-    const retryOutput = await generateText({ input: retryInput, systemInstructions })
+    const retryOutput = await generateText({ input: retryInput, systemInstructions, ...GENERATE_OPTIONS })
     const retryResult = competitorsSchema.safeParse(JSON.parse(extractJsonObject(retryOutput.text)))
 
     if (!retryResult.success) {
@@ -115,7 +149,7 @@ export async function POST(request: Request) {
     ]
       .filter(Boolean)
       .join("\n")
-    const output = await generateText({ input, systemInstructions })
+    const output = await generateText({ input, systemInstructions, ...GENERATE_OPTIONS })
     const result = competitorsSchema.safeParse(JSON.parse(extractJsonObject(output.text)))
 
     if (!result.success) {

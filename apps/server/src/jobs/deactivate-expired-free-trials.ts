@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { createLogger } from "../helpers/logger.js"
+import { pauseSequencesForUsers } from "../helpers/outreach/trial-sequences.js"
 
 const log = createLogger("deactivate-expired-free-trials")
 
@@ -24,4 +25,8 @@ export async function deactivateExpiredFreeTrials(): Promise<void> {
   log.info("expired free trial check complete", {
     deactivated: expiredProfiles?.length ?? 0,
   })
+
+  if (expiredProfiles?.length) {
+    await pauseSequencesForUsers(expiredProfiles.map((p) => p.id))
+  }
 }

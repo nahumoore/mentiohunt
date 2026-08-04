@@ -1194,6 +1194,7 @@ export type Database = {
         | "paused"
         | "sending"
         | "bounced"
+        | "trial_expired"
       prospect_status:
         | "new"
         | "contacted"
@@ -1363,6 +1364,7 @@ export const Constants = {
         "paused",
         "sending",
         "bounced",
+        "trial_expired",
       ],
       prospect_status: [
         "new",

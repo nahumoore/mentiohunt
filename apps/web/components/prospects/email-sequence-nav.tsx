@@ -3,8 +3,10 @@
 import {
   IconCheck,
   IconClockHour4,
+  IconClockPause,
   IconMailCheck,
 } from "@tabler/icons-react"
+import { isPast } from "date-fns"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { formatRelative } from "@/lib/format-date"
@@ -12,7 +14,7 @@ import { formatRelative } from "@/lib/format-date"
 export type SequenceStep = {
   number: number
   label: string
-  status: "sent" | "scheduled"
+  status: "sent" | "scheduled" | "trial_expired"
   date: Date
 }
 
@@ -27,9 +29,14 @@ export function EmailSequenceNav({ steps, activeIdx, onSelect }: NavProps) {
     <div className="mb-5 flex w-full items-start">
       {steps.map((step, idx) => {
         const isSent = step.status === "sent"
+        const isTrialExpired = step.status === "trial_expired"
         const isActive = idx === activeIdx
-        const isPast = idx < activeIdx
+        const isPastStep = idx < activeIdx
         const isLast = idx === steps.length - 1
+        // Step 2/3 dates are set when the sequence is first created, so a
+        // slow-to-send earlier step can leave this one's date in the past
+        // while it's still just waiting in the queue, not overdue/broken.
+        const isQueued = !isSent && !isTrialExpired && isPast(step.date)
 
         return (
           <div key={step.number} className="flex flex-1 items-start">
@@ -45,12 +52,12 @@ export function EmailSequenceNav({ steps, activeIdx, onSelect }: NavProps) {
                     "relative z-10 flex size-3.5 shrink-0 items-center justify-center rounded-full border-[1.5px] transition-all duration-150",
                     isActive
                       ? "border-primary bg-primary shadow-[0_0_0_4px_rgba(255,84,0,0.12)]"
-                      : isSent || isPast
+                      : isSent || isPastStep
                         ? "border-primary bg-primary"
                         : "border-border bg-background group-hover:border-primary/40"
                   )}
                 >
-                  {(isSent || isPast) && !isActive && (
+                  {(isSent || isPastStep) && !isActive && (
                     <IconCheck className="size-2 text-white" strokeWidth={3} />
                   )}
                 </div>
@@ -58,7 +65,7 @@ export function EmailSequenceNav({ steps, activeIdx, onSelect }: NavProps) {
                   <div
                     className={cn(
                       "h-px flex-1 transition-colors duration-300",
-                      isSent || isPast ? "bg-primary/35" : "bg-border"
+                      isSent || isPastStep ? "bg-primary/35" : "bg-border"
                     )}
                   />
                 )}
@@ -71,7 +78,7 @@ export function EmailSequenceNav({ steps, activeIdx, onSelect }: NavProps) {
                     "text-[10px] font-bold uppercase tracking-[0.12em] transition-colors",
                     isActive
                       ? "text-primary"
-                      : isSent || isPast
+                      : isSent || isPastStep
                         ? "text-primary/55"
                         : "text-muted-foreground/35"
                   )}
@@ -83,7 +90,7 @@ export function EmailSequenceNav({ steps, activeIdx, onSelect }: NavProps) {
                     "text-[11px] font-medium leading-snug transition-colors",
                     isActive
                       ? "text-foreground"
-                      : isSent || isPast
+                      : isSent || isPastStep
                         ? "text-foreground/60"
                         : "text-muted-foreground/35"
                   )}
@@ -96,15 +103,20 @@ export function EmailSequenceNav({ steps, activeIdx, onSelect }: NavProps) {
                       <IconMailCheck className="size-3" />
                       Sent
                     </span>
+                  ) : isTrialExpired ? (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-(--color-blaze-orange)">
+                      <IconClockPause className="size-3" />
+                      Paused
+                    </span>
                   ) : (
                     <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground/40">
                       <IconClockHour4 className="size-3" />
-                      Scheduled
+                      {isQueued ? "Queued" : "Scheduled"}
                     </span>
                   )}
                   <span className="text-[10px] text-muted-foreground/25">·</span>
                   <span className="text-[10px] text-muted-foreground/35">
-                    {formatRelative(step.date)}
+                    {isTrialExpired ? "Trial expired" : isQueued ? "Sending shortly" : formatRelative(step.date)}
                   </span>
                 </div>
               </div>

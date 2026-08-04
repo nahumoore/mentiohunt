@@ -7,6 +7,7 @@ import {
   type BillingNotificationType,
   type BillingTier,
 } from "../helpers/emails/send-billing-notification-email.js"
+import { resumeSequencesForUsers } from "../helpers/outreach/trial-sequences.js"
 
 const log = createLogger("route-billing-notification")
 
@@ -74,6 +75,10 @@ billingNotificationRouter.post("/billing/notification", async (req, res) => {
   }
 
   try {
+    if ((type === "subscription_created" || type === "subscription_updated") && (tier === "pro" || tier === "agency")) {
+      await resumeSequencesForUsers([userId])
+    }
+
     await sendBillingNotificationEmail({
       to: profile.email,
       name: profile.name,

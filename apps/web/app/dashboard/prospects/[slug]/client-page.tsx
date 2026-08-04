@@ -12,6 +12,7 @@ import {
   IconCalendar,
   IconCheck,
   IconChevronRight,
+  IconClockPause,
   IconExternalLink,
   IconFileText,
   IconLoader2,
@@ -487,7 +488,12 @@ export function ProspectClientPage({
       label: stepLabel(seq.step),
       subject: seq.subject ?? "",
       body: seq.body ?? "",
-      status: seq.status === "sent" ? ("sent" as const) : ("scheduled" as const),
+      status:
+        seq.status === "sent"
+          ? ("sent" as const)
+          : seq.status === "trial_expired"
+            ? ("trial_expired" as const)
+            : ("scheduled" as const),
       date,
     }
   })
@@ -899,6 +905,23 @@ export function ProspectClientPage({
                 activeIdx={activeEmailIdx}
                 onSelect={setActiveEmailIdx}
               />
+
+              {isFreeUser && isPublicMailbox && emailSequence.some((e) => e.status === "scheduled") && (
+                <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-(--color-blaze-orange)/25 bg-(--color-blaze-orange)/5 px-3.5 py-2.5">
+                  <IconClockPause className="size-4 shrink-0 text-(--color-blaze-orange)" />
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    Free plan mailboxes send fewer emails per day than paid plans, so this can be
+                    delayed.{" "}
+                    <a
+                      href="/dashboard/billing"
+                      className="font-medium text-foreground underline underline-offset-2 hover:opacity-70 transition-opacity"
+                    >
+                      Upgrade
+                    </a>{" "}
+                    for faster, more reliable sends.
+                  </p>
+                </div>
+              )}
 
               {/* Email draft label */}
               <p className="mb-3 text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">

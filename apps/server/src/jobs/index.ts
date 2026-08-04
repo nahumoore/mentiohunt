@@ -4,6 +4,7 @@ import { deactivateExpiredFreeTrials } from "./deactivate-expired-free-trials.js
 import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
 import { runProspectOutreachSender } from "./prospect-outreach-sender.js"
 import { runProspectOutreachMonitor } from "./prospect-outreach-monitor.js"
+import { resumeEligibleTrialExpiredSequences } from "../helpers/outreach/trial-sequences.js"
 
 export function registerJobs(): void {
   // cron.schedule("0 2 1 * *", async () => {
@@ -38,6 +39,11 @@ export function registerJobs(): void {
   console.log("[cron] Scheduled: feedback email sequence (hourly)")
 
   cron.schedule("*/5 * * * *", async () => {
+    try {
+      await resumeEligibleTrialExpiredSequences()
+    } catch (err) {
+      console.error("[cron] Error resuming trial-expired sequences:", err)
+    }
     try {
       await runProspectOutreachSender()
     } catch (err) {

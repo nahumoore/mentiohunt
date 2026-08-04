@@ -183,8 +183,8 @@ export default function AboutPage() {
                 <p>
                   Mentiohunt does that work for you. Give it your content and
                   it finds websites where an article fits, surfaces the
-                  contact, drafts the outreach, and manages the placement end
-                  to end. You just approve or reject what lands in your queue.
+                  contact, drafts the outreach, and sends it automatically.
+                  You just watch the queue and cancel what&apos;s not a fit.
                 </p>
                 <p>
                   The goal isn&apos;t to guarantee a backlink on every send. It&apos;s

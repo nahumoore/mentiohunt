@@ -14,9 +14,7 @@ import {
   type ProspectStatus,
 } from "@/app/dashboard/prospects/_data"
 import { AUTOPILOT_STEPS } from "@/consts/autopilot"
-import { useEmailAccountStore } from "@/stores/email-account-store"
-import { useProfileStore } from "@/stores/profile-store"
-import { useProspectStore } from "@/stores/prospect-store"
+import { useOutreachState } from "@/hooks/use-outreach-state"
 import { Button } from "@workspace/ui/components/button"
 import {
   DialogClose,
@@ -60,22 +58,7 @@ const STATUS_EXPLANATION: Record<ProspectStatus, string> = {
  */
 export function HowItWorksContent({ onDone }: { onDone?: () => void } = {}) {
   const [step, setStep] = useState<1 | 2>(1)
-  const profile = useProfileStore((state) => state.profile)
-  const hasActiveEmailAccount = useEmailAccountStore(
-    (state) => state.hasActiveEmailAccount
-  )
-  const poolDelayedCount = useProspectStore((state) => state.poolDelayedCount)
-  const isPaid = profile?.tier === "pro" || profile?.tier === "agency"
-  // Free tier (including trial) sends from the shared mailbox pool and never
-  // needs a personal connection, so it's paused only when that pool hits its
-  // daily cap. Paid tiers need an active personal mailbox instead.
-  const poolAtCapacity = profile?.tier === "free" && poolDelayedCount > 0
-  const outreachState: "live" | "mailbox_paused" | "pool_paused" =
-    isPaid && hasActiveEmailAccount !== true
-      ? "mailbox_paused"
-      : poolAtCapacity
-        ? "pool_paused"
-        : "live"
+  const outreachState = useOutreachState()
 
   return (
     <>

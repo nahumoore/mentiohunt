@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 
 import { markWalkthroughSeen } from "@/actions/update-profile"
-import { HowItWorksContent } from "@/components/link-building/prospects/how-it-works-content"
+import { WelcomeTourContent } from "@/components/dashboard/welcome-tour/welcome-tour-content"
 import { captureEvent } from "@/lib/analytics"
 import { useProfileStore } from "@/stores/profile-store"
 import { Dialog, DialogContent } from "@workspace/ui/components/dialog"
@@ -16,11 +16,13 @@ import { Dialog, DialogContent } from "@workspace/ui/components/dialog"
 let hasClosedThisSession = false
 
 /**
- * Auto-opens the how-it-works explainer once, on a user's first dashboard load.
+ * Auto-opens a welcome tour once, on a user's first dashboard load —
+ * welcomes them and walks through the tool's main capabilities (prospects
+ * & outreach, pages, email accounts, link tracker) one step at a time.
  *
- * The content itself already existed behind a ghost "How it works" button in
- * the header, which new users never clicked (onboarding feedback, 2026-07-27).
- * `profiles.walkthrough_seen_at` gates it to a single showing.
+ * `profiles.walkthrough_seen_at` gates it to a single showing. The
+ * how-it-works explainer this replaced still lives behind the header's
+ * ghost "How it works" button, unchanged, as reference material.
  */
 export function FirstLoginWalkthrough() {
   const profile = useProfileStore((state) => state.profile)
@@ -29,6 +31,7 @@ export function FirstLoginWalkthrough() {
   )
   const [closed, setClosed] = useState(false)
   const hasLoggedRef = useRef(false)
+  const canCloseRef = useRef(false)
 
   const isOpen =
     !closed &&
@@ -57,11 +60,27 @@ export function FirstLoginWalkthrough() {
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        if (!open) close()
+        if (!open && canCloseRef.current) close()
       }}
     >
-      <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
-        <HowItWorksContent onDone={close} />
+      <DialogContent
+        className="max-h-[85vh] max-w-2xl overflow-y-auto"
+        onEscapeKeyDown={(e) => {
+          if (!canCloseRef.current) e.preventDefault()
+        }}
+        onPointerDownOutside={(e) => {
+          if (!canCloseRef.current) e.preventDefault()
+        }}
+        onInteractOutside={(e) => {
+          if (!canCloseRef.current) e.preventDefault()
+        }}
+      >
+        <WelcomeTourContent
+          onDone={close}
+          onStepChange={(isLast) => {
+            canCloseRef.current = isLast
+          }}
+        />
       </DialogContent>
     </Dialog>
   )

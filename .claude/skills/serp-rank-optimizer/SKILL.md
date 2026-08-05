@@ -76,6 +76,23 @@ Don't present raw numbers alone — translate them. "Position 14, 800 impression
 content-depth problem. "Not indexed" means every SERP-gap recommendation below is moot until
 that's fixed first — lead the report with it if so.
 
+### Bing side (bwtServer)
+
+Google isn't the only search engine sending traffic — pull the equivalent Bing Webmaster
+Tools data so the report covers both:
+
+- `mcp__bwtServer__get_sites` — find the matching `site_url` in the Bing account (may differ
+  in formatting from the GSC property).
+- `mcp__bwtServer__get_url_info` — is the URL indexed on Bing? Any flagged issues.
+- `mcp__bwtServer__get_page_query_stats` — queries this page picks up on Bing, with clicks/impressions.
+- `mcp__bwtServer__get_url_traffic_info` — click/impression totals for the URL on Bing.
+
+Treat this as a secondary, smaller-magnitude data point next to GSC, not an equal-weight
+twin — Bing's volume is usually a fraction of Google's. Mention it if it's notable (indexed on
+one engine but not the other, or picking up a query on Bing that GSC doesn't show) and fold it
+into the GSC section of the report rather than a separate one. If the site isn't verified in
+Bing Webmaster Tools, say so and skip this part — don't treat it as blocking.
+
 ## Step 4: Research the live SERP
 
 Run `WebSearch` for the target keyword. Treat result order as the current ranking order (it's
@@ -105,6 +122,7 @@ can currently only get from a competitor?
 - Indexed: yes/no [+ any coverage issue]
 - Current position: [X] · Impressions: [X] · Clicks: [X] · CTR: [X]%
 - Other queries this page is picking up: [list, if notable]
+- Bing: indexed yes/no · [notable query/traffic delta vs Google, if any — omit line if nothing notable or site unverified]
 - What this tells us: [plain-language read — indexing problem? CTR problem? position problem?]
 
 ## SERP landscape

@@ -1114,6 +1114,149 @@ export type Database = {
           },
         ]
       }
+      tracked_link_events: {
+        Row: {
+          change_type: Database["public"]["Enums"]["tracked_link_change_type"]
+          current: Json | null
+          detected_at: string
+          id: string
+          notified_at: string | null
+          previous: Json | null
+          product_id: string
+          tracked_link_id: string
+        }
+        Insert: {
+          change_type: Database["public"]["Enums"]["tracked_link_change_type"]
+          current?: Json | null
+          detected_at?: string
+          id?: string
+          notified_at?: string | null
+          previous?: Json | null
+          product_id: string
+          tracked_link_id: string
+        }
+        Update: {
+          change_type?: Database["public"]["Enums"]["tracked_link_change_type"]
+          current?: Json | null
+          detected_at?: string
+          id?: string
+          notified_at?: string | null
+          previous?: Json | null
+          product_id?: string
+          tracked_link_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracked_link_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracked_link_events_tracked_link_id_fkey"
+            columns: ["tracked_link_id"]
+            isOneToOne: false
+            referencedRelation: "tracked_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracked_links: {
+        Row: {
+          consecutive_failures: number
+          consecutive_missing: number
+          created_at: string
+          expected_target_url: string | null
+          first_seen_anchor_text: string | null
+          first_seen_at: string | null
+          first_seen_href: string | null
+          first_seen_rel: string[] | null
+          id: string
+          issue_since: string | null
+          label: string | null
+          last_checked_at: string | null
+          last_ok_at: string | null
+          next_check_at: string
+          observed_anchor_text: string | null
+          observed_final_url: string | null
+          observed_href: string | null
+          observed_http_status: number | null
+          observed_rel: string[]
+          origin: string
+          product_id: string
+          recent_checks: Json
+          source_domain: string
+          source_url: string
+          status: Database["public"]["Enums"]["tracked_link_status"]
+          updated_at: string
+        }
+        Insert: {
+          consecutive_failures?: number
+          consecutive_missing?: number
+          created_at?: string
+          expected_target_url?: string | null
+          first_seen_anchor_text?: string | null
+          first_seen_at?: string | null
+          first_seen_href?: string | null
+          first_seen_rel?: string[] | null
+          id?: string
+          issue_since?: string | null
+          label?: string | null
+          last_checked_at?: string | null
+          last_ok_at?: string | null
+          next_check_at?: string
+          observed_anchor_text?: string | null
+          observed_final_url?: string | null
+          observed_href?: string | null
+          observed_http_status?: number | null
+          observed_rel?: string[]
+          origin?: string
+          product_id: string
+          recent_checks?: Json
+          source_domain: string
+          source_url: string
+          status?: Database["public"]["Enums"]["tracked_link_status"]
+          updated_at?: string
+        }
+        Update: {
+          consecutive_failures?: number
+          consecutive_missing?: number
+          created_at?: string
+          expected_target_url?: string | null
+          first_seen_anchor_text?: string | null
+          first_seen_at?: string | null
+          first_seen_href?: string | null
+          first_seen_rel?: string[] | null
+          id?: string
+          issue_since?: string | null
+          label?: string | null
+          last_checked_at?: string | null
+          last_ok_at?: string | null
+          next_check_at?: string
+          observed_anchor_text?: string | null
+          observed_final_url?: string | null
+          observed_href?: string | null
+          observed_http_status?: number | null
+          observed_rel?: string[]
+          origin?: string
+          product_id?: string
+          recent_checks?: Json
+          source_domain?: string
+          source_url?: string
+          status?: Database["public"]["Enums"]["tracked_link_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracked_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1211,6 +1354,26 @@ export type Database = {
         | "user_submitted"
       route_log_status: "running" | "success" | "error"
       run_status: "pending" | "running" | "completed" | "failed"
+      tracked_link_change_type:
+        | "link_removed"
+        | "link_restored"
+        | "rel_added"
+        | "rel_removed"
+        | "anchor_changed"
+        | "target_url_changed"
+        | "target_now_competitor"
+        | "source_page_dead"
+        | "source_page_recovered"
+        | "source_page_redirected"
+        | "check_failed_persistent"
+      tracked_link_status:
+        | "pending"
+        | "live"
+        | "nofollow"
+        | "target_changed"
+        | "removed"
+        | "page_dead"
+        | "check_failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1384,6 +1547,28 @@ export const Constants = {
       ],
       route_log_status: ["running", "success", "error"],
       run_status: ["pending", "running", "completed", "failed"],
+      tracked_link_change_type: [
+        "link_removed",
+        "link_restored",
+        "rel_added",
+        "rel_removed",
+        "anchor_changed",
+        "target_url_changed",
+        "target_now_competitor",
+        "source_page_dead",
+        "source_page_recovered",
+        "source_page_redirected",
+        "check_failed_persistent",
+      ],
+      tracked_link_status: [
+        "pending",
+        "live",
+        "nofollow",
+        "target_changed",
+        "removed",
+        "page_dead",
+        "check_failed",
+      ],
     },
   },
 } as const

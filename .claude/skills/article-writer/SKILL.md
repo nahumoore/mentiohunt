@@ -147,6 +147,7 @@ Nico
 - Prefer concrete phrases like "qualified outreach opportunities", "daily queue", "fit rationale", "outreach angle", and "what to do next" over vague SEO wording.
 - Make the article scannable with descriptive headings, bullets, tables, and short sections when useful.
 - When adding links, use natural anchor text that describes the destination topic or resource in context.
+- Never add links in the introduction (every paragraph before the first H2). Intro stays link-free — no detours before body starts.
 - Avoid vague link phrasing like "see more at this guide", "click here", "read this post", or "learn more" unless the exact wording is clearly necessary.
 - Use simple tables for comparisons or criteria. Avoid dense nested tables.
 - If suggesting visuals, include clear alt text recommendations.

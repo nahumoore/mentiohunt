@@ -87,7 +87,7 @@ For each link opportunity selected:
 - **No duplicate destinations**: if `/free-tools/competitor-backlink-gap` is already linked once, don't add a second link to it
 - **No self-links**: never link a page to itself
 - **Skip frontmatter, code blocks, and existing link syntax** — only modify prose body
-- **Skip the first paragraph** — let the article open without an immediate detour
+- **Never link in the introduction** — skip every paragraph before the first H2, not just the first paragraph. Let article open without detour.
 - **Don't link every mention of a topic** — one link per destination is enough, pick the best placement
 
 ### Step 6: Propose, then apply

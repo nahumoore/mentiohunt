@@ -20,30 +20,30 @@ export function HeroContent() {
   return (
     <div className="mx-auto max-w-5xl text-center">
       {/* Eyebrow */}
-      <motion.p
+      <motion.h1
         className="text-sm font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase"
         variants={fadeUp}
         initial="initial"
         animate="animate"
         transition={{ duration: 0.5, delay: 0, ease }}
       >
-        Managed backlink placement
-      </motion.p>
+        Automated link building tool
+      </motion.h1>
 
       {/* Heading */}
-      <motion.h1
+      <motion.h2
         className="mt-5 font-heading text-6xl font-semibold leading-[0.95] tracking-[-0.055em] text-balance sm:text-7xl lg:text-8xl xl:text-[8.5rem]"
         variants={fadeUp}
         initial="initial"
         animate="animate"
         transition={{ duration: 0.65, delay: 0.08, ease }}
       >
-        Backlink outreach,
+        You get backlinks.
         <br />
         <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
-          on autopilot.
+          We run outreach.
         </span>
-      </motion.h1>
+      </motion.h2>
 
       {/* Subtitle */}
       <motion.p
@@ -53,9 +53,9 @@ export function HeroContent() {
         animate="animate"
         transition={{ duration: 0.55, delay: 0.16, ease }}
       >
-        We find sites where your articles belong and run outreach through the
-        first reply. You just approve or reject — every opportunity comes
-        with a fit rationale, not vanity metrics.
+        We find sites where your content fits, then run outreach through the
+        first reply. Then you continue the conversation yourself — to secure
+        the backlink and build the relationship.
       </motion.p>
 
       {/* CTA */}

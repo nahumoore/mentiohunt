@@ -54,6 +54,13 @@ export const EVENTS = {
   MENTION_MARKED_REPLIED: "mention_marked_replied",
   MENTION_DISMISSED: "mention_dismissed",
   COMMUNITY_WATCHLIST_SAVED: "community_watchlist_saved",
+
+  // Link tracker
+  LINK_TRACKER_VIEWED: "link_tracker_viewed",
+  TRACKED_LINK_ADDED: "tracked_link_added",
+  TRACKED_LINK_ADD_FAILED: "tracked_link_add_failed",
+  TRACKED_LINKS_BULK_IMPORTED: "tracked_links_bulk_imported",
+  TRACKED_LINK_DELETED: "tracked_link_deleted",
 } as const
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS]

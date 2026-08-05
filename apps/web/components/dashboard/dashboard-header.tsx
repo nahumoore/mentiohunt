@@ -6,6 +6,7 @@ import {
   IconLayoutGrid,
   IconMailBolt,
   IconNetwork,
+  IconRadar2,
   IconSettings,
   IconSparkles,
 } from "@tabler/icons-react"
@@ -15,6 +16,7 @@ import * as React from "react"
 
 import { HowItWorksDialog } from "@/components/link-building/prospects/how-it-works-dialog"
 import { SubmitUrlDialog } from "@/components/link-building/prospects/submit-url-dialog"
+import { AddTrackedLinksDialog } from "@/components/link-tracker/add-tracked-links-dialog"
 import { useEmailAccountStore } from "@/stores/email-account-store"
 import { useProfileStore } from "@/stores/profile-store"
 import { useProspectStore } from "@/stores/prospect-store"
@@ -81,6 +83,13 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
     title: "Settings",
     description: "Manage your profile, notifications, and billing.",
     icon: IconSettings,
+  },
+  "/dashboard/link-tracker": {
+    title: "Link Tracker",
+    description:
+      "Backlinks you've already earned, re-checked every day. We'll flag anything that disappears, goes nofollow, or changes.",
+    icon: IconRadar2,
+    action: <AddTrackedLinksDialog />,
   },
 }
 

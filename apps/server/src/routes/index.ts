@@ -9,6 +9,7 @@ import { freeToolBrokenLinkBuildingRouter } from "./free-tool-broken-link-buildi
 import { freeToolCompetitorBacklinkGapRouter } from "./free-tool-competitor-backlink-gap.js"
 import { devDiscoverUnlinkedMentionsRouter } from "./dev-discover-unlinked-mentions.js"
 import { devRunDailyBacklinkDiscoveryRouter } from "./dev-run-daily-backlink-discovery.js"
+import { devRunLinkTrackerRouter } from "./dev-run-link-tracker.js"
 import { devTestScraperRouter } from "./dev-test-scraper.js"
 import { devPopulateMissingSeoMetricsRouter } from "./dev-populate-missing-seo-metrics.js"
 import { devRunOutreachJobsRouter } from "./dev-run-outreach-jobs.js"
@@ -19,6 +20,7 @@ import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunitie
 import { freeToolAuthorContactFinderRouter } from "./free-tool-author-contact-finder.js"
 import { freeToolGuestPostSitesRouter } from "./free-tool-guest-post-sites.js"
 import { googleIndexCheckerRouter } from "./google-index-checker.js"
+import { linkTrackerCheckRouter } from "./link-tracker-check.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
 import { prospectManualOutreachRouter } from "./prospect-manual-outreach.js"
 import { prospectReplyRouter } from "./prospect-reply.js"
@@ -42,6 +44,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(crawlSinglePageRouter)
   app.use(resendInboundWebhookRouter)
   app.use(googleIndexCheckerRouter)
+  app.use(linkTrackerCheckRouter)
 
   if (isDev) {
     app.use(verifyDirectoryUrlsRouter)
@@ -57,5 +60,6 @@ export function registerRoutes(app: Application, isDev: boolean): void {
     app.use(devTestScraperRouter)
     app.use(devRunOutreachJobsRouter)
     app.use(devSubmitUrlRouter)
+    app.use(devRunLinkTrackerRouter)
   }
 }

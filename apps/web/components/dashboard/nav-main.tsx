@@ -6,6 +6,7 @@ import {
   IconLayoutGrid,
   IconMailBolt,
   IconNetwork,
+  IconRadar2,
   IconSettings,
   IconSparkles,
 } from "@tabler/icons-react"
@@ -97,6 +98,16 @@ const FEATURES: FeatureModule[] = [
         title: "Link Exchange",
         url: "/dashboard/network",
         icon: <IconNetwork />,
+      },
+    ],
+  },
+  {
+    title: "Monitoring",
+    pages: [
+      {
+        title: "Link Tracker",
+        url: "/dashboard/link-tracker",
+        icon: <IconRadar2 />,
       },
     ],
   },

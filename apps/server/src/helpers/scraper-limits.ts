@@ -16,7 +16,7 @@ import pLimit from "p-limit"
  * SCRAPE_LIGHT_CONCURRENCY in apps/scraper/core.py) — keep the two in sync.
  *
  * heavy: /agent-scrape, /check-mention — multi-page browser crawls, up to ~2 min
- * light: /byline-scrape, /fetch-content — single tiered fetch, seconds
+ * light: /byline-scrape, /fetch-content, /check-link — single tiered fetch, seconds
  */
 const HEAVY_CONCURRENCY = Number(process.env.SCRAPER_HEAVY_CONCURRENCY ?? 10)
 const LIGHT_CONCURRENCY = Number(process.env.SCRAPER_LIGHT_CONCURRENCY ?? 16)

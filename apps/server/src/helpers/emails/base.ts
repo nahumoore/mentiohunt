@@ -43,6 +43,12 @@ export function statusNote(title: string, message: string) {
     </tr>`
 }
 
+/**
+ * Returns whether the send actually succeeded. Existing callers ignore the
+ * return value (unchanged, backward-compatible) — added for callers like the
+ * link tracker digest that stamp a "notified" marker afterward and must not
+ * do so on a Resend outage, or the alert is silently lost forever.
+ */
 export async function sendMentiohuntEmail({
   to,
   subject,
@@ -57,7 +63,7 @@ export async function sendMentiohuntEmail({
   previewText?: string
   footerReason?: string
   unsubscribeUrl?: string
-}) {
+}): Promise<boolean> {
   try {
     const resend = getResend()
     const email = mentiohuntTemplate({
@@ -80,7 +86,9 @@ export async function sendMentiohuntEmail({
           }
         : undefined,
     })
+    return true
   } catch (err) {
     log.warn("failed to send email", { error: String(err), to, subject })
+    return false
   }
 }

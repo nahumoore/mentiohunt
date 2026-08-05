@@ -9,6 +9,12 @@ export const FREE_TRIAL_MAX_PAGES = 50
 // in app/api/link-building/opportunities/submit/route.ts).
 export const PAID_MAX_URL_SUBMISSIONS_PER_DAY = 20
 
+// Link Tracker: paid-plan only, gated the same way as URL submissions above.
+// Cap is per product (an Growth-tier account with 5 products effectively
+// gets more) — generous enough to cover a real backlink portfolio without
+// the nightly sweep's cost scaling unbounded.
+export const TRACKED_LINKS_MAX_PER_PRODUCT = 200
+
 export type BillingTier = Database["public"]["Enums"]["billing_tier"]
 
 export const PLAN_TIERS = {
@@ -41,6 +47,7 @@ export const PLANS: Plan[] = [
       "2 opportunity scans a day (~50 prospects weekly)",
       "Fit rationale, contacts & ready-to-send drafts",
       `Submit up to ${PAID_MAX_URL_SUBMISSIONS_PER_DAY} of your own prospect URLs a day`,
+      `Link Tracker — daily monitoring for up to ${TRACKED_LINKS_MAX_PER_PRODUCT} backlinks`,
       "Export to CSV",
       "Priority support",
       `${FREE_TRIAL_DAYS}-day free trial`,

@@ -1,7 +1,9 @@
 import cron from "node-cron"
 import { runDailyBacklinkDiscovery } from "./daily-backlink-discovery.js"
+import { runDailyLinkTracker } from "./daily-link-tracker.js"
 import { deactivateExpiredFreeTrials } from "./deactivate-expired-free-trials.js"
 import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
+import { sendTrackedLinkDigests } from "./link-tracker-digest.js"
 import { runProspectOutreachSender } from "./prospect-outreach-sender.js"
 import { runProspectOutreachMonitor } from "./prospect-outreach-monitor.js"
 import { resumeEligibleTrialExpiredSequences } from "../helpers/outreach/trial-sequences.js"
@@ -78,4 +80,31 @@ export function registerJobs(): void {
     }
   })
   console.log("[cron] Scheduled: 2nd backlink discovery run, paid users only (19:00 UTC)")
+
+  cron.schedule("30 3 * * *", async () => {
+    try {
+      await runDailyLinkTracker()
+    } catch (err) {
+      console.error("[cron] Error running link tracker sweep:", err)
+    }
+  })
+  console.log("[cron] Scheduled: link tracker sweep (03:30 UTC)")
+
+  cron.schedule("30 15 * * *", async () => {
+    try {
+      await runDailyLinkTracker({ mode: "confirm" })
+    } catch (err) {
+      console.error("[cron] Error running link tracker confirmation pass:", err)
+    }
+  })
+  console.log("[cron] Scheduled: link tracker confirmation pass, force_dynamic (15:30 UTC)")
+
+  cron.schedule("0 17 * * *", async () => {
+    try {
+      await sendTrackedLinkDigests()
+    } catch (err) {
+      console.error("[cron] Error sending link tracker digests:", err)
+    }
+  })
+  console.log("[cron] Scheduled: link tracker digest emails (17:00 UTC)")
 }

@@ -10,6 +10,7 @@ import type { DiscoverySettings } from "@/stores/discovery-settings-store"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
 import type { ProspectListItem } from "@/stores/prospect-store"
+import type { TrackedLinkListItem } from "@/stores/link-tracker-store"
 import type { Tables } from "@workspace/supabase/database-types"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { redirect } from "next/navigation"
@@ -141,6 +142,7 @@ export default async function DashboardLayout({
   let hasActiveEmailAccount = false
   let poolDelayedCount = 0
   let sentAt: string[] = []
+  let trackedLinks: TrackedLinkListItem[] = []
 
   if (product) {
     const twentyFourHoursAgo = new Date(
@@ -160,6 +162,7 @@ export default async function DashboardLayout({
       emailAccountResult,
       poolDelayedResult,
       sentSequencesResult,
+      trackedLinksResult,
     ] = await Promise.all([
       supabase
         .from("backlink_prospects")
@@ -228,6 +231,16 @@ export default async function DashboardLayout({
         .eq("status", "sent")
         .gte("sent_at", ninetyDaysAgo)
         .order("sent_at", { ascending: false }),
+      // limit matches TRACKED_LINKS_MAX_PER_PRODUCT — the cap makes a full
+      // fetch safe, no pagination needed for the list view.
+      supabase
+        .from("tracked_links" as string)
+        .select(
+          "id, product_id, source_url, source_domain, expected_target_url, label, origin, status, issue_since, observed_href, observed_anchor_text, observed_rel, observed_http_status, last_checked_at, next_check_at, created_at"
+        )
+        .eq("product_id", product.id)
+        .order("created_at", { ascending: false })
+        .limit(200),
     ])
 
     hasActiveEmailAccount = emailAccountResult.data !== null
@@ -289,6 +302,12 @@ export default async function DashboardLayout({
       pages = pagesResult.data ?? []
     }
 
+    if (trackedLinksResult.error) {
+      console.error("Error fetching tracked links:", trackedLinksResult.error)
+    } else {
+      trackedLinks = (trackedLinksResult.data ?? []) as unknown as TrackedLinkListItem[]
+    }
+
     const pageById = new Map(pages.map((page) => [page.id, page]))
     prospects = (prospectRows ?? []).map((prospect) => ({
       ...prospect,
@@ -321,6 +340,7 @@ export default async function DashboardLayout({
       hasActiveEmailAccount={hasActiveEmailAccount}
       poolDelayedCount={poolDelayedCount}
       sentAt={sentAt}
+      trackedLinks={trackedLinks}
     >
       <SidebarProvider>
         <AppSidebar user={sidebarUser} initialProduct={product} />

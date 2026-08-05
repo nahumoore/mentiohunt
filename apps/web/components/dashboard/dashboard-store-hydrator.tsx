@@ -20,6 +20,8 @@ import type { ProductPageListItem } from "@/stores/pages-store"
 import { usePagesStore } from "@/stores/pages-store"
 import { useEmailAccountStore } from "@/stores/email-account-store"
 import { useOutreachActivityStore } from "@/stores/outreach-activity-store"
+import type { TrackedLinkListItem } from "@/stores/link-tracker-store"
+import { useLinkTrackerStore } from "@/stores/link-tracker-store"
 
 import { ProspectRealtimeSync } from "./prospect-realtime-sync"
 
@@ -36,6 +38,7 @@ type DashboardStoreHydratorProps = {
   hasActiveEmailAccount: boolean | null
   poolDelayedCount: number
   sentAt: string[]
+  trackedLinks: TrackedLinkListItem[]
   children: ReactNode
 }
 
@@ -52,6 +55,7 @@ export function DashboardStoreHydrator({
   hasActiveEmailAccount,
   poolDelayedCount,
   sentAt,
+  trackedLinks,
   children,
 }: DashboardStoreHydratorProps) {
   useEffect(() => {
@@ -89,7 +93,8 @@ export function DashboardStoreHydrator({
     usePagesStore.getState().setPages(pages)
     useEmailAccountStore.getState().setHasActiveEmailAccount(hasActiveEmailAccount)
     useOutreachActivityStore.getState().setSentAt(sentAt)
-  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, poolDelayedCount, sentAt])
+    useLinkTrackerStore.getState().setLinks(trackedLinks)
+  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, poolDelayedCount, sentAt, trackedLinks])
 
   return (
     <>

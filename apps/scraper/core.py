@@ -9,8 +9,10 @@ import socket
 import time
 import uuid
 from contextlib import asynccontextmanager, contextmanager
+from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
+from typing import Any
 from urllib.parse import urljoin, urlparse
 
 from dotenv import load_dotenv
@@ -107,7 +109,35 @@ _stealthy_session = None
 # _restart_stealthy_session_if_needed below.
 _stealthy_session_factory = None
 
-_cf_blocked_domains: set[str] = set()
+class _TTLBlockedSet:
+    """Set-like structure for cf_blocked_domains with per-entry expiry.
+
+    A plain `set()` here never evicts for the process lifetime — one
+    Cloudflare block on a host permanently blinds every future fetch to that
+    host (and everything that shares it, e.g. every tracked link on that
+    blog). Supports `add`/`in` like a plain set so existing call sites
+    (including the `cf_blocked_domains` entry in `_get_agent_helpers()`)
+    don't need to change."""
+
+    def __init__(self, ttl_s: float):
+        self._ttl_s = ttl_s
+        self._expiry: dict[str, float] = {}
+
+    def add(self, host: str) -> None:
+        self._expiry[host] = time.monotonic() + self._ttl_s
+
+    def __contains__(self, host: str) -> bool:
+        expiry = self._expiry.get(host)
+        if expiry is None:
+            return False
+        if time.monotonic() >= expiry:
+            del self._expiry[host]
+            return False
+        return True
+
+
+_CF_BLOCK_TTL_S = float(os.getenv("CF_BLOCKED_DOMAIN_TTL_S", str(6 * 3600)))
+_cf_blocked_domains = _TTLBlockedSet(_CF_BLOCK_TTL_S)
 
 
 # --- Residential proxy for the stealthy (Cloudflare) tier --------------------
@@ -519,7 +549,7 @@ def _is_ok_status(page) -> bool:
     return 200 <= status < 300
 
 
-_TERMINAL_STATUSES = {404, 410}
+_TERMINAL_STATUSES = {404, 410, 451}
 
 
 def _proxy_in_cooldown() -> bool:
@@ -532,11 +562,28 @@ def _trip_proxy_cooldown() -> None:
     log.warning(f"stealthy proxy tripped cooldown for {_PROXY_COOLDOWN_S:.0f}s — using direct until it clears")
 
 
-async def _stealthy_attempt(url: str, host: str, proxy: dict[str, str] | None):
-    """One stealthy (Camoufox) fetch. Returns the page on success, None to give
-    up on this URL (CF challenge / non-2xx / timeout / non-proxy error), or the
-    _INFRA_FAILURE sentinel when a proxy was used and the proxy itself is
-    unreachable — signalling the caller to retry directly."""
+@dataclass
+class FetchOutcome:
+    """Result of fetch_page_detailed — distinguishes WHY a fetch didn't yield a
+    usable page (terminal-dead vs Cloudflare-blocked vs a genuine transient
+    failure) instead of collapsing all three to None like fetch_page() does.
+    Callers that must not conflate "the page is really gone" with "we
+    temporarily couldn't verify it" (the link tracker, primarily — a false
+    'link removed' alert destroys trust) need this distinction; the four
+    original callers (agent-scrape, check-mention, byline-scrape,
+    fetch-content) don't, so they keep using fetch_page()."""
+
+    page: Any | None
+    outcome: str  # "ok" | "dead" | "http_error" | "cf_blocked" | "fetch_failed"
+    status_code: int | None = None
+    final_url: str | None = None
+
+
+async def _stealthy_attempt_detailed(url: str, host: str, proxy: dict[str, str] | None) -> "FetchOutcome | object":
+    """One stealthy (Camoufox) fetch. Returns a FetchOutcome, or the
+    _INFRA_FAILURE / _CONTEXT_DEAD sentinels (unchanged from before this
+    refactor) when a proxy is unreachable or the shared browser context died —
+    both signal the caller to retry rather than give up on this URL."""
     via = "proxy" if proxy else "direct"
     try:
         # Only pass proxy= when set, so the no-proxy path stays byte-identical
@@ -545,6 +592,7 @@ async def _stealthy_attempt(url: str, host: str, proxy: dict[str, str] | None):
         stealthy_text = str(page.get_all_text()).strip()
         stealthy_html = (page.html_content or "")
         stealthy_status = getattr(page, "status", None)
+        stealthy_url = getattr(page, "url", None)
         is_cf_challenge = "<title>Just a moment" in stealthy_html
         log.info(
             f"stealthy result ({via}): status={stealthy_status} "
@@ -561,12 +609,15 @@ async def _stealthy_attempt(url: str, host: str, proxy: dict[str, str] | None):
             log.warning(f"stealthy ({via}): CF challenge not bypassed {url} — marking domain blocked")
             _cf_blocked_domains.add(host)
             log.info(f"fetch_outcome=cf_blocked via={via} host={host} url={url}")
-            return None
+            return FetchOutcome(page=None, outcome="cf_blocked", status_code=stealthy_status, final_url=stealthy_url)
         if not _is_ok_status(page):
+            if stealthy_status in _TERMINAL_STATUSES:
+                log.info(f"fetch_outcome=terminal_stealthy status={stealthy_status} url={url}")
+                return FetchOutcome(page=page, outcome="dead", status_code=stealthy_status, final_url=stealthy_url)
             log.info(f"fetch_outcome=non2xx_stealthy via={via} status={stealthy_status} url={url}")
-            return None
+            return FetchOutcome(page=page, outcome="http_error", status_code=stealthy_status, final_url=stealthy_url)
         log.info(f"fetch_outcome=ok_stealthy_{via} status={stealthy_status} url={url}")
-        return page
+        return FetchOutcome(page=page, outcome="ok", status_code=stealthy_status, final_url=stealthy_url)
     except Exception as e:
         msg = str(e)
         if _CONTEXT_DEAD_SIGNATURE in msg.lower():
@@ -579,10 +630,27 @@ async def _stealthy_attempt(url: str, host: str, proxy: dict[str, str] | None):
             return _INFRA_FAILURE
         log.error(f"stealthy fetch failed ({via}) {url}: {e}")
         log.info(f"fetch_outcome=error_stealthy via={via} host={host} url={url}")
-        return None
+        return FetchOutcome(page=None, outcome="fetch_failed")
 
 
 async def fetch_page(url: str):
+    """Backward-compatible wrapper over fetch_page_detailed: page on a clean
+    fetch, None for anything else (dead / cf_blocked / http_error /
+    fetch_failed) — the exact contract every existing caller (agent-scrape,
+    check-mention, byline-scrape, fetch-content, the enrichment agent) relies
+    on. New code that needs to tell those apart should call
+    fetch_page_detailed directly."""
+    result = await fetch_page_detailed(url)
+    return result.page if result.outcome == "ok" else None
+
+
+async def fetch_page_detailed(url: str, force_dynamic: bool = False) -> FetchOutcome:
+    """Outcome-aware version of the three-tier escalation (light httpx ->
+    dynamic Chromium -> stealthy Camoufox+proxy+CF-solve). `force_dynamic`
+    skips the light tier and starts at Chromium — used by the link tracker's
+    confirmation pass, since some sites render their link list client-side
+    and a thin-but-real light-tier response would otherwise read as "link
+    gone" a day early."""
     await _ssrf_check(url)
 
     # A host that already failed the stealthy (top) tier with a live Cloudflare
@@ -593,27 +661,28 @@ async def fetch_page(url: str):
     host = _normalize_host(urlparse(url).netloc)
     if host in _cf_blocked_domains:
         log.info(f"fetch_outcome=cf_skipped host={host} url={url}")
-        return None
+        return FetchOutcome(page=None, outcome="cf_blocked")
 
-    try:
-        log.info(f"fetching lightweight {url}")
-        page = await asyncio.to_thread(
-            Fetcher.get, url, timeout=15, stealthy_headers=True
-        )
-        text = str(page.get_all_text()).strip()
-        status = getattr(page, "status", None)
-        if not _is_ok_status(page):
-            if status in _TERMINAL_STATUSES:
-                log.info(f"fetch_outcome=terminal_light status={status} url={url}")
-                return None
-            log.info(f"light fetch non-2xx status={status}, escalating to dynamic {url}")
-        elif len(text) >= 500:
-            log.info(f"fetch_outcome=ok_light status={status} url={url}")
-            return page
-        else:
-            log.info(f"light fetch thin content ({len(text)} chars), escalating to dynamic {url}")
-    except Exception as e:
-        log.warning(f"light fetch failed {url}: {e}, escalating to dynamic")
+    if not force_dynamic:
+        try:
+            log.info(f"fetching lightweight {url}")
+            page = await asyncio.to_thread(
+                Fetcher.get, url, timeout=15, stealthy_headers=True
+            )
+            text = str(page.get_all_text()).strip()
+            status = getattr(page, "status", None)
+            if not _is_ok_status(page):
+                if status in _TERMINAL_STATUSES:
+                    log.info(f"fetch_outcome=terminal_light status={status} url={url}")
+                    return FetchOutcome(page=page, outcome="dead", status_code=status, final_url=getattr(page, "url", None))
+                log.info(f"light fetch non-2xx status={status}, escalating to dynamic {url}")
+            elif len(text) >= 500:
+                log.info(f"fetch_outcome=ok_light status={status} url={url}")
+                return FetchOutcome(page=page, outcome="ok", status_code=status, final_url=getattr(page, "url", None))
+            else:
+                log.info(f"light fetch thin content ({len(text)} chars), escalating to dynamic {url}")
+        except Exception as e:
+            log.warning(f"light fetch failed {url}: {e}, escalating to dynamic")
 
     try:
         log.info(f"fetching dynamic {url}")
@@ -623,11 +692,11 @@ async def fetch_page(url: str):
         if not _is_ok_status(page):
             if status in _TERMINAL_STATUSES:
                 log.info(f"fetch_outcome=terminal_dynamic status={status} url={url}")
-                return None
+                return FetchOutcome(page=page, outcome="dead", status_code=status, final_url=getattr(page, "url", None))
             log.info(f"dynamic fetch non-2xx status={status}, escalating to stealthy {url}")
         elif len(text) >= 500:
             log.info(f"fetch_outcome=ok_dynamic status={status} url={url}")
-            return page
+            return FetchOutcome(page=page, outcome="ok", status_code=status, final_url=getattr(page, "url", None))
         else:
             log.info(f"dynamic fetch thin content ({len(text)} chars), escalating to stealthy {url}")
     except Exception as e:
@@ -638,30 +707,33 @@ async def fetch_page(url: str):
     # task onto the single shared browser context at once.
     log.info(f"fetching stealthy {url}")
     async with _scrape_slot("stealthy"):
-        return await _stealthy_fetch_with_recovery(url, host)
+        return await _stealthy_fetch_with_recovery_detailed(url, host)
 
 
-async def _stealthy_fetch_with_recovery(url: str, host: str):
+async def _stealthy_fetch_with_recovery_detailed(url: str, host: str) -> FetchOutcome:
     """Run the stealthy tier, recovering once from a dead shared browser
     context: restart the shared session and retry the whole tier exactly once,
     then give up rather than retry forever against a context that keeps dying."""
     for attempt in range(2):
         session_before = _stealthy_session
-        result = await _stealthy_tier_attempt(url, host)
+        result = await _stealthy_tier_attempt_detailed(url, host)
 
         if result is _CONTEXT_DEAD:
             if attempt == 0:
                 await _restart_stealthy_session_if_needed(session_before)
                 continue
             log.error(f"stealthy fetch still failing after session restart {url}")
-            return None
+            return FetchOutcome(page=None, outcome="fetch_failed")
 
-        return None if result is _INFRA_FAILURE else result
+        if result is _INFRA_FAILURE:
+            return FetchOutcome(page=None, outcome="fetch_failed")
 
-    return None  # pragma: no cover — loop always returns or continues once
+        return result
+
+    return FetchOutcome(page=None, outcome="fetch_failed")  # pragma: no cover — loop always returns or continues once
 
 
-async def _stealthy_tier_attempt(url: str, host: str):
+async def _stealthy_tier_attempt_detailed(url: str, host: str):
     """One pass through the stealthy tier: proxy-first with a direct fallback
     on proxy infra failure. When a residential proxy is configured and
     currently healthy, try it first — it's the only tier where the datacenter
@@ -672,12 +744,12 @@ async def _stealthy_tier_attempt(url: str, host: str):
     worked and the site is just hard, so we don't waste a second full attempt."""
     use_proxy = _STEALTHY_PROXY is not None and not _proxy_in_cooldown()
     if use_proxy:
-        result = await _stealthy_attempt(url, host, proxy=_STEALTHY_PROXY)
+        result = await _stealthy_attempt_detailed(url, host, proxy=_STEALTHY_PROXY)
         if result is _INFRA_FAILURE:
             _trip_proxy_cooldown()
-            result = await _stealthy_attempt(url, host, proxy=None)
+            result = await _stealthy_attempt_detailed(url, host, proxy=None)
         return result
-    return await _stealthy_attempt(url, host, proxy=None)
+    return await _stealthy_attempt_detailed(url, host, proxy=None)
 
 
 def find_contact_form_url(page, base_url: str) -> str | None:
@@ -733,9 +805,18 @@ def _host_matches_target(host: str, target: str) -> bool:
     return bool(host) and (host == target or host.endswith("." + target))
 
 
-def _links_to_target(page, base_url: str, target_domain: str) -> list[str]:
-    found: list[str] = []
-    seen: set[str] = set()
+# nofollow/ugc/sponsored — kept in sync with REL_TOKENS in
+# apps/web/lib/free-tools/fetch-page-links.ts so both sides classify rel
+# attributes identically.
+_REL_TOKENS = {"nofollow", "ugc", "sponsored"}
+
+
+def _anchors_to_target(page, base_url: str, target_domain: str) -> list[dict]:
+    """Every anchor on `page` resolving to `target_domain` (or a subdomain of
+    it), undeduped — unlike _links_to_target's plain href list, this keeps the
+    per-anchor rel/anchor-text/image detail the link tracker needs to diff
+    against what it observed on the previous check."""
+    found: list[dict] = []
     for el in page.css("a[href]"):
         href = el.attrib.get("href", "").strip()
         if not href or href.startswith(("mailto:", "tel:", "#", "javascript:")):
@@ -745,10 +826,37 @@ def _links_to_target(page, base_url: str, target_domain: str) -> list[str]:
             host = urlparse(full).netloc
         except Exception:
             continue
-        if host and _host_matches_target(host, target_domain) and full not in seen:
-            seen.add(full)
-            found.append(full)
+        if not host or not _host_matches_target(host, target_domain):
+            continue
+        rel_attr = (el.attrib.get("rel", "") or "").strip().lower()
+        rel_tokens = [token for token in rel_attr.split() if token in _REL_TOKENS]
+        anchor_text = " ".join(str(el.get_all_text(strip=True)).split())
+        children = el.children
+        # An anchor whose only child is an <img> and carries no text is a
+        # badge/logo link — anchor_changed should never fire on those.
+        is_image_link = not anchor_text and len(children) == 1 and children[0].tag == "img"
+        found.append(
+            {
+                "href": full,
+                "rel_tokens": rel_tokens,
+                "anchor_text": anchor_text,
+                "is_dofollow": len(rel_tokens) == 0,
+                "is_image_link": is_image_link,
+            }
+        )
     return found
+
+
+def _links_to_target(page, base_url: str, target_domain: str) -> list[str]:
+    """Deduped href list — thin wrapper over _anchors_to_target so the two
+    can't drift. Unchanged signature/behavior; used by check_mention.py."""
+    seen: set[str] = set()
+    hrefs: list[str] = []
+    for anchor in _anchors_to_target(page, base_url, target_domain):
+        if anchor["href"] not in seen:
+            seen.add(anchor["href"])
+            hrefs.append(anchor["href"])
+    return hrefs
 
 
 def _seeded_helpers(seed_url: str, seed_page, helpers: dict) -> dict:
@@ -775,7 +883,13 @@ __all__ = [
     "_get_agent_helpers",
     "_seeded_helpers",
     "_links_to_target",
+    "_anchors_to_target",
+    "_host_matches_target",
+    "_normalize_host",
+    "_ssrf_check",
     "fetch_page",
+    "fetch_page_detailed",
+    "FetchOutcome",
     "get_base_url",
     "ScrapeRequest",
     "CheckMentionRequest",

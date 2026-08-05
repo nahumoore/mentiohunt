@@ -6,7 +6,7 @@ from scrapling.engines.toolbelt import ProxyRotator
 from scrapling.fetchers import AsyncDynamicSession, AsyncStealthySession
 
 import core
-from routes import check_mention_router, fetch_content_router, health_router, scrape_router
+from routes import check_link_router, check_mention_router, fetch_content_router, health_router, scrape_router
 
 
 # Browser tab pools. The dynamic (Chromium) session is shared by BOTH concurrency
@@ -83,4 +83,5 @@ app = FastAPI(title="Scraper Service", lifespan=lifespan)
 app.include_router(scrape_router)
 app.include_router(check_mention_router)
 app.include_router(fetch_content_router)
+app.include_router(check_link_router)
 app.include_router(health_router)

@@ -16,7 +16,7 @@ GSC note: `google-index-checker` gets impressions (105) but ranks pos ~84 — ge
 | `free-tools/outreach-email-generator` (DONE) | outreach email template | 170 | 6 | cold email generator (70, KD14) · link building outreach email (50, KD9) | Product already generates outreach drafts — strongest product CTA of the set. |
 | `free-tools/anchor-text-generator` (DONE) | anchor text generator | 30 | low | — | Niche, cheap. Generates varied/safe anchors. Low effort, fills topical gap. |
 | `free-tools/dofollow-link-checker` (DONE) | do-follow backlink checker | 320 | 22 | — | Dofollow vs nofollow checker for qualifying prospects. |
-| `free-tools/bulk-email-verifier` | bulk email verifier free | 390 | 19 | free bulk email verifier (390, KD19) | Verify contact emails before sending — direct tie to the scraper's contact-enrichment step. Cleaner fit than a generic email finder. |
+| `free-tools/bulk-email-verifier` (DONE) | bulk email verifier free | 390 | 19 | free bulk email verifier (390, KD19) | Verify contact emails before sending — direct tie to the scraper's contact-enrichment step. Cleaner fit than a generic email finder. |
 | `free-tools/backlink-monitor` | backlink monitoring tool | 720 | 36 | backlink monitor tool (720, same SERP) | Ties directly to the paid Link Tracker feature — free single-domain snapshot, upsell to full daily monitoring. |
 | `free-tools/press-release-generator` | press release generator | 70 | 14 | press release template (4,400, KD14 — informational, template-download intent) | Cheap, template-driven. Loosest product tie of the set (SaaS-launch PR angle) but very low KD for the volume. |
 

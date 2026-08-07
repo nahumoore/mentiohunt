@@ -120,7 +120,7 @@ export function OpportunityReportIssueDialog({
         ) : (
           <div className="flex flex-col gap-4 pt-1">
             <textarea
-              className="min-h-[120px] w-full resize-none rounded-lg border bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+              className="min-h-[120px] w-full resize-none rounded-lg border bg-muted/40 shadow-sm px-3 py-2 text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
               placeholder="What looks wrong? e.g. 'Scraped the wrong page', 'Contact info belongs to a different company', 'The fit reason does not match the found URL'"
               value={message}
               onChange={(event) => setMessage(event.target.value)}

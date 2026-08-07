@@ -12,6 +12,8 @@ import {
   IconCalendar,
   IconCheck,
   IconChevronRight,
+  IconCircleCheck,
+  IconCircleX,
   IconClockPause,
   IconExternalLink,
   IconFileText,
@@ -236,12 +238,18 @@ function ConversationView({
   messages,
   isPublicMailbox,
   ownEmailAccounts,
+  statusLoading,
+  onMarkWon,
+  onDismiss,
 }: {
   prospect: ProspectDetail
   sequences: ProspectSequence[]
   messages: ProspectMessage[]
   isPublicMailbox: boolean
   ownEmailAccounts: OwnEmailAccount[]
+  statusLoading: "contacted" | "won" | "dismissed" | "pausing" | null
+  onMarkWon: () => void
+  onDismiss: () => void
 }) {
   const subject = prospect.email_subject ?? "Collaboration opportunity"
   const sentSteps = sequences.filter((s) => s.status === "sent")
@@ -274,6 +282,7 @@ function ConversationView({
   // different personal address than the one outreach was originally sent to.
   const lastInboundEmail = [...threadItems].reverse().find((item) => item.direction === "inbound")?.fromEmail
   const replyToEmail = lastInboundEmail ?? prospect.contact_email
+  const ownEmails = new Set(ownEmailAccounts.map((a) => a.email.toLowerCase()))
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -283,11 +292,41 @@ function ConversationView({
   return (
     <div className="flex flex-col">
       {/* Thread subject */}
-      <div className="mb-4 flex items-center gap-2">
-        <IconMail className="size-3.5 shrink-0 text-muted-foreground/50" />
-        <p className="text-[11px] font-semibold text-muted-foreground/60 truncate">
-          Re: {subject}
-        </p>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <IconMail className="size-3.5 shrink-0 text-muted-foreground/50" />
+          <p className="text-[11px] font-semibold text-muted-foreground/60 truncate">
+            Re: {subject}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            disabled={statusLoading !== null}
+            onClick={onDismiss}
+            className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-40"
+          >
+            {statusLoading === "dismissed" ? (
+              <IconLoader2 className="size-3.5 animate-spin" />
+            ) : (
+              <IconCircleX className="size-3.5" />
+            )}
+            Mark as dismissed
+          </button>
+          <button
+            type="button"
+            disabled={statusLoading !== null}
+            onClick={onMarkWon}
+            className="inline-flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-600/90 transition-colors disabled:opacity-40"
+          >
+            {statusLoading === "won" ? (
+              <IconLoader2 className="size-3.5 animate-spin" />
+            ) : (
+              <IconCircleCheck className="size-3.5" />
+            )}
+            Mark as won
+          </button>
+        </div>
       </div>
 
       {prospect.outreach_stopped_reason && (
@@ -306,6 +345,10 @@ function ConversationView({
           threadItems.map((item) => {
             const isOutbound = item.direction === "outbound"
             const isBounce = item.classification === "bounce"
+            const isOwnAccount = isOutbound && !!item.fromEmail && ownEmails.has(item.fromEmail.toLowerCase())
+            const outboundTitle = isOwnAccount
+              ? `You${item.fromEmail ? ` (${item.fromEmail})` : ""}`
+              : "You (via Mentiohunt)"
             const label = isOutbound
               ? "Sent"
               : item.classification === "human_reply"
@@ -347,7 +390,7 @@ function ConversationView({
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className={cn("text-[11px] font-semibold", isOutbound ? "text-primary" : "text-foreground")}>
-                        {isOutbound ? "You (via Mentiohunt)" : item.fromName || item.fromEmail || prospect.contact_name || "Prospect"}
+                        {isOutbound ? outboundTitle : item.fromName || item.fromEmail || prospect.contact_name || "Prospect"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -433,7 +476,7 @@ export function ProspectClientPage({
     current.target_url && current.target_url !== sourcePage?.url
   )
 
-  const [statusLoading, setStatusLoading] = useState<"contacted" | "dismissed" | "pausing" | null>(null)
+  const [statusLoading, setStatusLoading] = useState<"contacted" | "won" | "dismissed" | "pausing" | null>(null)
   const [pauseModalOpen, setPauseModalOpen] = useState(false)
   const [activeEmailIdx, setActiveEmailIdx] = useState(() => {
     const now = Date.now()
@@ -568,7 +611,7 @@ export function ProspectClientPage({
     }
   }
 
-  async function handleStatusUpdate(status: "contacted" | "dismissed") {
+  async function handleStatusUpdate(status: "contacted" | "won" | "dismissed") {
     setStatusLoading(status)
     try {
       const res = await fetch(`/api/link-building/opportunities/${current.id}`, {
@@ -859,6 +902,9 @@ export function ProspectClientPage({
               messages={messages}
               isPublicMailbox={isPublicMailbox}
               ownEmailAccounts={ownEmailAccounts}
+              statusLoading={statusLoading}
+              onMarkWon={() => handleStatusUpdate("won")}
+              onDismiss={() => handleStatusUpdate("dismissed")}
             />
           ) : current.status === "email_not_found" && emailSequence.length === 0 ? (
             /* ── Manual completion form ── */
@@ -999,7 +1045,7 @@ export function ProspectClientPage({
                       defaultValue={activeEmail.body}
                       key={`body-${activeEmailIdx}`}
                       placeholder="Email body…"
-                      className="w-full rounded-none border-0 bg-card px-4 py-3 text-sm text-muted-foreground leading-relaxed resize-none font-sans cursor-default select-text"
+                      className="w-full rounded-none border-0 bg-muted/40 shadow-sm px-4 py-3 text-sm text-muted-foreground leading-relaxed resize-none font-sans cursor-default select-text"
                     />
                     <div className="border-t bg-muted/40 px-4 py-3">
                       <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -1028,7 +1074,7 @@ export function ProspectClientPage({
                     }
                     placeholder="Email body…"
                     className={cn(
-                      "w-full rounded-lg border bg-card px-4 py-3 text-sm text-foreground leading-relaxed resize-none transition font-sans",
+                      "w-full rounded-lg border bg-muted/40 shadow-sm px-4 py-3 text-sm text-foreground leading-relaxed resize-none transition font-sans",
                       activeEmail.status === "sent"
                         ? "cursor-default select-text text-muted-foreground"
                         : "focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none"

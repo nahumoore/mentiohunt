@@ -31,7 +31,7 @@ function FieldBlock({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={rows ?? 5}
-        className="resize-none bg-muted/30 text-sm leading-6"
+        className="resize-none bg-muted/40 text-sm leading-6"
       />
     </div>
   )

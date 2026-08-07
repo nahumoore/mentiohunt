@@ -1,10 +1,14 @@
 import { Router, type IRouter } from "express"
 import { timingSafeEqual } from "node:crypto"
 import { supabaseAdmin } from "@workspace/supabase/admin"
+import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
+import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
+import { withLlmRetries } from "../helpers/llm-retry.js"
 import { sendOutreachEmail, type OutreachEmailAccount } from "../helpers/emails/send-outreach-email.js"
 
 const log = createLogger("route-prospect-reply")
+const MAX_INSTRUCTIONS_LENGTH = 500
 
 export const prospectReplyRouter: IRouter = Router()
 
@@ -164,6 +168,99 @@ prospectReplyRouter.post("/prospects/reply", async (req, res) => {
     } catch (error) {
       log.warn("failed to send prospect reply", { prospectId, error: String(error) })
       res.status(502).json({ error: "Failed to send reply. Check your mailbox connection and try again." })
+    }
+  })
+})
+
+prospectReplyRouter.post("/prospects/reply/draft", async (req, res) => {
+  const expected = process.env.INTERNAL_API_KEY
+  if (!expected || !verifyApiKey(req.header("x-internal-api-key"), expected)) {
+    res.status(401).json({ error: "unauthorized" })
+    return
+  }
+
+  const userId = readBodyString(req.body, "userId")
+  const productId = readBodyString(req.body, "productId")
+  const prospectId = readBodyString(req.body, "prospectId")
+  const instructions = readBodyString(req.body, "instructions").slice(0, MAX_INSTRUCTIONS_LENGTH)
+
+  if (!userId || !productId || !prospectId || !instructions) {
+    res.status(400).json({ error: "userId, productId, prospectId and instructions are required" })
+    return
+  }
+
+  await withRouteLog(`prospect-reply-draft-${prospectId}`, async () => {
+    const [{ data: profile }, { data: product }, { data: prospect }, { data: messages }] = await Promise.all([
+      supabaseAdmin.from("profiles").select("name").eq("id", userId).maybeSingle(),
+      supabaseAdmin
+        .from("products")
+        .select("product_name, product_description, website_url")
+        .eq("id", productId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("backlink_prospects")
+        .select("id, contact_name, domain")
+        .eq("id", prospectId)
+        .eq("product_id", productId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("prospect_messages")
+        .select("direction, from_name, from_email, text_body, received_at")
+        .eq("prospect_id", prospectId)
+        .order("received_at", { ascending: true }),
+    ])
+
+    if (!product || !prospect) {
+      res.status(404).json({ error: "Prospect not found." })
+      return
+    }
+
+    const senderFirstName = profile?.name?.split(" ")[0] ?? ""
+    const contactFirstName = prospect.contact_name?.split(" ")[0] ?? null
+
+    const threadText = (messages ?? [])
+      .map((m) => {
+        const who = m.direction === "outbound" ? senderFirstName || "Me" : m.from_name || prospect.contact_name || "Prospect"
+        return `${who}: ${m.text_body ?? "(empty)"}`
+      })
+      .join("\n\n")
+
+    const systemInstructions = `You draft one email reply for a founder replying personally to a prospect they're negotiating a backlink/collaboration with.
+
+Sender's product: ${product.product_name}
+Description: ${product.product_description}
+Website: ${product.website_url}
+Sender name: ${senderFirstName || "(unknown)"}
+Prospect: ${contactFirstName || "(unknown)"} at ${prospect.domain ?? "(unknown domain)"}
+
+Conversation so far:
+${threadText || "(no prior messages)"}
+
+The sender told you what they want to say, in their own words (may be informal, incomplete, or just bullet points): "${instructions}"
+
+Write only the body of the next reply email, expressing exactly what the sender asked for, in a natural, human, founder-to-founder tone. Rules:
+- Plain text only, no subject line, no markdown.
+- No em-dashes, no bullet points, no corporate language.
+- No "just following up", "circling back", "touching base".
+- Keep it as short as the content allows, usually 2 to 5 sentences.
+- Do not invent facts, prices, or commitments the sender did not mention in their instructions.
+- Sign off with "Best,\\n${senderFirstName}" only if a sign-off fits naturally, otherwise omit it.`
+
+    try {
+      const draft = await withLlmRetries(log, async () => {
+        const { text } = await generateTextWithUsage({
+          model: OPENROUTER_MODELS.OPENAI_GPT_5_6_LUNA,
+          systemInstructions,
+          input: "Draft the reply email body.",
+        })
+        return text.trim()
+      })
+
+      log.success("drafted prospect reply", { prospectId })
+      res.json({ draft })
+    } catch (error) {
+      log.warn("failed to draft prospect reply", { prospectId, error: String(error) })
+      res.status(502).json({ error: "Failed to generate draft. Try again." })
     }
   })
 })

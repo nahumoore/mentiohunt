@@ -17,6 +17,7 @@ const ALL_TIERS: ProspectTier[] = [
   "unlinked_mention",
   "listicle_roundup",
   "resource_page_inclusion",
+  "broken_link_building",
   "user_submitted",
 ]
 

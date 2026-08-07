@@ -7,7 +7,7 @@ type Directory = {
   slug_pattern: string | null
 }
 
-const SOFT_404_TITLE_PATTERNS = [
+export const SOFT_404_TITLE_PATTERNS = [
   /\b404\b/,
   /not found/i,
   /page not found/i,
@@ -18,7 +18,7 @@ const SOFT_404_TITLE_PATTERNS = [
   /oops/i,
 ]
 
-function extractTitle(body: string): string {
+export function extractTitle(body: string): string {
   const m = body.match(/<title[^>]*>([^<]*)<\/title>/i)
   return m?.[1]?.trim() ?? ""
 }

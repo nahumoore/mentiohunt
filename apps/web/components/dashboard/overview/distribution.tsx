@@ -10,6 +10,7 @@ const TIER_ORDER: ProspectTier[] = [
   "unlinked_mention",
   "listicle_roundup",
   "resource_page_inclusion",
+  "broken_link_building",
   "user_submitted",
 ]
 
@@ -20,6 +21,7 @@ const TIER_BAR: Record<ProspectTier, string> = {
   unlinked_mention: "from-(--color-blaze-orange-2) to-(--color-harvest-orange)",
   listicle_roundup: "from-(--color-harvest-orange) to-(--color-deep-saffron)",
   resource_page_inclusion: "from-(--color-deep-saffron) to-(--color-orange)",
+  broken_link_building: "from-rose-500 to-rose-400",
   // Outside the brand orange ramp on purpose — this tier is user-triggered,
   // not part of the discovery rotation the ramp represents.
   user_submitted: "from-sky-500 to-sky-400",

@@ -15,6 +15,7 @@ export type OpportunityType =
   | "listicle_roundup"
   | "resource_page_inclusion"
   | "user_submitted"
+  | "broken_link_building"
 
 export type OutreachContext =
   | {
@@ -52,6 +53,17 @@ export type OutreachContext =
       targetDescription?: string | null
       targetPageType: string
       reason: string
+    }
+  | {
+      opportunityType: "broken_link_building"
+      title: string
+      foundUrl: string
+      deadUrl: string
+      deadUrlStatus: number | "soft_404" | "redirected"
+      anchorText: string | null
+      targetUrl: string
+      targetTitle: string
+      matchReason: string
     }
 
 export type OutreachSender = {
@@ -150,6 +162,22 @@ function buildFraming(context: OutreachContext): { situation: string; opening: s
     }
   }
 
+  if (context.opportunityType === "broken_link_building") {
+    const statusLabel =
+      context.deadUrlStatus === "redirected"
+        ? "now redirects to an unrelated page"
+        : context.deadUrlStatus === "soft_404"
+          ? "no longer resolves"
+          : `returns a ${context.deadUrlStatus}`
+    const anchor = context.anchorText || "(unknown anchor text)"
+
+    return {
+      situation: `Prospect page URL: ${context.foundUrl}\nProspect page title: ${context.title || "(unknown)"}\nDead link found on their page: ${context.deadUrl} (${statusLabel})\nAnchor text used for that link: ${anchor}\nSuggested replacement: ${context.targetUrl}\nReplacement title: ${context.targetTitle}\nWhy the replacement fits: ${context.matchReason}\nSituation: Their page links to a URL that is now dead. The email's whole value is a verifiable heads-up about that broken link, true and checkable regardless of what they do about it. The replacement suggestion rides along as a low-pressure second sentence, not the main ask. This is not a resource-page-inclusion pitch and must not read like one — no flattery preamble, no "I was browsing your excellent resource page and noticed" phrasing, no "I noticed" softening. State the dead URL plainly.`,
+      opening: `First sentence, stated plainly with no preamble: their page links to ${context.deadUrl} using the anchor text "${anchor}", and that link ${statusLabel} now.\n- Second sentence: mention "${context.targetTitle}" as something that could work as a replacement, framed as optional, not a big ask.`,
+      ask: `One short, low-pressure ask: would they consider swapping in the replacement if it's useful. Make clear the dead-link heads-up stands on its own either way.`,
+    }
+  }
+
   const angle = buildAngle(context.pageType, context.competitorDomain)
   return {
     situation: `Anchor text used for competitor: ${context.anchor || "(unknown)"}\nOutreach angle: ${angle}`,
@@ -186,6 +214,16 @@ Resource page inclusion rules:
 `
       : ""
 
+  const brokenLinkInstructions =
+    context.opportunityType === "broken_link_building"
+      ? `
+Broken link building rules:
+- Email 1 must state the exact dead URL and its anchor text in the first sentence. No flattery preamble, no "I was browsing your excellent resource page and noticed" phrasing, no throat-clearing.
+- Email 2 must not re-pitch the replacement. Just note that the link is still broken (this is checkable and true) and leave the earlier replacement offer standing without repeating it in full.
+- Email 3 must drop the ask entirely. Just leave the information as a courtesy and say a genuine goodbye.
+`
+      : ""
+
   const systemInstructions = `You write a 3-email outreach sequence from one founder to another.
 
 Product: ${product.product_name}
@@ -194,7 +232,7 @@ Website: ${product.website_url}
 
 Page title: ${context.title || "(unknown)"}
 ${situation}
-${resourcePageInstructions}${voiceTone ? `\n<voice_tone>\n${voiceTone}\n</voice_tone>\n` : ""}${offering ? `\n<offering>\n${offering}\n</offering>\n` : ""}${authorBio ? `\n<author_bio>\n${authorBio}\n</author_bio>\n` : ""}
+${resourcePageInstructions}${brokenLinkInstructions}${voiceTone ? `\n<voice_tone>\n${voiceTone}\n</voice_tone>\n` : ""}${offering ? `\n<offering>\n${offering}\n</offering>\n` : ""}${authorBio ? `\n<author_bio>\n${authorBio}\n</author_bio>\n` : ""}
 Generate all 3 emails. Rules that apply to all:
 - Open each email with: ${greeting},
 - Separate each paragraph with a blank line.

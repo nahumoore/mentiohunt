@@ -6,4 +6,5 @@ export const ALL_OPPORTUNITY_TYPES = [
   "unlinked_mention",
   "listicle_roundup",
   "resource_page_inclusion",
+  "broken_link_building",
 ]

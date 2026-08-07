@@ -10,6 +10,7 @@ const TIER_ORDER: ProspectTier[] = [
   "unlinked_mention",
   "listicle_roundup",
   "resource_page_inclusion",
+  "broken_link_building",
   "user_submitted",
 ]
 
@@ -20,6 +21,7 @@ const TIER_RING_COLOR: Record<ProspectTier, string> = {
   unlinked_mention: "var(--color-blaze-orange-2)",
   listicle_roundup: "var(--color-harvest-orange)",
   resource_page_inclusion: "var(--color-deep-saffron)",
+  broken_link_building: "#f43f5e",
   // Outside the ramp on purpose — user-triggered, not a rotation strategy.
   user_submitted: "#0ea5e9",
 }

@@ -1,10 +1,12 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
+import { sendBrokenLinkAlertEmail } from "../helpers/emails/send-broken-link-alert.js"
 import { sendCompetitorBacklinkAlertEmail } from "../helpers/emails/send-competitor-backlink-alert.js"
 import { sendListicleAlertEmail } from "../helpers/emails/send-listicle-alert.js"
 import { sendResourcePageInclusionAlertEmail } from "../helpers/emails/send-resource-page-inclusion-alert.js"
 import { sendUnlinkedMentionAlertEmail } from "../helpers/emails/send-unlinked-mention-alert.js"
 import { createLogger } from "../helpers/logger.js"
+import { discoverBrokenLinkBuilding } from "../methods/prospect-generation-methods/broken-link-building/index.js"
 import { discoverCompetitorBacklinks } from "../methods/prospect-generation-methods/competitor-backlink/index.js"
 import type { FilterSettings } from "../methods/prospect-generation-methods/competitor-backlink/filter-backlinks.js"
 import { discoverListicleRoundups } from "../methods/prospect-generation-methods/listicle-roundup/index.js"
@@ -24,12 +26,14 @@ export type RotationStrategy =
   | "unlinked_mention"
   | "listicle_roundup"
   | "resource_page_inclusion"
+  | "broken_link_building"
 
 const ROTATION_STRATEGIES: RotationStrategy[] = [
   "competitor_backlink",
   "unlinked_mention",
   "listicle_roundup",
   "resource_page_inclusion",
+  "broken_link_building",
 ]
 
 export type DiscoveryProduct = {
@@ -108,6 +112,28 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
       return { prospectsCreated, totalCostUsd }
     },
     sendAlert: sendResourcePageInclusionAlertEmail,
+  },
+  broken_link_building: {
+    isRunnable: async (product) => {
+      if ((product.competitors ?? []).length === 0) return false
+      const { count } = await supabaseAdmin
+        .from("product_pages")
+        .select("id", { count: "exact", head: true })
+        .eq("product_id", product.id)
+        .eq("crawl_status", "crawled")
+        .in("page_type", ["article", "resource", "free_tool"])
+      return (count ?? 0) > 0
+    },
+    discover: (product, filterSettings, emailSettings, onProspectCreated) =>
+      discoverBrokenLinkBuilding(
+        { ...product, competitors: product.competitors ?? [] },
+        filterSettings,
+        emailSettings,
+        {},
+        undefined,
+        onProspectCreated
+      ),
+    sendAlert: sendBrokenLinkAlertEmail,
   },
 }
 

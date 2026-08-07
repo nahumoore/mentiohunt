@@ -1352,6 +1352,7 @@ export type Database = {
         | "listicle_roundup"
         | "resource_page_inclusion"
         | "user_submitted"
+        | "broken_link_building"
       route_log_status: "running" | "success" | "error"
       run_status: "pending" | "running" | "completed" | "failed"
       tracked_link_change_type:
@@ -1544,6 +1545,7 @@ export const Constants = {
         "listicle_roundup",
         "resource_page_inclusion",
         "user_submitted",
+        "broken_link_building",
       ],
       route_log_status: ["running", "success", "error"],
       run_status: ["pending", "running", "completed", "failed"],

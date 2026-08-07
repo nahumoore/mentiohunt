@@ -1,4 +1,4 @@
-import { IconLink, IconLinkPlus, IconListNumbers, IconSwords } from "@tabler/icons-react"
+import { IconLink, IconLinkOff, IconLinkPlus, IconListNumbers, IconSwords } from "@tabler/icons-react"
 import type { Database } from "@workspace/supabase/database-types"
 import type { ElementType } from "react"
 
@@ -7,6 +7,7 @@ export type OpportunityType =
   | "unlinked_mentions"
   | "listicle_roundups"
   | "resource_page_inclusions"
+  | "broken_link_buildings"
 
 export type ProspectTier = Database["public"]["Enums"]["prospect_tier"]
 
@@ -15,6 +16,7 @@ export const DEFAULT_PROSPECT_TIERS = [
   "unlinked_mention",
   "listicle_roundup",
   "resource_page_inclusion",
+  "broken_link_building",
 ] satisfies ProspectTier[]
 
 export interface TypeConfig {
@@ -53,6 +55,13 @@ export const TYPE_CONFIG: Record<OpportunityType, TypeConfig> = {
     icon: IconLink,
     color: "text-emerald-600 bg-emerald-500/10",
   },
+  broken_link_buildings: {
+    label: "Broken Link Building",
+    description:
+      "Pages that link to a dead URL in your competitors' backlink profiles, where one of your own pages is a credible replacement.",
+    icon: IconLinkOff,
+    color: "text-rose-600 bg-rose-500/10",
+  },
 }
 
 export const OPPORTUNITY_TYPE_TO_PROSPECT_TIER = {
@@ -60,6 +69,7 @@ export const OPPORTUNITY_TYPE_TO_PROSPECT_TIER = {
   unlinked_mentions: "unlinked_mention",
   listicle_roundups: "listicle_roundup",
   resource_page_inclusions: "resource_page_inclusion",
+  broken_link_buildings: "broken_link_building",
 } satisfies Record<OpportunityType, ProspectTier>
 
 export const PROSPECT_TIER_CONFIG: Record<ProspectTier, TypeConfig> = {
@@ -86,6 +96,12 @@ export const PROSPECT_TIER_CONFIG: Record<ProspectTier, TypeConfig> = {
     label: "Resource page inclusion",
     description:
       "A curated resource page where one of your existing pages would be a useful addition.",
+  },
+  broken_link_building: {
+    ...TYPE_CONFIG.broken_link_buildings,
+    label: "Broken link building",
+    description:
+      "A page that links to a dead URL, with one of your own pages as a credible replacement.",
   },
   // Deliberately NOT added to TYPE_CONFIG/DEFAULT_PROSPECT_TIERS above — this
   // tier is user-triggered only (submit-url-dialog.tsx), never a discovery

@@ -138,6 +138,10 @@ async function scoreBatch(
 
       const parsed = parseLlmJson<{ results: { id: string; score: number; reason: string; topCompetitor: string }[] }>(text)
 
+      if (!Array.isArray(parsed?.results)) {
+        throw new Error(`unexpected response shape: ${Object.keys(parsed ?? {}).join(",")}`)
+      }
+
       const scoreById = new Map(parsed.results.map((r) => [r.id, r]))
 
       const scored: ScoredListicle[] = items

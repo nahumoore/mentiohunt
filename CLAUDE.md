@@ -9,6 +9,7 @@ Mentiohunt automates backlink prospecting and outreach for founder-led B2B SaaS 
 ## Rules
 
 - When making changes, always explain system behavior instead of code changes, like if the user doesn't had coding knowledge.
+- Don't use `claude-in-chrome` without user permission.
 
 ## Current Repo Shape
 

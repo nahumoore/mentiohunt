@@ -67,6 +67,18 @@ type ProspectRow = Pick<Tables<"backlink_prospects">, "id" | "contact_email" | "
 
 type MatchedSequence = SequenceRow & { prospect: ProspectRow }
 
+// Unifies the two ways an inbound reply resolves to a prospect: via a
+// pool-inbox `prospect_sequences` row (sequenceId set), or via thread
+// continuity on a founder's personal mailbox after handoff, where the prior
+// outbound leg lives in `prospect_messages` with no sequence at all.
+type MatchContext = {
+  prospectId: string
+  sequenceId: string | null
+  emailAccountId: string
+  prospect: ProspectRow
+  step: number | null
+}
+
 type ParsedInbound = {
   parsed: ParsedMail
   headers: HeaderMap
@@ -290,8 +302,44 @@ async function loadRecentSentSequences(accountId: string): Promise<MatchedSequen
   })
 }
 
+async function loadProspectRow(prospectId: string): Promise<ProspectRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from("backlink_prospects")
+    .select("id, contact_email, contact_name, domain, product_id, status")
+    .eq("id", prospectId)
+    .maybeSingle()
+
+  if (error || !data) return null
+  return data
+}
+
+// A founder's reply from their own connected mailbox (routes/prospect-reply.ts)
+// is recorded in `prospect_messages` with no `prospect_sequences` row at all —
+// there is no sequence once the thread hands off to a personal mailbox. The
+// prospect's next reply still carries correct In-Reply-To/References headers
+// pointing at that message, so it can be matched directly against the prior
+// outbound leg in `prospect_messages` instead of requiring a sequence.
+async function loadRecentDirectOutbound(accountId: string): Promise<{ prospect_id: string; message_id: string | null }[]> {
+  const { data, error } = await supabaseAdmin
+    .from("prospect_messages")
+    .select("prospect_id, message_id")
+    .eq("email_account_id", accountId)
+    .eq("direction", "outbound")
+    .not("message_id", "is", null)
+    .gte("received_at", daysAgo(RECENT_SEQUENCE_DAYS))
+    .order("received_at", { ascending: false })
+    .limit(RECENT_SEQUENCE_LIMIT)
+
+  if (error) {
+    log.warn("failed to load recent direct outbound messages", { accountId, error: error.message })
+    return []
+  }
+  return data ?? []
+}
+
 type MatchResult =
   | { status: "matched"; sequence: MatchedSequence }
+  | { status: "matched_direct"; prospect: ProspectRow }
   | { status: "unmatched_candidate"; candidate: MatchedSequence; reason: string }
   | { status: "unmatched_threaded"; reason: string }
   | { status: "no_signal" }
@@ -321,6 +369,16 @@ async function matchInbound(accountId: string, inbound: ParsedInbound): Promise<
       return sentMessageId ? messageIds.has(sentMessageId) : false
     })
     if (headerMatch) return { status: "matched", sequence: headerMatch }
+
+    const directOutbound = await loadRecentDirectOutbound(accountId)
+    const directMatch = directOutbound.find((message) => {
+      const sentMessageId = normalizeMessageId(message.message_id)
+      return sentMessageId ? messageIds.has(sentMessageId) : false
+    })
+    if (directMatch) {
+      const prospect = await loadProspectRow(directMatch.prospect_id)
+      if (prospect) return { status: "matched_direct", prospect }
+    }
   }
 
   const fromEmail = normalizeEmail(inbound.fromEmail)
@@ -419,21 +477,21 @@ async function parseInbound(source: Buffer, uid: number, uidValidity: number | n
 
 async function storeMessage({
   inbound,
-  match,
+  context,
   classification,
   confidence,
   reason,
 }: {
   inbound: ParsedInbound
-  match: MatchedSequence
+  context: MatchContext
   classification: InboundClassification
   confidence: number
   reason: string
 }): Promise<boolean> {
   const { error } = await supabaseAdmin.from("prospect_messages").insert({
-    prospect_id: match.prospect_id,
-    sequence_id: match.id,
-    email_account_id: match.email_account_id,
+    prospect_id: context.prospectId,
+    sequence_id: context.sequenceId,
+    email_account_id: context.emailAccountId,
     direction: "inbound",
     classification,
     classification_confidence: confidence,
@@ -451,13 +509,13 @@ async function storeMessage({
     html_body: inbound.htmlBody,
     received_at: inbound.receivedAt,
     headers: toJson(inbound.headers),
-    metadata: toJson({ step: match.step }),
+    metadata: toJson({ step: context.step }),
   })
 
   if (!error) return true
   if (error.code === "23505") return false
 
-  log.warn("failed to store prospect message", { sequenceId: match.id, prospectId: match.prospect_id, error: error.message })
+  log.warn("failed to store prospect message", { sequenceId: context.sequenceId, prospectId: context.prospectId, error: error.message })
   return false
 }
 
@@ -497,15 +555,15 @@ async function recordUnmatchedInbound(
   })
 }
 
-async function notifyUserOfReply(match: MatchedSequence, contactName: string | null): Promise<void> {
+async function notifyUserOfReply(prospect: ProspectRow, contactName: string | null): Promise<void> {
   const { data: product, error: productError } = await supabaseAdmin
     .from("products")
     .select("user_id, product_name")
-    .eq("id", match.prospect.product_id)
+    .eq("id", prospect.product_id)
     .maybeSingle()
 
   if (productError || !product) {
-    log.warn("failed to load product for reply alert", { sequenceId: match.id, error: productError?.message })
+    log.warn("failed to load product for reply alert", { prospectId: prospect.id, error: productError?.message })
     return
   }
 
@@ -516,7 +574,7 @@ async function notifyUserOfReply(match: MatchedSequence, contactName: string | n
     .maybeSingle()
 
   if (profileError || !profile?.email) {
-    log.warn("no profile email, skipping reply alert", { sequenceId: match.id, userId: product.user_id, error: profileError?.message })
+    log.warn("no profile email, skipping reply alert", { prospectId: prospect.id, userId: product.user_id, error: profileError?.message })
     return
   }
 
@@ -525,37 +583,42 @@ async function notifyUserOfReply(match: MatchedSequence, contactName: string | n
     userId: product.user_id,
     userName: profile.name,
     productName: product.product_name,
-    domain: match.prospect.domain,
+    domain: prospect.domain,
     contactName,
   })
 }
 
-async function applyClassification(match: MatchedSequence, inbound: ParsedInbound, classification: InboundClassification, reason: string): Promise<void> {
+async function applyClassification(context: MatchContext, inbound: ParsedInbound, classification: InboundClassification, reason: string): Promise<void> {
   const metadata = { classificationReason: reason, inboundMessageId: inbound.messageId, imapUid: inbound.uid }
 
   // Runs before the branches below so the reply alert email carries the name
   // the person just told us, instead of "Unknown contact".
   const contactName = CONTACT_ENRICHABLE_CLASSIFICATIONS.has(classification)
     ? ((await enrichContactFromReply({
-        prospectId: match.prospect_id,
-        sequenceId: match.id,
-        emailAccountId: match.email_account_id,
+        prospectId: context.prospectId,
+        sequenceId: context.sequenceId,
+        emailAccountId: context.emailAccountId,
         fromName: inbound.fromName,
         fromEmail: inbound.fromEmail,
-      })) ?? match.prospect.contact_name)
-    : match.prospect.contact_name
+      })) ?? context.prospect.contact_name)
+    : context.prospect.contact_name
 
   if (classification === "bounce") {
-    await supabaseAdmin
-      .from("prospect_sequences")
-      .update({ status: "bounced", bounced_at: new Date().toISOString(), bounce_reason: reason })
-      .eq("id", match.id)
+    // No prospect_sequences row to mark bounced once the thread has moved to
+    // a founder's personal mailbox (context.sequenceId is null) — suppression
+    // below still applies regardless.
+    if (context.sequenceId) {
+      await supabaseAdmin
+        .from("prospect_sequences")
+        .update({ status: "bounced", bounced_at: new Date().toISOString(), bounce_reason: reason })
+        .eq("id", context.sequenceId)
+    }
 
     await stopProspectSequence({
-      prospectId: match.prospect_id,
-      sequenceId: match.id,
-      emailAccountId: match.email_account_id,
-      recipientEmail: match.prospect.contact_email,
+      prospectId: context.prospectId,
+      sequenceId: context.sequenceId,
+      emailAccountId: context.emailAccountId,
+      recipientEmail: context.prospect.contact_email,
       reason: "bounce",
       eventType: "bounce_detected",
       prospectStatus: "bounced",
@@ -567,25 +630,25 @@ async function applyClassification(match: MatchedSequence, inbound: ParsedInboun
 
   if (classification === "human_reply") {
     await stopProspectSequence({
-      prospectId: match.prospect_id,
-      sequenceId: match.id,
-      emailAccountId: match.email_account_id,
-      recipientEmail: match.prospect.contact_email,
+      prospectId: context.prospectId,
+      sequenceId: context.sequenceId,
+      emailAccountId: context.emailAccountId,
+      recipientEmail: context.prospect.contact_email,
       reason: "reply",
       eventType: "reply_detected",
       prospectStatus: "negotiating",
       metadata,
     })
-    await notifyUserOfReply(match, contactName)
+    await notifyUserOfReply(context.prospect, contactName)
     return
   }
 
   if (classification === "unsubscribe") {
     await stopProspectSequence({
-      prospectId: match.prospect_id,
-      sequenceId: match.id,
-      emailAccountId: match.email_account_id,
-      recipientEmail: match.prospect.contact_email,
+      prospectId: context.prospectId,
+      sequenceId: context.sequenceId,
+      emailAccountId: context.emailAccountId,
+      recipientEmail: context.prospect.contact_email,
       reason: "unsubscribe",
       eventType: "unsubscribe_detected",
       suppress: true,
@@ -596,10 +659,10 @@ async function applyClassification(match: MatchedSequence, inbound: ParsedInboun
 
   if (classification === "negative_reply") {
     await stopProspectSequence({
-      prospectId: match.prospect_id,
-      sequenceId: match.id,
-      emailAccountId: match.email_account_id,
-      recipientEmail: match.prospect.contact_email,
+      prospectId: context.prospectId,
+      sequenceId: context.sequenceId,
+      emailAccountId: context.emailAccountId,
+      recipientEmail: context.prospect.contact_email,
       reason: "stop_request",
       eventType: "negative_reply_detected",
       metadata,
@@ -609,10 +672,10 @@ async function applyClassification(match: MatchedSequence, inbound: ParsedInboun
 
   if (classification === "wrong_person") {
     await stopProspectSequence({
-      prospectId: match.prospect_id,
-      sequenceId: match.id,
-      emailAccountId: match.email_account_id,
-      recipientEmail: match.prospect.contact_email,
+      prospectId: context.prospectId,
+      sequenceId: context.sequenceId,
+      emailAccountId: context.emailAccountId,
+      recipientEmail: context.prospect.contact_email,
       reason: "wrong_person",
       eventType: "wrong_person_detected",
       metadata,
@@ -621,16 +684,16 @@ async function applyClassification(match: MatchedSequence, inbound: ParsedInboun
   }
 
   await recordEvent({
-    prospectId: match.prospect_id,
-    sequenceId: match.id,
-    emailAccountId: match.email_account_id,
+    prospectId: context.prospectId,
+    sequenceId: context.sequenceId,
+    emailAccountId: context.emailAccountId,
     eventType:
       classification === "auto_reply"
         ? "auto_reply_detected"
         : classification === "challenge"
           ? "challenge_detected"
           : "inbound_needs_review",
-    recipientEmail: match.prospect.contact_email,
+    recipientEmail: context.prospect.contact_email,
     metadata,
   })
 }
@@ -646,7 +709,22 @@ async function processMessage(accountId: string, source: Buffer, uid: number, ui
     return false
   }
 
-  const match = matchResult.sequence
+  const context: MatchContext =
+    matchResult.status === "matched"
+      ? {
+          prospectId: matchResult.sequence.prospect_id,
+          sequenceId: matchResult.sequence.id,
+          emailAccountId: accountId,
+          prospect: matchResult.sequence.prospect,
+          step: matchResult.sequence.step,
+        }
+      : {
+          prospectId: matchResult.prospect.id,
+          sequenceId: null,
+          emailAccountId: accountId,
+          prospect: matchResult.prospect,
+          step: null,
+        }
 
   const result = await classifyInboundEmail({
     headers: inbound.headers,
@@ -657,7 +735,7 @@ async function processMessage(accountId: string, source: Buffer, uid: number, ui
 
   const inserted = await storeMessage({
     inbound,
-    match,
+    context,
     classification: result.classification,
     confidence: result.confidence,
     reason: result.reason,
@@ -665,11 +743,11 @@ async function processMessage(accountId: string, source: Buffer, uid: number, ui
 
   if (!inserted) return true
 
-  await applyClassification(match, inbound, result.classification, result.reason)
+  await applyClassification(context, inbound, result.classification, result.reason)
   log.info("processed matched inbound outreach email", {
     accountId,
-    sequenceId: match.id,
-    prospectId: match.prospect_id,
+    sequenceId: context.sequenceId,
+    prospectId: context.prospectId,
     classification: result.classification,
   })
   return true

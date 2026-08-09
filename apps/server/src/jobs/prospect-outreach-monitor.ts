@@ -555,7 +555,9 @@ async function recordUnmatchedInbound(
   })
 }
 
-async function notifyUserOfReply(prospect: ProspectRow, contactName: string | null): Promise<void> {
+async function loadFounderContact(
+  prospect: ProspectRow
+): Promise<{ userId: string; email: string; name: string | null; productName: string } | null> {
   const { data: product, error: productError } = await supabaseAdmin
     .from("products")
     .select("user_id, product_name")
@@ -564,7 +566,7 @@ async function notifyUserOfReply(prospect: ProspectRow, contactName: string | nu
 
   if (productError || !product) {
     log.warn("failed to load product for reply alert", { prospectId: prospect.id, error: productError?.message })
-    return
+    return null
   }
 
   const { data: profile, error: profileError } = await supabaseAdmin
@@ -575,14 +577,21 @@ async function notifyUserOfReply(prospect: ProspectRow, contactName: string | nu
 
   if (profileError || !profile?.email) {
     log.warn("no profile email, skipping reply alert", { prospectId: prospect.id, userId: product.user_id, error: profileError?.message })
-    return
+    return null
   }
 
+  return { userId: product.user_id, email: profile.email, name: profile.name, productName: product.product_name }
+}
+
+async function notifyUserOfReply(prospect: ProspectRow, contactName: string | null): Promise<void> {
+  const founder = await loadFounderContact(prospect)
+  if (!founder) return
+
   await sendReplyAlertEmail({
-    to: profile.email,
-    userId: product.user_id,
-    userName: profile.name,
-    productName: product.product_name,
+    to: founder.email,
+    userId: founder.userId,
+    userName: founder.name,
+    productName: founder.productName,
     domain: prospect.domain,
     contactName,
   })
@@ -628,7 +637,11 @@ async function applyClassification(context: MatchContext, inbound: ParsedInbound
     return
   }
 
-  if (classification === "human_reply") {
+  if (classification === "human_reply" || classification === "needs_review") {
+    // Low-confidence replies still came from the prospect writing back — treat
+    // them the same as a confident human_reply rather than doing nothing.
+    // Auto-sending a follow-up over an unread reply is worse than occasionally
+    // pausing on something that turns out to be noise.
     await stopProspectSequence({
       prospectId: context.prospectId,
       sequenceId: context.sequenceId,
@@ -687,12 +700,7 @@ async function applyClassification(context: MatchContext, inbound: ParsedInbound
     prospectId: context.prospectId,
     sequenceId: context.sequenceId,
     emailAccountId: context.emailAccountId,
-    eventType:
-      classification === "auto_reply"
-        ? "auto_reply_detected"
-        : classification === "challenge"
-          ? "challenge_detected"
-          : "inbound_needs_review",
+    eventType: classification === "auto_reply" ? "auto_reply_detected" : "challenge_detected",
     recipientEmail: context.prospect.contact_email,
     metadata,
   })

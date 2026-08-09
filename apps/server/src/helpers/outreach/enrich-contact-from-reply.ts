@@ -24,12 +24,14 @@ const log = createLogger("enrich-contact-from-reply")
  * "not the right decision-maker" is carried by the prospect's status and
  * stop-reason, not by the contact name. `unsubscribe` is excluded — that
  * address is suppressed permanently, so enriching it buys nothing. Bounces,
- * auto-replies, and challenges aren't people at all.
+ * auto-replies, and challenges aren't people at all. `needs_review` is
+ * included because the monitor now treats it the same as `human_reply`.
  */
 export const CONTACT_ENRICHABLE_CLASSIFICATIONS = new Set<InboundClassification>([
   "human_reply",
   "negative_reply",
   "wrong_person",
+  "needs_review",
 ])
 
 /**

@@ -256,12 +256,13 @@ export const features: FeaturePage[] = [
   },
   {
     slug: "link-building-software",
-    eyebrow: "Link building software",
-    title: "Link building software built for founders, not agencies",
-    shortTitle: "Link building software",
+    eyebrow: "Automated link building tool",
+    title:
+      "The automated link building tool built for founders, not agencies",
+    shortTitle: "Automated Link Building Tool for Founders",
     description:
-      "Mentiohunt is link building software that does the prospecting, scoring, and outreach prep — so founders can run a real backlink program without an agency or a full-time SEO team.",
-    keyword: "link building software",
+      "Mentiohunt is an automated link building tool that finds prospects, scores fit, and drafts outreach — daily, without an agency or a full-time SEO team.",
+    keyword: "automated link building tool",
     h2: "Stop paying for tools your team won't run.",
     category: "Backlink building",
     metric: "100+",
@@ -311,6 +312,11 @@ export const features: FeaturePage[] = [
     ],
     faq: [
       {
+        question: "What is an automated link building tool?",
+        answer:
+          "An automated link building tool finds websites relevant to your content, scores how well your article fits each one, and prepares outreach on your behalf — replacing the manual research and cold-pitch writing a founder or SEO would otherwise do by hand. Mentiohunt automates discovery and outreach prep specifically; you still review and own every relationship once a prospect replies.",
+      },
+      {
         question: "Is Mentiohunt a replacement for Ahrefs or Semrush?",
         answer:
           "No. Mentiohunt is not a full-spectrum SEO suite. It focuses on one workflow: turning your content into a daily queue of backlink prospects with outreach prep included. If you already use a keyword tool or rank tracker, Mentiohunt complements it.",
@@ -336,9 +342,13 @@ export const features: FeaturePage[] = [
           "Yes. Mentiohunt is designed for early-stage B2B SaaS teams that publish some content but don't have the volume or authority to run manual outreach at scale. A small, focused content set often surfaces cleaner prospects than a large unfocused one.",
       },
     ],
-    updatedAt: "2026-06-22",
-    heroBadge: "Link building software — for founders",
-    titleHighlight: "built for founders",
+    updatedAt: "2026-08-08",
+    relatedArticle: {
+      title: "Best Automated Link Building Tools for Founders in 2026",
+      href: "/blog/best-automated-link-building-tools-for-founders",
+    },
+    heroBadge: "Automated link building tool",
+    titleHighlight: "automated link building tool",
     heroStats: [
       {
         value: 100,

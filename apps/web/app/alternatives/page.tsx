@@ -8,6 +8,7 @@ import {
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
+import Script from "next/script"
 
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
@@ -63,8 +64,27 @@ function formatDate(date: string): string {
 export default function AlternativesPage() {
   const alternatives = getAllResources("alternatives")
 
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Link Building Tool Alternatives",
+    url: "https://mentiohunt.com/alternatives",
+    itemListElement: alternatives.map((alternative, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: alternative.title,
+      url: `https://mentiohunt.com/alternatives/${alternative.slug}`,
+      description: getSummary(alternative),
+    })),
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <Script
+        id="item-list-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+      />
       <Navbar />
 
       <main className="flex-1">

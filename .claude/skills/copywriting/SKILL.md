@@ -42,6 +42,12 @@ Gather this context (ask if not provided):
 
 ---
 
+## Core Mindset
+
+**Sell Results, Not Software:** Vibe coding and AI flood market with tools. Positioning by basic feature set ("a social media scheduler") no convert anymore. Frame product around tangible business results — money, views, customer growth — not feature list.
+
+---
+
 ## Copywriting Principles
 
 ### Clarity Over Cleverness

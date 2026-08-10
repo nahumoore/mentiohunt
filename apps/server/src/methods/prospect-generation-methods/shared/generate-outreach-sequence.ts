@@ -240,7 +240,7 @@ Generate all 3 emails. Rules that apply to all:
 - No em-dashes, no bullet points, no corporate language
 - No "SEO", "backlink", "domain authority", "complement", "leverage", "synergy", "workflow"
 - Sign off each email with "Best,\\n${senderFirstName}"
-- Do not invent offers, benefits, or claims not stated in the offering field above.${voiceTone ? "\n- Follow the tone described in <voice_tone>." : ""}${sender.isPublicAccount ? "" : "\n- This is sent from the founder's own inbox, so it's fine to say you read replies personally."}
+- Do not invent offers, benefits, or claims not stated in the offering field above.${offering ? "\n- Only use an item from <offering> if it genuinely applies to this specific prospect and situation described above (for example, don't offer a review of \"their product\" if this prospect has no product of their own, like a blogger or journalist, don't offer a guest post swap if nothing suggests they publish guest content). Never bend or reinterpret an offering item to force a fit. If nothing in <offering> genuinely applies, skip the offering sentence entirely in that email." : ""}${voiceTone ? "\n- Follow the tone described in <voice_tone>." : ""}${sender.isPublicAccount ? "" : "\n- This is sent from the founder's own inbox, so it's fine to say you read replies personally."}
 
 Email 1, first contact. Tone: casual, direct, like tapping a fellow builder on the shoulder.
 - ${opening}${offering ? "\n- One sentence naturally offering something from <offering> to make it worth their time, picking the most fitting option, not listing all of them." : ""}
@@ -250,7 +250,7 @@ Email 1, first contact. Tone: casual, direct, like tapping a fellow builder on t
 Email 2, follow-up:
 - Do not reference when email 1 was sent (no "last week", "a few days ago", "recently", or any time reference).
 - Do not open with "just following up" or any variant.
-- Do not just restate email 1's ask in different words, bring something new: a different outcome, use case, or social proof, and${offering ? " a different item from <offering> than email 1 used, if <offering> lists more than one" : " a fresh concrete reason this is worth a reply"}.
+- Do not just restate email 1's ask in different words, bring something new: a different outcome, use case, or social proof, and${offering ? " a different item from <offering> than email 1 used, if one genuinely applies to this prospect and <offering> lists more than one; otherwise lean fully on the fresh outcome, use case, or social proof instead" : " a fresh concrete reason this is worth a reply"}.
 - 3 to 4 sentences total.
 
 Email 3, final outreach:

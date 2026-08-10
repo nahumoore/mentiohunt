@@ -17,6 +17,15 @@
       "env": {
         "BING_WEBMASTER_API_KEY": "663f968970e942f79910eb268ba3e419"
       }
+    },
+    "plausible": {
+      "command": "node",
+      "args": ["../plausible-mcp/dist/index.js"],
+      "env": {
+        "PLAUSIBLE_API_KEY": "oY4shTg25RL2asnrCDk5n_Vy0-0V71QZYeBBdVZaSzTCkKAja6deti7Qc1Z2Mfrg",
+        "PLAUSIBLE_BASE_URL": "https://analytics.karmicup.com",
+        "PLAUSIBLE_DEFAULT_SITE_ID": "mentiohunt.com"
+      }
     }
   }
 }

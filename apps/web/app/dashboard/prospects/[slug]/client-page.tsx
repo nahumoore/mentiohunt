@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 import {
+  IconArrowRight,
   IconBrandFacebook,
   IconBrandInstagram,
   IconBrandLinkedin,
@@ -15,6 +17,7 @@ import {
   IconCircleCheck,
   IconCircleX,
   IconClockPause,
+  IconConfetti,
   IconExternalLink,
   IconFileText,
   IconLoader2,
@@ -25,7 +28,9 @@ import {
   IconMessage2,
   IconPlayerPause,
   IconQuestionMark,
+  IconRadar2,
   IconSparkles,
+  IconTrophy,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Json } from "@workspace/supabase/database-types"
@@ -122,6 +127,40 @@ function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
           </div>
         )
       })}
+    </div>
+  )
+}
+
+function WonBadge({ domain, domainRating }: { domain: string | null; domainRating: number | null }) {
+  return (
+    <div className="flex flex-col items-center py-14">
+      <div className="relative flex w-full max-w-lg flex-col items-center overflow-hidden rounded-3xl border border-green-500/20 bg-gradient-to-b from-green-500/10 via-background to-background px-12 py-16 text-center shadow-sm">
+        <IconConfetti className="absolute -top-4 -left-4 size-20 rotate-[-12deg] text-green-500/20" />
+        <IconConfetti className="absolute -right-4 -bottom-4 size-20 rotate-[15deg] text-green-500/20" />
+
+        <span className="inline-flex items-center justify-center rounded-full bg-green-500/15 p-5">
+          <IconTrophy className="size-11 text-green-600" />
+        </span>
+
+        <p className="mt-6 text-xs font-semibold tracking-wider text-green-600 uppercase">
+          Backlink won
+        </p>
+        <p className="mt-2 text-2xl font-semibold text-foreground">
+          {domain ?? "This prospect"} said yes
+        </p>
+        {domainRating !== null && (
+          <p className="mt-1.5 text-sm text-muted-foreground">DR {domainRating} backlink earned</p>
+        )}
+      </div>
+
+      <Link
+        href="/dashboard/link-tracker"
+        className="mt-6 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+      >
+        <IconRadar2 className="size-3.5" />
+        Track this backlink so you know if it ever goes down
+        <IconArrowRight className="size-3.5" />
+      </Link>
     </div>
   )
 }
@@ -909,6 +948,9 @@ export function ProspectClientPage({
               onMarkWon={() => handleStatusUpdate("won")}
               onDismiss={() => handleStatusUpdate("dismissed")}
             />
+          ) : displayStatus === "won" ? (
+            /* ── Won badge ── */
+            <WonBadge domain={current.domain} domainRating={dr} />
           ) : current.status === "email_not_found" && emailSequence.length === 0 ? (
             /* ── Manual completion form ── */
             <ManualCompletionForm
@@ -1096,7 +1138,7 @@ export function ProspectClientPage({
               )}
 
               {/* Status actions */}
-              {displayStatus !== "dismissed" && displayStatus !== "won" && (
+              {displayStatus !== "dismissed" && (
                 <button
                   type="button"
                   disabled={statusLoading !== null}

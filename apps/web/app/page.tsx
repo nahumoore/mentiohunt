@@ -69,9 +69,9 @@ export default function Page() {
       <main className="min-h-screen bg-background text-foreground">
         <Navbar />
         <Hero />
-        <BigTestimonial />
         <BrandMentionSources />
         <AIMentionsOpportunities />
+        <BigTestimonial />
         <WhyMentiohunt />
         <HowItWorks />
         <Comparisons />

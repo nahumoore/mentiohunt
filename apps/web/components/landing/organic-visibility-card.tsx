@@ -1,6 +1,6 @@
 "use client"
 
-/** Static illustration for the hero right column — organic visibility growth chart. */
+/** Illustration for the hero right column — organic visibility growth chart, animated once on load. */
 
 import {
   IconArrowUpRight,
@@ -8,8 +8,38 @@ import {
   IconTrendingUp,
 } from "@tabler/icons-react"
 import { motion, useReducedMotion } from "framer-motion"
+import { useEffect, useState } from "react"
 
 const ease = [0.21, 0.47, 0.32, 0.98] as const
+
+// Line-draw + count-up timing — kept in sync so the % and markers land as the line passes them.
+const DRAW_DELAY = 0.5
+const DRAW_DURATION = 1.8
+
+function useCountUp(target: number, duration: number, delay: number, skip: boolean) {
+  const [value, setValue] = useState(skip ? target : 0)
+
+  useEffect(() => {
+    if (skip) return
+    let raf: number
+    let start: number | null = null
+    const timeout = setTimeout(() => {
+      const step = (ts: number) => {
+        if (start === null) start = ts
+        const progress = Math.min((ts - start) / (duration * 1000), 1)
+        setValue(Math.round(progress * target))
+        if (progress < 1) raf = requestAnimationFrame(step)
+      }
+      raf = requestAnimationFrame(step)
+    }, delay * 1000)
+    return () => {
+      clearTimeout(timeout)
+      cancelAnimationFrame(raf)
+    }
+  }, [target, duration, delay, skip])
+
+  return value
+}
 
 // Chart geometry — hand-authored points across a 640x220 viewBox.
 const points: [number, number][] = [
@@ -34,6 +64,7 @@ const markers = [
 
 export function OrganicVisibilityCard() {
   const reduceMotion = useReducedMotion()
+  const percent = useCountUp(147, DRAW_DURATION, DRAW_DELAY, !!reduceMotion)
 
   return (
     <motion.div
@@ -53,7 +84,7 @@ export function OrganicVisibilityCard() {
               Organic visibility
             </p>
             <p className="mt-0.5 flex items-center gap-1 font-heading text-3xl font-bold text-(--color-blaze-orange)">
-              +147%
+              +{percent}%
               <IconArrowUpRight size={18} />
             </p>
           </div>
@@ -85,14 +116,23 @@ export function OrganicVisibilityCard() {
               />
             </linearGradient>
           </defs>
-          <path d={areaPath} fill="url(#ovc-area)" />
-          <path
+          <motion.path
+            d={areaPath}
+            fill="url(#ovc-area)"
+            initial={reduceMotion ? undefined : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: DRAW_DURATION, delay: DRAW_DELAY, ease: "linear" }}
+          />
+          <motion.path
             d={linePath}
             fill="none"
             stroke="var(--color-blaze-orange)"
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
+            initial={reduceMotion ? undefined : { pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: DRAW_DURATION, delay: DRAW_DELAY, ease: "linear" }}
           />
           <motion.circle
             cx="640"
@@ -101,14 +141,29 @@ export function OrganicVisibilityCard() {
             fill="none"
             stroke="var(--color-blaze-orange)"
             strokeWidth="2"
+            initial={reduceMotion ? undefined : { opacity: 0 }}
             animate={
               reduceMotion
                 ? undefined
-                : { r: [7, 16, 7], opacity: [0.6, 0, 0.6] }
+                : { opacity: [0, 0.6, 0, 0.6], r: [7, 7, 16, 7] }
             }
-            transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
+            transition={{
+              duration: 2.2,
+              delay: DRAW_DELAY + DRAW_DURATION,
+              repeat: Infinity,
+              ease: "easeOut",
+            }}
           />
-          <circle cx="640" cy="40" r="6" fill="var(--color-blaze-orange)" />
+          <motion.circle
+            cx="640"
+            cy="40"
+            r="6"
+            fill="var(--color-blaze-orange)"
+            initial={reduceMotion ? undefined : { opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: DRAW_DELAY + DRAW_DURATION }}
+            style={{ transformOrigin: "640px 40px" }}
+          />
         </svg>
 
         {/* Grid lines — top-0/bottom-0 pins them to the svg's own box, not the section below.
@@ -128,13 +183,20 @@ export function OrganicVisibilityCard() {
         ))}
       </div>
 
-      {/* Backlink markers */}
+      {/* Backlink markers — each pops in the moment the line passes its x position */}
       <div className="relative mt-4 h-16">
         {markers.map((m) => (
-          <div
+          <motion.div
             key={m.left}
             className="absolute flex -translate-x-1/2 flex-col items-center gap-1.5"
             style={{ left: `${m.left}%` }}
+            initial={reduceMotion ? undefined : { opacity: 0, scale: 0.4, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{
+              duration: 0.4,
+              delay: DRAW_DELAY + DRAW_DURATION * (m.left / 100),
+              ease: "backOut",
+            }}
           >
             <span className="flex h-7 w-7 items-center justify-center rounded-full border border-(--color-blaze-orange)/25 bg-(--color-blaze-orange)/8 text-(--color-blaze-orange)">
               <IconLink size={13} />
@@ -142,7 +204,7 @@ export function OrganicVisibilityCard() {
             <span className="whitespace-nowrap rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
               +1 backlink
             </span>
-          </div>
+          </motion.div>
         ))}
       </div>
     </motion.div>

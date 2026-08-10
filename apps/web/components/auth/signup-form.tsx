@@ -12,7 +12,7 @@ import { Input } from "@workspace/ui/components/input";
 import { captureEvent, identifyAnalyticsUser } from "@/lib/analytics";
 import { supabaseClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { IconLoader2, IconMailCheck } from "@tabler/icons-react";
+import { IconLoader2, IconMailCheck, IconStarFilled } from "@tabler/icons-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -203,7 +203,7 @@ export function SignupForm({
 
       <div className="flex flex-col items-center gap-1.5 text-center">
         <h1 className="text-3xl font-bold tracking-tight">
-          Find backlinks daily.
+          Find your first backlink.
         </h1>
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
@@ -214,6 +214,17 @@ export function SignupForm({
             Sign in
           </Link>
         </p>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 lg:hidden">
+        <div className="flex items-center gap-1">
+          {[...Array(5)].map((_, i) => (
+            <IconStarFilled key={i} className="size-3.5 text-amber-400" />
+          ))}
+        </div>
+        <span className="text-xs font-medium text-muted-foreground">
+          4.9/5 · Trusted by 100+ founders
+        </span>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -254,9 +265,12 @@ export function SignupForm({
                   Creating account&hellip;
                 </>
               ) : (
-                "Create Account"
+                "Find my first backlink"
               )}
             </Button>
+            <p className="mt-2 text-center text-xs text-muted-foreground/70">
+              No credit card required · Cancel anytime
+            </p>
           </Field>
           <FieldSeparator>Or</FieldSeparator>
           <Field className="flex gap-4">

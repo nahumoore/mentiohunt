@@ -7,7 +7,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { BacklinkTypesSection } from "@/components/link-building/sources/backlink-types-section"
 import { CompetitorsSection } from "@/components/link-building/sources/competitors-section"
@@ -73,6 +73,28 @@ export default function DiscoverySetupPage() {
   const [lastSaved, setLastSaved] = useState<DiscoverySettings | null>(settings)
   const [lastSavedOutreach, setLastSavedOutreach] =
     useState<OutreachSettings | null>(outreachSettings)
+
+  // The zustand store hydrates from server props one tick after mount, so
+  // `settings`/`outreachSettings` are still null when the useState above
+  // captures them. Sync the baseline once the real values land, otherwise
+  // it stays stuck on the initial null and every load looks "unsaved."
+  const hasHydratedDiscovery = useRef(false)
+  const hasHydratedOutreach = useRef(false)
+
+  useEffect(() => {
+    if (!hasHydratedDiscovery.current && settings) {
+      setLastSaved(settings)
+      hasHydratedDiscovery.current = true
+    }
+  }, [settings])
+
+  useEffect(() => {
+    if (!hasHydratedOutreach.current && outreachSettings) {
+      setLastSavedOutreach(outreachSettings)
+      hasHydratedOutreach.current = true
+    }
+  }, [outreachSettings])
+
   const [pendingNavFn, setPendingNavFn] = useState<(() => void) | null>(null)
   const [pendingDrMax, setPendingDrMax] = useState<number | null | undefined>(
     undefined

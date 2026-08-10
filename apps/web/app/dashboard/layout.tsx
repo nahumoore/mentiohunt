@@ -57,6 +57,7 @@ const TIER_TO_OPPORTUNITY_TYPE: Partial<
   unlinked_mention: "unlinked_mentions",
   listicle_roundup: "listicle_roundups",
   resource_page_inclusion: "resource_page_inclusions",
+  broken_link_building: "broken_link_buildings",
 }
 
 function mapDiscoverySettings(

@@ -57,7 +57,7 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
               size="lg"
               className="rounded-full px-6 shadow-sm shadow-primary/20"
             >
-              <Link href="/signup">Find Backlinks</Link>
+              <Link href="/signup">Find my first backlink</Link>
             </Button>
           </div>
 

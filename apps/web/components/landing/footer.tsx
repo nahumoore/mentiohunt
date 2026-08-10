@@ -119,7 +119,7 @@ export function Footer() {
                   size="lg"
                   className="h-11 rounded-full px-7 text-sm font-semibold shadow-md shadow-primary/25"
                 >
-                  <Link href="/signup">Start your first queue</Link>
+                  <Link href="/signup">Find my first backlink</Link>
                 </Button>
                 <Button
                   asChild

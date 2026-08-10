@@ -37,7 +37,13 @@ const DEFAULT_OFFERING = `To make it worth their time, mention we're open to one
 
 type DiscoverySettingsRow = Pick<
   Tables<"backlink_prospects_settings">,
-  "opportunity_types" | "dr_min" | "dr_max" | "voice_tone" | "offering"
+  | "opportunity_types"
+  | "dr_min"
+  | "dr_max"
+  | "voice_tone"
+  | "offering"
+  | "signature_enabled"
+  | "signature_text"
 >
 
 // Explicit map + filter, not a catch-all fallback: a stray value here (e.g.
@@ -67,12 +73,21 @@ function mapDiscoverySettings(
   }
 }
 
+function defaultSignatureText(
+  product: Pick<Tables<"products">, "product_name" | "website_url"> | null
+): string {
+  return [product?.product_name, product?.website_url].filter(Boolean).join("\n")
+}
+
 function mapOutreachSettings(
-  settings: DiscoverySettingsRow | null
+  settings: DiscoverySettingsRow | null,
+  product: Pick<Tables<"products">, "product_name" | "website_url"> | null
 ): OutreachSettings {
   return {
     voiceTone: settings?.voice_tone ?? DEFAULT_VOICE_TONE,
     offering: settings?.offering ?? DEFAULT_OFFERING,
+    signatureEnabled: settings?.signature_enabled ?? false,
+    signatureText: settings?.signature_text ?? defaultSignatureText(product),
   }
 }
 
@@ -135,7 +150,7 @@ export default async function DashboardLayout({
     ? DEFAULT_DISCOVERY_SETTINGS
     : null
   let outreachSettings: OutreachSettings | null = product
-    ? mapOutreachSettings(null)
+    ? mapOutreachSettings(null, product)
     : null
   let backlinkNetworkMembership: BacklinkNetworkMembership | null = null
   let pages: ProductPageListItem[] = []
@@ -180,7 +195,9 @@ export default async function DashboardLayout({
         .order("domain_rating", { ascending: false }),
       supabase
         .from("backlink_prospects_settings")
-        .select("opportunity_types, dr_min, dr_max, voice_tone, offering")
+        .select(
+          "opportunity_types, dr_min, dr_max, voice_tone, offering, signature_enabled, signature_text"
+        )
         .eq("product_id", product.id)
         .maybeSingle(),
       supabase
@@ -279,7 +296,7 @@ export default async function DashboardLayout({
       )
     } else {
       discoverySettings = mapDiscoverySettings(discoverySettingsResult.data)
-      outreachSettings = mapOutreachSettings(discoverySettingsResult.data)
+      outreachSettings = mapOutreachSettings(discoverySettingsResult.data, product)
     }
 
     if (backlinkNetworkResult.error) {

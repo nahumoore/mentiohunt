@@ -113,6 +113,23 @@ prospectReplyRouter.post("/prospects/reply", async (req, res) => {
     const rawSubject = prospect.email_subject?.trim() || recipientEmail
     const subject = /^re:/i.test(rawSubject) ? rawSubject : `Re: ${rawSubject}`
 
+    const { data: outreachSettings } = await supabaseAdmin
+      .from("backlink_prospects_settings")
+      .select("signature_enabled, signature_text")
+      .eq("product_id", productId)
+      .maybeSingle()
+
+    const { data: product } = await supabaseAdmin
+      .from("products")
+      .select("product_name, website_url")
+      .eq("id", productId)
+      .maybeSingle()
+
+    const fallbackSignature = [product?.product_name, product?.website_url].filter(Boolean).join("\n")
+    const signature = outreachSettings?.signature_enabled
+      ? outreachSettings.signature_text?.trim() || fallbackSignature
+      : null
+
     const account: OutreachEmailAccount = {
       id: ownAccount.id,
       email: ownAccount.email,
@@ -131,6 +148,7 @@ prospectReplyRouter.post("/prospects/reply", async (req, res) => {
         to: recipientEmail,
         subject,
         body: messageBody,
+        signature,
         inReplyTo,
         references: priorMessageIds.length ? priorMessageIds : undefined,
       })

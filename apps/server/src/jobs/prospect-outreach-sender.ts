@@ -34,7 +34,7 @@ type ProspectContext = Pick<
   "id" | "product_id" | "contact_email" | "status"
 >
 
-type ProductContext = Pick<Tables<"products">, "id" | "user_id">
+type ProductContext = Pick<Tables<"products">, "id" | "user_id" | "product_name" | "website_url">
 
 type AccountContext = OutreachEmailAccount & Pick<Tables<"email_accounts">, "daily_send_cap" | "status">
 
@@ -165,6 +165,7 @@ async function loadContext(sequence: ProspectSequence): Promise<{
   product: ProductContext
   account: AccountContext
   senderName: string | null
+  signature: string | null
   previousMessageId: string | null
   ownerEligible: boolean
 } | null> {
@@ -181,7 +182,7 @@ async function loadContext(sequence: ProspectSequence): Promise<{
 
   const { data: product, error: productError } = await supabaseAdmin
     .from("products")
-    .select("id, user_id")
+    .select("id, user_id, product_name, website_url")
     .eq("id", prospect.product_id)
     .maybeSingle()
 
@@ -189,6 +190,17 @@ async function loadContext(sequence: ProspectSequence): Promise<{
     log.warn("missing product for sequence", { sequenceId: sequence.id, productId: prospect.product_id, error: productError?.message })
     return null
   }
+
+  const { data: outreachSettings } = await supabaseAdmin
+    .from("backlink_prospects_settings")
+    .select("signature_enabled, signature_text")
+    .eq("product_id", product.id)
+    .maybeSingle()
+
+  const fallbackSignature = [product.product_name, product.website_url].filter(Boolean).join("\n")
+  const signature = outreachSettings?.signature_enabled
+    ? outreachSettings.signature_text?.trim() || fallbackSignature
+    : null
 
   const { data: account, error: accountError } = await supabaseAdmin
     .from("email_accounts")
@@ -223,7 +235,7 @@ async function loadContext(sequence: ProspectSequence): Promise<{
     previousMessageId = previous?.message_id ?? null
   }
 
-  return { prospect, product, account, senderName, previousMessageId, ownerEligible }
+  return { prospect, product, account, senderName, signature, previousMessageId, ownerEligible }
 }
 
 async function isSuppressed(email: string): Promise<boolean> {
@@ -332,6 +344,7 @@ async function processSequence(sequence: ProspectSequence): Promise<boolean> {
         to: recipientEmail,
         subject,
         body,
+        signature: context.signature,
         inReplyTo: context.previousMessageId,
       })
 

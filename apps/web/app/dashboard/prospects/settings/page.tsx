@@ -40,6 +40,8 @@ const DEFAULT_DISCOVERY_SETTINGS: DiscoverySettings = {
 const DEFAULT_OUTREACH_SETTINGS: OutreachSettings = {
   voiceTone: `Write in a casual, direct founder-to-founder tone. Keep it short — 3 to 4 sentences max. No corporate language, no buzzwords. Imagine tapping a fellow builder on the shoulder, not sending a formal pitch to a procurement team. Be genuine, not salesy.`,
   offering: `To make it worth their time, mention we're open to one of the following:\n- A genuine Trustpilot or G2 review of their product\n- A written testimonial they can use on their website or landing page\n- A content collaboration or guest post swap\n- A shoutout on our social channels or newsletter`,
+  signatureEnabled: false,
+  signatureText: "",
 }
 
 export default function DiscoverySetupPage() {
@@ -175,6 +177,8 @@ export default function DiscoverySetupPage() {
         body: JSON.stringify({
           voiceTone: activeOutreach.voiceTone,
           offering: activeOutreach.offering,
+          signatureEnabled: activeOutreach.signatureEnabled,
+          signatureText: activeOutreach.signatureText,
         }),
       })
       const payload = (await response.json().catch(() => null)) as {
@@ -356,6 +360,8 @@ export default function DiscoverySetupPage() {
             <OutreachSettingsSection
               settings={activeOutreach}
               onUpdate={handleOutreachUpdate}
+              productName={product?.product_name ?? ""}
+              productWebsite={product?.website_url ?? ""}
               footer={
                 <SettingsSaveFooter
                   message={outreachSettingsMessage}

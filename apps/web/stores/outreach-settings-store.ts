@@ -5,6 +5,8 @@ import { create } from "zustand"
 export type OutreachSettings = {
   voiceTone: string
   offering: string
+  signatureEnabled: boolean
+  signatureText: string
 }
 
 type OutreachSettingsStore = {

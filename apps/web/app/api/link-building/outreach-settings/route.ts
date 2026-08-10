@@ -9,6 +9,8 @@ export const runtime = "nodejs"
 const outreachSettingsSchema = z.object({
   voiceTone: z.string().min(1, "Voice & tone cannot be empty."),
   offering: z.string().min(1, "Offering cannot be empty."),
+  signatureEnabled: z.boolean(),
+  signatureText: z.string().max(1000),
 })
 
 function buildValidationError(message: string, status = 400) {
@@ -35,7 +37,7 @@ export async function PUT(request: Request) {
     )
   }
 
-  const { voiceTone, offering } = parsed.data
+  const { voiceTone, offering, signatureEnabled, signatureText } = parsed.data
 
   const { data: product, error: productError } = await supabase
     .from("products")
@@ -60,6 +62,8 @@ export async function PUT(request: Request) {
     .update({
       voice_tone: voiceTone,
       offering,
+      signature_enabled: signatureEnabled,
+      signature_text: signatureText.trim() || null,
       updated_at: updatedAt,
     })
     .eq("product_id", product.id)
@@ -76,6 +80,8 @@ export async function PUT(request: Request) {
       product_id: product.id,
       voice_tone: voiceTone,
       offering,
+      signature_enabled: signatureEnabled,
+      signature_text: signatureText.trim() || null,
       opportunity_types: DEFAULT_PROSPECT_TIERS,
       updated_at: updatedAt,
     }
@@ -90,5 +96,7 @@ export async function PUT(request: Request) {
     }
   }
 
-  return NextResponse.json({ settings: { voiceTone, offering } })
+  return NextResponse.json({
+    settings: { voiceTone, offering, signatureEnabled, signatureText },
+  })
 }

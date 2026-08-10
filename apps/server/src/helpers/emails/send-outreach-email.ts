@@ -1,5 +1,6 @@
 import { decryptSecret } from "@workspace/supabase/crypto"
 import nodemailer from "nodemailer"
+import { buildSignatureHtml, buildSignatureText } from "./signature.js"
 
 export type OutreachEmailAccount = {
   id: string
@@ -44,6 +45,7 @@ export async function sendOutreachEmail({
   to,
   subject,
   body,
+  signature,
   inReplyTo,
   references,
 }: {
@@ -53,6 +55,7 @@ export async function sendOutreachEmail({
   to: string
   subject: string
   body: string
+  signature?: string | null
   inReplyTo?: string | null
   references?: string[]
 }): Promise<OutreachSendResult> {
@@ -70,6 +73,10 @@ export async function sendOutreachEmail({
     greetingTimeout: 30_000,
   })
 
+  const signatureText = buildSignatureText(signature)
+  const text = signatureText ? `${body}\n\n${signatureText}` : body
+  const html = htmlFromPlainText(body) + buildSignatureHtml(signature)
+
   const info = await transporter.sendMail({
     from: {
       name: senderDisplayName(account, senderName),
@@ -77,8 +84,8 @@ export async function sendOutreachEmail({
     },
     to,
     subject,
-    text: body,
-    html: htmlFromPlainText(body),
+    text,
+    html,
     inReplyTo: inReplyTo ?? undefined,
     references: references ?? (inReplyTo ? [inReplyTo] : undefined),
     headers: sequenceId

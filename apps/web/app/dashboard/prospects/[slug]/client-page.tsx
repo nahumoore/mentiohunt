@@ -52,6 +52,8 @@ import { SequenceStoppedNotice } from "@/components/prospects/sequence-stopped-n
 import { ReplyViaMailboxNotice } from "@/components/prospects/reply-via-mailbox-notice"
 import { ReplyComposer } from "@/components/prospects/reply-composer"
 import { ManualCompletionForm } from "@/components/link-building/prospects/manual-completion-form"
+import { SignatureBlockPreview } from "@/components/link-building/sources/signature-block-preview"
+import { useOutreachSettingsStore } from "@/stores/outreach-settings-store"
 
 const PIPELINE_STEPS: ProspectStatus[] = ["new", "contacted", "negotiating", "won"]
 
@@ -466,6 +468,7 @@ export function ProspectClientPage({
   const completeActivationStep = useActivationStore((s) => s.complete)
   const activationHydrated = useActivationStore((s) => s.hasHydrated)
   const pages = usePagesStore((s) => s.pages)
+  const outreachSettings = useOutreachSettingsStore((s) => s.settings)
   const current = storedProspect ?? prospect
   const sourcePage =
     current.source_page ??
@@ -1013,7 +1016,7 @@ export function ProspectClientPage({
                     }
                     placeholder="Email subject…"
                     className={cn(
-                      "w-full rounded-lg border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition",
+                      "w-full rounded-lg border border-border/50 bg-white shadow-sm px-4 py-2.5 text-sm font-semibold text-foreground transition",
                       activeEmail.status === "sent" || isFreeUser
                         ? "cursor-default select-text text-muted-foreground"
                         : "focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none"
@@ -1045,7 +1048,7 @@ export function ProspectClientPage({
                       defaultValue={activeEmail.body}
                       key={`body-${activeEmailIdx}`}
                       placeholder="Email body…"
-                      className="w-full rounded-none border-0 bg-muted/40 shadow-sm px-4 py-3 text-sm text-muted-foreground leading-relaxed resize-none font-sans cursor-default select-text"
+                      className="w-full rounded-none border-0 bg-white shadow-sm px-4 py-3 text-sm text-muted-foreground leading-relaxed resize-none font-sans cursor-default select-text"
                     />
                     <div className="border-t bg-muted/40 px-4 py-3">
                       <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -1074,7 +1077,7 @@ export function ProspectClientPage({
                     }
                     placeholder="Email body…"
                     className={cn(
-                      "w-full rounded-lg border bg-muted/40 shadow-sm px-4 py-3 text-sm text-foreground leading-relaxed resize-none transition font-sans",
+                      "w-full rounded-lg border border-border/50 bg-white shadow-sm px-4 py-3 text-sm text-foreground leading-relaxed resize-none transition font-sans",
                       activeEmail.status === "sent"
                         ? "cursor-default select-text text-muted-foreground"
                         : "focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none"
@@ -1082,6 +1085,15 @@ export function ProspectClientPage({
                   />
                 )}
               </div>
+
+              {outreachSettings?.signatureEnabled && outreachSettings.signatureText.trim() && (
+                <div className="mb-5 rounded-lg border border-dashed border-border/60 bg-muted/20 px-4 py-3">
+                  <p className="mb-2 text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+                    Signature — added automatically when sent
+                  </p>
+                  <SignatureBlockPreview text={outreachSettings.signatureText} />
+                </div>
+              )}
 
               {/* Status actions */}
               {displayStatus !== "dismissed" && displayStatus !== "won" && (

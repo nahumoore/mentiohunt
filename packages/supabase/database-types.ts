@@ -214,6 +214,8 @@ export type Database = {
           offering: string | null
           opportunity_types: Database["public"]["Enums"]["prospect_tier"][]
           product_id: string
+          signature_enabled: boolean
+          signature_text: string | null
           updated_at: string
           voice_tone: string | null
         }
@@ -224,6 +226,8 @@ export type Database = {
           offering?: string | null
           opportunity_types?: Database["public"]["Enums"]["prospect_tier"][]
           product_id: string
+          signature_enabled?: boolean
+          signature_text?: string | null
           updated_at?: string
           voice_tone?: string | null
         }
@@ -234,6 +238,8 @@ export type Database = {
           offering?: string | null
           opportunity_types?: Database["public"]["Enums"]["prospect_tier"][]
           product_id?: string
+          signature_enabled?: boolean
+          signature_text?: string | null
           updated_at?: string
           voice_tone?: string | null
         }

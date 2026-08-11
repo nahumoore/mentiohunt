@@ -84,11 +84,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: post.meta.date,
       modifiedTime: post.meta.dateModified ?? post.meta.date,
       authors: post.meta.author ? [post.meta.author] : ["Nicolas More"],
+      images: post.meta.image ? [post.meta.image] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: post.meta.image ? [post.meta.image] : undefined,
     },
   }
 }

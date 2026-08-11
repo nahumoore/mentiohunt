@@ -194,6 +194,33 @@ When the user asks for an SEO strategy, structure the response like this:
 - If the result set is noisy, say so and narrow the next pass with better seeds, a different mode, or a filter.
 - If the user wants a full strategy, recommend a second pass for the most promising themes instead of one huge undifferentiated run.
 
+## DataForSEO Fallback (no Apify key, or need volume/difficulty numbers)
+
+If `APIFY_API_KEY` is unset, or the user needs real search volume / organic ranking
+difficulty rather than just Google Suggest phrasing, use the DataForSEO MCP tools
+(`mcp__*__dataforseo_labs_*`, `mcp__*__kw_data_*`) instead. Getting the right field matters —
+DataForSEO exposes two unrelated "competition" numbers and mixing them up produces a wrong
+call on how hard a keyword is to rank for organically:
+
+- **Organic ranking difficulty** — use `dataforseo_labs_bulk_keyword_difficulty`
+  (`keyword_difficulty`, 0-100 log scale) or `dataforseo_labs_google_keyword_overview`. This is
+  what "low/high competition for SEO" means. Use this, and only this, when deciding whether a
+  keyword is realistically winnable organically.
+- **PPC advertiser competition** — `kw_data_google_ads_search_volume` and
+  `dataforseo_labs_google_keyword_ideas` return `competition` / `competition_level` /
+  `competition_index`. This measures how many advertisers bid on the term in Google Ads. It
+  says nothing about organic ranking difficulty and must never be reported as "SEO
+  competition" or used to call a keyword a "quick win."
+- Even a low `keyword_difficulty` score can be misleading against big-brand domains: KD is
+  computed mostly from backlinks to the *specific ranking URL*, not domain-wide authority — a
+  DR 90 site's blog post can rank with a low individual KD score. When the live SERP (see
+  `serp-rank-optimizer` or a `WebSearch`) is dominated by high-authority domains, say so
+  explicitly alongside the KD number rather than calling the keyword "low competition" on the
+  KD score alone.
+- When reporting on a keyword, always name which metric backs a competition claim (e.g.
+  "KD 13 (organic)" vs "competition: LOW (PPC, not relevant here)") so it's never ambiguous
+  which one is being used.
+
 ## Mentiohunt Context
 
 For Mentiohunt-adjacent strategy work, prefer themes around:

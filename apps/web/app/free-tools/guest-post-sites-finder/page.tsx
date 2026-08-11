@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/guest-post-sites-finder",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Guest Post Sites Finder - Free Tool",
     description:
       "Enter your website URL and find sites in your niche that publicly invite guest contributors, each with a fit rationale.",

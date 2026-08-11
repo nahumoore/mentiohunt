@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/bulk-email-verifier",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Bulk Email Verifier - Free Tool",
     description:
       "Paste a list of contact emails and check each for syntax, disposable domains, and role-based addresses before you send outreach to it — free, no login required.",

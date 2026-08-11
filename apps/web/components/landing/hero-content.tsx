@@ -75,7 +75,30 @@ export function HeroContent() {
         >
           We find sites where your content fits and run outreach in
           auto-pilot to earn you backlinks — growing the authority that gets
-          you ranked in Google and cited by AI search.
+          you ranked and cited by{" "}
+          <span className="sr-only">Gemini, ChatGPT, Claude, and Perplexity — AI search.</span>
+          <span className="inline-flex items-center align-middle" aria-hidden="true">
+            {[
+              { domain: "gemini.google.com", label: "Gemini" },
+              { domain: "chatgpt.com", label: "ChatGPT" },
+              { domain: "claude.ai", label: "Claude" },
+              { domain: "perplexity.ai", label: "Perplexity" },
+            ].map(({ domain, label }, i) => (
+              <span
+                key={domain}
+                className="relative inline-block h-6 w-6 overflow-hidden rounded-full border-2 border-background shadow-sm"
+                style={{ marginLeft: i === 0 ? 0 : "-0.55rem" }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+                  alt={label}
+                  className="h-full w-full object-cover"
+                />
+              </span>
+            ))}
+          </span>
+          .
         </motion.p>
 
         <motion.div

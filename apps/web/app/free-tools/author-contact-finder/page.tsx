@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/author-contact-finder",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Author Contact Finder - Free Tool",
     description:
       "Paste a blog post URL and find the author's contact details for backlink outreach — name, likely email, and confidence level, not a guaranteed verified address.",

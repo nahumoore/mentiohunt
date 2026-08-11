@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/anchor-text-generator",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Anchor Text Generator - Free Tool",
     description:
       "Generate a full set of anchor text variants for any keyword — exact match, partial, branded, LSI, long-tail, and generic — each labelled with a safety rating and plain-language guidance.",

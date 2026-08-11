@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/competitor-backlink-gap",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Competitor Backlink Gap Analysis - Free Tool",
     description:
       "See which sites link to your competitors but not to you. Find backlink gap opportunities and turn them into a prioritized outreach list.",

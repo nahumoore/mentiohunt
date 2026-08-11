@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/backlink-opportunity-finder",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Backlink Opportunity Finder - Free Tool",
     description:
       "Find websites, blogs, and content hubs where a backlink to your product fits. For founders who want real outreach targets, not a generic link list.",

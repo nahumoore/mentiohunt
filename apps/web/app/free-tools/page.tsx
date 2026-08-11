@@ -21,9 +21,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Free Backlink & Link Building Tools - Mentiohunt",
     description:
       "Free founder tools for checking backlink fit, discovering placement opportunities, and turning distribution research into a clearer next step.",

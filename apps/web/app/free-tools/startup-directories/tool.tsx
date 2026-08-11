@@ -14,6 +14,7 @@ import {
   IconSpeakerphone,
   IconWorld,
 } from "@tabler/icons-react"
+import type { ReactNode } from "react"
 import type { Tables } from "@workspace/supabase/database-types"
 
 import { AutomationCta, ToolHero } from "@/components/free-tools"
@@ -93,18 +94,33 @@ function getSortValue(directory: Directory, sortKey: SortKey): string | number {
   return typeof value === "number" ? value : -1
 }
 
+type PricingFilter = "all" | "free" | "paid"
+
 export function StartupDirectoriesBrowser({
   directories,
 }: {
   directories: Directory[]
 }) {
   const [query, setQuery] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("all")
+  const [pricingFilter, setPricingFilter] = useState<PricingFilter>("all")
   const [sortKey, setSortKey] = useState<SortKey>("domain_rating")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+
+  const categories = Array.from(
+    new Set(directories.map((directory) => directory.category).filter(Boolean))
+  ).sort((a, b) => a!.localeCompare(b!)) as string[]
 
   const normalizedQuery = query.trim().toLowerCase()
   const sortedDirectories = directories
     .filter((directory) => {
+      if (categoryFilter !== "all" && directory.category !== categoryFilter) {
+        return false
+      }
+
+      if (pricingFilter === "free" && !directory.is_free) return false
+      if (pricingFilter === "paid" && directory.is_free) return false
+
       if (!normalizedQuery) return true
 
       return [
@@ -171,6 +187,27 @@ export function StartupDirectoriesBrowser({
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
+              <FilterSelect
+                value={categoryFilter}
+                onChange={setCategoryFilter}
+                aria-label="Filter by category"
+              >
+                <option value="all">All categories</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {toTitleCase(category)}
+                  </option>
+                ))}
+              </FilterSelect>
+              <FilterSelect
+                value={pricingFilter}
+                onChange={(value) => setPricingFilter(value as PricingFilter)}
+                aria-label="Filter by pricing"
+              >
+                <option value="all">All pricing</option>
+                <option value="free">Free</option>
+                <option value="paid">Paid</option>
+              </FilterSelect>
               <div className="relative w-full sm:w-[22rem]">
                 <IconSearch
                   size={18}
@@ -437,6 +474,36 @@ function SortableHeader({
         )}
       </button>
     </th>
+  )
+}
+
+function FilterSelect({
+  value,
+  onChange,
+  children,
+  "aria-label": ariaLabel,
+}: {
+  value: string
+  onChange: (value: string) => void
+  children: ReactNode
+  "aria-label": string
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        aria-label={ariaLabel}
+        className="h-11 w-full appearance-none rounded-full border border-border bg-card py-0 pl-4 pr-9 text-sm text-foreground shadow-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30 sm:w-auto"
+      >
+        {children}
+      </select>
+      <IconChevronDown
+        size={14}
+        stroke={2.4}
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60"
+      />
+    </div>
   )
 }
 

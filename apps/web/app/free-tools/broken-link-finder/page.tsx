@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/broken-link-finder",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Broken Link Finder - Free Tool",
     description:
       "Find real pages in your niche with dead outbound links. For founders who want ready-made broken-link outreach targets, not a generic prospect list.",

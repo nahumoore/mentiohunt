@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/free-directory-submission-sites",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Free Directory Submission Sites for B2B SaaS - Free Tool",
     description:
       "Scan your product URL against 100+ free directory submission sites and see which ones you're missing. No sign-up. Built for B2B SaaS founders.",

@@ -56,10 +56,24 @@ const points: [number, number][] = [
 const linePath = points.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x},${y}`).join(" ")
 const areaPath = `${linePath} L640,220 L0,220 Z`
 
-const markers = [
-  { left: 37.5 },
-  { left: 62.5 },
-  { left: 87.5 },
+// 5 vertical lines, evenly spaced, alternating backlink -> ai -> backlink -> ai -> backlink.
+const gridLines = [
+  { left: 10 },
+  { left: 30 },
+  { left: 50 },
+  { left: 70 },
+  { left: 90 },
+]
+
+const backlinkMarkers = [
+  { left: 10 },
+  { left: 50 },
+  { left: 90 },
+]
+
+const citedByMarkers = [
+  { left: 30, domain: "chatgpt.com", label: "ChatGPT" },
+  { left: 70, domain: "claude.ai", label: "Claude" },
 ]
 
 export function OrganicVisibilityCard() {
@@ -168,7 +182,7 @@ export function OrganicVisibilityCard() {
 
         {/* Grid lines — top-0/bottom-0 pins them to the svg's own box, not the section below.
             Masked to a soft fade at both ends so they don't cut off abruptly. */}
-        {markers.map((m) => (
+        {gridLines.map((m) => (
           <div
             key={m.left}
             className="absolute top-0 bottom-0 w-px border-l border-dashed border-(--color-blaze-orange)/25"
@@ -181,17 +195,47 @@ export function OrganicVisibilityCard() {
             }}
           />
         ))}
+
+        {/* Cited-by markers — float above the chart, pop in as the line passes their x position */}
+        {citedByMarkers.map((m) => (
+          <motion.div
+            key={m.left}
+            className="absolute top-0 flex -translate-x-1/2 cursor-default flex-col items-center gap-1.5"
+            style={{ left: `${m.left}%` }}
+            initial={reduceMotion ? undefined : { opacity: 0, scale: 0.4, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            whileHover={{ scale: 1.12, transition: { duration: 0.12, ease: "easeOut" } }}
+            transition={{
+              duration: 0.4,
+              delay: DRAW_DELAY + DRAW_DURATION * (m.left / 100),
+              ease: "backOut",
+            }}
+          >
+            <span className="whitespace-nowrap rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+              Started being cited by
+            </span>
+            <span className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-(--color-blaze-orange)/25 bg-background shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`https://www.google.com/s2/favicons?domain=${m.domain}&sz=64`}
+                alt={m.label}
+                className="h-full w-full object-cover"
+              />
+            </span>
+          </motion.div>
+        ))}
       </div>
 
       {/* Backlink markers — each pops in the moment the line passes its x position */}
       <div className="relative mt-4 h-16">
-        {markers.map((m) => (
+        {backlinkMarkers.map((m) => (
           <motion.div
             key={m.left}
-            className="absolute flex -translate-x-1/2 flex-col items-center gap-1.5"
+            className="absolute flex -translate-x-1/2 cursor-default flex-col items-center gap-1.5"
             style={{ left: `${m.left}%` }}
             initial={reduceMotion ? undefined : { opacity: 0, scale: 0.4, y: 4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
+            whileHover={{ scale: 1.12, transition: { duration: 0.12, ease: "easeOut" } }}
             transition={{
               duration: 0.4,
               delay: DRAW_DELAY + DRAW_DURATION * (m.left / 100),

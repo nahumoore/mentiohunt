@@ -41,9 +41,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/startup-directories",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Startup Directory Browser - Free Tool",
     description:
       "Browse startup directories, compare category and pricing signals, and jump into a directory backlink gap scan.",

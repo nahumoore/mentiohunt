@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/backlink-price-calculator",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Backlink Price Calculator - Free Tool",
     description:
       "Estimate the fair market price of a backlink from any website. Pull Domain Rating and traffic data from Ahrefs, then adjust link type and placement.",

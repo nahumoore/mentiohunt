@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/backlink-outreach-email-generator",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Backlink Outreach Email Generator - Free Tool",
     description:
       "Generate four ready-to-send backlink outreach emails — guest post, broken link, resource page, and unlinked mention — each with a follow-up and plain-language guidance on when to use it.",

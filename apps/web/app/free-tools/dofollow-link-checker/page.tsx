@@ -25,9 +25,11 @@ export const metadata: Metadata = {
     url: "https://mentiohunt.com/free-tools/dofollow-link-checker",
     siteName: "Mentiohunt",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "Dofollow Link Checker - Free Tool",
     description:
       "Paste any page URL and see every outbound link on it — dofollow, nofollow, ugc, or sponsored — split by internal and external, free with no login required.",

@@ -6,6 +6,7 @@ import { Bricolage_Grotesque, Figtree, Inter } from "next/font/google"
 import Script from "next/script"
 import { Toaster } from "sonner"
 
+import { PlaybookExitModal } from "@/components/playbook-modal/playbook-exit-modal"
 import { SupportChatWidget } from "@/components/support-chat/support-chat-widget"
 
 export const metadata: Metadata = {
@@ -58,6 +59,7 @@ export default function RootLayout({
         {children}
         <Toaster richColors position="top-right" />
         <SupportChatWidget />
+        <PlaybookExitModal />
 
         {process.env.NODE_ENV !== "development" && (
           <>
@@ -75,9 +77,16 @@ export default function RootLayout({
               window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
               plausible.init()
             `}</Script>
+
+            {/* AHREFS */}
+            <Script
+              async
+              data-key="n8BGKFLockEdDXdS3Vb+Jw"
+              src="https://analytics.ahrefs.com/analytics.js"
+              strategy="afterInteractive"
+            />
           </>
         )}
-        {/* </ThemeProvider> */}
       </body>
     </html>
   )

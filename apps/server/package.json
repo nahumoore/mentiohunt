@@ -11,6 +11,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "@workspace/email-template": "workspace:*",
     "@workspace/openrouter": "workspace:*",
     "@workspace/supabase": "workspace:*",
     "cheerio": "^1.0.0",

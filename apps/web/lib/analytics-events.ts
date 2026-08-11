@@ -61,6 +61,11 @@ export const EVENTS = {
   TRACKED_LINK_ADD_FAILED: "tracked_link_add_failed",
   TRACKED_LINKS_BULK_IMPORTED: "tracked_links_bulk_imported",
   TRACKED_LINK_DELETED: "tracked_link_deleted",
+
+  // Playbook exit-intent modal
+  PLAYBOOK_MODAL_SHOWN: "playbook_modal_shown",
+  PLAYBOOK_MODAL_DISMISSED: "playbook_modal_dismissed",
+  PLAYBOOK_LEAD_SUBMITTED: "playbook_lead_submitted",
 } as const
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS]

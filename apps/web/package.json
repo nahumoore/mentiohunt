@@ -16,6 +16,7 @@
     "@openrouter/agent": "^0.5.0",
     "@tabler/icons-react": "^3.42.0",
     "@vercel/functions": "^3.6.0",
+    "@workspace/email-template": "workspace:*",
     "@workspace/openrouter": "workspace:*",
     "@workspace/supabase": "workspace:*",
     "@workspace/ui": "workspace:*",

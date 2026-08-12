@@ -14,10 +14,21 @@ import { formatRelativeCheck, STATUS_FILTERS } from "@/app/dashboard/link-tracke
 import { LinkStatusChip } from "@/components/link-tracker/link-status-chip"
 import { LinkTrackerEmpty } from "@/components/link-tracker/link-tracker-empty"
 import { LinkTrackerPaywall } from "@/components/link-tracker/link-tracker-paywall"
+import { useQueryState } from "@/hooks/use-query-state"
 import { captureEvent } from "@/lib/analytics"
 import { EVENTS } from "@/lib/analytics-events"
 import { useLinkTrackerStore, type TrackedLinkListItem, type TrackedLinkStatus } from "@/stores/link-tracker-store"
 import { useProfileStore } from "@/stores/profile-store"
+
+type StatusFilterValue = TrackedLinkStatus | "all"
+
+function isStatusFilterValue(value: string): value is StatusFilterValue {
+  return STATUS_FILTERS.some((filter) => filter.value === value)
+}
+
+function isAnyString(value: string): value is string {
+  return true
+}
 
 function faviconUrl(domain: string) {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
@@ -42,8 +53,12 @@ export function LinkTrackerClient() {
   const profile = useProfileStore((s) => s.profile)
   const isPaid = profile?.tier === "pro" || profile?.tier === "agency"
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<TrackedLinkStatus | "all">("all")
+  const [searchQuery, setSearchQuery] = useQueryState("q", "", isAnyString)
+  const [statusFilter, setStatusFilter] = useQueryState<StatusFilterValue>(
+    "status",
+    "all",
+    isStatusFilterValue
+  )
   const [removingId, setRemovingId] = useState<string | null>(null)
 
   useEffect(() => {

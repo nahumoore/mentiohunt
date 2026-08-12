@@ -51,6 +51,7 @@ import Link from "next/link"
 
 import { FREE_TRIAL_MAX_PAGES } from "@/consts/billing"
 import { PAGE_TYPE_CONFIG, type PageType } from "@/consts/page-types"
+import { useQueryState } from "@/hooks/use-query-state"
 import { usePagesStore } from "@/stores/pages-store"
 import { useProfileStore } from "@/stores/profile-store"
 import { useProspectStore } from "@/stores/prospect-store"
@@ -97,6 +98,27 @@ function PriorityIcons({
 
 type SortKey = "page" | "type" | "priority" | "opportunities"
 type SortDir = "asc" | "desc"
+
+function isSortKey(value: string): value is SortKey {
+  return (
+    value === "page" ||
+    value === "type" ||
+    value === "priority" ||
+    value === "opportunities"
+  )
+}
+
+function isSortDir(value: string): value is SortDir {
+  return value === "asc" || value === "desc"
+}
+
+function isAnyString(value: string): value is string {
+  return true
+}
+
+function isPositiveIntString(value: string): value is string {
+  return /^[1-9]\d*$/.test(value)
+}
 
 function sortPages(
   pages: ProductPage[],
@@ -541,14 +563,24 @@ export function PagesClient() {
   })
 
   const [bannerDismissed, setBannerDismissed] = useState(false)
-  const [sortKey, setSortKey] = useState<SortKey>("priority")
-  const [sortDir, setSortDir] = useState<SortDir>("desc")
-  const [search, setSearch] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
+  const [sortKey, setSortKey] = useQueryState<SortKey>(
+    "sort",
+    "priority",
+    isSortKey
+  )
+  const [sortDir, setSortDir] = useQueryState<SortDir>("dir", "desc", isSortDir)
+  const [search, setSearch] = useQueryState("q", "", isAnyString)
+  const [pageParam, setPageParam] = useQueryState(
+    "page",
+    "1",
+    isPositiveIntString
+  )
+  const currentPage = Number(pageParam)
+  const setCurrentPage = (page: number) => setPageParam(String(page))
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"))
+      setSortDir(sortDir === "asc" ? "desc" : "asc")
     } else {
       setSortKey(key)
       setSortDir("asc")
@@ -615,8 +647,8 @@ export function PagesClient() {
   )
 
   useEffect(() => {
-    setCurrentPage(1)
-  }, [search])
+    setPageParam("1")
+  }, [search, setPageParam])
 
   return (
     <div className="flex flex-col gap-6">
@@ -872,7 +904,7 @@ export function PagesClient() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   className="h-7 rounded-full px-3 text-xs"
                 >
@@ -882,7 +914,7 @@ export function PagesClient() {
                   variant="ghost"
                   size="sm"
                   onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
                   }
                   disabled={currentPage === totalPages}
                   className="h-7 rounded-full px-3 text-xs"

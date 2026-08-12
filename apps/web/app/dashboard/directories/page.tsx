@@ -10,15 +10,28 @@ import { Card } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 
 import { ColumnHeader, type SortDirection } from "@/components/link-building/directories/column-header"
 import { DirectoriesPageSkeleton } from "@/components/link-building/directories/directories-page-skeleton"
 import { DomainRatingCell } from "@/components/link-building/directories/domain-rating-cell"
 import { PaidBadge } from "@/components/link-building/directories/paid-badge"
+import { useQueryState } from "@/hooks/use-query-state"
 import { useDirectoryStore } from "@/stores/directory-store"
 
 type SortKey = "domain" | "domain_rating" | "backlinks"
+
+function isSortKey(value: string): value is SortKey {
+  return value === "domain" || value === "domain_rating" || value === "backlinks"
+}
+
+function isSortDirection(value: string): value is SortDirection {
+  return value === "asc" || value === "desc"
+}
+
+function isAnyString(value: string): value is string {
+  return true
+}
 
 function compareText(a: string, b: string, dir: SortDirection) {
   return dir === "asc" ? a.localeCompare(b) : b.localeCompare(a)
@@ -38,9 +51,17 @@ export default function DirectoriesPage() {
   const hydrated = useDirectoryStore((s) => s.hydrated)
   const directories = useDirectoryStore((s) => s.directories)
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const [sortKey, setSortKey] = useState<SortKey>("domain_rating")
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+  const [searchQuery, setSearchQuery] = useQueryState("q", "", isAnyString)
+  const [sortKey, setSortKey] = useQueryState<SortKey>(
+    "sort",
+    "domain_rating",
+    isSortKey
+  )
+  const [sortDirection, setSortDirection] = useQueryState<SortDirection>(
+    "dir",
+    "desc",
+    isSortDirection
+  )
 
   const filtered = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -65,7 +86,7 @@ export default function DirectoriesPage() {
 
   function toggleSort(nextKey: SortKey) {
     if (sortKey === nextKey) {
-      setSortDirection((d) => (d === "asc" ? "desc" : "asc"))
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
       return
     }
     setSortKey(nextKey)

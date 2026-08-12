@@ -20,6 +20,7 @@ import { OutreachSettingsSection } from "@/components/link-building/sources/outr
 import { SeoMetricsSection } from "@/components/link-building/sources/seo-metrics-section"
 import { SettingsSaveFooter } from "@/components/link-building/sources/settings-save-footer"
 import { UnsavedChangesDialog } from "@/components/link-building/sources/unsaved-changes-dialog"
+import { useQueryState } from "@/hooks/use-query-state"
 import type { OpportunityType } from "@/lib/opportunity-types"
 import { TYPE_CONFIG } from "@/lib/opportunity-types"
 import { captureEvent } from "@/lib/analytics"
@@ -44,7 +45,23 @@ const DEFAULT_OUTREACH_SETTINGS: OutreachSettings = {
   signatureText: "",
 }
 
+type SettingsTab = "backlink-types" | "competitors" | "seo-metrics" | "outreach"
+
+function isSettingsTab(value: string): value is SettingsTab {
+  return (
+    value === "backlink-types" ||
+    value === "competitors" ||
+    value === "seo-metrics" ||
+    value === "outreach"
+  )
+}
+
 export default function DiscoverySetupPage() {
+  const [tab, setTab] = useQueryState<SettingsTab>(
+    "tab",
+    "backlink-types",
+    isSettingsTab
+  )
   const product = useProductStore((state) => state.product)
   const settings = useDiscoverySettingsStore((state) => state.settings)
   const setSettings = useDiscoverySettingsStore((state) => state.setSettings)
@@ -329,7 +346,7 @@ export default function DiscoverySetupPage() {
   return (
     <>
       <div className="flex flex-col gap-6">
-        <Tabs defaultValue="backlink-types" className="gap-4">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as SettingsTab)} className="gap-4">
           <div className="overflow-x-auto overflow-y-hidden">
           <TabsList>
             <TabsTrigger value="backlink-types">

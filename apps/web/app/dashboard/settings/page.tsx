@@ -17,6 +17,7 @@ import {
   updateEmailSettings,
   updateProfileName,
 } from "@/actions/update-profile"
+import { useQueryState } from "@/hooks/use-query-state"
 import { useProfileStore } from "@/stores/profile-store"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -36,7 +37,23 @@ const DEFAULT_EMAIL_SETTINGS: EmailSettings = {
   marketing: true,
 }
 
+type SettingsTab = "profile" | "notifications" | "billing" | "password"
+
+function isSettingsTab(value: string): value is SettingsTab {
+  return (
+    value === "profile" ||
+    value === "notifications" ||
+    value === "billing" ||
+    value === "password"
+  )
+}
+
 export default function SettingsPage() {
+  const [tab, setTab] = useQueryState<SettingsTab>(
+    "tab",
+    "profile",
+    isSettingsTab
+  )
   const profile = useProfileStore((state) => state.profile)
   const setProfile = useProfileStore((state) => state.setProfile)
 
@@ -79,7 +96,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Tabs defaultValue="profile" className="gap-4">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as SettingsTab)} className="gap-4">
         <div className="overflow-x-auto overflow-y-hidden">
         <TabsList>
           <TabsTrigger value="profile">

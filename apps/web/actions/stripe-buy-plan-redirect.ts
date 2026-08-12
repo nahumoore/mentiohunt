@@ -33,7 +33,7 @@ export async function stripeBuyPlanRedirect({
       line_items: [{ price: planConfig.stripePriceId, quantity: 1 }],
       allow_promotion_codes: true,
       metadata: { supabase_user_id: user.id },
-      success_url: `${appUrl}/dashboard/billing?upgraded=1`,
+      success_url: `${appUrl}/dashboard?upgraded=1&plan=${encodeURIComponent(plan)}`,
       cancel_url: `${appUrl}/dashboard/billing`,
     })
     sessionUrl = session.url

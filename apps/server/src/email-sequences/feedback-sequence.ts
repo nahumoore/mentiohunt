@@ -56,7 +56,8 @@ You started setting up but didn't finish. Did something feel confusing, or did l
 Thanks for signing up!
 
 ${signoff} <3
-Nico`,
+Nico
+Founder @ Mentiohunt`,
       }
     case "onboarding_done_no_action":
       return {
@@ -83,7 +84,8 @@ Anything getting in the way? One line is enough.
 Thanks for giving Mentiohunt a try!
 
 ${signoff} <3
-Nico`,
+Nico
+Founder @ Mentiohunt`,
       }
     case "used_opportunities_only":
       return {
@@ -108,7 +110,8 @@ ${
 Thanks for giving Mentiohunt a try!
 
 ${signoff} <3
-Nico`,
+Nico
+Founder @ Mentiohunt`,
       }
   }
 }
@@ -136,7 +139,8 @@ I'm just trying to figure out what actually got in the way. Was the setup confus
 A few words are more than enough :)
 
 ${signoff},
-Nico`,
+Nico
+Founder @ Mentiohunt`,
       }
     case "onboarding_done_no_action":
       return {
@@ -152,7 +156,8 @@ It's been a few days. Did you get a chance to look at your opportunities? I'm cu
 If something looked wrong, reply and tell me. That directly helps me improve the matching.
 
 ${signoff},
-Nico`,
+Nico
+Founder @ Mentiohunt`,
       }
     case "used_opportunities_only":
       return {
@@ -173,7 +178,8 @@ You've been looking at the link building side for a few days. Are the opportunit
 Honest feedback helps me tune the discovery logic. Just reply.
 
 ${signoff},
-Nico`,
+Nico
+Founder @ Mentiohunt`,
       }
   }
 }
@@ -201,7 +207,8 @@ If there was a reason you dropped off, even one word helps (bad UX / too confusi
 Either way, appreciate you for trying it.
 
 ${signoff},
-Nico`,
+Nico
+Founder @ Mentiohunt`,
       }
     default:
       return {
@@ -218,7 +225,8 @@ One question: what's the one thing that would make Mentiohunt noticeably more us
 I'm building this for founders like you, so your answer directly shapes what gets built next :)
 
 ${signoff},
-Nico`,
+Nico
+Founder @ Mentiohunt`,
       }
   }
 }

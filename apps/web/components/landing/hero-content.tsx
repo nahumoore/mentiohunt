@@ -1,9 +1,10 @@
 "use client"
 
 import { IconArrowRight, IconStar } from "@tabler/icons-react"
-import { motion } from "framer-motion"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
+import { useEffect, useState } from "react"
 
 import { Button } from "@workspace/ui/components/button"
 import { HeroDemoVideo } from "./hero-demo-video"
@@ -17,8 +18,50 @@ const fadeUp = {
   animate: { opacity: 1, y: 0 },
 }
 
+const heroTestimonials = [
+  {
+    author: "Alex Chen",
+    quote: "It found better prospects than I would have, nice!",
+    avatar: "/landing/user_1.webp",
+  },
+  {
+    author: "Sarah Mitchell",
+    quote:
+      "I love how automated it is, I didn't have to do anything beside adding my website.",
+    avatar: "/landing/user_2.webp",
+  },
+  {
+    author: "Marcus Johnson",
+    quote:
+      "It's like having an agent that does all the outreach for you. I like it.",
+    avatar: "/landing/user_3.webp",
+  },
+  {
+    author: "Elena Rodriguez",
+    quote: "Finally, I can't stop using spreadsheet for link building.",
+    avatar: "/landing/user_4.webp",
+  },
+]
+
 /** Left: eyebrow → heading → subtitle → CTA → trusted-by. Right: organic visibility illustration. */
 export function HeroContent() {
+  const [activeTestimonial, setActiveTestimonial] = useState(0)
+  const [isTestimonialPaused, setIsTestimonialPaused] = useState(false)
+  const shouldReduceMotion = useReducedMotion()
+
+  useEffect(() => {
+    if (shouldReduceMotion || isTestimonialPaused) return
+
+    const interval = window.setInterval(() => {
+      setActiveTestimonial((current) => (current + 1) % heroTestimonials.length)
+    }, 4000)
+
+    return () => window.clearInterval(interval)
+  }, [isTestimonialPaused, shouldReduceMotion])
+
+  const testimonial =
+    heroTestimonials[activeTestimonial] ?? heroTestimonials[0]!
+
   return (
     <div className="grid w-full grid-cols-1 gap-16 lg:grid-cols-[1fr_1.05fr] lg:items-center">
       {/* Copy column — left aligned */}
@@ -33,7 +76,7 @@ export function HeroContent() {
           <span className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
             Automated link building tool
           </span>
-          <span className="h-px flex-1 max-w-16 bg-(--color-blaze-orange)/40" />
+          <span className="h-px max-w-16 flex-1 bg-(--color-blaze-orange)/40" />
         </motion.div>
 
         <motion.h1
@@ -47,7 +90,7 @@ export function HeroContent() {
           <br />
           authority
           <br />
-          <span className="relative inline-block whitespace-nowrap bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
+          <span className="relative inline-block bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text whitespace-nowrap text-transparent">
             while you sleep.
             <svg
               className="absolute -bottom-5 left-0 w-full text-(--color-blaze-orange)"
@@ -73,11 +116,16 @@ export function HeroContent() {
           animate="animate"
           transition={{ duration: 0.55, delay: 0.16, ease }}
         >
-          We find sites where your content fits and run outreach in
-          auto-pilot to earn you backlinks — growing the authority that gets
-          you ranked and cited by{" "}
-          <span className="sr-only">Gemini, ChatGPT, Claude, and Perplexity — AI search.</span>
-          <span className="inline-flex items-center align-middle" aria-hidden="true">
+          We find sites where your content fits and run outreach in auto-pilot
+          to earn you backlinks — growing the authority that gets you ranked and
+          cited by{" "}
+          <span className="sr-only">
+            Gemini, ChatGPT, Claude, and Perplexity — AI search.
+          </span>
+          <span
+            className="inline-flex items-center align-middle"
+            aria-hidden="true"
+          >
             {[
               { domain: "gemini.google.com", label: "Gemini" },
               { domain: "chatgpt.com", label: "ChatGPT" },
@@ -127,50 +175,79 @@ export function HeroContent() {
           </Link>
         </motion.div>
 
-        {/* Trusted-by — under the CTA */}
+        {/* Rotating social proof — under the CTA */}
         <motion.div
-          className="mt-8 flex flex-col items-start gap-2"
+          className="mt-8 flex flex-col items-start gap-3"
           variants={fadeUp}
           initial="initial"
           animate="animate"
           transition={{ duration: 0.55, delay: 0.32, ease }}
         >
-          <div className="flex items-center gap-3">
-            <div className="flex items-center">
-              {[
-                { src: "/landing/user_1.webp", label: "Mentiohunt user" },
-                { src: "/landing/user_2.webp", label: "Mentiohunt user" },
-                { src: "/landing/user_3.webp", label: "Mentiohunt user" },
-                { src: "/landing/user_4.webp", label: "Mentiohunt user" },
-              ].map(({ src, label }, i) => (
-                <div
-                  key={src}
-                  className="relative h-11 w-11 overflow-hidden rounded-full border-[2.5px] border-background shadow-md"
-                  style={{ marginLeft: i === 0 ? 0 : "-0.75rem" }}
+          <div
+            className="flex w-full max-w-[34rem] flex-wrap items-center gap-x-3 gap-y-2 sm:flex-nowrap sm:gap-4"
+            onMouseEnter={() => setIsTestimonialPaused(true)}
+            onMouseLeave={() => setIsTestimonialPaused(false)}
+            onFocus={() => setIsTestimonialPaused(true)}
+            onBlur={() => setIsTestimonialPaused(false)}
+          >
+            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border-[2.5px] border-background shadow-md">
+              <AnimatePresence initial={false} mode="wait">
+                <motion.div
+                  key={testimonial.avatar}
+                  className="absolute inset-0"
+                  initial={{ opacity: 0, scale: 1.08 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.94 }}
+                  transition={{ duration: 0.35, ease }}
                 >
-                  <Image src={src} alt={label} fill className="object-cover" />
-                </div>
-              ))}
+                  <Image
+                    src={testimonial.avatar}
+                    alt={`${testimonial.author}`}
+                    fill
+                    sizes="44px"
+                    className="object-cover"
+                  />
+                </motion.div>
+              </AnimatePresence>
             </div>
-            <div className="flex items-center gap-1">
+
+            <div
+              className="min-w-0 flex-1 overflow-hidden"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              <AnimatePresence initial={false} mode="wait">
+                <motion.p
+                  key={testimonial.author}
+                  className="text-sm leading-5 font-medium text-muted-foreground italic"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, ease }}
+                >
+                  {testimonial.quote}
+                  <span className="sr-only">— {testimonial.author}</span>
+                </motion.p>
+              </AnimatePresence>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1">
               {[...Array(5)].map((_, i) => (
                 <IconStar
                   key={i}
-                  size={18}
+                  size={17}
                   className="fill-amber-400 text-amber-400"
                 />
               ))}
               <span className="ml-1.5 text-lg font-bold text-foreground">
-                4.9
+                4.8
               </span>
               <span className="font-medium text-muted-foreground">/5</span>
             </div>
           </div>
           <p className="text-sm font-medium text-muted-foreground">
             Trusted by{" "}
-            <span className="font-semibold text-foreground">
-              100+ founders
-            </span>{" "}
+            <span className="font-semibold text-foreground">+700 founders</span>{" "}
             earning relevant backlinks
           </p>
         </motion.div>

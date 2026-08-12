@@ -10,7 +10,7 @@ export type BillingTier = "free" | "pro" | "agency"
 
 const PLAN_NAMES: Record<Exclude<BillingTier, "free">, string> = {
   pro: "Pro",
-  agency: "Growth",
+  agency: "Agency",
 }
 
 function planName(tier: BillingTier | null): string {

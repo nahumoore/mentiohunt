@@ -10,15 +10,15 @@ GSC note: `google-index-checker` gets impressions (105) but ranks pos ~84 — ge
 
 ## Build (low KD, buildable, product-aligned)
 
-| Slug | Primary keyword | Vol | KD | Secondary | Why it fits |
-| --- | --- | --- | --- | --- | --- |
-| `free-tools/guest-post-sites-finder` (DONE) | guest posting sites | 390 | 3 | guest post sites list (90, KD16) | Best opportunity. Curated/searchable guest-post sites per niche. Pairs with `directory-backlink-opportunity-finder`. Feeds the opportunity queue. |
-| `free-tools/outreach-email-generator` (DONE) | outreach email template | 170 | 6 | cold email generator (70, KD14) · link building outreach email (50, KD9) | Product already generates outreach drafts — strongest product CTA of the set. |
-| `free-tools/anchor-text-generator` (DONE) | anchor text generator | 30 | low | — | Niche, cheap. Generates varied/safe anchors. Low effort, fills topical gap. |
-| `free-tools/dofollow-link-checker` (DONE) | do-follow backlink checker | 320 | 22 | — | Dofollow vs nofollow checker for qualifying prospects. |
-| `free-tools/bulk-email-verifier` (DONE) | bulk email verifier free | 390 | 19 | free bulk email verifier (390, KD19) | Verify contact emails before sending — direct tie to the scraper's contact-enrichment step. Cleaner fit than a generic email finder. |
-| `free-tools/backlink-monitor` | backlink monitoring tool | 720 | 36 | backlink monitor tool (720, same SERP) | Ties directly to the paid Link Tracker feature — free single-domain snapshot, upsell to full daily monitoring. |
-| `free-tools/press-release-generator` | press release generator | 70 | 14 | press release template (4,400, KD14 — informational, template-download intent) | Cheap, template-driven. Loosest product tie of the set (SaaS-launch PR angle) but very low KD for the volume. |
+| Slug                                         | Primary keyword            | Vol | KD  | Secondary                                                                      | Why it fits                                                                                                                                       |
+| -------------------------------------------- | -------------------------- | --- | --- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `free-tools/guest-post-sites-finder` (DONE)  | guest posting sites        | 390 | 3   | guest post sites list (90, KD16)                                               | Best opportunity. Curated/searchable guest-post sites per niche. Pairs with `directory-backlink-opportunity-finder`. Feeds the opportunity queue. |
+| `free-tools/outreach-email-generator` (DONE) | outreach email template    | 170 | 6   | cold email generator (70, KD14) · link building outreach email (50, KD9)       | Product already generates outreach drafts — strongest product CTA of the set.                                                                     |
+| `free-tools/anchor-text-generator` (DONE)    | anchor text generator      | 30  | low | —                                                                              | Niche, cheap. Generates varied/safe anchors. Low effort, fills topical gap.                                                                       |
+| `free-tools/dofollow-link-checker` (DONE)    | do-follow backlink checker | 320 | 22  | —                                                                              | Dofollow vs nofollow checker for qualifying prospects.                                                                                            |
+| `free-tools/bulk-email-verifier` (DONE)      | bulk email verifier free   | 390 | 19  | free bulk email verifier (390, KD19)                                           | Verify contact emails before sending — direct tie to the scraper's contact-enrichment step. Cleaner fit than a generic email finder.              |
+| `free-tools/backlink-monitor` (DONE)         | backlink monitoring tool   | 720 | 36  | backlink monitor tool (720, same SERP)                                         | Ties directly to the paid Link Tracker feature — free single-domain snapshot, upsell to full daily monitoring.                                    |
+| `free-tools/press-release-generator`         | press release generator    | 70  | 14  | press release template (4,400, KD14 — informational, template-download intent) | Cheap, template-driven. Loosest product tie of the set (SaaS-launch PR angle) but very low KD for the volume.                                     |
 
 ### Priority order
 
@@ -34,21 +34,21 @@ GSC note: `google-index-checker` gets impressions (105) but ranks pos ~84 — ge
 
 Dominated by Ahrefs/Moz/Semrush or need an index we don't run:
 
-| Keyword | Vol | KD | Reason |
-| --- | --- | --- | --- |
-| domain authority checker | 12,100 | 72 | Big-tool SERP, needs DA index |
-| website authority checker | 12,100 | 55 | Same |
-| da pa checker | 9,900 | 66 | Same |
-| domain rating checker | 1,900 | 32 | Needs DR/backlink index |
-| free backlink checker | 2,900 | 81 | Needs full backlink index |
-| email finder tool | 5,400 | 50 | Needs email-finding data infra |
-| email verifier tool free | 880 | 79 | High KD despite decent volume |
-| spam score / toxic backlink checker | 1,600 | 30–48 | Needs a spam-score index; big-tool SERP |
-| backlink generator | 390 | 27–35 | Spammy intent — conflicts with "no guaranteed links" positioning |
-| broken link finder | — | 78 | High KD, big-tool SERP (Ahrefs/Check My Links own it) |
-| expired domain finder/checker | 90–210 | 35–37 | Gray-hat tactic, off-positioning |
-| competitor backlink checker/analysis (all variants) | 40–720 | 49–92 | Overlaps existing `competitor-backlink-gap`; high-vol variants all KD 50+ |
-| guest post pitch template/generator, link building email template, backlink outreach template | ≤10 | — | No measurable volume |
+| Keyword                                                                                       | Vol    | KD    | Reason                                                                    |
+| --------------------------------------------------------------------------------------------- | ------ | ----- | ------------------------------------------------------------------------- |
+| domain authority checker                                                                      | 12,100 | 72    | Big-tool SERP, needs DA index                                             |
+| website authority checker                                                                     | 12,100 | 55    | Same                                                                      |
+| da pa checker                                                                                 | 9,900  | 66    | Same                                                                      |
+| domain rating checker                                                                         | 1,900  | 32    | Needs DR/backlink index                                                   |
+| free backlink checker                                                                         | 2,900  | 81    | Needs full backlink index                                                 |
+| email finder tool                                                                             | 5,400  | 50    | Needs email-finding data infra                                            |
+| email verifier tool free                                                                      | 880    | 79    | High KD despite decent volume                                             |
+| spam score / toxic backlink checker                                                           | 1,600  | 30–48 | Needs a spam-score index; big-tool SERP                                   |
+| backlink generator                                                                            | 390    | 27–35 | Spammy intent — conflicts with "no guaranteed links" positioning          |
+| broken link finder                                                                            | —      | 78    | High KD, big-tool SERP (Ahrefs/Check My Links own it)                     |
+| expired domain finder/checker                                                                 | 90–210 | 35–37 | Gray-hat tactic, off-positioning                                          |
+| competitor backlink checker/analysis (all variants)                                           | 40–720 | 49–92 | Overlaps existing `competitor-backlink-gap`; high-vol variants all KD 50+ |
+| guest post pitch template/generator, link building email template, backlink outreach template | ≤10    | —     | No measurable volume                                                      |
 
 Checked and confirmed not worth building: guest post finder (10 vol), resource page finder / unlinked mentions finder / free ai backlink generator (no measurable volume), guest blogging variants (all ≤480 vol, informational, overlaps existing guest-post-sites-finder).
 

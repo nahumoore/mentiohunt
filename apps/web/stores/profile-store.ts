@@ -19,7 +19,9 @@ export type DashboardProfile = Pick<
 
 type ProfileStore = {
   profile: DashboardProfile | null
+  optimisticTier: DashboardProfile["tier"] | null
   setProfile: (profile: DashboardProfile | null) => void
+  optimisticallySetTier: (tier: DashboardProfile["tier"]) => void
   /**
    * Marks the walkthrough as seen locally so it doesn't re-open on the next
    * client navigation, before the server profile is re-fetched.
@@ -30,12 +32,43 @@ type ProfileStore = {
 
 export const useProfileStore = create<ProfileStore>()((set) => ({
   profile: null,
-  setProfile: (profile) => set({ profile }),
+  optimisticTier: null,
+  setProfile: (profile) =>
+    set((state) => {
+      if (!state.optimisticTier || !profile) {
+        return { profile }
+      }
+
+      if (profile.tier === state.optimisticTier) {
+        return { profile, optimisticTier: null }
+      }
+
+      return {
+        profile: {
+          ...profile,
+          tier: state.optimisticTier,
+          active_trial: false,
+        },
+      }
+    }),
+  optimisticallySetTier: (tier) =>
+    set((state) => {
+      if (state.profile?.tier === tier && state.optimisticTier === null) {
+        return state
+      }
+
+      return {
+        optimisticTier: tier,
+        profile: state.profile
+          ? { ...state.profile, tier, active_trial: false }
+          : null,
+      }
+    }),
   markWalkthroughSeenLocally: (seenAt) =>
     set((state) =>
       state.profile && state.profile.walkthrough_seen_at === null
         ? { profile: { ...state.profile, walkthrough_seen_at: seenAt } }
         : state
     ),
-  clearProfile: () => set({ profile: null }),
+  clearProfile: () => set({ profile: null, optimisticTier: null }),
 }))

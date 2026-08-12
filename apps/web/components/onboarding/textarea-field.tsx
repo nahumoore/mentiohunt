@@ -35,7 +35,7 @@ export function TextareaField({
       ) : (
         <Textarea
           className={cn(
-            "min-h-[120px] bg-muted/40 px-4 py-3 leading-6",
+            "min-h-[120px] px-4 py-3 leading-6",
             error ? "border-destructive" : "border-border"
           )}
           value={value}

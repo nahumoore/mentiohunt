@@ -253,14 +253,9 @@ function EmailMock() {
               />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <p className="truncate text-sm font-semibold text-foreground">
-                  Jordan Reyes
-                </p>
-                <span className="shrink-0 text-[11px] font-medium text-(--color-blaze-orange)">
-                  2m ago
-                </span>
-              </div>
+              <p className="truncate text-sm font-semibold text-foreground">
+                Jordan Reyes
+              </p>
               <p className="truncate text-xs text-foreground">
                 <span className="font-medium">Re: Link building guide</span>
                 <span className="text-muted-foreground">
@@ -269,7 +264,12 @@ function EmailMock() {
                 </span>
               </p>
             </div>
-            <span className="size-2 shrink-0 rounded-full bg-(--color-blaze-orange)" />
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="text-[11px] font-medium text-(--color-blaze-orange)">
+                2m ago
+              </span>
+              <span className="size-2 shrink-0 rounded-full bg-(--color-blaze-orange)" />
+            </div>
           </div>
 
           {/* older, already-read emails for context */}
@@ -336,38 +336,65 @@ function EmailMock() {
   )
 }
 
+function faviconUrl(domain: string) {
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+}
+
+const TRACKER_ROWS = [
+  {
+    domain: "growthblog.io",
+    title: "growthblog.io/resources",
+    url: "https://growthblog.io/resources",
+    status: "live" as const,
+  },
+  {
+    domain: "indiehackers.co",
+    title: "indiehackers.co/tools",
+    url: "https://indiehackers.co/tools",
+    status: "removed" as const,
+  },
+]
+
 /** Link tracker: two rows matching link-status-chip.tsx's color scheme. */
 function TrackerMock() {
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-blaze-orange)/8 text-(--color-blaze-orange)">
-            <IconRadar2 className="size-4" />
-          </span>
-          <p className="truncate text-sm font-medium text-foreground">
-            growthblog.io/resources
-          </p>
+      {TRACKER_ROWS.map((row) => (
+        <div
+          key={row.domain}
+          className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm"
+        >
+          <div className="flex min-w-0 items-center gap-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={faviconUrl(row.domain)}
+              alt=""
+              width={18}
+              height={18}
+              className="size-[18px] shrink-0 rounded-sm"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-foreground">
+                {row.title}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {row.url}
+              </p>
+            </div>
+          </div>
+          {row.status === "live" ? (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-[11px] font-semibold text-green-600">
+              <IconCircleCheck className="size-3" />
+              Live
+            </span>
+          ) : (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-red-500/10 px-2 py-1 text-[11px] font-semibold text-red-600">
+              <IconLinkOff className="size-3" />
+              Removed · 3d ago
+            </span>
+          )}
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-[11px] font-semibold text-green-600">
-          <IconCircleCheck className="size-3" />
-          Live
-        </span>
-      </div>
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-blaze-orange)/8 text-(--color-blaze-orange)">
-            <IconRadar2 className="size-4" />
-          </span>
-          <p className="truncate text-sm font-medium text-foreground">
-            indiehackers.co/tools
-          </p>
-        </div>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-red-500/10 px-2 py-1 text-[11px] font-semibold text-red-600">
-          <IconLinkOff className="size-3" />
-          Removed · 3d ago
-        </span>
-      </div>
+      ))}
     </div>
   )
 }

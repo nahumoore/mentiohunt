@@ -6,7 +6,6 @@ import {
   IconArrowRight,
   IconCalendar,
   IconCheck,
-  IconCircleCheck,
   IconCrown,
   IconExternalLink,
   IconLoader2,
@@ -144,7 +143,7 @@ export default function BillingPage() {
           Available plans
         </p>
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid overflow-hidden rounded-[1.5rem] border border-border bg-card sm:grid-cols-2">
           {PLANS.map((plan, planIndex) => {
             const isCurrent = plan.tier === profile?.tier
             const isFeatured = plan.popular
@@ -160,98 +159,86 @@ export default function BillingPage() {
             return (
               <article
                 key={plan.key}
-                className={`relative flex flex-col overflow-hidden rounded-[1.5rem] border p-6 transition duration-300 hover:-translate-y-0.5 ${
-                  isCurrent
-                    ? "border-border bg-card shadow-[0_4px_20px_-8px_rgba(0,0,0,0.1)]"
-                    : isFeatured
-                      ? "border-blaze-orange/30 bg-gradient-to-br from-blaze-orange/9 via-card to-amber-flame/6 shadow-[0_16px_56px_-32px_rgba(255,84,0,0.45)]"
-                      : "border-border bg-card shadow-[0_4px_20px_-8px_rgba(0,0,0,0.1)]"
+                className={`flex flex-col gap-6 p-6 sm:p-8 ${
+                  planIndex === 0
+                    ? "border-b border-border sm:border-r sm:border-b-0"
+                    : "bg-muted/40"
                 }`}
               >
-                {isCurrent && (
-                  <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500/70 to-emerald-400/30" />
-                )}
-                {!isCurrent && isFeatured && (
-                  <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-crimson-carrot via-blaze-orange to-amber-flame" />
-                )}
-
-                <div className="flex items-start justify-between gap-3">
-                  <div>
+                <div>
+                  <div className="flex items-center justify-between gap-3">
                     <p className="text-[0.68rem] font-bold text-(--color-blaze-orange) uppercase">
                       {plan.name}
                     </p>
-                    <h2 className="mt-3 font-heading text-4xl font-semibold tracking-tight text-foreground">
-                      ${plan.price}
-                      <span className="ml-1 text-sm font-medium tracking-normal text-muted-foreground">
-                        /month
+                    {isCurrent ? (
+                      <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[0.65rem] font-semibold text-muted-foreground uppercase">
+                        Current
                       </span>
-                    </h2>
+                    ) : isFeatured ? (
+                      <span className="rounded-full bg-muted px-2.5 py-1 text-[0.65rem] font-semibold text-muted-foreground uppercase">
+                        Popular
+                      </span>
+                    ) : null}
                   </div>
-                  {isCurrent ? (
-                    <span className="mt-0.5 shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-[0.65rem] font-semibold text-muted-foreground">
-                      Current
+                  <h2 className="mt-3 font-heading text-4xl font-semibold tracking-tight text-foreground">
+                    ${plan.price}
+                    <span className="ml-1 text-sm font-medium tracking-normal text-muted-foreground">
+                      /month
                     </span>
-                  ) : isFeatured ? (
-                    <span className="mt-0.5 shrink-0 rounded-full bg-blaze-orange px-2.5 py-1 text-[0.65rem] font-bold text-white shadow-[0_6px_16px_-8px_rgba(255,84,0,0.8)]">
-                      Popular
-                    </span>
-                  ) : null}
-                </div>
-
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  {plan.description}
-                </p>
-
-                <div className="my-5 h-px bg-gradient-to-r from-border via-border to-transparent" />
-
-                {previousPlan && (
-                  <p className="mb-3 text-sm font-semibold text-foreground">
-                    Everything in {previousPlan.name}, plus:
+                  </h2>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                    {plan.description}
                   </p>
-                )}
-
-                <ul className="flex-1 space-y-3">
-                  {plan.features.map((feature) => (
-                    <li
-                      key={feature}
-                      className="flex items-start gap-2.5 text-sm leading-5"
-                    >
-                      <IconCircleCheck className="mt-0.5 size-4 shrink-0 text-(--color-blaze-orange)" />
-                      <span className="text-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-6">
-                  {isCurrent ? (
-                    <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-muted/60 py-3 text-sm font-semibold text-muted-foreground">
-                      <IconCheck className="size-4" />
-                      Current plan
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      onClick={() =>
-                        handleSelectPlan(plan.key as "pro" | "agency")
-                      }
-                      className={`group flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 ${
-                        isFeatured
-                          ? "bg-blaze-orange text-white shadow-[0_10px_28px_-14px_rgba(255,84,0,0.75)] hover:bg-[var(--color-blaze-orange-2)]"
-                          : "border border-border bg-background text-foreground hover:border-blaze-orange/30 hover:text-blaze-orange"
-                      }`}
-                    >
-                      {isThisPending ? (
-                        <IconLoader2 className="size-4 animate-spin" />
-                      ) : (
-                        <>
-                          {ctaLabel}
-                          <IconArrowRight className="size-4 transition duration-200 group-hover:translate-x-0.5" />
-                        </>
-                      )}
-                    </button>
-                  )}
                 </div>
+
+                <div className="flex-1">
+                  {previousPlan && (
+                    <p className="mb-3 text-sm font-semibold text-foreground">
+                      Everything in {previousPlan.name}, plus:
+                    </p>
+                  )}
+
+                  <ul className="space-y-3">
+                    {plan.features.map((feature) => (
+                      <li
+                        key={feature}
+                        className="flex items-start gap-2.5 text-sm leading-5"
+                      >
+                        <IconCheck className="mt-0.5 size-4 shrink-0 text-(--color-blaze-orange)" />
+                        <span className="text-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {isCurrent ? (
+                  <div className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-muted/60 py-3 text-sm font-semibold text-muted-foreground">
+                    <IconCheck className="size-4" />
+                    Current plan
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() =>
+                      handleSelectPlan(plan.key as "pro" | "agency")
+                    }
+                    className={`group flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 ${
+                      isFeatured
+                        ? "bg-blaze-orange text-white shadow-[0_10px_28px_-14px_rgba(255,84,0,0.75)] hover:bg-[var(--color-blaze-orange-2)]"
+                        : "border border-border bg-background text-foreground hover:border-blaze-orange/30 hover:text-blaze-orange"
+                    }`}
+                  >
+                    {isThisPending ? (
+                      <IconLoader2 className="size-4 animate-spin" />
+                    ) : (
+                      <>
+                        {ctaLabel}
+                        <IconArrowRight className="size-4 transition duration-200 group-hover:translate-x-0.5" />
+                      </>
+                    )}
+                  </button>
+                )}
               </article>
             )
           })}

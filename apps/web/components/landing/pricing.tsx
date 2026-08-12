@@ -1,8 +1,4 @@
-import {
-  IconArrowRight,
-  IconCircleCheck,
-  IconSparkles,
-} from "@tabler/icons-react"
+import { IconArrowRight, IconCheck, IconSparkles } from "@tabler/icons-react"
 import Link from "next/link"
 
 import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
@@ -39,7 +35,7 @@ export function Pricing() {
           </p>
         </div>
 
-        <div className="mx-auto mt-14 grid max-w-6xl gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-7">
+        <div className="mx-auto mt-14 grid max-w-4xl overflow-hidden rounded-[2rem] border border-border bg-card lg:grid-cols-2">
           {PLANS.map((plan, planIndex) => {
             const isFeatured = plan.popular
             const previousPlan = planIndex > 0 ? PLANS[planIndex - 1] : null
@@ -47,40 +43,35 @@ export function Pricing() {
             return (
               <article
                 key={plan.key}
-                className={`relative flex min-h-full flex-col overflow-hidden rounded-[2rem] border p-6 shadow-[0_18px_70px_-48px_rgba(0,0,0,0.55)] transition duration-300 hover:-translate-y-1 sm:p-8 ${
-                  isFeatured
-                    ? "border-blaze-orange/35 bg-gradient-to-br from-blaze-orange/10 via-card to-amber-flame/8 shadow-[0_26px_90px_-54px_rgba(255,84,0,0.9)]"
-                    : "border-border bg-card"
+                className={`flex flex-col gap-8 p-8 sm:p-11 ${
+                  planIndex === 0
+                    ? "border-b border-border lg:border-r lg:border-b-0"
+                    : "bg-muted/40"
                 }`}
               >
-                {isFeatured && (
-                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-crimson-carrot via-blaze-orange to-amber-flame" />
-                )}
-
-                {isFeatured && (
-                  <div className="absolute top-5 right-5 rounded-full bg-blaze-orange px-3 py-1 text-xs font-bold text-white shadow-[0_12px_28px_-16px_rgba(255,84,0,0.95)]">
-                    Most Popular
-                  </div>
-                )}
-
-                <div className="flex-1">
-                  <div className="max-w-[17rem]">
+                <div>
+                  <div className="flex items-center justify-between gap-3">
                     <p className="text-[0.7rem] font-bold text-blaze-orange uppercase">
                       {plan.name}
                     </p>
-                    <h3 className="mt-4 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
-                      ${plan.price}
-                      <span className="ml-1 text-base font-medium tracking-normal text-muted-foreground">
-                        /month
+                    {isFeatured && (
+                      <span className="rounded-full bg-muted px-3 py-1 text-[0.65rem] font-semibold text-muted-foreground uppercase">
+                        Most popular
                       </span>
-                    </h3>
-                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                      {plan.description}
-                    </p>
+                    )}
                   </div>
+                  <h3 className="mt-4 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
+                    ${plan.price}
+                    <span className="ml-1 text-base font-medium tracking-normal text-muted-foreground">
+                      /month
+                    </span>
+                  </h3>
+                  <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                    {plan.description}
+                  </p>
+                </div>
 
-                  <div className="my-7 h-px bg-gradient-to-r from-border via-border to-transparent" />
-
+                <div className="flex-1">
                   {previousPlan && (
                     <p className="mb-3.5 text-sm font-semibold text-foreground">
                       Everything in {previousPlan.name}, plus:
@@ -93,26 +84,24 @@ export function Pricing() {
                         key={feature}
                         className="flex items-start gap-3 text-sm leading-6 text-foreground"
                       >
-                        <IconCircleCheck className="mt-0.5 h-4.5 w-4.5 shrink-0 text-blaze-orange" />
+                        <IconCheck className="mt-0.5 h-4 w-4 shrink-0 text-blaze-orange" />
                         <span>{feature}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="mt-8">
-                  <Link
-                    href="/signup"
-                    className={`group flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
-                      isFeatured
-                        ? "bg-blaze-orange text-white shadow-[0_16px_38px_-20px_rgba(255,84,0,0.95)] hover:bg-blaze-orange-2"
-                        : "border border-border bg-background text-foreground hover:border-blaze-orange/30 hover:text-blaze-orange"
-                    }`}
-                  >
-                    Start free trial
-                    <IconArrowRight className="ml-2 h-4 w-4 transition duration-200 group-hover:translate-x-1" />
-                  </Link>
-                </div>
+                <Link
+                  href="/signup"
+                  className={`group flex w-full items-center justify-center rounded-full px-6 py-3.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
+                    isFeatured
+                      ? "bg-blaze-orange text-white shadow-[0_16px_38px_-20px_rgba(255,84,0,0.95)] hover:bg-blaze-orange-2"
+                      : "border border-border bg-background text-foreground hover:border-blaze-orange/30 hover:text-blaze-orange"
+                  }`}
+                >
+                  Start free trial
+                  <IconArrowRight className="ml-2 h-4 w-4 transition duration-200 group-hover:translate-x-1" />
+                </Link>
               </article>
             )
           })}

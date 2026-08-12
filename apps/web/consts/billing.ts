@@ -10,7 +10,7 @@ export const FREE_TRIAL_MAX_PAGES = 50
 export const PAID_MAX_URL_SUBMISSIONS_PER_DAY = 20
 
 // Link Tracker: paid-plan only, gated the same way as URL submissions above.
-// Cap is per product (an Growth-tier account with 5 products effectively
+// Cap is per product (an Agency-tier account with 5 products effectively
 // gets more) — generous enough to cover a real backlink portfolio without
 // the nightly sweep's cost scaling unbounded.
 export const TRACKED_LINKS_MAX_PER_PRODUCT = 200
@@ -43,14 +43,11 @@ export const PLANS: Plan[] = [
     description: "For individual founders building their backlink queue.",
     features: [
       "1 website",
-      "Up to 10 competitors tracked",
-      "2 opportunity scans a day (~50 prospects weekly)",
-      "Fit rationale, contacts & ready-to-send drafts",
-      `Submit up to ${PAID_MAX_URL_SUBMISSIONS_PER_DAY} of your own prospect URLs a day`,
-      `Link Tracker — daily monitoring for up to ${TRACKED_LINKS_MAX_PER_PRODUCT} backlinks`,
-      "Export to CSV",
+      "10 competitors tracked",
+      "~25 daily backlink opportunities",
+      `${PAID_MAX_URL_SUBMISSIONS_PER_DAY} manual prospect URL submissions a day`,
+      `${TRACKED_LINKS_MAX_PER_PRODUCT} backlinks monitored daily`,
       "Priority support",
-      `${FREE_TRIAL_DAYS}-day free trial`,
     ],
     popular: true,
   },
@@ -58,13 +55,13 @@ export const PLANS: Plan[] = [
     key: "agency",
     tier: PLAN_TIERS.agency,
     stripePriceId: "price_1TYvkzHoiNfmn8GhMduOno62",
-    name: "Growth",
+    name: "Agency",
     price: "99",
     description: "For teams managing backlinks across multiple sites.",
     features: [
       "Up to 5 websites",
       "Up to 15 competitors tracked",
-      "3 opportunity scans a day, per website",
+      "~25 daily backlink opportunities, per website",
     ],
     popular: false,
   },

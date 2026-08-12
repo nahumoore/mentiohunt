@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const input = ["Homepage signals:", JSON.stringify(body.site, null, 2)].join("\n")
+    const input = ["Homepage signals:", JSON.stringify(body.site)].join("\n")
     const output = await generateText({ input, systemInstructions })
     const parsed = productInfoSchema.safeParse(JSON.parse(extractJsonObject(output.text)))
 

@@ -72,11 +72,10 @@ export async function pickTargetPageForUrl(
     keywords: page.keywords.slice(0, 8),
   }))
 
-  const input = `Article:\n${JSON.stringify(
-    { title: article.title || "(no title)", excerpt: (article.text || "(no content)").slice(0, TEXT_EXCERPT_LENGTH) },
-    null,
-    2
-  )}\n\nCandidate pages:\n${JSON.stringify(candidatesPayload, null, 2)}`
+  const input = `Article:\n${JSON.stringify({
+    title: article.title || "(no title)",
+    excerpt: (article.text || "(no content)").slice(0, TEXT_EXCERPT_LENGTH),
+  })}\n\nCandidate pages:\n${JSON.stringify(candidatesPayload)}`
 
   try {
     const choice = await withLlmRetries(log, async () => {

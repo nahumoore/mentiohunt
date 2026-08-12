@@ -78,7 +78,7 @@ async function scoreBatch(
 
   try {
     return await withLlmRetries(log, async () => {
-      const input = `Sites:\n${JSON.stringify(payload, null, 2)}`
+      const input = `Sites:\n${JSON.stringify(payload)}`
       log.info("llm request", {
         model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
         fallbackModels: FALLBACK_MODELS,

@@ -145,7 +145,7 @@ export async function POST(request: Request) {
       parsed.data.productName && `Product name: ${parsed.data.productName}`,
       parsed.data.productDescription && `Product description: ${parsed.data.productDescription}`,
       "Homepage signals:",
-      JSON.stringify(parsed.data.site, null, 2),
+      JSON.stringify(parsed.data.site),
     ]
       .filter(Boolean)
       .join("\n")

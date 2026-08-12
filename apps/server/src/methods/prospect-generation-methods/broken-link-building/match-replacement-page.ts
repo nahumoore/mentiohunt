@@ -50,9 +50,7 @@ ${JSON.stringify(
     description: p.description || "",
     pageType: p.page_type,
     keywords: p.keywords.slice(0, 8),
-  })),
-  null,
-  2
+  }))
 )}
 
 Return ALL items with their chosen target_page_id ("${NO_MATCH}" if nothing fits) and a one-sentence reason.`
@@ -132,7 +130,7 @@ async function matchBatch(
 
   try {
     return await withLlmRetries(log, async () => {
-      const input = `Dead links:\n${JSON.stringify(payload, null, 2)}`
+      const input = `Dead links:\n${JSON.stringify(payload)}`
       const systemInstructions = SYSTEM_INSTRUCTIONS(product, pages)
       log.info("llm request", {
         model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,

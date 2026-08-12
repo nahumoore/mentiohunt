@@ -63,6 +63,28 @@ function limiterFor(modelId: string): LimitFunction {
   return limit
 }
 
+/**
+ * Pins a model to the one OpenRouter endpoint that supports prompt caching,
+ * so repeated prefixes (batched scorers, the scraper agent's growing
+ * conversation) actually get cache hits instead of being load-balanced
+ * across providers on every call. Checked live via OpenRouter's public
+ * `/models/{model}/endpoints` API (2026-08-12): of deepseek-v4-pro's 18
+ * providers, only the "deepseek" tag has `supports_implicit_caching: true`
+ * (also tied for cheapest at $0.435/1M input) — every other provider serves
+ * the model with caching entirely off. `allow_fallbacks: true` keeps the
+ * request from failing outright if that one provider has an outage.
+ */
+const PROVIDER_PIN: Partial<Record<OpenRouterModel, string>> = {
+  [OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO]: "deepseek",
+}
+
+function providerOptionsFor(modelId: string): Record<string, unknown> {
+  const pin = PROVIDER_PIN[modelId as OpenRouterModel]
+  return pin
+    ? { require_parameters: true, order: [pin], allow_fallbacks: true }
+    : { require_parameters: true }
+}
+
 export type GenerateTextOptions = {
   model?: OpenRouterModel
   fallbackModels?: OpenRouterModel[]
@@ -128,7 +150,7 @@ async function callModel(
       messages,
       response_format: responseFormat,
       ...(thinkingBudget ? { reasoning: { max_tokens: thinkingBudget } } : {}),
-      provider: { require_parameters: true },
+      provider: providerOptionsFor(modelId),
       stream: false,
     }),
   })

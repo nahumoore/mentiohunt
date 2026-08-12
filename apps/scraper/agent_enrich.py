@@ -704,7 +704,12 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
             log.warning(f"agent: wall-clock budget ({AGENT_BUDGET_SECONDS}s) exceeded at iteration {iteration + 1}, stopping")
             break
 
-        tools = [_SCRAPE_PAGE_TOOL, _FINISH_TOOL] if pages_scraped < MAX_PAGES else [_FINISH_TOOL]
+        # Tools array stays constant across the whole loop (rather than dropping
+        # scrape_page once the page budget is spent) — the budget is enforced
+        # below instead, in the tool-result handler. A changing `tools` array
+        # invalidates the provider's cached prompt prefix on every later turn,
+        # which is exactly the repeated-context case caching exists for here.
+        tools = [_SCRAPE_PAGE_TOOL, _FINISH_TOOL]
 
         log.info(
             f"agent iteration {iteration + 1}: pages_scraped={pages_scraped}/{MAX_PAGES} "
@@ -820,6 +825,10 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 if time.monotonic() >= deadline:
                     log.warning(f"agent: budget exceeded before scrape_page, skipping {args.get('url')}")
                     messages.append({"role": "tool", "tool_call_id": tc.id, "content": json.dumps({"error": "Budget exceeded"})})
+                    continue
+                if pages_scraped >= MAX_PAGES:
+                    log.warning(f"agent: page limit ({MAX_PAGES}) reached, skipping {args.get('url')}")
+                    messages.append({"role": "tool", "tool_call_id": tc.id, "content": json.dumps({"error": f"Page limit ({MAX_PAGES}) reached, call finish() now"})})
                     continue
                 tool_result = await _execute_scrape_page(
                     url=args.get("url", ""),

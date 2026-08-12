@@ -6,6 +6,8 @@ import { devDiscoverCompetitorBacklinksRouter } from "./dev-discover-competitor-
 import { devDiscoverListicleRoundupsRouter } from "./dev-discover-listicle-roundups.js"
 import { devDiscoverResourcePageInclusionsRouter } from "./dev-discover-resource-page-inclusions.js"
 import { freeToolBrokenLinkBuildingRouter } from "./free-tool-broken-link-building.js"
+import { freeToolBacklinkOpportunityFinderRouter } from "./free-tool-backlink-opportunity-finder.js"
+import { freeToolBacklinkMonitorRouter } from "./free-tool-backlink-monitor.js"
 import { freeToolCompetitorBacklinkGapRouter } from "./free-tool-competitor-backlink-gap.js"
 import { devDiscoverUnlinkedMentionsRouter } from "./dev-discover-unlinked-mentions.js"
 import { devRunDailyBacklinkDiscoveryRouter } from "./dev-run-daily-backlink-discovery.js"
@@ -37,6 +39,8 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(freeToolAuthorContactFinderRouter)
   app.use(freeToolGuestPostSitesRouter)
   app.use(freeToolBrokenLinkBuildingRouter)
+  app.use(freeToolBacklinkOpportunityFinderRouter)
+  app.use(freeToolBacklinkMonitorRouter)
   app.use(onboardingCompleteRouter)
   app.use(prospectManualOutreachRouter)
   app.use(prospectReplyRouter)

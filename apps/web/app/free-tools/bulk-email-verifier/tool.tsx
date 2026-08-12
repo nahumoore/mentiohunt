@@ -347,7 +347,7 @@ export function BulkEmailVerifier() {
           <AutomationCta
             eyebrow="More than a clean list"
             heading="Turn verified contacts into a recurring outreach queue."
-            body="Mentiohunt finds sites worth targeting, verifies the contact during enrichment, and drafts the outreach email — so you approve opportunities instead of cleaning lists by hand."
+            body="Mentiohunt finds sites worth targeting, verifies the contact during enrichment, and schedules personalized outreach — so you monitor the queue instead of cleaning lists by hand."
           />
         </div>
       </section>

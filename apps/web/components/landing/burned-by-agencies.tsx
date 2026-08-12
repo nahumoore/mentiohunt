@@ -10,7 +10,7 @@ type Item = {
 const items: Item[] = [
   {
     icon: IconEye,
-    heading: "See the exact site before anything moves",
+    heading: "See the exact site in the queue",
     detail:
       "You know the domain, the article it would appear in, and the DR before we write a single word of outreach.",
   },
@@ -22,9 +22,9 @@ const items: Item[] = [
   },
   {
     icon: IconMailCheck,
-    heading: "Review the email draft before it goes out",
+    heading: "See the outreach draft as it runs",
     detail:
-      "Nothing sends without your approval. You read the pitch, edit if you want, then approve with one click.",
+      "Every opportunity includes the draft, fit reason, and target context. Monitor the queue and cancel anything that isn't a fit.",
   },
   {
     icon: IconTarget,
@@ -51,7 +51,9 @@ export function BurnedByAgencies() {
             Here&apos;s what&apos;s different.
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            You see the exact site, the fit reason, and the outreach draft before we send a single email. Nothing moves without your approval.
+            You see the exact site, the fit reason, and the outreach draft while
+            Mentiohunt handles sending automatically. Cancel anything that
+            isn&apos;t a fit; when someone replies, the conversation is yours.
           </p>
         </div>
 

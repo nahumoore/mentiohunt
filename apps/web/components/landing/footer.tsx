@@ -89,8 +89,8 @@ export function Footer() {
               <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
                 Mentiohunt discovers backlink opportunities and runs outreach
                 automatically through a prospect&apos;s first reply. You
-                approve or reject — then take the conversation over yourself
-                once someone responds.
+                monitor the queue and cancel anything that isn&apos;t a fit — then
+                take the conversation over yourself once someone responds.
               </p>
 
               <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -156,9 +156,9 @@ export function Footer() {
               </p>
             </div>
             <p className="max-w-xs text-sm leading-6 text-muted-foreground">
-              Managed backlink placements for lean B2B SaaS teams. We handle
-              discovery and outreach through the first reply — you approve or
-              reject, and take it from there.
+              Backlink outreach autopilot for lean B2B SaaS teams. We handle
+              discovery and outreach through the first reply — you monitor the
+              queue, cancel bad fits, and take it from there.
             </p>
             <div className="space-y-1 text-xs leading-5 text-muted-foreground/65">
               <p>Made with ❤️ from 🇺🇸</p>

@@ -399,8 +399,8 @@ export function DofollowLinkChecker() {
                   <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
                     Mentiohunt surfaces backlink opportunities, finds the site
                     owner contact details, and drafts the outreach email per
-                    opportunity — so you approve or reject, not check links by
-                    hand.
+                    opportunity — so you monitor the queue and cancel bad
+                    fits, not check links by hand.
                   </p>
                   <Button
                     asChild
@@ -425,7 +425,7 @@ export function DofollowLinkChecker() {
           <AutomationCta
             eyebrow="More than one page"
             heading="Turn dofollow link checks into a recurring backlink queue."
-            body="Mentiohunt finds the sites worth targeting, surfaces contact details, and generates the outreach draft — so you approve placements instead of checking links one page at a time."
+            body="Mentiohunt finds the sites worth targeting, surfaces contact details, and schedules the outreach automatically — so you monitor the queue instead of checking links one page at a time."
           />
         </div>
       </section>

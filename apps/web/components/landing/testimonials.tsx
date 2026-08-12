@@ -45,7 +45,7 @@ const testimonials = [
   },
   {
     quote:
-      "We're a two-person team. There's no way we'd run link building ourselves. Mentiohunt handles the prospecting and outreach — we just approve what makes sense and skip what doesn't.",
+      "We're a two-person team. There's no way we'd run link building ourselves. Mentiohunt handles the prospecting and outreach — we monitor the queue and cancel what doesn't make sense.",
     author: "Owen Brooks",
     role: "Growth, Draftbase",
     avatar: "/landing/user_6.jpg",

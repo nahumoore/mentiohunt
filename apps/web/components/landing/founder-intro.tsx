@@ -136,7 +136,9 @@ export function FounderIntro() {
                 <p>
                   So I built Mentiohunt to handle that part. Give it your site,
                   it finds opportunities, explains why they fit, and runs the
-                  outreach. You just approve or reject — nothing else required.
+                  outreach automatically. You just monitor the queue, cancel
+                  anything that isn&apos;t a fit, and take over when someone
+                  replies.
                 </p>
               </div>
 

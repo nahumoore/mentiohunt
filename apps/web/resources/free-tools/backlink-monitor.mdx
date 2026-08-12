@@ -1,0 +1,43 @@
+---
+title: "Backlink Monitor — Free Tool"
+description: "Paste your domain and the pages where you have backlinks, and check right now which ones are still live, gone nofollow, or dropped — free with no login required."
+slug: "backlink-monitor"
+date: "2026-08-12"
+dateModified: "2026-08-12"
+author: "Nicolas More"
+tags: ["backlink monitoring tool", "backlink monitor", "link tracking", "lost backlinks", "link building", "seo", "free tool"]
+category: "Free Tool"
+faqs:
+  - question: "What is a backlink monitoring tool?"
+    answer: "A backlink monitoring tool checks whether links you've already earned are still live on the pages that gave them to you — as opposed to a backlink checker, which discovers new links pointing at a domain. Monitoring answers \"is this specific link still there,\" not \"who links to me.\""
+  - question: "Why do backlinks get removed after they're live?"
+    answer: "Sites redesign, archive old posts, run content cleanups, or a CMS migration drops outbound links without anyone noticing. A link can also quietly go from dofollow to nofollow if a site adds rel attributes site-wide, or the page itself can go down entirely. None of these show up unless something actually rechecks the page."
+  - question: "How is this different from a backlink checker?"
+    answer: "A backlink checker crawls a backlink index to find sites linking to a domain you didn't know about — useful for discovery, but it only shows a snapshot from whenever that index last crawled the page. This tool re-fetches the exact pages you list, right now, and tells you the live status of the specific link you're expecting — dofollow, nofollow, removed, or the page itself down."
+  - question: "How many backlinks can I check for free?"
+    answer: "Up to 15 URLs per check, a handful of checks per day. That's enough to spot-check the links you care about most. For ongoing coverage across every backlink you've earned, Link Tracker runs the same check daily on up to 200 links per site and alerts you the moment something changes."
+  - question: "What counts as a 'lost' backlink?"
+    answer: "Three different things get lumped into 'lost' and they call for different responses: the link was removed but the page still loads (someone edited the content), the link went nofollow (a rel attribute changed, ranking credit stopped passing), or the whole source page is dead (404, taken down, or the domain expired). This tool tells you which of the three actually happened."
+---
+
+## Why a live check beats a stale snapshot
+
+Most "backlink checker" tools show you data from whenever their index last crawled a page — that can be weeks or months old. If a site quietly removed your link last month, a stale index still shows it as live. This tool skips the index and fetches the actual page right now, so the status you see is the status today.
+
+## What it checks per link
+
+For each page URL you paste, it looks for a link pointing at your domain and reports one of:
+
+- **Live · dofollow** — the link is there, no nofollow-family `rel` attribute, still passing ranking signal.
+- **Live · nofollow** — the link is there but marked `nofollow`, `ugc`, or `sponsored`.
+- **Link removed** — the page loads fine, but your link is no longer on it.
+- **Page down** — the source page itself returns an error or won't load.
+- **Couldn't check** — a transient fetch issue (rare); rerun the check if you see this.
+
+## How to use it after a placement lands
+
+Whenever an outreach effort lands a new link — a guest post goes live, a resource page adds you, a journalist links your product — save the page URL. Come back and paste your list here every so often to confirm nothing quietly broke. It's the same idea as checking [dofollow vs nofollow](/free-tools/dofollow-link-checker) on a single page, just applied across every placement you've earned at once.
+
+## Why a one-time check isn't enough
+
+Running this manually catches problems whenever you remember to run it — which for most people is "after noticing a ranking drop," well after the link actually disappeared. [Link Tracker](/pricing) runs this exact check daily across up to 200 backlinks per site and emails you the day a link goes nofollow, gets removed, or its source page dies — so the gap between "it broke" and "you know it broke" is a day, not a quarter.

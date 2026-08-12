@@ -7,12 +7,12 @@ export const LANDING_FAQS: FaqItem[] = [
   {
     question: "What is Mentiohunt?",
     answer:
-      "Mentiohunt is a managed backlink placement autopilot for founder-led B2B SaaS teams. It runs prospect discovery and outreach automatically, up to a prospect's first reply — then you take the conversation over yourself. Your job is to approve or reject opportunities before anything goes live, and to reply once someone responds.",
+      "Mentiohunt is a backlink outreach autopilot for founder-led B2B SaaS teams. It runs prospect discovery and outreach automatically, up to a prospect's first reply — then you take the conversation over yourself. You monitor the opportunity queue and cancel anything that isn't a fit.",
   },
   {
     question: "How does it work?",
     answer:
-      "You provide your site or article URLs. Mentiohunt runs daily discovery to find websites where your content is a relevant fit, surfaces contact details, and runs outreach on your behalf. Every opportunity includes a fit rationale, placement angle, and expected SEO value before you approve it.",
+      "You provide your site or article URLs. Mentiohunt runs daily discovery to find websites where your content is a relevant fit, surfaces contact details, and schedules outreach automatically. Every opportunity includes a fit rationale, placement angle, and expected SEO value so you can monitor the queue and cancel anything that isn't a fit.",
   },
   {
     question: "Who replies once a prospect responds?",
@@ -20,9 +20,9 @@ export const LANDING_FAQS: FaqItem[] = [
       "You do. Mentiohunt automates discovery, sending, and follow-ups right up to the first reply. The moment a prospect responds, we pause the automated sequence and hand the thread to you — you reply from your own connected mailbox so it stays a real, person-to-person conversation instead of coming from a shared outreach inbox.",
   },
   {
-    question: "How does the approval workflow work?",
+    question: "How do I control what gets sent?",
     answer:
-      "Every opportunity is surfaced to you before outreach starts. You see the target site, why it's a fit, and the outreach angle. Approve to proceed, reject to skip. Nothing goes live without your sign-off — approval is a core product behavior, not an add-on.",
+      "There is no per-email approval step. Outreach is scheduled automatically when a good-fit opportunity is discovered. You can monitor the target site, fit rationale, and outreach draft in the queue, then cancel anything that isn't a fit.",
   },
   {
     question: "How does Mentiohunt score opportunities?",
@@ -32,7 +32,7 @@ export const LANDING_FAQS: FaqItem[] = [
   {
     question: "How is this different from a link building agency?",
     answer:
-      "More transparent and more controllable. You see the target site, fit rationale, and outreach draft before anything goes live. Agencies typically operate as a black box — you pay a retainer and get links without visibility into why. Mentiohunt charges a flat monthly fee, not a commission per link.",
+      "More transparent and more controllable. You see the target site, fit rationale, and outreach draft in the queue while Mentiohunt handles discovery and first-reply outreach automatically. Agencies typically operate as a black box — you pay a retainer and get links without visibility into why. Mentiohunt charges a flat monthly fee, not a commission per link.",
   },
   {
     question: "Is Mentiohunt right for my team size?",
@@ -42,22 +42,22 @@ export const LANDING_FAQS: FaqItem[] = [
   {
     question: "Do you do guest posting?",
     answer:
-      "Yes. Guest posts are one of the placement types we actively target, alongside resource pages, product roundups, and editorial listicles. When you provide your article URLs, we match each one to sites where a guest post would be a natural fit — and draft the pitch for you to approve before anything goes out.",
+      "Yes. Guest posts are one of the placement types we actively target, alongside resource pages, product roundups, and editorial listicles. When you provide your article URLs, we match each one to sites where a guest post would be a natural fit and schedule the pitch automatically. You can cancel any opportunity that isn't a fit.",
   },
   {
     question: "How long until my first placed backlink?",
     answer:
-      "Most customers see their first placed backlink within 14–21 days of setup. Discovery starts immediately after you add your URLs, but placement timelines depend on site owner response rates. We handle follow-ups automatically until a site owner replies — then it's your inbox from there.",
+      "There is no guaranteed placement timeline. Discovery starts immediately after you add your URLs, and Mentiohunt handles follow-ups automatically until a site owner replies — then it's your inbox from there.",
   },
   {
     question: "What's your outreach reply rate?",
     answer:
-      "Reply rates vary by niche and site quality, but we typically see 15–30% on well-matched opportunities. We only surface high-fit prospects — which keeps reply rates higher than spray-and-pray campaigns — and personalize each email to the specific site and angle.",
+      "Reply rates vary by niche, site quality, and the strength of the fit. We focus on high-fit prospects and personalize each email to the specific site and angle, but we don't guarantee a response rate.",
   },
   {
     question: "What does an opportunity card look like?",
     answer:
-      "Each card shows the target site name, domain rating, monthly traffic, a plain-language fit rationale (why your content belongs there), the suggested placement angle, and a ready-to-review email draft. You approve or reject in one click — everything you need is on the card without leaving the dashboard.",
+      "Each card shows the target site name, domain rating, monthly traffic, a plain-language fit rationale (why your content belongs there), the suggested placement angle, and the outreach draft. You can review the context and cancel the opportunity in the dashboard while outreach runs automatically.",
   },
   {
     question: "What if my niche has few link opportunities?",
@@ -67,7 +67,7 @@ export const LANDING_FAQS: FaqItem[] = [
   {
     question: "Are the emails AI-generated?",
     answer:
-      "Email drafts are AI-assisted but personalized per site — not mass-templated. Each draft is tailored to the specific target, placement angle, and fit rationale. You review every draft before it goes out. Nothing sends without your sign-off.",
+      "Email drafts are AI-assisted but personalized per site — not mass-templated. Each draft is tailored to the specific target, placement angle, and fit rationale. Outreach is scheduled automatically, and you can monitor or cancel the opportunity from the queue.",
   },
   {
     question: "What happens when my 7-day free trial ends?",

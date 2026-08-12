@@ -385,8 +385,8 @@ export function BacklinkOutreachEmailGenerator() {
                   <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
                     Mentiohunt surfaces backlink opportunities, finds the site
                     owner contact details, and drafts the outreach email per
-                    opportunity — so you approve or reject, not write from
-                    scratch.
+                    opportunity — so you monitor the queue and cancel bad fits,
+                    not write from scratch.
                   </p>
                   <Button
                     asChild
@@ -411,7 +411,7 @@ export function BacklinkOutreachEmailGenerator() {
           <AutomationCta
             eyebrow="More than one email"
             heading="Turn one outreach email into a recurring backlink queue."
-            body="Mentiohunt finds the sites worth targeting, surfaces contact details, and generates the outreach draft — so you approve placements instead of writing every email by hand."
+            body="Mentiohunt finds the sites worth targeting, surfaces contact details, and schedules personalized outreach — so you monitor the queue instead of writing every email by hand."
           />
         </div>
       </section>

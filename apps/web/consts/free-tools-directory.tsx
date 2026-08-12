@@ -1,4 +1,5 @@
 import {
+  IconActivity,
   IconArticle,
   IconCalculator,
   IconFolderSearch,
@@ -132,6 +133,14 @@ export const FREE_TOOLS_DIRECTORY: FreeToolDirectoryEntry[] = [
       "Paste a list of contact emails and check each for syntax, disposable domains, and role-based addresses before you send outreach to it.",
     icon: IconMailCheck,
   },
+  {
+    slug: FREE_TOOL_NAMES.backlinkMonitor,
+    name: "Backlink Monitor",
+    eyebrow: "Link list to live status",
+    description:
+      "Paste your domain and the pages where you have backlinks, and check right now which ones are still live, gone nofollow, or dropped.",
+    icon: IconActivity,
+  },
 ]
 
 export function getFreeToolEntry(slug: FreeToolName) {
@@ -191,19 +200,24 @@ export const RELATED_FREE_TOOLS: Record<FreeToolName, FreeToolName[]> = {
     FREE_TOOL_NAMES.anchorTextGenerator,
   ],
   [FREE_TOOL_NAMES.dofollowLinkChecker]: [
+    FREE_TOOL_NAMES.backlinkMonitor,
     FREE_TOOL_NAMES.brokenLinkFinder,
     FREE_TOOL_NAMES.googleIndexChecker,
-    FREE_TOOL_NAMES.backlinkPriceCalculator,
   ],
   [FREE_TOOL_NAMES.brokenLinkFinder]: [
+    FREE_TOOL_NAMES.backlinkMonitor,
     FREE_TOOL_NAMES.backlinkOutreachEmailGenerator,
     FREE_TOOL_NAMES.dofollowLinkChecker,
-    FREE_TOOL_NAMES.backlinkOpportunityFinder,
   ],
   [FREE_TOOL_NAMES.bulkEmailVerifier]: [
     FREE_TOOL_NAMES.authorContactFinder,
     FREE_TOOL_NAMES.backlinkOutreachEmailGenerator,
     FREE_TOOL_NAMES.guestPostSitesFinder,
+  ],
+  [FREE_TOOL_NAMES.backlinkMonitor]: [
+    FREE_TOOL_NAMES.dofollowLinkChecker,
+    FREE_TOOL_NAMES.competitorBacklinkGap,
+    FREE_TOOL_NAMES.brokenLinkFinder,
   ],
   // Registered in FREE_TOOL_NAMES but has no live page yet — no related-tools entry needed.
   [FREE_TOOL_NAMES.directoryOpportunityFinder]: [],

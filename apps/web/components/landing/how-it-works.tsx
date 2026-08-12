@@ -47,14 +47,14 @@ const steps: Step[] = [
     eyebrow: "Enrichment",
     title: "We enrich each opportunity",
     description:
-      "For every fit we find, we add the prospect's name, bio, and role — plus a 100% verified email — so you have everything you need before sending a single word.",
+      "For every fit we find, we add the prospect's name, bio, and role — plus the best available contact email — so the automated sequence has the context it needs to start.",
     Illustration: EnrichmentIllustration,
   },
   {
     eyebrow: "Action",
-    title: "We send it, you just review",
+    title: "We send it, you monitor",
     description:
-      "Each opportunity comes with a ready email draft that sends itself — the contact, the send, and the pre-reply follow-ups are all handled automatically. Once a site owner replies, you take the thread over yourself. Pass on anything that isn't a fit. Most customers see their first placed backlink within 14–21 days of setup.",
+      "Each opportunity comes with a ready email draft that sends itself — the contact, the send, and the pre-reply follow-ups are all handled automatically. Once a site owner replies, you take the thread over yourself. Cancel anything that isn't a fit; placement timelines depend on the site owner's response.",
     Illustration: ActionIllustration,
   },
 ]

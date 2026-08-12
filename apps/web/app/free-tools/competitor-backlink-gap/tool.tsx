@@ -664,8 +664,8 @@ export function CompetitorBacklinkGap() {
         <div className="container mx-auto max-w-6xl">
           <AutomationCta
             eyebrow="Stop chasing links by hand"
-            heading="Let Mentiohunt close every gap for you."
-            body="We find the sites, verify the owner's contact, draft the outreach, and coordinate placement. You just approve or reject — every opportunity comes with a fit rationale, not vanity metrics."
+            heading="Turn every gap into a monitored queue."
+            body="We find the sites, verify the owner's contact, draft the outreach, and schedule it automatically. You monitor the queue and cancel anything that isn't a fit — every opportunity comes with a fit rationale, not vanity metrics."
           />
         </div>
       </section>

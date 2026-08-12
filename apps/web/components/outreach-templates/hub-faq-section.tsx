@@ -22,7 +22,7 @@ const HUB_FAQS = [
   {
     question: "Can Mentiohunt send these for me?",
     answer:
-      "That's the product. You hand over your sitemap or article URLs, we find the sites where each article genuinely fits, draft the email, and coordinate placement. You approve or reject.",
+      "That's the product. You hand over your sitemap or article URLs, we find the sites where each article genuinely fits, draft the email, and schedule outreach automatically. You monitor the queue and cancel anything that isn't a fit.",
   },
 ]
 

@@ -597,7 +597,7 @@ export function AuthorContactFinder() {
           <AutomationCta
             eyebrow="More than one lookup"
             heading="Turn author lookups into a recurring outreach queue."
-            body="Mentiohunt finds where your articles fit, surfaces the contact, and drafts the outreach — so you approve or reject, instead of hunting for emails one article at a time."
+            body="Mentiohunt finds where your articles fit, surfaces the contact, and schedules the outreach — so you monitor the queue and cancel bad fits instead of hunting for emails one article at a time."
           />
         </div>
       </section>

@@ -1,6 +1,6 @@
 # Mentiohunt
 
-> Mentiohunt automates backlink prospecting and outreach for founder-led B2B SaaS teams — you take over once a prospect replies. It turns article URLs into a scored opportunity queue — surfacing fit-matched websites, contact details, and outreach drafts so founders can approve placements without running outreach as a full-time job.
+> Mentiohunt automates backlink prospecting and outreach for founder-led B2B SaaS teams — you take over once a prospect replies. It turns article URLs into a scored opportunity queue, surfaces fit-matched websites, contact details, and outreach drafts, then schedules outreach automatically. You monitor the queue and cancel anything that isn't a fit.
 
 ## Primary Pages
 

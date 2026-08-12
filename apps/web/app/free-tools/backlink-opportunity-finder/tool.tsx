@@ -25,7 +25,7 @@ type BacklinkOpportunity = {
   name: string | null
   type: string
   score: number
-  da: number | null
+  dr: number | null
   url: string | null
   reason: string | null
 }
@@ -145,29 +145,43 @@ export function BacklinkOpportunityFinder() {
     setError(null)
     setPhase("loading")
 
-    const [res] = await Promise.all([
-      fetch("/api/free-tool/backlink-opportunity-finder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: trimmedUrl }),
-      }),
-      new Promise((resolve) => window.setTimeout(resolve, 3800)),
-    ])
+    try {
+      const [res] = await Promise.all([
+        fetch("/api/free-tool/backlink-opportunity-finder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: trimmedUrl }),
+        }),
+        new Promise((resolve) => window.setTimeout(resolve, 3800)),
+      ])
 
-    if (!res.ok) {
-      const data = (await res.json()) as { error?: string }
-      setError(data.error ?? "Something went wrong. Please try again.")
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string }
+        setError(data.error ?? "Something went wrong. Please try again.")
+        setPhase("idle")
+        return
+      }
+
+      const data = (await res.json()) as {
+        opportunities: BacklinkOpportunity[]
+        summary?: Summary
+        found?: number
+        scored?: number
+        highFit?: number
+      }
+      setOpportunities(data.opportunities)
+      setSummary(
+        data.summary ?? {
+          found: data.found ?? data.opportunities.length,
+          scored: data.scored ?? data.opportunities.length,
+          highFit: data.highFit ?? data.opportunities.filter((item) => item.score >= 75).length,
+        }
+      )
+      setPhase("results")
+    } catch {
+      setError("The scan could not be completed. Please try again.")
       setPhase("idle")
-      return
     }
-
-    const data = (await res.json()) as {
-      opportunities: BacklinkOpportunity[]
-      summary: Summary
-    }
-    setOpportunities(data.opportunities)
-    setSummary(data.summary)
-    setPhase("results")
   }
 
   const hasResults = phase === "results"
@@ -445,9 +459,9 @@ export function BacklinkOpportunityFinder() {
                               >
                                 {opportunity.type}
                               </span>
-                              {opportunity.da !== null ? (
+                              {opportunity.dr !== null ? (
                                 <span className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-muted-foreground">
-                                  DA {opportunity.da}
+                                  DR {opportunity.dr}
                                 </span>
                               ) : null}
                             </div>

@@ -6,7 +6,13 @@ const PROTECTED_ROUTES = ["/dashboard", "/onboarding"]
 export async function proxy(request: NextRequest) {
   const { supabase, supabaseResponse } = createClient(request)
 
-  const { data: { user } } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    user = null
+  }
 
   const { pathname } = request.nextUrl
 

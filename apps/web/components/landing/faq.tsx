@@ -25,8 +25,8 @@ export function Faq() {
             Common questions
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Everything you need to know before getting started with managed
-            backlink placement.
+            Everything you need to know before getting started with backlink
+            outreach autopilot.
           </p>
         </div>
 

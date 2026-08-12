@@ -96,7 +96,7 @@ export const features: FeaturePage[] = [
       "Backlink prospects sorted by fit",
       "Plain-English rationale for each match",
       "Outreach angle for the recipient",
-      "Draft email copy you can edit before sending",
+      "Ready-to-send draft email per prospect",
     ],
     workflow: [
       {
@@ -112,7 +112,7 @@ export const features: FeaturePage[] = [
       {
         title: "Prepare the outreach",
         description:
-          "Each opportunity includes the reason it fits and a ready-to-edit outreach draft tied to the page angle.",
+          "Each opportunity includes the reason it fits and a ready-to-send outreach draft tied to the page angle.",
       },
     ],
     reasons: [
@@ -168,7 +168,7 @@ export const features: FeaturePage[] = [
       {
         value: 25,
         suffix: "+",
-        label: "backlinks acquired\nevery month",
+        label: "qualified opportunities\nsurfaced monthly",
       },
     ],
     benefits: [
@@ -191,14 +191,14 @@ export const features: FeaturePage[] = [
         eyebrow: "Outreach prep included",
         title: "No blank emails. No guessing what to say.",
         description:
-          "Each opportunity includes a plain-English fit rationale and a ready-to-edit outreach draft tied to your article angle — so you can act on the highest-fit prospect without writing from scratch.",
+          "Each opportunity includes a plain-English fit rationale and a ready-to-send outreach draft tied to your article angle — so the automated sequence can act without you writing from scratch.",
         preview: {
           label: "Draft ready for Founder tools directory",
           items: [
             "Subject line generated from article topic",
             "Fit rationale written in plain English",
             "Outreach body tied to the placement angle",
-            "Edit-before-send — nothing fires automatically",
+            "Automatic outreach — cancel anything that isn't a fit",
           ],
         },
       },
@@ -285,7 +285,7 @@ export const features: FeaturePage[] = [
     outcomes: [
       "Daily prospect queue ranked by topical fit",
       "Fit rationale for every recommendation",
-      "Ready-to-edit outreach draft per prospect",
+      "Ready-to-send outreach draft per prospect",
       "Contact details for the relevant site owner",
     ],
     workflow: [
@@ -300,9 +300,9 @@ export const features: FeaturePage[] = [
           "The software surfaces sites where your article is a topical fit — scored by relevance, not just domain authority. Each result includes a plain-English reason.",
       },
       {
-        title: "Review and send outreach",
+        title: "Outreach runs automatically",
         description:
-          "Each prospect comes with a ready-to-edit email draft. You review, adjust if needed, and approve. Nothing sends without your sign-off.",
+          "Each prospect comes with a ready-to-send email draft. Outreach is scheduled automatically when an opportunity is discovered, and you can cancel anything that isn't a fit.",
       },
     ],
     reasons: [
@@ -329,7 +329,7 @@ export const features: FeaturePage[] = [
       {
         question: "How is this different from a link building agency?",
         answer:
-          "Agencies manage outreach on your behalf, often using opaque networks. Mentiohunt shows you every opportunity, explains why it fits, and lets you approve before anything goes out. You stay in control of your brand voice and outreach quality.",
+          "Agencies manage outreach on your behalf, often using opaque networks. Mentiohunt shows you every opportunity, explains why it fits, and runs first-reply outreach automatically. You stay in control by monitoring the queue and cancelling anything that isn't a fit.",
       },
       {
         question: "What kind of content do I need to start?",
@@ -384,16 +384,16 @@ export const features: FeaturePage[] = [
       },
       {
         eyebrow: "Outreach prep built in",
-        title: "Every prospect ships with a ready-to-edit email draft.",
+        title: "Every prospect ships with a ready-to-send email draft.",
         description:
-          "No blank templates, no copy-paste guesswork. Mentiohunt generates an outreach email tied to the specific article and prospect — including a subject line, fit rationale, and body copy you can edit before sending.",
+          "No blank templates, no copy-paste guesswork. Mentiohunt generates an outreach email tied to the specific article and prospect — including a subject line, fit rationale, and body copy you can inspect in the queue before outreach runs.",
         preview: {
           label: "Draft ready — startup tools directory",
           items: [
             "Subject line derived from article topic",
             "Opening references the specific page on their site",
             "Fit rationale written in plain English",
-            "Nothing sends until you approve",
+            "Outreach sends automatically after discovery",
           ],
         },
       },
@@ -453,12 +453,12 @@ export const features: FeaturePage[] = [
   {
     slug: "backlink-outreach",
     eyebrow: "Backlink outreach",
-    title: "Backlink outreach with every draft written before you ask",
+    title: "Backlink outreach with every draft ready to send",
     shortTitle: "Backlink outreach",
     description:
-      "Mentiohunt surfaces high-fit backlink prospects and prepares a personalized outreach email for each one — so you review and approve, not write from scratch.",
+      "Mentiohunt surfaces high-fit backlink prospects and schedules personalized outreach for each one — so you monitor the queue instead of running campaigns yourself.",
     keyword: "backlink outreach",
-    h2: "The outreach is ready. You just decide what to send.",
+    h2: "The outreach is ready. It sends itself.",
     category: "Backlink building",
     metric: "< 5",
     metricLabel: "minutes from prospect\nto outreach ready",
@@ -467,10 +467,10 @@ export const features: FeaturePage[] = [
     heroCardTitle: "Draft ready — Resource page: Early-stage SaaS tools",
     heroCardDescription:
       "The page already lists founder tools. Your article on go-to-market for B2B SaaS is a topical fit. Draft asks for a one-line mention alongside the listed resources.",
-    sampleLabel: "Review and approve to send",
+    sampleLabel: "Scheduled to send automatically",
     sampleTitle: "Subject: Your resource page + one thing we'd add",
     sampleBody:
-      "Draft opens with a specific reference to their existing resource list, explains why the article fits their audience, and makes a single clear ask. Edit the tone if needed — nothing sends automatically.",
+      "Draft opens with a specific reference to their existing resource list, explains why the article fits their audience, and makes a single clear ask. Outreach is scheduled automatically when the opportunity is discovered.",
     inputs: [
       "Sitemap or article URLs",
       "Competitor domains",
@@ -481,7 +481,7 @@ export const features: FeaturePage[] = [
       "Prospect list ranked by outreach readiness",
       "Personalized email draft per prospect",
       "Fit rationale explaining each opportunity",
-      "Approve-before-send workflow",
+      "Automatic first-reply outreach",
     ],
     workflow: [
       {
@@ -492,12 +492,12 @@ export const features: FeaturePage[] = [
       {
         title: "Draft gets written automatically",
         description:
-          "Each prospect generates an outreach email tied to the specific article and the site's content. Subject line, opening, body, and ask — all pre-written and ready to edit.",
+          "Each prospect generates an outreach email tied to the specific article and the site's content. Subject line, opening, body, and ask — all pre-written and ready for the automated sequence.",
       },
       {
-        title: "Review, edit, approve",
+        title: "Monitor and cancel",
         description:
-          "You see the draft before it goes anywhere. Adjust the tone, rewrite a line, or skip the prospect. Nothing sends without your explicit approval.",
+          "You see the target, fit rationale, and draft in the queue while outreach runs automatically. Cancel the opportunity if it isn't a fit; when the prospect replies, you take over.",
       },
     ],
     reasons: [
@@ -509,7 +509,7 @@ export const features: FeaturePage[] = [
       {
         question: "Does Mentiohunt send emails automatically?",
         answer:
-          "No. Every draft requires your review and approval before anything is sent. The software prepares the outreach — you decide what goes out and when.",
+          "Yes. Outreach is scheduled automatically when an opportunity is discovered and continues through the prospect's first reply. You monitor the queue and can cancel anything that isn't a fit.",
       },
       {
         question: "How personalized are the outreach drafts?",
@@ -522,9 +522,9 @@ export const features: FeaturePage[] = [
           "Mentiohunt doesn't guarantee response rates — those depend on your niche, the quality of your content, and how closely the prospect matches. The software improves your odds by focusing your outreach on sites where a fit already exists, which historically performs better than cold domain lists.",
       },
       {
-        question: "Can I edit the drafts before sending?",
+        question: "Can I see the draft before outreach runs?",
         answer:
-          "Yes. Every draft is editable before approval. You can adjust the tone, rewrite sections, or use it as a starting point and draft your own version — the software gives you a head start, not the final word.",
+          "Yes. The draft is generated from the opportunity context and shown alongside the target and fit rationale. Outreach is scheduled automatically, so cancel the opportunity if it isn't a fit.",
       },
       {
         question: "What types of sites does it prospect for outreach?",
@@ -549,7 +549,7 @@ export const features: FeaturePage[] = [
       {
         value: 100,
         suffix: "%",
-        label: "approve-before-send\ncontrol",
+        label: "monitor-and-cancel\ncontrol",
       },
     ],
     benefits: [
@@ -557,7 +557,7 @@ export const features: FeaturePage[] = [
         eyebrow: "Outreach prep automated",
         title: "Every prospect comes with a personalized email draft.",
         description:
-          "Mentiohunt writes the outreach for each opportunity — subject line, fit rationale, and body copy tied to the specific article and site. You review and approve, not write from scratch.",
+          "Mentiohunt writes the outreach for each opportunity — subject line, fit rationale, and body copy tied to the specific article and site. The sequence sends automatically, so you monitor instead of writing or sending from scratch.",
         preview: {
           label: "Draft ready for: startup tools resource page",
           items: [
@@ -572,7 +572,7 @@ export const features: FeaturePage[] = [
         eyebrow: "Fit-first prospect selection",
         title: "Only reach out where a fit actually exists.",
         description:
-          "Sending outreach to the wrong site wastes your reputation and theirs. Mentiohunt only queues prospects where your article has genuine topical relevance — so every email you approve has a real reason behind it.",
+          "Sending outreach to the wrong site wastes your reputation and theirs. Mentiohunt only queues prospects where your article has genuine topical relevance — and you can cancel anything that still isn't a fit.",
         preview: {
           label: "Prospects ranked by outreach readiness",
           items: [
@@ -584,17 +584,17 @@ export const features: FeaturePage[] = [
         },
       },
       {
-        eyebrow: "Approve-before-send control",
-        title: "Your brand voice. Your approval. Your timeline.",
+        eyebrow: "Monitor-and-cancel control",
+        title: "Your fit standards. Our sending automation.",
         description:
-          "Nothing sends automatically. Every draft goes through your review — you can edit, skip, or come back later. The workflow gives you coverage without giving up control.",
+          "Outreach sends automatically from the warmed sending pool. You can inspect the fit, watch the queue, and cancel an opportunity that isn't right before the next step runs.",
         preview: {
           label: "Outreach queue — this week",
           items: [
-            "4 drafts ready for review",
-            "2 approved and sent",
-            "1 edited and sent with custom opening",
-            "1 skipped — not the right time",
+            "4 opportunities in the outreach queue",
+            "2 sequences running automatically",
+            "1 prospect replied — conversation handed to you",
+            "1 cancelled — not the right fit",
           ],
         },
       },
@@ -615,7 +615,7 @@ export const features: FeaturePage[] = [
         {
           label: "Send control",
           others: "Automated sequences, opt-out",
-          mentiohunt: "Approve before every send",
+          mentiohunt: "Monitor queue, cancel bad fits",
         },
         {
           label: "Fit rationale included",
@@ -873,7 +873,7 @@ export const features: FeaturePage[] = [
       {
         title: "Act on the clearest opportunities",
         description:
-          "Each result includes a fit score, a placement rationale, and a ready-to-edit outreach draft. Start with the highest-scored opportunity and work down the list.",
+          "Each result includes a fit score, a placement rationale, and a ready-to-send outreach draft. Start with the highest-scored opportunity and monitor the sequence from there.",
       },
     ],
     reasons: [

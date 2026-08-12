@@ -58,8 +58,10 @@ export function PricingClientPage({
             </span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Two simple plans for managed backlink placement. We handle
-            discovery and outreach — you approve what goes live.
+            Two simple plans for backlink outreach autopilot. We discover
+            opportunities and run outreach automatically through the first
+            reply — you monitor the queue and cancel anything that isn&apos;t a
+            fit.
           </p>
         </div>
 

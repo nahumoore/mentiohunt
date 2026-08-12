@@ -8,6 +8,7 @@ const log = createLogger("enrich-domain-ratings")
 export async function enrichDomainRatings(domains: string[]): Promise<Map<string, number | null>> {
   const map = new Map<string, number | null>()
   if (domains.length === 0) return map
+  if (!process.env.AHREFS_API_KEY) return map
 
   try {
     const limit = pLimit(5)

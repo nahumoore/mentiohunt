@@ -326,7 +326,7 @@ export function AnchorTextGenerator() {
           <AutomationCta
             eyebrow="More than anchor text"
             heading="Turn anchor diversity into a recurring link building queue."
-            body="Mentiohunt finds the sites worth targeting, surfaces contact details, and generates the outreach draft — so you approve placements instead of hunting for them."
+            body="Mentiohunt finds the sites worth targeting, surfaces contact details, and schedules the outreach automatically — so you monitor the queue instead of hunting for them."
           />
         </div>
       </section>

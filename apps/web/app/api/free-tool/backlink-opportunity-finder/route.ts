@@ -1,77 +1,109 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { checkFreeToolRateLimit, FREE_TOOL_NAMES } from "@/consts/free-tools"
+import { normalizeUrl } from "@/consts/onboarding"
+import { fetchSiteDetails } from "@/lib/onboarding/fetch-site"
 
-const MOCK_OPPORTUNITIES = [
-  {
-    id: "1",
-    domain: "indiehackers.com",
-    name: "Indie Hackers",
-    type: "Community",
-    score: 91,
-    da: 78,
-    url: "https://indiehackers.com",
-    reason:
-      "Active community of bootstrapped founders discussing growth and distribution. Your product fits several recurring threads on backlink building and SEO for early-stage SaaS.",
-  },
-  {
-    id: "2",
-    domain: "ahrefs.com",
-    name: "Ahrefs Blog",
-    type: "Resource Page",
-    score: 87,
-    da: 90,
-    url: "https://ahrefs.com/blog",
-    reason:
-      "Maintains curated resource lists for link building tools. A guest contribution or tool mention in a roundup post would align well with their audience of SEO practitioners.",
-  },
-  {
-    id: "3",
-    domain: "backlinko.com",
-    name: "Backlinko",
-    type: "Link Roundup",
-    score: 84,
-    da: 86,
-    url: "https://backlinko.com",
-    reason:
-      "Publishes link building roundups and tool reviews targeting SEOs and content marketers. High topical overlap with your product's core use case.",
-  },
-  {
-    id: "4",
-    domain: "growthhackers.com",
-    name: "GrowthHackers",
-    type: "Community",
-    score: 79,
-    da: 72,
-    url: "https://growthhackers.com",
-    reason:
-      "Distribution-focused community where founders share outreach tactics. Your product could be featured in discussions on scalable backlink acquisition strategies.",
-  },
-  {
-    id: "5",
-    domain: "niche-site-project.com",
-    name: "Niche Site Project",
-    type: "Niche Blog",
-    score: 76,
-    da: 58,
-    url: "https://nichesiteproject.com",
-    reason:
-      "Covers link building workflows in depth for content site builders. Audience actively seeks tools that reduce manual outreach effort.",
-  },
-  {
-    id: "6",
-    domain: "thegoodcontent.co",
-    name: "The Good Content",
-    type: "Guest Post",
-    score: 71,
-    da: 44,
-    url: "https://thegoodcontent.co",
-    reason:
-      "Accepts guest posts from SaaS founders on growth and distribution topics. Good fit for a tactical piece on using backlink prospecting as a repeatable channel.",
-  },
-]
+export const maxDuration = 300
 
-export async function POST(_req: NextRequest) {
-  return NextResponse.json({
-    opportunities: MOCK_OPPORTUNITIES,
-    summary: { found: 12, scored: 12, highFit: 5 },
+const SERVER_URL = process.env.SERVER_URL ?? "http://localhost:3001"
+
+function getIp(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown"
+  )
+}
+
+export async function POST(req: NextRequest) {
+  const ip = getIp(req)
+  const { allowed, remaining } = checkFreeToolRateLimit(
+    FREE_TOOL_NAMES.backlinkOpportunityFinder,
+    ip
+  )
+
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Daily limit reached. Come back tomorrow." },
+      { status: 429, headers: { "X-RateLimit-Remaining": "0" } }
+    )
+  }
+
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+  }
+
+  const rawUrl =
+    body !== null &&
+    typeof body === "object" &&
+    "url" in body &&
+    typeof (body as Record<string, unknown>).url === "string"
+      ? (body as { url: string }).url.trim()
+      : ""
+
+  if (!rawUrl) {
+    return NextResponse.json({ error: "url is required" }, { status: 400 })
+  }
+
+  const url = normalizeUrl(rawUrl)
+  try {
+    new URL(url)
+  } catch {
+    return NextResponse.json({ error: "Enter a valid website URL." }, { status: 400 })
+  }
+
+  let siteDetails
+  try {
+    siteDetails = await fetchSiteDetails(url)
+  } catch {
+    return NextResponse.json(
+      { error: "Could not reach that URL. Check it and try again." },
+      { status: 422 }
+    )
+  }
+
+  const productName = siteDetails.title?.trim()
+  if (!productName) {
+    return NextResponse.json(
+      { error: "Couldn't read your site's title. Try the canonical URL." },
+      { status: 422 }
+    )
+  }
+
+  let serverRes: Response
+  try {
+    serverRes = await fetch(`${SERVER_URL}/free-tool/backlink-opportunity-finder`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-api-key": process.env.INTERNAL_API_KEY ?? "",
+        "x-forwarded-client-ip": ip,
+      },
+      body: JSON.stringify({
+        url,
+        productName,
+        siteContext: {
+          title: siteDetails.title,
+          metaDescription: siteDetails.metaDescription,
+          h1: siteDetails.h1,
+          paragraphs: siteDetails.paragraphs,
+        },
+      }),
+    })
+  } catch {
+    return NextResponse.json(
+      { error: "Service unavailable. Please try again." },
+      { status: 503, headers: { "X-RateLimit-Remaining": String(remaining) } }
+    )
+  }
+
+  const data = await serverRes.json().catch(() => ({ error: "Analysis failed. Please try again." }))
+
+  return NextResponse.json(data, {
+    status: serverRes.status,
+    headers: { "X-RateLimit-Remaining": String(remaining) },
   })
 }

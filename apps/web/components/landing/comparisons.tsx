@@ -33,7 +33,7 @@ const features: Row[] = [
     mentiohunt: "yes",
   },
   {
-    label: "Per-opportunity approval before outreach",
+    label: "Monitor-and-cancel control",
     agencies: "no",
     outreachSoftware: "no",
     manual: "yes",
@@ -136,7 +136,7 @@ export function Comparisons() {
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
             Agencies are opaque. Outreach software still makes you run
             campaigns. Mentiohunt handles outreach through the first reply
-            while you stay in control of every placement.
+            while you monitor the queue and cancel anything that isn&apos;t a fit.
           </p>
         </div>
 

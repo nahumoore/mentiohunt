@@ -359,7 +359,7 @@ const BLOCKED = [
   { domain: "seorankoo.site", tag: "ghost site" },
 ]
 
-const APPROVED = [
+const QUALIFIED = [
   { domain: "saastr.com", dr: "DR 75", traffic: "2.1M/mo" },
   { domain: "hackernoon.com", dr: "DR 89", traffic: "3.4M/mo" },
 ]
@@ -400,10 +400,10 @@ function RealSitesIllustration() {
         </div>
 
         <p className="text-[0.62rem] font-bold text-[var(--color-blaze-orange)] uppercase">
-          Approved
+          Qualified
         </p>
         <div className="space-y-2">
-          {APPROVED.map((site) => (
+          {QUALIFIED.map((site) => (
             <div
               key={site.domain}
               className="flex items-start gap-3 rounded-xl border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/6 px-3.5 py-3"
@@ -513,7 +513,7 @@ const BENEFITS: Benefit[] = [
     eyebrow: "No tool stack needed",
     title: "Replaces the whole function, not just the tools.",
     description:
-      "Ahrefs, Instantly, Hunter — each one adds cost without removing the work. You still own prospecting, email writing, follow-ups, and tracking. Mentiohunt replaces the entire workflow up to the first reply: discovery, outreach, and follow-ups. You approve or reject — then take over once someone responds.",
+      "Ahrefs, Instantly, Hunter — each one adds cost without removing the work. You still own prospecting, email writing, follow-ups, and tracking. Mentiohunt replaces the entire workflow up to the first reply: discovery, outreach, and follow-ups. You monitor the queue and cancel bad fits — then take over once someone responds.",
     Illustration: ToolStackIllustration,
   },
   {
@@ -601,8 +601,8 @@ export function WhyMentiohunt() {
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Agency minimums start at $1,000–5,000/mo. DIY link building takes
             10–15 hrs/week. Mentiohunt handles discovery and outreach through
-            the first reply — you just approve what goes live and take over
-            once a prospect responds.
+            the first reply — you monitor the queue, cancel what isn&apos;t a fit,
+            and take over once a prospect responds.
           </p>
         </div>
 

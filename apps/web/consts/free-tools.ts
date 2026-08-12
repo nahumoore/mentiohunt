@@ -15,6 +15,7 @@ export const FREE_TOOL_NAMES = {
   dofollowLinkChecker: "dofollow-link-checker",
   brokenLinkFinder: "broken-link-finder",
   bulkEmailVerifier: "bulk-email-verifier",
+  backlinkMonitor: "backlink-monitor",
 } as const
 
 export type FreeToolName =
@@ -35,6 +36,7 @@ export const ALL_FREE_TOOL_SLUGS: FreeToolName[] = [
   FREE_TOOL_NAMES.dofollowLinkChecker,
   FREE_TOOL_NAMES.brokenLinkFinder,
   FREE_TOOL_NAMES.bulkEmailVerifier,
+  FREE_TOOL_NAMES.backlinkMonitor,
 ]
 
 // In-memory rate limiter — resets on deploy/restart, breaks with multiple instances

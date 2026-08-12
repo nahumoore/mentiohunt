@@ -6,8 +6,8 @@ export function OutreachTemplateCtaSection() {
       <div className="container mx-auto max-w-6xl">
         <AutomationCta
           eyebrow="Beyond the template"
-          heading="Or skip the sending entirely."
-          body="We find the sites your articles belong on, write the email, and coordinate placement. You just approve or reject — every opportunity comes with a fit rationale."
+          heading="Or let the sending run itself."
+          body="We find the sites your articles belong on, write the email, and schedule outreach automatically. You monitor the queue and cancel anything that isn't a fit — every opportunity comes with a fit rationale."
           ctaLabel="Get first opportunities"
           ctaHref="/signup"
           helperText="No credit card · first opportunities in 7 days"

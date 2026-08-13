@@ -5,12 +5,14 @@ import {
   IconCreditCard,
   IconExternalLink,
   IconLock,
+  IconShieldLock,
   IconSparkles,
   IconUser,
 } from "@tabler/icons-react"
 import { useEffect, useState, useTransition } from "react"
 import Link from "next/link"
 
+import { AccountTab } from "@/components/dashboard/settings/account-tab"
 import { PasswordTab } from "@/components/dashboard/settings/password-tab"
 import { SettingsSaveFooter } from "@/components/link-building/sources/settings-save-footer"
 import {
@@ -37,14 +39,15 @@ const DEFAULT_EMAIL_SETTINGS: EmailSettings = {
   marketing: true,
 }
 
-type SettingsTab = "profile" | "notifications" | "billing" | "password"
+type SettingsTab = "profile" | "notifications" | "billing" | "password" | "account"
 
 function isSettingsTab(value: string): value is SettingsTab {
   return (
     value === "profile" ||
     value === "notifications" ||
     value === "billing" ||
-    value === "password"
+    value === "password" ||
+    value === "account"
   )
 }
 
@@ -114,6 +117,10 @@ export default function SettingsPage() {
           <TabsTrigger value="password">
             <IconLock className="size-4" />
             <span>Password</span>
+          </TabsTrigger>
+          <TabsTrigger value="account">
+            <IconShieldLock className="size-4" />
+            <span>Account</span>
           </TabsTrigger>
         </TabsList>
         </div>
@@ -225,6 +232,10 @@ export default function SettingsPage() {
 
         <TabsContent value="password">
           <PasswordTab />
+        </TabsContent>
+
+        <TabsContent value="account">
+          <AccountTab />
         </TabsContent>
       </Tabs>
     </div>

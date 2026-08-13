@@ -110,7 +110,7 @@ export default async function DashboardLayout({
     supabase
       .from("profiles")
       .select(
-        "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at, email_settings, walkthrough_seen_at"
+        "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at, email_settings, walkthrough_seen_at, deactivated_at"
       )
       .eq("id", user.id)
       .maybeSingle(),
@@ -130,6 +130,10 @@ export default async function DashboardLayout({
 
   if (!profile?.onboarding_completed) {
     redirect("/onboarding")
+  }
+
+  if (profile.deactivated_at) {
+    redirect("/account-deactivated")
   }
 
   const billingProfile = profile as Pick<

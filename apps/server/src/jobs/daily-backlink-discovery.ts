@@ -289,11 +289,18 @@ export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }
     return
   }
 
-  type ProfileFields = { id: string; email: string | null; name: string | null; tier: string; active_trial: boolean }
+  type ProfileFields = {
+    id: string
+    email: string | null
+    name: string | null
+    tier: string
+    active_trial: boolean
+    deactivated_at: string | null
+  }
   const userIds = [...new Set((products ?? []).map((p) => p.user_id))]
   const { data: profiles, error: profilesError } = await supabaseAdmin
     .from("profiles")
-    .select("id, email, name, tier, active_trial")
+    .select("id, email, name, tier, active_trial, deactivated_at")
     .in("id", userIds)
 
   if (profilesError) {
@@ -316,6 +323,7 @@ export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }
 
   const eligible = withProfile.filter(({ profile }) => {
     if (profile === undefined) return false
+    if (profile.deactivated_at !== null) return false
     if (paidOnly) return profile.tier !== "free" && !profile.active_trial
     return profile.tier !== "free" || profile.active_trial
   })

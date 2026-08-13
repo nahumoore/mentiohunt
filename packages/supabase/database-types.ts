@@ -698,6 +698,7 @@ export type Database = {
           billing_period_start_at: string
           company_size: string | null
           created_at: string
+          deactivated_at: string | null
           email: string
           email_settings: Json | null
           id: string
@@ -716,6 +717,7 @@ export type Database = {
           billing_period_start_at: string
           company_size?: string | null
           created_at?: string
+          deactivated_at?: string | null
           email: string
           email_settings?: Json | null
           id: string
@@ -734,6 +736,7 @@ export type Database = {
           billing_period_start_at?: string
           company_size?: string | null
           created_at?: string
+          deactivated_at?: string | null
           email?: string
           email_settings?: Json | null
           id?: string
@@ -1368,6 +1371,7 @@ export type Database = {
         | "sending"
         | "bounced"
         | "trial_expired"
+        | "account_paused"
       prospect_status:
         | "new"
         | "contacted"
@@ -1559,6 +1563,7 @@ export const Constants = {
         "sending",
         "bounced",
         "trial_expired",
+        "account_paused",
       ],
       prospect_status: [
         "new",

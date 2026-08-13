@@ -15,6 +15,7 @@ export type DashboardProfile = Pick<
   | "billing_period_end_at"
   | "email_settings"
   | "walkthrough_seen_at"
+  | "deactivated_at"
 >
 
 type ProfileStore = {

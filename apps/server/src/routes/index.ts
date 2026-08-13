@@ -24,6 +24,7 @@ import { freeToolGuestPostSitesRouter } from "./free-tool-guest-post-sites.js"
 import { googleIndexCheckerRouter } from "./google-index-checker.js"
 import { linkTrackerCheckRouter } from "./link-tracker-check.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
+import { onboardingFetchSiteRouter } from "./onboarding-fetch-site.js"
 import { prospectManualOutreachRouter } from "./prospect-manual-outreach.js"
 import { prospectReplyRouter } from "./prospect-reply.js"
 import { prospectSubmittedUrlRouter } from "./prospect-submitted-url.js"
@@ -42,6 +43,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(freeToolBacklinkOpportunityFinderRouter)
   app.use(freeToolBacklinkMonitorRouter)
   app.use(onboardingCompleteRouter)
+  app.use(onboardingFetchSiteRouter)
   app.use(prospectManualOutreachRouter)
   app.use(prospectReplyRouter)
   app.use(prospectSubmittedUrlRouter)

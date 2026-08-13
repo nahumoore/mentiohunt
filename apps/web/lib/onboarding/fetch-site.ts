@@ -286,6 +286,34 @@ async function fetchHomepage(url: string, headers: Record<string, string>) {
   }
 }
 
+const SERVER_URL = process.env.SERVER_URL ?? "http://localhost:3001"
+
+// Header-swapping only fixes a UA-based challenge. A block keyed off Vercel's
+// shared serverless IP range (the common case in practice — see
+// todo/tickets/2026-08-13-onboarding-fetch-site-no-bot-protection-fallback.md)
+// survives it, so fall back to the Railway scraper's tiered light->dynamic->
+// stealthy escalation, which already solves this for every other fetch path
+// in the product.
+async function fetchViaScraperFallback(url: string): Promise<FetchedSiteDetails | null> {
+  try {
+    const res = await fetch(`${SERVER_URL}/onboarding/fetch-site`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-api-key": process.env.INTERNAL_API_KEY ?? "",
+      },
+      body: JSON.stringify({ url }),
+      signal: AbortSignal.timeout(60_000),
+    })
+
+    if (!res.ok) return null
+
+    return (await res.json()) as FetchedSiteDetails
+  } catch {
+    return null
+  }
+}
+
 export async function fetchSiteDetails(url: string): Promise<FetchedSiteDetails> {
   try {
     let response = await fetchHomepage(url, BOT_FETCH_HEADERS)
@@ -296,13 +324,16 @@ export async function fetchSiteDetails(url: string): Promise<FetchedSiteDetails>
       response = await fetchHomepage(url, BROWSER_FETCH_HEADERS)
     }
 
-    if (!response.ok) {
-      if (BOT_BLOCK_STATUSES.has(response.status)) {
-        throw new Error(
-          "Your site's bot protection blocked our request. Please try again — this is often temporary."
-        )
-      }
+    if (!response.ok && BOT_BLOCK_STATUSES.has(response.status)) {
+      const scraped = await fetchViaScraperFallback(url)
+      if (scraped) return scraped
 
+      throw new Error(
+        "Your site's bot protection blocked our request. Please try again — this is often temporary."
+      )
+    }
+
+    if (!response.ok) {
       throw new Error(`Homepage request failed with status ${response.status}`)
     }
 

@@ -107,9 +107,29 @@ export async function assertSafeUrl(rawUrl: string) {
   }
 }
 
+export const BOT_FETCH_HEADERS = {
+  accept: "text/html,application/xhtml+xml",
+  "user-agent": "Mozilla/5.0 (compatible; MentiohuntBot/0.1; +https://mentiohunt.com)",
+}
+
+// Some sites' bot-fight-mode-tier protection (e.g. Cloudflare) blocks the identifying
+// bot UA above but passes a request that merely looks like an ordinary browser.
+export const BROWSER_FETCH_HEADERS = {
+  accept:
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+  "accept-language": "en-US,en;q=0.9",
+  "user-agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+}
+
+// Status codes typical of a bot/WAF challenge rather than a genuine site error,
+// worth retrying once with browser-like headers before giving up.
+const BOT_BLOCK_STATUSES = new Set([403, 406, 429, 503])
+
 export async function fetchWithValidatedRedirects(
   initialUrl: string,
-  signal: AbortSignal
+  signal: AbortSignal,
+  headers: Record<string, string> = BOT_FETCH_HEADERS
 ) {
   let currentUrl = initialUrl
 
@@ -120,11 +140,7 @@ export async function fetchWithValidatedRedirects(
     const response = await fetch(currentUrl, {
       redirect: "manual",
       signal,
-      headers: {
-        accept: "text/html,application/xhtml+xml",
-        "user-agent":
-          "Mozilla/5.0 (compatible; MentiohuntBot/0.1; +https://mentiohunt.com)",
-      },
+      headers,
       cache: "no-store",
     })
 
@@ -259,14 +275,34 @@ export function isHtmlContentType(contentType: string) {
   return HTML_CONTENT_TYPES.some((allowedType) => normalized.includes(allowedType))
 }
 
-export async function fetchSiteDetails(url: string): Promise<FetchedSiteDetails> {
+async function fetchHomepage(url: string, headers: Record<string, string>) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 
   try {
-    const response = await fetchWithValidatedRedirects(url, controller.signal)
+    return await fetchWithValidatedRedirects(url, controller.signal, headers)
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+export async function fetchSiteDetails(url: string): Promise<FetchedSiteDetails> {
+  try {
+    let response = await fetchHomepage(url, BOT_FETCH_HEADERS)
+
+    // A shallow bot/WAF challenge (not a hard IP block) can reject our identifying
+    // UA but pass a request that looks like an ordinary browser — retry once.
+    if (!response.ok && BOT_BLOCK_STATUSES.has(response.status)) {
+      response = await fetchHomepage(url, BROWSER_FETCH_HEADERS)
+    }
 
     if (!response.ok) {
+      if (BOT_BLOCK_STATUSES.has(response.status)) {
+        throw new Error(
+          "Your site's bot protection blocked our request. Please try again — this is often temporary."
+        )
+      }
+
       throw new Error(`Homepage request failed with status ${response.status}`)
     }
 
@@ -306,7 +342,5 @@ export async function fetchSiteDetails(url: string): Promise<FetchedSiteDetails>
     }
 
     throw error
-  } finally {
-    clearTimeout(timeout)
   }
 }

@@ -1,11 +1,32 @@
 import { IconMail, IconShieldLock } from "@tabler/icons-react"
 import type { Metadata } from "next"
+import { redirect } from "next/navigation"
+import { supabaseServer } from "@/lib/supabase/server"
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default function AccountDeactivatedPage() {
+export default async function AccountDeactivatedPage() {
+  const supabase = await supabaseServer()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect("/signin")
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("deactivated_at")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  if (!profile?.deactivated_at) {
+    redirect("/dashboard")
+  }
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-16">
       <div className="pointer-events-none absolute inset-0" aria-hidden>

@@ -296,6 +296,32 @@ async function skipSequence(sequence: ClaimedSequence, reason: string, recipient
   })
 }
 
+/** Owner went ineligible after the sequence was already scheduled (e.g. cron ran
+ * before the pause webhook fired). Must land on "trial_expired", not "skipped" —
+ * only "trial_expired" rows are picked up by the resume sweep/Stripe webhook in
+ * trial-sequences.ts, so anything marked "skipped" here would stay stuck forever
+ * even after the owner upgrades. */
+async function pauseSequenceForTrialExpiry(sequence: ClaimedSequence, recipientEmail?: string | null): Promise<void> {
+  await supabaseAdmin
+    .from("prospect_sequences")
+    .update({ status: "trial_expired", locked_at: null, last_error: "Owner's free trial has expired." })
+    .eq("id", sequence.id)
+
+  await supabaseAdmin
+    .from("prospect_sequences")
+    .update({ status: "trial_expired", last_error: "Owner's free trial has expired." })
+    .eq("prospect_id", sequence.prospect_id)
+    .gt("step", sequence.step)
+    .eq("status", "pending")
+
+  await recordEvent({
+    sequence,
+    accountId: sequence.email_account_id,
+    eventType: "trial_expired",
+    recipientEmail,
+  })
+}
+
 async function processSequence(sequence: ProspectSequence): Promise<boolean> {
   const claimed = await claimSequence(sequence)
   if (!claimed) {
@@ -317,7 +343,7 @@ async function processSequence(sequence: ProspectSequence): Promise<boolean> {
     }
 
     if (!context.ownerEligible) {
-      await skipSequence(claimed, "Owner's free trial has expired.", recipientEmail)
+      await pauseSequenceForTrialExpiry(claimed, recipientEmail)
       return false
     }
 

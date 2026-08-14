@@ -4,14 +4,8 @@ import {
   IconArrowDown,
   IconArrowsSort,
   IconArrowUp,
-  IconInfoCircle,
 } from "@tabler/icons-react"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@workspace/ui/components/tooltip"
+import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { useMemo } from "react"
 
 import { STATUS_FILTERS, type ProspectStatus } from "@/app/dashboard/prospects/_data"
@@ -25,7 +19,7 @@ import { StatusOverviewV1 } from "./prospect-status-overview"
 
 type StageValue = "all" | ProspectStatus
 
-type SortKey = "contact" | "domain" | "dr" | "relevance"
+type SortKey = "contact" | "domain" | "dr" | "discovered"
 type SortDir = "asc" | "desc"
 
 function sortProspects(
@@ -46,8 +40,10 @@ function sortProspects(
       cmp = (a.domain ?? "").localeCompare(b.domain ?? "")
     else if (key === "dr")
       cmp = (a.domain_rating ?? 0) - (b.domain_rating ?? 0)
-    else if (key === "relevance")
-      cmp = (a.site_relevance_score ?? 0) - (b.site_relevance_score ?? 0)
+    else if (key === "discovered")
+      cmp =
+        new Date(a.discovered_at).getTime() -
+        new Date(b.discovered_at).getTime()
     return dir === "asc" ? cmp : -cmp
   })
 }
@@ -95,7 +91,7 @@ function isSortKey(value: string): value is SortKey {
     value === "contact" ||
     value === "domain" ||
     value === "dr" ||
-    value === "relevance"
+    value === "discovered"
   )
 }
 
@@ -200,27 +196,13 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
                 </th>
                 <th className="px-3 py-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
                   <div className="flex items-center gap-1.5">
-                    Relevance
+                    Discovered
                     <SortButton
-                      sortKey="relevance"
+                      sortKey="discovered"
                       activeKey={sortKey}
                       dir={sortDir}
                       onSort={handleSort}
                     />
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex items-center text-muted-foreground/50 transition-colors hover:text-muted-foreground"
-                        >
-                          <IconInfoCircle className="size-3.5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        Topical fit score based on content overlap and audience
-                        alignment.
-                      </TooltipContent>
-                    </Tooltip>
                   </div>
                 </th>
                 <th className="px-3 py-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">

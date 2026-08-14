@@ -117,22 +117,17 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
             {statusCfg.label}
           </span>
           <div className="ml-auto flex items-center gap-1.5">
-            {prospect.site_relevance_score != null && (
+            {prospect.domain_rating != null && (
               <span
                 className={cn(
-                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums",
-                  prospect.site_relevance_score >= 70
-                    ? "bg-emerald-500/10 text-emerald-600"
-                    : prospect.site_relevance_score >= 50
-                      ? "bg-amber-500/10 text-amber-600"
+                  "inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums",
+                  prospect.domain_rating >= 60
+                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                    : prospect.domain_rating >= 30
+                      ? "bg-blue-500/10 text-blue-700 dark:text-blue-400"
                       : "bg-muted text-muted-foreground"
                 )}
               >
-                fit {prospect.site_relevance_score}/100
-              </span>
-            )}
-            {prospect.domain_rating != null && (
-              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-sm font-semibold text-muted-foreground tabular-nums">
                 DR {prospect.domain_rating}
               </span>
             )}

@@ -13,6 +13,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 
 import { STATUS_CONFIG, TYPE_CONFIG } from "@/app/dashboard/prospects/_data"
+import { formatRelative } from "@/lib/format-date"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
 function getDiceBearUrl(seed: string): string {
@@ -35,6 +36,13 @@ function stripDomain(url: string | null): string | null {
   }
 }
 
+function drBadgeColor(dr: number | null): string {
+  if (dr == null) return "bg-muted text-muted-foreground"
+  if (dr >= 60) return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+  if (dr >= 30) return "bg-blue-500/10 text-blue-700 dark:text-blue-400"
+  return "bg-muted text-muted-foreground"
+}
+
 export function OpportunityPipelineRow({
   prospect,
 }: {
@@ -50,8 +58,6 @@ export function OpportunityPipelineRow({
   const favicon = getFaviconUrl(prospect.domain)
   const displayDomain = stripDomain(prospect.domain)
   const dr = prospect.domain_rating
-  const relevanceScore = prospect.site_relevance_score
-  const relevancePercent = relevanceScore == null ? 0 : relevanceScore
   const isEnriching =
     prospect.enrichment_status === "pending" ||
     prospect.enrichment_status === "enriching"
@@ -128,29 +134,21 @@ export function OpportunityPipelineRow({
 
       {/* DR col */}
       <td className="px-3 py-4 align-top">
-        <span className="font-mono text-2xl leading-none font-bold text-foreground tabular-nums">
+        <span
+          className={cn(
+            "inline-flex items-center justify-center rounded-full px-2.5 py-1 text-sm font-bold tabular-nums",
+            drBadgeColor(dr)
+          )}
+        >
           {dr ?? "—"}
         </span>
       </td>
 
-      {/* Relevance col */}
+      {/* Discovered col */}
       <td className="px-3 py-4 align-top">
-        <span className="font-mono text-sm leading-none font-bold text-foreground tabular-nums">
-          {relevanceScore == null ? "-" : `${relevanceScore}/100`}
+        <span className="text-sm text-muted-foreground">
+          {formatRelative(prospect.discovered_at)}
         </span>
-        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className={cn(
-              "h-full rounded-full",
-              relevancePercent >= 70
-                ? "bg-emerald-400"
-                : relevancePercent >= 40
-                  ? "bg-amber-400"
-                  : "bg-red-400"
-            )}
-            style={{ width: `${relevancePercent}%` }}
-          />
-        </div>
       </td>
 
       {/* Contact col */}

@@ -256,7 +256,7 @@ export async function discoverResourcePageInclusions(
         .map((q) => ({ ...q, domainRating: drByDomain.get(q.domain) ?? null }))
         .filter((q) => {
           const dr = q.domainRating
-          if (dr === null) return false
+          if (dr === null) return true // no Ahrefs/Moz data - already passed relevance scoring, don't discard
           if (dr < settings.dr_min) return false
           if (settings.dr_max !== null && dr > settings.dr_max) return false
           return true

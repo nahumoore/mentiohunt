@@ -21,6 +21,7 @@ type GetBacklinksResult = {
 type GetBacklinksParams = {
   target: string
   drMin?: number
+  drMax?: number | null
   limit?: number
   searchAfterToken?: string | null
 }
@@ -28,11 +29,14 @@ type GetBacklinksParams = {
 export async function getBacklinks(
   params: GetBacklinksParams
 ): Promise<{ items: DataForSeoBacklinkItem[]; searchAfterToken: string | null; costUsd: number }> {
-  const { target, drMin = 0, limit = 50, searchAfterToken } = params
+  const { target, drMin = 0, drMax = null, limit = 50, searchAfterToken } = params
 
   const filters: unknown[] = [["dofollow", "=", true]]
   if (drMin > 0) {
     filters.push("and", ["domain_from_rank", ">=", drMin])
+  }
+  if (drMax !== null) {
+    filters.push("and", ["domain_from_rank", "<=", drMax])
   }
 
   const task: Record<string, unknown> = {

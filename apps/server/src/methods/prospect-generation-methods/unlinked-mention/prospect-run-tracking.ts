@@ -5,43 +5,31 @@ const log = createLogger("unlinked-mention-prospect-run")
 
 /**
  * Rotate through the query pool so the same SERP query doesn't re-run every
- * day — same least-recently-run selection as selectQueriesForRun in
- * listicle-roundup/prospect-run-tracking.ts. Runs recorded before query
- * rotation existed only stored brand_terms, so their queries read as
- * never-run, which is the right bias.
+ * day. Slides a `maxQueries`-wide window forward by 1 query per completed
+ * run (wrapping around the pool), rather than picking by last-run
+ * timestamp — a timestamp-based LRU sort ties every query selected in the
+ * same run together forever (they always share one completed_at), which
+ * splits an N-query pool into fixed, non-overlapping groups of `maxQueries`
+ * that repeat in lockstep instead of rotating through every combination.
  */
 export async function selectQueriesForRun(
   productId: string,
   allQueries: string[],
   maxQueries: number
 ): Promise<string[]> {
-  const { data: recentRuns } = await supabaseAdmin
+  const poolSize = allQueries.length
+  if (poolSize === 0) return []
+
+  const { count } = await supabaseAdmin
     .from("backlink_prospect_runs" as string)
-    .select("input, completed_at")
+    .select("id", { count: "exact", head: true })
     .eq("product_id", productId)
     .eq("strategy", "unlinked_mention")
     .eq("status", "completed")
-    .order("completed_at", { ascending: false })
 
-  const lastRunByQuery = new Map<string, string>()
-  for (const run of (recentRuns ?? []) as Array<{
-    input: { queries?: string[] } | null
-    completed_at: string | null
-  }>) {
-    for (const query of run.input?.queries ?? []) {
-      if (!lastRunByQuery.has(query)) {
-        lastRunByQuery.set(query, run.completed_at ?? "")
-      }
-    }
-  }
-
-  return [...allQueries]
-    .sort((a, b) => {
-      const aTime = lastRunByQuery.get(a) ?? ""
-      const bTime = lastRunByQuery.get(b) ?? ""
-      return aTime < bTime ? -1 : 1
-    })
-    .slice(0, maxQueries)
+  const start = (count ?? 0) % poolSize
+  const windowSize = Math.min(maxQueries, poolSize)
+  return Array.from({ length: windowSize }, (_, i) => allQueries[(start + i) % poolSize] as string)
 }
 
 /** Date (YYYY-MM-DD) of the most recent completed run, for the `after:` freshness query. */

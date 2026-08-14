@@ -554,15 +554,21 @@ async def _execute_scrape_page(url: str, domain: str, visited: list[str], helper
 _PRIORITY_PATH_PATTERNS = [
     re.compile(r"/author/", re.IGNORECASE),
     re.compile(r"/(team|about-us|about|people|our-team|staff|editorial-team|contributors)/?$", re.IGNORECASE),
+    re.compile(r"/(contact-us|contact|kontakt)/?$", re.IGNORECASE),
     re.compile(r"/(press|media-kit)/?$", re.IGNORECASE),
+    # Legal boilerplate pages rarely carry a bio, but are a common place a site
+    # publishes its one real business mailbox — worth a look once every more
+    # promising page type has been tried.
+    re.compile(r"/(terms|terms-of-service|terms-and-conditions|terms-of-use|privacy|privacy-policy|legal|impressum|imprint)/?$", re.IGNORECASE),
 ]
 
 _PRE_CRAWL_PAGE_BUDGET = 2  # extra pages fetched deterministically before the LLM loop starts
 
 
 def _rank_candidate_urls(internal_links: list[str], author_url: str | None) -> list[str]:
-    """Order candidate URLs by expected personal-email yield: author profile first,
-    then team/about pages, then press/media-kit. Feeds the deterministic pre-crawl (A9)."""
+    """Order candidate URLs by expected email yield: author profile first, then
+    team/about, then contact, then press/media-kit, then legal/terms pages as a
+    last resort. Feeds the deterministic pre-crawl (A9)."""
     ranked: list[str] = []
     if author_url and author_url not in ranked:
         ranked.append(author_url)
@@ -671,6 +677,7 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
                 "- Generic emails (info@, contact@, hello@, support@, enquiries@, team@, mail@, office@) are last resort — do NOT stop if you only found one\n"
                 "- Personal email = prefix is a first name or first.last (e.g. maxine@ or maxine.bremner@) — always try to find one\n"
                 "- If you only found a generic email: visit the author's profile page and /contact before calling finish\n"
+                "- If you have found NO email at all after the pages visited so far: before calling finish, also try /contact (or /kontakt), and as a last resort /terms, /privacy, or /impressum — sites often publish their one real mailbox only on those pages\n"
                 "- When calling finish(), set type='personal' for personal emails and type='general' for generic inbox emails\n"
                 "- Stop early ONLY if you have a personal email\n"
                 "- If any page returns {\"cf_blocked\": true}, the entire domain is protected by Cloudflare bot management — call finish() immediately with null/empty data, do not try other pages\n"
@@ -855,6 +862,16 @@ async def run_agent_scrape(url: str, helpers: dict) -> AgentScrapeResponse:
 
     if not finish_result:
         log.warning("agent: loop ended without finish — empty result")
+        finish_result = {}
+
+    if not visited_urls and finish_result:
+        # Every scrape_page call failed (site unreachable/blocked) — the LLM never
+        # saw a single real page, so any name/email/bio in finish_result is a
+        # hallucination (e.g. it has been seen inventing a name/email that only
+        # ever appears in this repo's own example code comments), not a finding.
+        # Discard it rather than let a confident-looking fake outrank an honest
+        # "no contact found".
+        log.warning(f"agent: finish() called with zero pages successfully fetched — discarding claimed result: {finish_result!r}")
         finish_result = {}
 
     final_name = _clean_name(finish_result.get("name"))

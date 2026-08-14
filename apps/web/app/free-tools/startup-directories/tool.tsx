@@ -272,7 +272,6 @@ export function StartupDirectoriesBrowser({
                       direction={sortDirection}
                       onSort={updateSort}
                     />
-                    <th className="px-4 py-3 font-medium">Submit URL</th>
                     <SortableHeader
                       label="Updated"
                       sortKey="seo_metrics_updated_at"
@@ -286,7 +285,7 @@ export function StartupDirectoriesBrowser({
                   {sortedDirectories.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={9}
+                        colSpan={8}
                         className="px-6 py-12 text-center text-sm text-muted-foreground"
                       >
                         No directories match that search yet.
@@ -362,21 +361,6 @@ export function StartupDirectoriesBrowser({
                             icon={IconShieldCheck}
                             value={directory.dofollow_referring_domains}
                           />
-                        </td>
-                        <td className="px-4 py-4">
-                          <a
-                            href={directory.submit_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex max-w-[17rem] items-center gap-2 rounded-full text-sm font-medium text-foreground outline-none transition-colors hover:text-[var(--color-princeton-orange)] focus-visible:ring-3 focus-visible:ring-ring/30"
-                          >
-                            <span className="truncate">{directory.submit_url}</span>
-                            <IconExternalLink
-                              size={15}
-                              stroke={2.4}
-                              className="shrink-0"
-                            />
-                          </a>
                         </td>
                         <td className="px-4 py-4 text-muted-foreground whitespace-nowrap">
                           {formatDate(directory.seo_metrics_updated_at)}

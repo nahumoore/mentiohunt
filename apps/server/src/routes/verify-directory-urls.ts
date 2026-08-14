@@ -10,22 +10,31 @@ const TIMEOUT_MS = 10_000
 
 const log = createLogger("verify-directory-urls")
 
-async function checkSubmitUrl(url: string): Promise<{ ok: boolean; status: number | null }> {
+async function checkSubmitUrl(url: string): Promise<{ ok: boolean | null; status: number | null }> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
   try {
     const res = await fetch(url, {
-      method: "HEAD",
+      method: "GET",
       signal: controller.signal,
       redirect: "follow",
       headers: { "User-Agent": "MentiohuntBot/1.0 (+https://mentiohunt.com/bot)" },
     })
     clearTimeout(timer)
-    return { ok: res.status !== 404, status: res.status }
+    // 403/429 are usually bot-protection (Cloudflare/WAF) blocking the scripted
+    // request, not a broken page for real visitors — only 404/410 are a reliable
+    // "this page is actually gone" signal.
+    if ([404, 410].includes(res.status)) {
+      return { ok: false, status: res.status }
+    }
+    if (res.status === 403 || res.status === 429) {
+      return { ok: null, status: res.status }
+    }
+    return { ok: true, status: res.status }
   } catch (err) {
     clearTimeout(timer)
-    log.warn("fetch failed, treating as ok", { url, err: String(err) })
-    return { ok: true, status: null }
+    log.warn("fetch failed, leaving submit_url_ok unchanged", { url, err: String(err) })
+    return { ok: null, status: null }
   }
 }
 
@@ -61,13 +70,19 @@ verifyDirectoryUrlsRouter.post("/verify-directory-urls", async (_req, res) => {
               durationMs: Date.now() - startedAt,
             })
 
-            const { error: updateError } = await supabaseAdmin
-              .from("directories")
-              .update({ submit_url_ok: ok, submit_url_verified_at: now })
-              .eq("id", dir.id)
+            // ok === null is inconclusive (bot-block or network error) — leave the
+            // existing submit_url_ok value alone rather than overwrite it either way.
+            let updateError: string | null = null
+            if (ok !== null) {
+              const { error } = await supabaseAdmin
+                .from("directories")
+                .update({ submit_url_ok: ok, submit_url_verified_at: now })
+                .eq("id", dir.id)
 
-            if (updateError) {
-              log.error("failed to update directory", { id: dir.id, err: updateError.message })
+              if (error) {
+                log.error("failed to update directory", { id: dir.id, err: error.message })
+                updateError = error.message
+              }
             }
 
             return {
@@ -75,16 +90,21 @@ verifyDirectoryUrlsRouter.post("/verify-directory-urls", async (_req, res) => {
               submit_url: dir.submit_url,
               status,
               ok,
-              updateError: updateError?.message ?? null,
+              updateError,
             }
           })
         )
       )
 
-      const flagged = results.filter((r) => !r.ok)
-      log.success(`done`, { checked: results.length, flagged: flagged.length })
+      const flagged = results.filter((r) => r.ok === false)
+      const inconclusive = results.filter((r) => r.ok === null)
+      log.success(`done`, {
+        checked: results.length,
+        flagged: flagged.length,
+        inconclusive: inconclusive.length,
+      })
 
-      return { checked: results.length, flagged: flagged.length, results }
+      return { checked: results.length, flagged: flagged.length, inconclusive: inconclusive.length, results }
     })
 
     res.json(result)

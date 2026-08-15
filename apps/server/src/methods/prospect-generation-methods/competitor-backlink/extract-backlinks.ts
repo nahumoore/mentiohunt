@@ -41,6 +41,7 @@ export async function extractBacklinks(
     const { items: raw, searchAfterToken, costUsd } = await getBacklinks({
       target: competitorDomain,
       drMin: filters.dr_min,
+      drMax: filters.dr_max,
       searchAfterToken: filters.mozCursor,
       limit: filters.limit,
     })

@@ -2,8 +2,8 @@
 
 import { useEffect } from "react"
 
-import { AllReviewedEmpty } from "@/components/link-building/prospects/all-reviewed-empty"
 import { OpportunityPipeline } from "@/components/link-building/prospects/prospect-pipeline"
+import { DiscoveryFoundNothing } from "@/components/dashboard/discovery-found-nothing"
 import { DiscoveryInProgress } from "@/components/dashboard/discovery-in-progress"
 import { captureEvent } from "@/lib/analytics"
 import { useProspectStore } from "@/stores/prospect-store"
@@ -22,7 +22,7 @@ export default function ProspectsPage() {
   }
 
   if (prospects.length === 0) {
-    return <AllReviewedEmpty />
+    return <DiscoveryFoundNothing />
   }
 
   return <OpportunityPipeline prospects={prospects} />

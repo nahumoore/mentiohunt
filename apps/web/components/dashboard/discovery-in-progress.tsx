@@ -22,8 +22,9 @@ export function DiscoveryInProgress() {
         </h2>
         <p className="text-sm leading-6 text-muted-foreground">
           We&apos;re analyzing your site and competitors to surface relevant
-          backlink prospects. This usually takes a few minutes — you&apos;ll
-          get an email as soon as the first batch is ready.
+          backlink prospects. This can take a few hours depending on your
+          niche — you&apos;ll get an email as soon as the first batch is
+          ready.
         </p>
       </div>
     </Card>

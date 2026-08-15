@@ -33,7 +33,19 @@ export async function processCompetitor(
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void,
   fetchLimit?: number
-): Promise<{ prospectsCreated: number; costUsd: number; nextCursor: string | null }> {
+): Promise<{
+  prospectsCreated: number
+  costUsd: number
+  nextCursor: string | null
+  funnel: {
+    extracted: number
+    passedFilters: number
+    scoredTotal: number
+    kept: number
+    toEnrich: number
+    enrichedWithContact: number
+  }
+}> {
   const mozCursor = await getLastMozCursor(product.id, competitorDomain)
 
   log.info("processing competitor", { productId: product.id, competitorDomain, hasCursor: !!mozCursor })
@@ -54,7 +66,12 @@ export async function processCompetitor(
         kept: 0,
         inserted: 0,
       })
-      return { prospectsCreated: 0, costUsd: fetchCost, nextCursor }
+      return {
+        prospectsCreated: 0,
+        costUsd: fetchCost,
+        nextCursor,
+        funnel: { extracted: rawItems.length, passedFilters: 0, scoredTotal: 0, kept: 0, toEnrich: 0, enrichedWithContact: 0 },
+      }
     }
 
     const { results: scored, totalCost: pageScoringCost } = await scoreBacklinkRelevance(filtered, product)
@@ -82,7 +99,12 @@ export async function processCompetitor(
         kept: 0,
         inserted: 0,
       })
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
+      return {
+        prospectsCreated: 0,
+        costUsd: totalCost,
+        nextCursor,
+        funnel: { extracted: rawItems.length, passedFilters: filtered.length, scoredTotal: scored.length, kept: 0, toEnrich: 0, enrichedWithContact: 0 },
+      }
     }
 
     // Drop prospects we've already stored so we don't pay to enrich duplicates.
@@ -150,7 +172,19 @@ export async function processCompetitor(
     }
 
     if (toProcess.length === 0) {
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
+      return {
+        prospectsCreated: 0,
+        costUsd: totalCost,
+        nextCursor,
+        funnel: {
+          extracted: rawItems.length,
+          passedFilters: filtered.length,
+          scoredTotal: scored.length,
+          kept: passing.length,
+          toEnrich: 0,
+          enrichedWithContact: 0,
+        },
+      }
     }
 
     // Real domain rating — only when the user has set a DR floor. item.domainRating
@@ -193,6 +227,7 @@ export async function processCompetitor(
     const prospectsCreated = idByUrl.size
 
     // Enrich each newly-inserted prospect, updating its row live as it completes.
+    let enrichedWithContact = 0
     await Promise.allSettled(
       toProcess
         .filter((item) => idByUrl.has(item.urlFrom))
@@ -225,6 +260,7 @@ export async function processCompetitor(
             }
 
             if (ready) {
+              enrichedWithContact += 1
               onProspectCreated?.({
                 id,
                 contactName: enriched.contact_name,
@@ -242,10 +278,27 @@ export async function processCompetitor(
 
     log.info("rows upserted", { productId: product.id, competitorDomain, count: prospectsCreated })
 
-    return { prospectsCreated, costUsd: totalCost, nextCursor }
+    return {
+      prospectsCreated,
+      costUsd: totalCost,
+      nextCursor,
+      funnel: {
+        extracted: rawItems.length,
+        passedFilters: filtered.length,
+        scoredTotal: scored.length,
+        kept: passing.length,
+        toEnrich: toProcess.length,
+        enrichedWithContact,
+      },
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     log.error("competitor processing failed", { productId: product.id, competitorDomain, error: msg })
-    return { prospectsCreated: 0, costUsd: 0, nextCursor: null }
+    return {
+      prospectsCreated: 0,
+      costUsd: 0,
+      nextCursor: null,
+      funnel: { extracted: 0, passedFilters: 0, scoredTotal: 0, kept: 0, toEnrich: 0, enrichedWithContact: 0 },
+    }
   }
 }

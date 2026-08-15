@@ -42,6 +42,19 @@ function formatDate(date: Date): string {
 }
 
 /**
+ * Turns a competitor domain like "pitchbox.com" into a searchable brand name
+ * like "Pitchbox" — listicle posts write the brand name, not the bare FQDN.
+ */
+function brandNameFromDomain(domain: string): string {
+  return domain
+    .replace(/\.[a-z]+$/i, "")
+    .split(/[-.]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ")
+}
+
+/**
  * Derive the full pool of "best X tools" / "<competitor> alternatives" search
  * queries for the listicle & roundup discovery method. One cheap LLM call
  * turns the product description into category phrases; those combine with
@@ -109,7 +122,8 @@ export async function buildListicleQueries(product: {
   for (const competitor of product.competitors ?? []) {
     const domain = extractCompetitorDomain(competitor)
     if (!domain || domain === ownDomain) continue
-    queries.add(`"${domain}" alternatives -site:${ownDomain}`)
+    const brandName = brandNameFromDomain(domain)
+    queries.add(`"${brandName}" alternatives -site:${ownDomain}`)
   }
 
   const finalQueries = [...queries]

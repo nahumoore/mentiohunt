@@ -155,6 +155,11 @@ async function categorizeBatch(
 
       const parsed = parseLlmJson<{ results: { id: string; pageType: string; keywords: string[]; priority: string }[] }>(text)
 
+      if (!Array.isArray(parsed?.results)) {
+        log.warn("unexpected response shape", { rawResponse: text })
+        throw new Error(`unexpected response shape: ${Object.keys(parsed ?? {}).join(",")}`)
+      }
+
       const byId = new Map(parsed.results.map((r) => [r.id, r]))
 
       const categorized: PageCategorization[] = pages

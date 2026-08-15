@@ -1,8 +1,11 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
 import { createLogger } from "../../helpers/logger.js"
+import { discoverBrokenLinkBuilding } from "../../methods/prospect-generation-methods/broken-link-building/index.js"
 import { discoverCompetitorBacklinks } from "../../methods/prospect-generation-methods/competitor-backlink/index.js"
 import { discoverListicleRoundups } from "../../methods/prospect-generation-methods/listicle-roundup/index.js"
+import { discoverResourcePageInclusions } from "../../methods/prospect-generation-methods/resource-page-inclusion/index.js"
+import { DEFAULT_PAGE_TYPES } from "../../methods/prospect-generation-methods/resource-page-inclusion/types.js"
 import { ALL_OPPORTUNITY_TYPES } from "../../methods/prospect-generation-methods/shared/opportunity-types.js"
 import type { ProspectCreatedPayload } from "../../methods/prospect-generation-methods/shared/prospect-types.js"
 import { discoverUnlinkedMentions } from "../../methods/prospect-generation-methods/unlinked-mention/index.js"
@@ -15,9 +18,24 @@ const log = createLogger("onboarding-jobs")
 
 // Light cap for the first (onboarding) discovery run — keep it fast and cheap.
 // Daily jobs call the discovery methods without limits (full defaults).
-const ONBOARDING_BACKLINK_LIMITS = { maxCompetitors: 1, maxProspects: 10, fetchLimit: 35 }
-const ONBOARDING_MENTION_LIMITS = { maxCandidates: 8, maxProspects: 10 }
-const ONBOARDING_LISTICLE_LIMITS = { maxCandidates: 8, maxProspects: 10 }
+//
+// maxCandidates for listicle/mention only trims the post-SERP scoring pool —
+// the SERP spend (MAX_QUERIES_PER_RUN * SERP_RESULTS_PER_QUERY, module
+// constants the caller can't lower) already happened by the time this limit
+// applies, so raising it adds no extra SERP/DataForSEO calls, only cheap
+// fetch/scoring on candidates already paid for.
+const ONBOARDING_BACKLINK_LIMITS_BASE = { maxProspects: 10, fetchLimit: 35 }
+const ONBOARDING_MENTION_LIMITS = { maxCandidates: 15, maxProspects: 10 }
+const ONBOARDING_LISTICLE_LIMITS = { maxCandidates: 25, maxProspects: 10 }
+
+// resource_page_inclusion and broken_link_building both require crawled
+// product_pages rows, so they run in a second stage after the crawl (stage 1
+// below) finishes, instead of racing it. A brand-new SaaS whose sitemap is
+// mostly homepage/pricing/features gets every page classified `landing_page`
+// by categorize-pages.ts, which DEFAULT_PAGE_TYPES excludes — include it here
+// so those accounts have eligible target pages at all.
+const ONBOARDING_RPI_PAGE_TYPES = [...DEFAULT_PAGE_TYPES, "landing_page"]
+const ONBOARDING_RPI_LIMITS = { maxProspects: 10, pageTypes: ONBOARDING_RPI_PAGE_TYPES }
 
 export async function runOnboardingJobs(
   userId: string,
@@ -71,11 +89,16 @@ export async function runOnboardingJobs(
         const t = Date.now()
         log.info("discoverCompetitorBacklinks START", { productId })
         try {
+          const competitors = (product.competitors as string[]) ?? []
+          const onboardingBacklinkLimits = {
+            ...ONBOARDING_BACKLINK_LIMITS_BASE,
+            maxCompetitors: Math.max(1, Math.min(3, competitors.length)),
+          }
           const result = await discoverCompetitorBacklinks(
-            { ...product, competitors: (product.competitors as string[]) ?? [] },
+            { ...product, competitors },
             filterSettings,
             emailSettings,
-            ONBOARDING_BACKLINK_LIMITS,
+            onboardingBacklinkLimits,
             undefined,
             onProspectCreated
           )
@@ -146,6 +169,76 @@ export async function runOnboardingJobs(
       })(),
     ])
 
+  log.info("stage 1 (competitor/mention/listicle/crawl) END", { durationMs: Date.now() - t0 })
+
+  // Stage 2: resource_page_inclusion and broken_link_building both require
+  // crawled product_pages rows, so they run only after the crawl above has
+  // resolved, rather than racing it inside the same Promise.allSettled — that
+  // race is why neither method could ever produce results during onboarding
+  // before this change.
+  let rpiResult = { prospectsCreated: 0, totalCostUsd: 0 }
+  let blbResult = { prospectsCreated: 0, totalCostUsd: 0 }
+  let rpiSettled: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }> | undefined
+  let blbSettled: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }> | undefined
+
+  const crawlProducedPages = pagesResult.status === "fulfilled" && pagesResult.value.pagesCrawled > 0
+
+  if (product && crawlProducedPages) {
+    const t2 = Date.now()
+    ;[rpiSettled, blbSettled] = await Promise.allSettled([
+      (async () => {
+        if (!opportunityTypes.includes("resource_page_inclusion")) return { prospectsCreated: 0, totalCostUsd: 0 }
+        const t = Date.now()
+        log.info("discoverResourcePageInclusions START", { productId })
+        try {
+          const result = await discoverResourcePageInclusions(
+            product,
+            filterSettings,
+            emailSettings,
+            ONBOARDING_RPI_LIMITS,
+            undefined,
+            onProspectCreated
+          )
+          log.success("discoverResourcePageInclusions done", { durationMs: Date.now() - t, ...result })
+          return { prospectsCreated: result.prospectsCreated, totalCostUsd: result.totalCostUsd }
+        } catch (err) {
+          log.error("discoverResourcePageInclusions FAILED", { durationMs: Date.now() - t, error: String(err) })
+          throw err
+        }
+      })(),
+      (async () => {
+        const competitors = (product.competitors as string[]) ?? []
+        if (!opportunityTypes.includes("broken_link_building") || competitors.length === 0) {
+          return { prospectsCreated: 0, totalCostUsd: 0 }
+        }
+        const t = Date.now()
+        log.info("discoverBrokenLinkBuilding START", { productId })
+        try {
+          const result = await discoverBrokenLinkBuilding(
+            { ...product, competitors },
+            filterSettings,
+            emailSettings,
+            { maxCompetitors: Math.max(1, Math.min(3, competitors.length)), maxProspects: 5 },
+            undefined,
+            onProspectCreated
+          )
+          log.success("discoverBrokenLinkBuilding done", { durationMs: Date.now() - t, ...result })
+          return result
+        } catch (err) {
+          log.error("discoverBrokenLinkBuilding FAILED", { durationMs: Date.now() - t, error: String(err) })
+          throw err
+        }
+      })(),
+    ])
+
+    if (rpiSettled.status === "fulfilled") rpiResult = rpiSettled.value
+    if (blbSettled.status === "fulfilled") blbResult = blbSettled.value
+
+    log.info("stage 2 (resource_page_inclusion/broken_link_building) END", { durationMs: Date.now() - t2 })
+  } else {
+    log.info("skipping stage 2 — crawl produced no crawled pages", { productId })
+  }
+
   log.info("all jobs END", { durationMs: Date.now() - t0 })
 
   // Wait for all per-prospect sequence tasks to finish before the summary email.
@@ -186,22 +279,39 @@ export async function runOnboardingJobs(
     })
   }
 
-  // Merge competitor backlinks + unlinked mentions + listicle roundups into one result for the summary email.
-  const combinedBacklinkResult: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }> =
+  if (rpiSettled?.status === "rejected") {
+    log.error("onboarding resource_page_inclusion failed", { productId, error: String(rpiSettled.reason) })
+  }
+
+  if (blbSettled?.status === "rejected") {
+    log.error("onboarding broken_link_building failed", { productId, error: String(blbSettled.reason) })
+  }
+
+  // Merge all five discovery methods into one result for the summary email.
+  const anyDiscoverySucceeded =
     backlinkDiscoveryResult.status === "fulfilled" ||
     mentionDiscoveryResult.status === "fulfilled" ||
-    listicleDiscoveryResult.status === "fulfilled"
+    listicleDiscoveryResult.status === "fulfilled" ||
+    rpiSettled?.status === "fulfilled" ||
+    blbSettled?.status === "fulfilled"
+
+  const combinedBacklinkResult: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }> =
+    anyDiscoverySucceeded
       ? {
           status: "fulfilled",
           value: {
             prospectsCreated:
               (backlinkDiscoveryResult.status === "fulfilled" ? backlinkDiscoveryResult.value.prospectsCreated : 0) +
               (mentionDiscoveryResult.status === "fulfilled" ? mentionDiscoveryResult.value.prospectsCreated : 0) +
-              (listicleDiscoveryResult.status === "fulfilled" ? listicleDiscoveryResult.value.prospectsCreated : 0),
+              (listicleDiscoveryResult.status === "fulfilled" ? listicleDiscoveryResult.value.prospectsCreated : 0) +
+              rpiResult.prospectsCreated +
+              blbResult.prospectsCreated,
             totalCostUsd:
               (backlinkDiscoveryResult.status === "fulfilled" ? backlinkDiscoveryResult.value.totalCostUsd : 0) +
               (mentionDiscoveryResult.status === "fulfilled" ? mentionDiscoveryResult.value.totalCostUsd : 0) +
-              (listicleDiscoveryResult.status === "fulfilled" ? listicleDiscoveryResult.value.totalCostUsd : 0),
+              (listicleDiscoveryResult.status === "fulfilled" ? listicleDiscoveryResult.value.totalCostUsd : 0) +
+              rpiResult.totalCostUsd +
+              blbResult.totalCostUsd,
           },
         }
       : backlinkDiscoveryResult

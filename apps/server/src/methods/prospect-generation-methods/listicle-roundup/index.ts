@@ -43,10 +43,13 @@ export async function discoverListicleRoundups(
 
   if (!ownDomain || !productName) {
     log.info("missing domain or product name, skipping", { productId: product.id })
+    const runId = await createProspectRun(product.id, [])
+    if (runId) await completeProspectRun(runId, 0, 0, { skip_reason: "missing_domain_or_name" })
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
   const sender = await resolveSenderName(product.user_id)
+  const funnel: Record<string, unknown> = {}
 
   let totalCostUsd = 0
 
@@ -55,6 +58,8 @@ export async function discoverListicleRoundups(
 
   if (queryPool.length === 0) {
     log.info("no queries built, skipping", { productId: product.id })
+    const runId = await createProspectRun(product.id, [])
+    if (runId) await completeProspectRun(runId, 0, totalCostUsd, { skip_reason: "no_queries_built" })
     return { prospectsCreated: 0, totalCostUsd }
   }
 
@@ -112,7 +117,7 @@ export async function discoverListicleRoundups(
         uniqueUrls: 0,
         toFetch: 0,
       })
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd)
+      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { candidates_gathered: 0, qualified: 0 })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -136,9 +141,11 @@ export async function discoverListicleRoundups(
       alreadyStored: byUrl.size - freshCandidates.length,
       toFetch: candidates.length,
     })
+    funnel.candidates_gathered = byUrl.size
+    funnel.after_dedupe = freshCandidates.length
 
     if (candidates.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd)
+      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -170,9 +177,11 @@ export async function discoverListicleRoundups(
       fetched: withContent.length,
       outcomes: outcomeCounts,
     })
+    funnel.after_fetch = withContent.length
+    funnel.fetch_outcomes = outcomeCounts
 
     if (withContent.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd)
+      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -206,9 +215,10 @@ export async function discoverListicleRoundups(
       scored: scored.length,
       qualified: qualified.length,
     })
+    funnel.after_scoring = qualified.length
 
     if (qualified.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd)
+      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -225,10 +235,11 @@ export async function discoverListicleRoundups(
           return true
         })
       log.info("dr filter applied", { productId: product.id, dr_min: settings.dr_min, kept: qualified.length })
+      funnel.after_dr = qualified.length
     }
 
     if (qualified.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd)
+      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -237,7 +248,7 @@ export async function discoverListicleRoundups(
     const newItems = qualified
 
     if (newItems.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd)
+      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -265,7 +276,8 @@ export async function discoverListicleRoundups(
     })
 
     if (toProcess.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd)
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: newItems.length, budget_exhausted: true })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -300,6 +312,7 @@ export async function discoverListicleRoundups(
 
     // Enrich each newly-inserted prospect, updating its row live as it completes.
     const enrichLimit = pLimit(5)
+    let enrichedWithContact = 0
     await Promise.allSettled(
       toProcess
         .filter((item) => idByUrl.has(item.url))
@@ -331,6 +344,7 @@ export async function discoverListicleRoundups(
             }
 
             if (ready) {
+              enrichedWithContact += 1
               onProspectCreated?.({
                 id,
                 contactName: enriched.contact_name,
@@ -348,7 +362,12 @@ export async function discoverListicleRoundups(
 
     log.info("rows upserted", { productId: product.id, inserted: prospectsCreated })
 
-    if (runId) await completeProspectRun(runId, prospectsCreated, totalCostUsd)
+    if (runId)
+      await completeProspectRun(runId, prospectsCreated, totalCostUsd, {
+        ...funnel,
+        qualified: newItems.length,
+        enriched_with_contact: enrichedWithContact,
+      })
     return { prospectsCreated, totalCostUsd }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)

@@ -43,6 +43,8 @@ export async function discoverBrokenLinkBuilding(
 
   if (product.competitors.length === 0) {
     log.info("no competitors set, skipping", { productId: product.id })
+    const runId = await createProspectRun(product.id, [])
+    if (runId) await completeProspectRun(runId, 0, 0, {}, { skip_reason: "no_competitors_set" })
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
@@ -57,6 +59,8 @@ export async function discoverBrokenLinkBuilding(
 
   if (pagesError) {
     log.error("failed to load replacement pages", { productId: product.id, error: pagesError.message })
+    const runId = await createProspectRun(product.id, [])
+    if (runId) await completeProspectRun(runId, 0, 0, {}, { skip_reason: "pages_query_error" })
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
@@ -72,6 +76,8 @@ export async function discoverBrokenLinkBuilding(
 
   if (replacementPages.length === 0) {
     log.info("no crawled replacement pages, skipping", { productId: product.id })
+    const runId = await createProspectRun(product.id, [])
+    if (runId) await completeProspectRun(runId, 0, 0, {}, { skip_reason: "no_crawled_replacement_pages" })
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
@@ -93,6 +99,15 @@ export async function discoverBrokenLinkBuilding(
   let totalProspectsCreated = 0
   let totalCostUsd = 0
   const cursorsByDomain: Record<string, string | null> = {}
+  const funnel = {
+    extracted: 0,
+    afterFilter: 0,
+    afterDedup: 0,
+    confirmedLive: 0,
+    matched: 0,
+    toEnrich: 0,
+    enrichedWithContact: 0,
+  }
 
   try {
     for (const competitorDomain of competitorsToProcess) {
@@ -112,9 +127,16 @@ export async function discoverBrokenLinkBuilding(
       totalProspectsCreated += result.prospectsCreated
       totalCostUsd += result.costUsd
       cursorsByDomain[competitorDomain] = result.nextCursor
+      funnel.extracted += result.funnel.extracted
+      funnel.afterFilter += result.funnel.afterFilter
+      funnel.afterDedup += result.funnel.afterDedup
+      funnel.confirmedLive += result.funnel.confirmedLive
+      funnel.matched += result.funnel.matched
+      funnel.toEnrich += result.funnel.toEnrich
+      funnel.enrichedWithContact += result.funnel.enrichedWithContact
     }
 
-    if (runId) await completeProspectRun(runId, totalProspectsCreated, totalCostUsd, cursorsByDomain)
+    if (runId) await completeProspectRun(runId, totalProspectsCreated, totalCostUsd, cursorsByDomain, funnel)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     log.error("discovery run failed", { productId: product.id, error: msg })

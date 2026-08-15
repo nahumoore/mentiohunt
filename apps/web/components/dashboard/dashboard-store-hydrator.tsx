@@ -82,9 +82,7 @@ export function DashboardStoreHydrator({
           new Date(a.discovered_at).getTime()
       )
     )
-    prospectStore.setHasCompletedRun(
-      hasCompletedProspectRun || prospectStore.hasCompletedRun
-    )
+    prospectStore.setHasCompletedRun(hasCompletedProspectRun)
     prospectStore.setPoolDelayedCount(poolDelayedCount)
     useDirectoryStore.getState().setDirectories(directories)
     useDiscoverySettingsStore.getState().setSettings(discoverySettings)

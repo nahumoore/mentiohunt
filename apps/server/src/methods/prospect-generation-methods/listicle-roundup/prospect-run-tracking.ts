@@ -62,7 +62,12 @@ export async function createProspectRun(productId: string, queries: string[]): P
   return (data as { id: string }).id
 }
 
-export async function completeProspectRun(runId: string, prospectsCreated: number, costUsd: number): Promise<void> {
+export async function completeProspectRun(
+  runId: string,
+  prospectsCreated: number,
+  costUsd: number,
+  metadata?: Record<string, unknown>
+): Promise<void> {
   await supabaseAdmin
     .from("backlink_prospect_runs" as string)
     .update({
@@ -70,6 +75,7 @@ export async function completeProspectRun(runId: string, prospectsCreated: numbe
       completed_at: new Date().toISOString(),
       prospects_created: prospectsCreated,
       cost_usd: costUsd,
+      ...(metadata ? { metadata } : {}),
     })
     .eq("id", runId)
 }

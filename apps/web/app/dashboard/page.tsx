@@ -4,6 +4,7 @@ import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
 import { DashboardUpgradeSuccess } from "@/components/dashboard/upgrade-success"
+import { DiscoveryFoundNothing } from "@/components/dashboard/discovery-found-nothing"
 import { DiscoveryInProgress } from "@/components/dashboard/discovery-in-progress"
 import { DashboardOverview } from "@/components/dashboard/overview/dashboard-overview"
 import { DashboardOverviewSkeleton } from "@/components/dashboard/overview/dashboard-overview-skeleton"
@@ -20,6 +21,8 @@ function DashboardHomeContent() {
     <DashboardOverviewSkeleton />
   ) : prospects.length === 0 && !hasCompletedRun ? (
     <DiscoveryInProgress />
+  ) : prospects.length === 0 ? (
+    <DiscoveryFoundNothing />
   ) : (
     <DashboardOverview />
   )

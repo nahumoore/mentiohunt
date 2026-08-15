@@ -82,9 +82,14 @@ export async function completeProspectRun(
   runId: string,
   prospectsCreated: number,
   costUsd: number,
-  cursorsByDomain: Record<string, string | null>
+  cursorsByDomain: Record<string, string | null> = {},
+  extraMetadata?: Record<string, unknown>
 ): Promise<void> {
   const validCursors = Object.fromEntries(Object.entries(cursorsByDomain).filter(([, v]) => v !== null))
+  const metadata = {
+    ...(Object.keys(validCursors).length > 0 ? { moz_cursors: validCursors } : {}),
+    ...extraMetadata,
+  }
   await supabaseAdmin
     .from("backlink_prospect_runs" as string)
     .update({
@@ -92,7 +97,7 @@ export async function completeProspectRun(
       completed_at: new Date().toISOString(),
       prospects_created: prospectsCreated,
       cost_usd: costUsd,
-      metadata: Object.keys(validCursors).length > 0 ? { moz_cursors: validCursors } : null,
+      metadata: Object.keys(metadata).length > 0 ? metadata : null,
     })
     .eq("id", runId)
 }

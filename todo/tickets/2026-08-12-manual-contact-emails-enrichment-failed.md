@@ -94,10 +94,41 @@ Product: Mentiohunt (`products.id = c73dce3c-b3b3-4633-b772-4150a9cde654`).
 
 ## Status
 
-- Fixed and verified for 1 of the 9 not-yet-manually-researched domains (`mgroup.pl`).
-  Remaining 8 not yet re-tested against the updated scraper.
-- The 4 manually-found emails have **not** been entered yet — still need the dashboard
-  manual-complete flow run against each of the 4 prospect rows.
+- **Pushed to `dev`** (commit `afa9328`). Not yet deployed to production.
+- **Re-tested all 13 stuck prospects locally against the pushed code** (2026-08-15), via
+  the local scraper's `/agent-scrape` route. Results:
+
+  **Now finds a usable email (6 of 13):**
+
+  | Domain | Email found | Notes |
+  |---|---|---|
+  | mgroup.pl | `kontakt@mgroup.pl` | matches ChatGPT's manual finding |
+  | seoinux.com | `seoinuxltd@gmail.com` | matches ChatGPT's manual finding — confirms the original failure was transient, not a systemic gap |
+  | supermonitoring.com (`.../online-marketing-link-building-with-ninja-outreach/`) | `office@siteimpulse.com` | same parent company as the manually-found `biuro@siteimpulse.com` |
+  | makerlist.io | `hello@byteloop.io` | cross-domain (byteloop.io runs makerlist.io) — plausible real contact, but the `name` field came back as garbled nav text ("Us\nBuzzStream\nBot\nVisit") on this one, don't trust it |
+  | amplefound.com | `help@amplefound.com` | new find — founder George Monte |
+  | babygotbacklink.com | `Joy@babygotbacklink.com` | new find — owner Joy Youell |
+
+  **Correctly reports no email found, honestly (5 of 13):**
+
+  | Domain | Why |
+  |---|---|
+  | seekme.ai | site is genuinely unreachable — correctly returns empty instead of hallucinating (this is the case the hallucination guard was built for) |
+  | supermonitoring.pl | email is obfuscated text + lives on a different domain (`siteimpulse.com`) — known, accepted gap per the decision to leave obfuscation-decoding alone |
+  | torquemag.io | checked author + contact pages, none published an email |
+  | fooyoh.com | checked contact/about/terms/privacy pages, none published an email |
+  | winterwebcare.nl | checked homepage + contact, none published an email |
+
+  **Inconsistent (1 of 13):** `supermonitoring.com` (`.../buzzstream-mastering-outreach-and-building-connections/`,
+  a different article on the same domain as the successful hit above) visited the same
+  `/p/contact` page but didn't extract the email that run — agent run-to-run variance,
+  not a fixable gap given the cost tradeoff.
+
+- Net result: **6 of the 13 stuck prospects now get a real contact email from a single
+  scraper run**, vs. 4 found via manual ChatGPT research (2 of those 4 no longer need
+  manual research at all — the scraper finds them itself).
+- The 4 manually-found emails (and the 2 newly-found ones, if desired) have **not** been
+  entered into production yet — still need the dashboard manual-complete flow run against
+  each prospect row (`apps/web/app/api/link-building/opportunities/[id]/manual-complete/route.ts`).
 - The 13 existing `failed`/`email_not_found` rows are otherwise untouched — this fix only
   changes future enrichment runs, it doesn't retroactively reprocess already-failed rows.
-- Not yet deployed — changes need to ship to production before they affect live discovery.

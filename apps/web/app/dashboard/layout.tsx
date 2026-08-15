@@ -4,9 +4,11 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardStoreHydrator } from "@/components/dashboard/dashboard-store-hydrator"
 import { FirstLoginWalkthrough } from "@/components/dashboard/first-login-walkthrough"
 import { supabaseServer } from "@/lib/supabase/server"
+import { supabaseAdmin } from "@workspace/supabase/admin"
 import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
 import type { DirectoryListItem } from "@/stores/directory-store"
 import type { DiscoverySettings } from "@/stores/discovery-settings-store"
+import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
 import type { ProspectListItem } from "@/stores/prospect-store"
@@ -25,6 +27,11 @@ const DEFAULT_DISCOVERY_SETTINGS: DiscoverySettings = {
   drMin: 0,
   drMax: null,
 }
+
+// Matches ProspectRealtimeSync's definition — an account isn't "done
+// discovering" until every strategy it has enabled has reached a terminal
+// state, not just the first one to finish.
+const TERMINAL_RUN_STATUSES = new Set(["completed", "failed"])
 
 const DEFAULT_VOICE_TONE =
   "Write in a casual, direct founder-to-founder tone. Keep it short — 3 to 4 sentences max. No corporate language, no buzzwords. Imagine tapping a fellow builder on the shoulder, not sending a formal pitch to a procurement team. Be genuine, not salesy."
@@ -177,7 +184,7 @@ export default async function DashboardLayout({
       directoriesResult,
       discoverySettingsResult,
       backlinkNetworkResult,
-      lastProspectRunResult,
+      prospectRunsResult,
       pagesResult,
       emailAccountResult,
       poolDelayedResult,
@@ -213,19 +220,18 @@ export default async function DashboardLayout({
         .maybeSingle(),
       supabase
         .from("backlink_prospect_runs")
-        .select("id, status")
+        .select("strategy, status")
         .eq("product_id", product.id)
-        .eq("status", "completed")
-        .order("started_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+        .order("started_at", { ascending: false }),
       supabase
         .from("product_pages")
         .select("id, url, title, description, page_type, priority")
         .eq("product_id", product.id)
         .order("created_at", { ascending: false })
         .limit(100),
-      supabase
+      // No RLS policy exists on email_accounts, so a user-session-scoped
+      // query here would silently return zero rows for every user.
+      supabaseAdmin
         .from("email_accounts")
         .select("id")
         .eq("user_id", user.id)
@@ -285,8 +291,23 @@ export default async function DashboardLayout({
       console.error("Error fetching backlink prospects:", prospectsError)
     }
 
-    hasCompletedProspectRun =
-      !lastProspectRunResult.error && lastProspectRunResult.data !== null
+    if (prospectRunsResult.error) {
+      console.error("Error fetching backlink prospect runs:", prospectRunsResult.error)
+    } else {
+      const enabledStrategies = discoverySettingsResult.data?.opportunity_types ?? DEFAULT_PROSPECT_TIERS
+      const latestStatusByStrategy = new Map<string, string>()
+      for (const run of prospectRunsResult.data ?? []) {
+        if (!latestStatusByStrategy.has(run.strategy)) {
+          latestStatusByStrategy.set(run.strategy, run.status)
+        }
+      }
+      hasCompletedProspectRun =
+        enabledStrategies.length > 0 &&
+        enabledStrategies.every((strategy: string) => {
+          const status = latestStatusByStrategy.get(strategy)
+          return status !== undefined && TERMINAL_RUN_STATUSES.has(status)
+        })
+    }
 
     if (directoriesResult.error) {
       console.error("Error fetching directories:", directoriesResult.error)

@@ -37,8 +37,22 @@ export async function processCompetitor(
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void,
   fetchLimit?: number
-): Promise<{ prospectsCreated: number; costUsd: number; nextCursor: string | null }> {
+): Promise<{
+  prospectsCreated: number
+  costUsd: number
+  nextCursor: string | null
+  funnel: {
+    extracted: number
+    afterFilter: number
+    afterDedup: number
+    confirmedLive: number
+    matched: number
+    toEnrich: number
+    enrichedWithContact: number
+  }
+}> {
   const cursor = await getLastCursor(product.id, competitorDomain)
+  const emptyFunnel = { extracted: 0, afterFilter: 0, afterDedup: 0, confirmedLive: 0, matched: 0, toEnrich: 0, enrichedWithContact: 0 }
 
   log.info("processing competitor", { productId: product.id, competitorDomain, hasCursor: !!cursor })
 
@@ -51,12 +65,12 @@ export async function processCompetitor(
     let totalCost = fetchCost
 
     if (rawCandidates.length === 0) {
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
+      return { prospectsCreated: 0, costUsd: totalCost, nextCursor, funnel: { ...emptyFunnel, extracted: 0 } }
     }
 
     const filtered = filterDeadLinkCandidates(rawCandidates, settings, product.website_url)
     if (filtered.length === 0) {
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
+      return { prospectsCreated: 0, costUsd: totalCost, nextCursor, funnel: { ...emptyFunnel, extracted: rawCandidates.length } }
     }
 
     // Drop prospects we've already stored so we don't pay to verify/match duplicates.
@@ -70,7 +84,12 @@ export async function processCompetitor(
     const newItems = filtered.filter((item) => !existingUrls.has(item.urlFrom))
 
     if (newItems.length === 0) {
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
+      return {
+        prospectsCreated: 0,
+        costUsd: totalCost,
+        nextCursor,
+        funnel: { ...emptyFunnel, extracted: rawCandidates.length, afterFilter: filtered.length },
+      }
     }
 
     // DataForSEO's index lags — confirm the dead link is still literally
@@ -91,7 +110,12 @@ export async function processCompetitor(
         afterDedup: newItems.length,
         confirmedLive: 0,
       })
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
+      return {
+        prospectsCreated: 0,
+        costUsd: totalCost,
+        nextCursor,
+        funnel: { ...emptyFunnel, extracted: rawCandidates.length, afterFilter: filtered.length, afterDedup: newItems.length },
+      }
     }
 
     // No replacement page found -> drop in v1 rather than send a bare
@@ -128,7 +152,18 @@ export async function processCompetitor(
     })
 
     if (matched.length === 0) {
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
+      return {
+        prospectsCreated: 0,
+        costUsd: totalCost,
+        nextCursor,
+        funnel: {
+          ...emptyFunnel,
+          extracted: rawCandidates.length,
+          afterFilter: filtered.length,
+          afterDedup: newItems.length,
+          confirmedLive: confirmed.length,
+        },
+      }
     }
 
     const siteRelevanceInputs = matched.map((item) => ({
@@ -150,7 +185,19 @@ export async function processCompetitor(
     })
 
     if (toProcess.length === 0) {
-      return { prospectsCreated: 0, costUsd: totalCost, nextCursor }
+      return {
+        prospectsCreated: 0,
+        costUsd: totalCost,
+        nextCursor,
+        funnel: {
+          ...emptyFunnel,
+          extracted: rawCandidates.length,
+          afterFilter: filtered.length,
+          afterDedup: newItems.length,
+          confirmedLive: confirmed.length,
+          matched: matched.length,
+        },
+      }
     }
 
     let drByDomain = new Map<string, number | null>()
@@ -198,6 +245,7 @@ export async function processCompetitor(
     const idByUrl = new Map((insertedRows ?? []).map((r) => [r.found_url as string, r.id as string]))
     const prospectsCreated = idByUrl.size
 
+    let enrichedWithContact = 0
     await Promise.allSettled(
       toProcess
         .filter((item) => idByUrl.has(item.urlFrom))
@@ -227,6 +275,7 @@ export async function processCompetitor(
             }
 
             if (ready) {
+              enrichedWithContact += 1
               onProspectCreated?.({
                 id,
                 contactName: enriched.contact_name,
@@ -244,10 +293,28 @@ export async function processCompetitor(
 
     log.info("rows upserted", { productId: product.id, competitorDomain, count: prospectsCreated })
 
-    return { prospectsCreated, costUsd: totalCost, nextCursor }
+    return {
+      prospectsCreated,
+      costUsd: totalCost,
+      nextCursor,
+      funnel: {
+        extracted: rawCandidates.length,
+        afterFilter: filtered.length,
+        afterDedup: newItems.length,
+        confirmedLive: confirmed.length,
+        matched: matched.length,
+        toEnrich: toProcess.length,
+        enrichedWithContact,
+      },
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     log.error("competitor processing failed", { productId: product.id, competitorDomain, error: msg })
-    return { prospectsCreated: 0, costUsd: 0, nextCursor: null }
+    return {
+      prospectsCreated: 0,
+      costUsd: 0,
+      nextCursor: null,
+      funnel: { extracted: 0, afterFilter: 0, afterDedup: 0, confirmedLive: 0, matched: 0, toEnrich: 0, enrichedWithContact: 0 },
+    }
   }
 }

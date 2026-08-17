@@ -53,11 +53,13 @@ const requestSchema = z.object({
 })
 
 const systemInstructions = [
-  "Given a product's name, description, and homepage signals, identify real products that compete directly with it.",
+  "Given a product's name, description, and homepage signals, identify direct competitors whose backlink profiles are worth mining for outreach prospects.",
   "Return JSON only with this exact shape:",
   '{"competitors":["example.com"]}',
   "Rules:",
   "- competitors must contain 8 to 10 unique root domains of real products that serve the same audience and solve the same problem.",
+  "- Match the input site's scale and niche. Exclude category-dominant marketplaces, directories, and aggregators (e.g. Angi, HomeAdvisor, Yelp, Thumbtack, Google, Amazon) even if they compete for the same customers — their backlinks are generic directory badges, not niche editorial mentions, so they make poor mining targets for a smaller site.",
+  "- For a local or regional business, prefer other local/regional competitors or niche content sites in the same space over national platforms.",
   "- Return root domains only (e.g. 'example.com'), never full URLs, paths, or subpages.",
   "- Do not include 'https://', 'http://', 'www.', or any trailing slashes.",
   "- Do not include the input site itself.",

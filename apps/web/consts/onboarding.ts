@@ -19,7 +19,7 @@ export const ONBOARDING_STEPS = [
   {
     title: "Competitors",
     description:
-      "These are the sites we'll mine for backlink opportunities. Add or remove as needed.",
+      "We'll mine these sites' backlinks for outreach targets. Use competitors similar in size to yours.",
   },
   {
     title: "Your target pages",
@@ -33,8 +33,20 @@ export const ONBOARDING_STEPS = [
   },
 ] as const
 
-export const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-1000", "1000+"] as const
-export const USER_ROLES = ["Founder", "Marketing", "Growth", "Engineering", "Other"] as const
+export const COMPANY_SIZES = [
+  "1-10",
+  "11-50",
+  "51-200",
+  "201-1000",
+  "1000+",
+] as const
+export const USER_ROLES = [
+  "Founder",
+  "Marketing",
+  "Growth",
+  "Engineering",
+  "Other",
+] as const
 export const REFERRAL_SOURCES = [
   "X/Twitter",
   "Google Search",
@@ -72,7 +84,7 @@ export const OPPORTUNITY_TYPES = [
     id: "listicle_roundups",
     label: "Listicle roundups",
     description:
-      "Find \"best X tools\" and \"top N alternatives\" posts that don't list your product yet.",
+      'Find "best X tools" and "top N alternatives" posts that don\'t list your product yet.',
   },
 ] as const
 

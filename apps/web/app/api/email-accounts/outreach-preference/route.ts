@@ -1,3 +1,4 @@
+import { notifyOwnMailboxActivated } from "@/lib/notify-outreach-mailbox-activated"
 import { supabaseServer } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { z } from "zod"
@@ -39,6 +40,16 @@ export async function PUT(request: Request) {
 
   const { accountId, sendAutomatedOutreach } = parsed.data
 
+  const { data: existing } = await supabase
+    .from("email_accounts")
+    .select("email, send_automated_outreach")
+    .eq("id", accountId)
+    .eq("user_id", user.id)
+    .eq("is_public", false)
+    .maybeSingle()
+
+  if (!existing) return err("Email account not found.", 404)
+
   const { data: updated, error: updateError } = await supabase
     .from("email_accounts")
     .update({ send_automated_outreach: sendAutomatedOutreach })
@@ -54,6 +65,10 @@ export async function PUT(request: Request) {
   }
 
   if (!updated) return err("Email account not found.", 404)
+
+  if (sendAutomatedOutreach && !existing.send_automated_outreach) {
+    await notifyOwnMailboxActivated(existing.email, user.id)
+  }
 
   return NextResponse.json({ ok: true, sendAutomatedOutreach })
 }

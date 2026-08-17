@@ -6,10 +6,11 @@ Mentiohunt automates backlink prospecting and outreach for founder-led B2B SaaS 
 
 > More brand info at `@.claude/skills/copywriting`
 
-## Rules
+## General Knowledge/Rules
 
 - When making changes, always explain system behavior instead of code changes, like if the user doesn't had coding knowledge.
 - Don't use `claude-in-chrome` without user permission.
+- When talking about support messages, they are on the DB `packages/supabase/database-types.ts`
 
 ## Current Repo Shape
 
@@ -31,4 +32,4 @@ This repository is a pnpm monorepo with three apps and shared packages.
 
 ## SEO
 
-Principal Target keyword `automated link building tool`
+- Principal Target keyword `automated link building tool`

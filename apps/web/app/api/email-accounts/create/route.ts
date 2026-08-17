@@ -1,3 +1,4 @@
+import { notifyOwnMailboxActivated } from "@/lib/notify-outreach-mailbox-activated"
 import { supabaseServer } from "@/lib/supabase/server"
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { encryptSecret } from "@workspace/supabase/crypto"
@@ -27,6 +28,7 @@ const postSchema = z.object({
   imapPass: z.string().optional(),
   sameCredentials: z.boolean().default(true),
   dailySendCap: z.coerce.number().int().positive().optional(),
+  sendAutomatedOutreach: z.boolean().default(false),
 })
 
 export async function POST(request: Request) {
@@ -67,6 +69,7 @@ export async function POST(request: Request) {
     imapPass,
     sameCredentials,
     dailySendCap,
+    sendAutomatedOutreach,
   } = parsed.data
 
   // Test SMTP before saving
@@ -125,6 +128,7 @@ export async function POST(request: Request) {
     imap_user: sameCredentials ? null : (imapUser ?? null),
     imap_pass: sameCredentials || !imapPass ? null : encryptSecret(imapPass),
     status: "active",
+    send_automated_outreach: sendAutomatedOutreach,
     ...(dailySendCap !== undefined ? { daily_send_cap: dailySendCap } : {}),
   }
 
@@ -137,6 +141,10 @@ export async function POST(request: Request) {
   if (insertError) {
     console.error("Failed to insert email account:", insertError)
     return err("Failed to save email account.", 500)
+  }
+
+  if (sendAutomatedOutreach) {
+    await notifyOwnMailboxActivated(email, user.id)
   }
 
   return NextResponse.json({ ok: true, id: inserted.id })

@@ -45,6 +45,8 @@ export const PLANS: Plan[] = [
       "1 website",
       "10 competitors tracked",
       "~25 daily backlink opportunities",
+      "Free inbox warmup",
+      "Unlimited outreach inbox accounts",
       `${PAID_MAX_URL_SUBMISSIONS_PER_DAY} manual prospect URL submissions a day`,
       `${TRACKED_LINKS_MAX_PER_PRODUCT} backlinks monitored daily`,
       "Priority support",

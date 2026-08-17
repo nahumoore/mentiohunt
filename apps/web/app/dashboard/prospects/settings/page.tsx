@@ -26,6 +26,7 @@ import { TYPE_CONFIG } from "@/lib/opportunity-types"
 import { captureEvent } from "@/lib/analytics"
 import type { DiscoverySettings } from "@/stores/discovery-settings-store"
 import { useDiscoverySettingsStore } from "@/stores/discovery-settings-store"
+import { useEmailAccountStore } from "@/stores/email-account-store"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import { useOutreachSettingsStore } from "@/stores/outreach-settings-store"
 import { useProductStore } from "@/stores/product-store"
@@ -63,6 +64,9 @@ export default function DiscoverySetupPage() {
     isSettingsTab
   )
   const product = useProductStore((state) => state.product)
+  const hasOwnOutreachMailbox = useEmailAccountStore(
+    (state) => state.hasOwnOutreachMailbox
+  )
   const settings = useDiscoverySettingsStore((state) => state.settings)
   const setSettings = useDiscoverySettingsStore((state) => state.setSettings)
   const updateSettings = useDiscoverySettingsStore(
@@ -401,6 +405,7 @@ export default function DiscoverySetupPage() {
               onUpdate={handleOutreachUpdate}
               productName={product?.product_name ?? ""}
               productWebsite={product?.website_url ?? ""}
+              hasOwnOutreachMailbox={hasOwnOutreachMailbox ?? false}
               footer={
                 <SettingsSaveFooter
                   message={outreachSettingsMessage}

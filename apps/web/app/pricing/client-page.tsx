@@ -3,6 +3,7 @@
 import {
   IconArrowRight,
   IconCheck,
+  IconInfoCircle,
   IconLoader2,
   IconSparkles,
 } from "@tabler/icons-react"
@@ -13,6 +14,16 @@ import type { BillingTier, Plan } from "@/consts/billing"
 import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
 import { captureEvent } from "@/lib/analytics"
 import { stripeBuyPlanRedirect } from "@/actions/stripe-buy-plan-redirect"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
+
+const WARMUP_FEATURE_LABEL = "Free inbox warmup"
+const WARMUP_FEATURE_INFO =
+  "Warmup applies to your personal outreach account. Connect one if you'd rather send from your own domain than using a shared inbox pool."
 
 type PlanStatus = "current" | "upgrade" | "buy" | "unauthenticated"
 
@@ -116,7 +127,24 @@ export function PricingClientPage({
                         className="flex items-start gap-3 text-sm leading-6 text-foreground"
                       >
                         <IconCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-blaze-orange)]" />
-                        <span>{feature}</span>
+                        <span className="inline-flex items-center gap-1.5">
+                          {feature}
+                          {feature === WARMUP_FEATURE_LABEL && (
+                            <TooltipProvider delayDuration={80}>
+                              <Tooltip>
+                                <TooltipTrigger
+                                  className="text-muted-foreground hover:text-foreground"
+                                  aria-label={`About ${WARMUP_FEATURE_LABEL}`}
+                                >
+                                  <IconInfoCircle className="h-3.5 w-3.5" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-64">
+                                  {WARMUP_FEATURE_INFO}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </span>
                       </li>
                     ))}
                   </ul>

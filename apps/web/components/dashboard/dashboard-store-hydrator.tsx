@@ -36,6 +36,7 @@ type DashboardStoreHydratorProps = {
   backlinkNetworkMembership: BacklinkNetworkMembership | null
   pages: ProductPageListItem[]
   hasActiveEmailAccount: boolean | null
+  hasOwnOutreachMailbox: boolean | null
   poolDelayedCount: number
   sentAt: string[]
   trackedLinks: TrackedLinkListItem[]
@@ -53,6 +54,7 @@ export function DashboardStoreHydrator({
   backlinkNetworkMembership,
   pages,
   hasActiveEmailAccount,
+  hasOwnOutreachMailbox,
   poolDelayedCount,
   sentAt,
   trackedLinks,
@@ -90,9 +92,10 @@ export function DashboardStoreHydrator({
     useBacklinkNetworkStore.getState().setMembership(backlinkNetworkMembership)
     usePagesStore.getState().setPages(pages)
     useEmailAccountStore.getState().setHasActiveEmailAccount(hasActiveEmailAccount)
+    useEmailAccountStore.getState().setHasOwnOutreachMailbox(hasOwnOutreachMailbox)
     useOutreachActivityStore.getState().setSentAt(sentAt)
     useLinkTrackerStore.getState().setLinks(trackedLinks)
-  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, poolDelayedCount, sentAt, trackedLinks])
+  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, hasOwnOutreachMailbox, poolDelayedCount, sentAt, trackedLinks])
 
   return (
     <>

@@ -170,10 +170,12 @@ function ProviderPicker({
 
 function CredentialsForm({
   provider,
+  sendAutomatedOutreach,
   onBack,
   onConnected,
 }: {
   provider: AccountProvider
+  sendAutomatedOutreach: boolean
   onBack: () => void
   onConnected: () => void
 }) {
@@ -217,6 +219,7 @@ function CredentialsForm({
           imapUser: imapUser || undefined,
           imapPass: imapPass || undefined,
           sameCredentials,
+          sendAutomatedOutreach,
         }),
       })
       const data = await res.json()
@@ -415,12 +418,14 @@ function ConnectAccountDialog() {
   const [step, setStep] = useState<1 | 2>(1)
   const [selectedProvider, setSelectedProvider] =
     useState<AccountProvider | null>(null)
+  const [sendAutomatedOutreach, setSendAutomatedOutreach] = useState(false)
 
   function handleOpenChange(next: boolean) {
     setOpen(next)
     if (!next) {
       setStep(1)
       setSelectedProvider(null)
+      setSendAutomatedOutreach(false)
     }
   }
 
@@ -440,6 +445,7 @@ function ConnectAccountDialog() {
     setOpen(false)
     setStep(1)
     setSelectedProvider(null)
+    setSendAutomatedOutreach(false)
   }
 
   return (
@@ -450,11 +456,11 @@ function ConnectAccountDialog() {
           Connect account
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-2xl">
         <DialogTitle>Connect email account</DialogTitle>
 
         {step === 1 && (
-          <div className="space-y-4">
+          <div className="mt-4 space-y-4">
             <p className="text-sm text-muted-foreground">
               Choose your email provider. We&apos;ll pre-fill the server settings for you.
             </p>
@@ -481,11 +487,30 @@ function ConnectAccountDialog() {
         )}
 
         {step === 2 && selectedProvider && (
-          <CredentialsForm
-            provider={selectedProvider}
-            onBack={handleBack}
-            onConnected={handleConnected}
-          />
+          <div className="mt-4 space-y-4">
+            <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-muted/30 px-4 py-4">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">
+                  Use for automated outreach
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Off by default. Turn this on to send cold outreach and
+                  follow-ups from here instead.
+                </p>
+              </div>
+              <Switch
+                checked={sendAutomatedOutreach}
+                onCheckedChange={setSendAutomatedOutreach}
+              />
+            </div>
+
+            <CredentialsForm
+              provider={selectedProvider}
+              sendAutomatedOutreach={sendAutomatedOutreach}
+              onBack={handleBack}
+              onConnected={handleConnected}
+            />
+          </div>
         )}
       </DialogContent>
     </Dialog>

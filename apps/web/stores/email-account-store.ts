@@ -14,6 +14,13 @@ type EmailAccountStore = {
    */
   hasActiveEmailAccount: boolean | null
   setHasActiveEmailAccount: (hasActiveEmailAccount: boolean | null) => void
+  /**
+   * Whether the user has an active, personal mailbox with automated
+   * outreach sending actually enabled (not just connected) — the signal for
+   * "sends through own infra, not the shared pool."
+   */
+  hasOwnOutreachMailbox: boolean | null
+  setHasOwnOutreachMailbox: (hasOwnOutreachMailbox: boolean | null) => void
 }
 
 export const useEmailAccountStore = create<EmailAccountStore>((set) => ({
@@ -28,4 +35,7 @@ export const useEmailAccountStore = create<EmailAccountStore>((set) => ({
   hasActiveEmailAccount: null,
   setHasActiveEmailAccount: (hasActiveEmailAccount) =>
     set({ hasActiveEmailAccount }),
+  hasOwnOutreachMailbox: null,
+  setHasOwnOutreachMailbox: (hasOwnOutreachMailbox) =>
+    set({ hasOwnOutreachMailbox }),
 }))

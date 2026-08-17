@@ -6,6 +6,8 @@ import {
   IconAlertCircle,
   IconArrowRight,
   IconCheck,
+  IconCopy,
+  IconDownload,
   IconExternalLink,
   IconLock,
   IconLoader2,
@@ -101,6 +103,7 @@ export function BacklinkOpportunityFinder() {
   const [opportunities, setOpportunities] = useState<BacklinkOpportunity[]>([])
   const [summary, setSummary] = useState<Summary | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const resultsRef = useRef<HTMLElement>(null)
 
   const websiteDomain = submittedUrl ? normalizeDomain(submittedUrl) : "your site"
@@ -182,6 +185,56 @@ export function BacklinkOpportunityFinder() {
       setError("The scan could not be completed. Please try again.")
       setPhase("idle")
     }
+  }
+
+  function opportunitiesToText() {
+    return opportunities
+      .map((opportunity, index) => {
+        const lines = [
+          `${index + 1}. ${opportunity.name ?? opportunity.domain} (${opportunity.domain})`,
+          `   Type: ${opportunity.type} | Fit score: ${opportunity.score}${opportunity.dr !== null ? ` | DR: ${opportunity.dr}` : ""}`,
+        ]
+        if (opportunity.url) lines.push(`   URL: ${opportunity.url}`)
+        if (opportunity.reason) lines.push(`   Why: ${opportunity.reason}`)
+        return lines.join("\n")
+      })
+      .join("\n\n")
+  }
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(opportunitiesToText())
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setError("Could not copy results. Please try again.")
+    }
+  }
+
+  function handleDownload() {
+    const header = ["Name", "Domain", "Type", "Score", "DR", "URL", "Reason"]
+    const rows = opportunities.map((opportunity) => [
+      opportunity.name ?? opportunity.domain,
+      opportunity.domain,
+      opportunity.type,
+      String(opportunity.score),
+      opportunity.dr !== null ? String(opportunity.dr) : "",
+      opportunity.url ?? "",
+      opportunity.reason ?? "",
+    ])
+
+    const csv = [header, ...rows]
+      .map((row) =>
+        row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\n")
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(blob)
+    link.download = `backlink-opportunities-${websiteDomain}.csv`
+    link.click()
+    URL.revokeObjectURL(link.href)
   }
 
   const hasResults = phase === "results"
@@ -378,6 +431,35 @@ export function BacklinkOpportunityFinder() {
                 </div>
               ) : (
                 <>
+                  {opportunities.length > 0 ? (
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopy}
+                        className="rounded-full text-xs font-semibold"
+                      >
+                        {copied ? (
+                          <IconCheck size={15} stroke={2.4} />
+                        ) : (
+                          <IconCopy size={15} stroke={2.4} />
+                        )}
+                        {copied ? "Copied" : "Copy results"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDownload}
+                        className="rounded-full text-xs font-semibold"
+                      >
+                        <IconDownload size={15} stroke={2.4} />
+                        Download CSV
+                      </Button>
+                    </div>
+                  ) : null}
+
                   <div className="grid gap-4 sm:grid-cols-3">
                     <StatCard
                       label="Opportunities found"

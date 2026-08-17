@@ -167,6 +167,11 @@ export default async function DashboardLayout({
   let backlinkNetworkMembership: BacklinkNetworkMembership | null = null
   let pages: ProductPageListItem[] = []
   let hasActiveEmailAccount = false
+  // Own connected mailbox with automated sending actually enabled — the
+  // signal for "sends through own infra, not the shared pool," used to gate
+  // richer signature formatting. Narrower than hasActiveEmailAccount, which
+  // only checks a mailbox is connected, not that it's opted into sending.
+  let hasOwnOutreachMailbox = false
   let poolDelayedCount = 0
   let sentAt: string[] = []
   let trackedLinks: TrackedLinkListItem[] = []
@@ -233,12 +238,10 @@ export default async function DashboardLayout({
       // query here would silently return zero rows for every user.
       supabaseAdmin
         .from("email_accounts")
-        .select("id")
+        .select("id, send_automated_outreach")
         .eq("user_id", user.id)
         .eq("is_public", false)
-        .eq("status", "active")
-        .limit(1)
-        .maybeSingle(),
+        .eq("status", "active"),
       // Only free-tier users send through the shared email pool, so only they
       // can have sequences deferred by pool capacity.
       billingProfile?.tier === "free"
@@ -271,7 +274,11 @@ export default async function DashboardLayout({
         .limit(200),
     ])
 
-    hasActiveEmailAccount = emailAccountResult.data !== null
+    const emailAccountRows = emailAccountResult.data ?? []
+    hasActiveEmailAccount = emailAccountRows.length > 0
+    hasOwnOutreachMailbox = emailAccountRows.some(
+      (row) => row.send_automated_outreach
+    )
     poolDelayedCount = poolDelayedResult?.count ?? 0
 
     if (sentSequencesResult.error) {
@@ -381,6 +388,7 @@ export default async function DashboardLayout({
       backlinkNetworkMembership={backlinkNetworkMembership}
       pages={pages}
       hasActiveEmailAccount={hasActiveEmailAccount}
+      hasOwnOutreachMailbox={hasOwnOutreachMailbox}
       poolDelayedCount={poolDelayedCount}
       sentAt={sentAt}
       trackedLinks={trackedLinks}

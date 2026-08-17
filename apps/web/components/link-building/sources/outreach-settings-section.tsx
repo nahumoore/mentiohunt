@@ -1,6 +1,7 @@
 "use client"
 
 import { IconAlertTriangle } from "@tabler/icons-react"
+import Link from "next/link"
 import type { ReactNode } from "react"
 
 import { Switch } from "@workspace/ui/components/switch"
@@ -55,12 +56,14 @@ export function OutreachSettingsSection({
   footer,
   productName,
   productWebsite,
+  hasOwnOutreachMailbox,
 }: {
   settings: OutreachSettings
   onUpdate: (patch: Partial<OutreachSettings>) => void
   footer: ReactNode
   productName?: string
   productWebsite?: string
+  hasOwnOutreachMailbox?: boolean
 }) {
   function handleSignatureToggle(enabled: boolean) {
     const patch: Partial<OutreachSettings> = { signatureEnabled: enabled }
@@ -130,14 +133,36 @@ export function OutreachSettingsSection({
               turned into a clickable link when sent.
             </p>
 
-            {hasLink(settings.signatureText) && (
+            {hasLink(settings.signatureText) && !hasOwnOutreachMailbox && (
               <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
                 <IconAlertTriangle className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
                 <p className="text-xs leading-5 text-amber-700">
-                  Links in signatures can lower email deliverability. Use at
-                  your own risk.
+                  Links in signatures can lower email deliverability on our
+                  shared sending pool. Use at your own risk, or{" "}
+                  <Link
+                    href="/dashboard/email-accounts"
+                    className="font-medium underline underline-offset-2"
+                  >
+                    connect your own mailbox
+                  </Link>{" "}
+                  to send with fewer restrictions.
                 </p>
               </div>
+            )}
+
+            {!hasOwnOutreachMailbox && !hasLink(settings.signatureText) && (
+              <p className="text-xs leading-5 text-muted-foreground">
+                Branded formatting (bold, logo) is only available when
+                sending from your own connected mailbox — not our shared
+                pool.{" "}
+                <Link
+                  href="/dashboard/email-accounts"
+                  className="font-medium underline underline-offset-2"
+                >
+                  Connect one
+                </Link>
+                .
+              </p>
             )}
 
             <div className="mt-1 rounded-2xl bg-muted/30 px-4 py-3">

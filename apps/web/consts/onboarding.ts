@@ -175,7 +175,7 @@ export const productDescriptionStepSchema = z.object({
 export const competitorsStepSchema = z.object({
   competitors: z
     .array(competitorUrlSchema)
-    .min(3, "Add at least 3 competitors.")
+    .min(5, "Add at least 5 competitors.")
     .max(10, "You can add up to 10 competitors.")
     .refine((competitors) => new Set(competitors).size === competitors.length, {
       message: "Each competitor should be unique.",

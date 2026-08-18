@@ -29,6 +29,7 @@ const productLinks = [
 
 const resourceLinks = [
   { href: "/blog", label: "Blog" },
+  { href: "/case-studies", label: "Case Studies" },
   { href: "/backlinks-from", label: "Backlinks From" },
   { href: "/outreach-templates", label: "Outreach Templates" },
   { href: "/free-tools", label: "Free Tools" },

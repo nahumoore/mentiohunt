@@ -666,8 +666,12 @@ async def fetch_page_detailed(url: str, force_dynamic: bool = False) -> FetchOut
     if not force_dynamic:
         try:
             log.info(f"fetching lightweight {url}")
+            # retries=1: curl_cffi's CookieConflict (same cookie name set on two
+            # domains within one redirect chain) is deterministic, not transient —
+            # its default 3x/1s-apart retry just repeats the identical failure
+            # before we escalate to dynamic anyway.
             page = await asyncio.to_thread(
-                Fetcher.get, url, timeout=15, stealthy_headers=True
+                Fetcher.get, url, timeout=15, stealthy_headers=True, retries=1
             )
             text = str(page.get_all_text()).strip()
             status = getattr(page, "status", None)

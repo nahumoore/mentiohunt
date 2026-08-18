@@ -30,6 +30,14 @@ export type BlogPostMeta = {
   verdict?: string
   dateModified?: string
   faqs?: Array<{ question: string; answer: string }>
+  company?: string
+  companyUrl?: string
+  industry?: string
+  metric?: string
+  timeframe?: string
+  quote?: string
+  quoteAuthor?: string
+  draft?: boolean
 }
 
 export type ContentType =
@@ -40,6 +48,7 @@ export type ContentType =
   | "guides"
   | "alternatives"
   | "compare"
+  | "case-studies"
 
 function getContentDirectory(contentType: ContentType = "blog"): string {
   return path.join(process.cwd(), "resources", contentType)
@@ -52,6 +61,7 @@ function getDefaultCategory(contentType: ContentType): string {
   if (contentType === "articles") return "Article"
   if (contentType === "backlinks-from") return "Platform Guide"
   if (contentType === "compare") return "Comparison"
+  if (contentType === "case-studies") return "Case Study"
   return "Blog"
 }
 
@@ -127,6 +137,14 @@ export function getPostBySlug(
         faqs: Array.isArray(data.faqs)
           ? (data.faqs as unknown as Array<{ question: string; answer: string }>)
           : undefined,
+        company: toStringValue(data.company) || undefined,
+        companyUrl: toStringValue(data.companyUrl) || undefined,
+        industry: toStringValue(data.industry) || undefined,
+        metric: toStringValue(data.metric) || undefined,
+        timeframe: toStringValue(data.timeframe) || undefined,
+        quote: toStringValue(data.quote) || undefined,
+        quoteAuthor: toStringValue(data.quoteAuthor) || undefined,
+        draft: typeof data.draft === "boolean" ? data.draft : undefined,
       },
       content,
     }
@@ -150,7 +168,7 @@ export function getAllResources(
   })
 
   return resources
-    .filter((post): post is BlogPostMeta => !!post)
+    .filter((post): post is BlogPostMeta => !!post && !post.draft)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 

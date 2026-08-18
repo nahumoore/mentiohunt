@@ -648,7 +648,8 @@ export function PagesClient() {
 
   useEffect(() => {
     setPageParam("1")
-  }, [search, setPageParam])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search])
 
   return (
     <div className="flex flex-col gap-6">

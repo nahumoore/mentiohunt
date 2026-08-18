@@ -204,6 +204,17 @@ _INFRA_FAILURE = object()
 _CONTEXT_DEAD = object()
 _CONTEXT_DEAD_SIGNATURE = "context or browser has been closed"
 
+# Playwright's Page.content() raced an in-flight client-side navigation
+# (redirect-heavy publishers — Wiley DOI resolver, ScienceDirect, UNECE —
+# hop through consent/tracking redirects on load). Scrapling retries content
+# extraction 3x internally but with no delay, so it exhausts against a page
+# that's still mid-hop instead of actually recovering. One settle-wait retry
+# here, on the last (stealthy) tier only, since there's nowhere left to
+# escalate to if this exhausts too. See
+# 2026-08-18-stealthy-fetch-navigation-race-drops-unlinked-mentions.md.
+_NAV_RACE_SIGNATURE = "is navigating and changing the content"
+_NAV_RACE_SETTLE_S = float(os.getenv("STEALTHY_NAV_RACE_SETTLE_S", "1.5"))
+
 # Serializes session restarts so a burst of callers hitting the same dead
 # context trigger exactly one restart, not one each. Callers that lose the
 # race just wait for the lock, then see the fresh session already swapped in
@@ -580,57 +591,68 @@ class FetchOutcome:
 
 
 async def _stealthy_attempt_detailed(url: str, host: str, proxy: dict[str, str] | None) -> "FetchOutcome | object":
-    """One stealthy (Camoufox) fetch. Returns a FetchOutcome, or the
-    _INFRA_FAILURE / _CONTEXT_DEAD sentinels (unchanged from before this
-    refactor) when a proxy is unreachable or the shared browser context died —
-    both signal the caller to retry rather than give up on this URL."""
+    """One stealthy (Camoufox) fetch, retried once after a short settle wait
+    if content-read races an in-flight navigation (_NAV_RACE_SIGNATURE).
+    Returns a FetchOutcome, or the _INFRA_FAILURE / _CONTEXT_DEAD sentinels
+    (unchanged from before this refactor) when a proxy is unreachable or the
+    shared browser context died — both signal the caller to retry rather than
+    give up on this URL."""
     via = "proxy" if proxy else "direct"
-    try:
-        # Only pass proxy= when set, so the no-proxy path stays byte-identical
-        # to the original direct call.
-        page = await (_stealthy_session.fetch(url, proxy=proxy) if proxy else _stealthy_session.fetch(url))
-        stealthy_text = str(page.get_all_text()).strip()
-        stealthy_html = (page.html_content or "")
-        stealthy_status = getattr(page, "status", None)
-        stealthy_url = getattr(page, "url", None)
-        is_cf_challenge = "<title>Just a moment" in stealthy_html
-        log.info(
-            f"stealthy result ({via}): status={stealthy_status} "
-            f"text_len={len(stealthy_text)} html_len={len(stealthy_html)} "
-            f"cf_challenge={is_cf_challenge} url={url}"
-        )
-        log.info(f"stealthy html snippet: {stealthy_html[:400]!r}")
-        # A 407 status means the proxy rejected our auth — infra, not the site.
-        if proxy and stealthy_status == 407:
-            log.warning(f"stealthy ({via}): proxy auth failed (407) {url}")
-            log.info(f"fetch_outcome=proxy_infra_failure host={host} url={url}")
-            return _INFRA_FAILURE
-        if is_cf_challenge:
-            log.warning(f"stealthy ({via}): CF challenge not bypassed {url} — marking domain blocked")
-            _cf_blocked_domains.add(host)
-            log.info(f"fetch_outcome=cf_blocked via={via} host={host} url={url}")
-            return FetchOutcome(page=None, outcome="cf_blocked", status_code=stealthy_status, final_url=stealthy_url)
-        if not _is_ok_status(page):
-            if stealthy_status in _TERMINAL_STATUSES:
-                log.info(f"fetch_outcome=terminal_stealthy status={stealthy_status} url={url}")
-                return FetchOutcome(page=page, outcome="dead", status_code=stealthy_status, final_url=stealthy_url)
-            log.info(f"fetch_outcome=non2xx_stealthy via={via} status={stealthy_status} url={url}")
-            return FetchOutcome(page=page, outcome="http_error", status_code=stealthy_status, final_url=stealthy_url)
-        log.info(f"fetch_outcome=ok_stealthy_{via} status={stealthy_status} url={url}")
-        return FetchOutcome(page=page, outcome="ok", status_code=stealthy_status, final_url=stealthy_url)
-    except Exception as e:
-        msg = str(e)
-        if _CONTEXT_DEAD_SIGNATURE in msg.lower():
-            log.error(f"stealthy ({via}): shared browser context dead {url}: {e}")
-            log.info(f"fetch_outcome=context_dead via={via} host={host} url={url}")
-            return _CONTEXT_DEAD
-        if proxy and any(sig.lower() in msg.lower() for sig in _PROXY_INFRA_SIGNATURES):
-            log.warning(f"stealthy ({via}): proxy infra error {url}: {e}")
-            log.info(f"fetch_outcome=proxy_infra_failure host={host} url={url}")
-            return _INFRA_FAILURE
-        log.error(f"stealthy fetch failed ({via}) {url}: {e}")
-        log.info(f"fetch_outcome=error_stealthy via={via} host={host} url={url}")
-        return FetchOutcome(page=None, outcome="fetch_failed")
+    for nav_race_attempt in range(2):
+        try:
+            # Only pass proxy= when set, so the no-proxy path stays byte-identical
+            # to the original direct call.
+            page = await (_stealthy_session.fetch(url, proxy=proxy) if proxy else _stealthy_session.fetch(url))
+            stealthy_text = str(page.get_all_text()).strip()
+            stealthy_html = (page.html_content or "")
+            stealthy_status = getattr(page, "status", None)
+            stealthy_url = getattr(page, "url", None)
+            is_cf_challenge = "<title>Just a moment" in stealthy_html
+            log.info(
+                f"stealthy result ({via}): status={stealthy_status} "
+                f"text_len={len(stealthy_text)} html_len={len(stealthy_html)} "
+                f"cf_challenge={is_cf_challenge} url={url}"
+            )
+            log.info(f"stealthy html snippet: {stealthy_html[:400]!r}")
+            # A 407 status means the proxy rejected our auth — infra, not the site.
+            if proxy and stealthy_status == 407:
+                log.warning(f"stealthy ({via}): proxy auth failed (407) {url}")
+                log.info(f"fetch_outcome=proxy_infra_failure host={host} url={url}")
+                return _INFRA_FAILURE
+            if is_cf_challenge:
+                log.warning(f"stealthy ({via}): CF challenge not bypassed {url} — marking domain blocked")
+                _cf_blocked_domains.add(host)
+                log.info(f"fetch_outcome=cf_blocked via={via} host={host} url={url}")
+                return FetchOutcome(page=None, outcome="cf_blocked", status_code=stealthy_status, final_url=stealthy_url)
+            if not _is_ok_status(page):
+                if stealthy_status in _TERMINAL_STATUSES:
+                    log.info(f"fetch_outcome=terminal_stealthy status={stealthy_status} url={url}")
+                    return FetchOutcome(page=page, outcome="dead", status_code=stealthy_status, final_url=stealthy_url)
+                log.info(f"fetch_outcome=non2xx_stealthy via={via} status={stealthy_status} url={url}")
+                return FetchOutcome(page=page, outcome="http_error", status_code=stealthy_status, final_url=stealthy_url)
+            log.info(f"fetch_outcome=ok_stealthy_{via} status={stealthy_status} url={url}")
+            return FetchOutcome(page=page, outcome="ok", status_code=stealthy_status, final_url=stealthy_url)
+        except Exception as e:
+            msg = str(e)
+            if _CONTEXT_DEAD_SIGNATURE in msg.lower():
+                log.error(f"stealthy ({via}): shared browser context dead {url}: {e}")
+                log.info(f"fetch_outcome=context_dead via={via} host={host} url={url}")
+                return _CONTEXT_DEAD
+            if proxy and any(sig.lower() in msg.lower() for sig in _PROXY_INFRA_SIGNATURES):
+                log.warning(f"stealthy ({via}): proxy infra error {url}: {e}")
+                log.info(f"fetch_outcome=proxy_infra_failure host={host} url={url}")
+                return _INFRA_FAILURE
+            if nav_race_attempt == 0 and _NAV_RACE_SIGNATURE in msg.lower():
+                log.warning(
+                    f"stealthy ({via}): content read raced navigation {url}, "
+                    f"retrying once after {_NAV_RACE_SETTLE_S}s settle wait: {e}"
+                )
+                await asyncio.sleep(_NAV_RACE_SETTLE_S)
+                continue
+            log.error(f"stealthy fetch failed ({via}) {url}: {e}")
+            log.info(f"fetch_outcome=error_stealthy via={via} host={host} url={url}")
+            return FetchOutcome(page=None, outcome="fetch_failed")
+    return FetchOutcome(page=None, outcome="fetch_failed")  # pragma: no cover — loop always returns or continues once
 
 
 async def fetch_page(url: str):

@@ -11,6 +11,17 @@ import { useCallback } from "react"
  * Reading always comes straight from the URL (no local useState mirror), so
  * two-way sync can't drift: the URL is the single source of truth.
  */
+
+// Callers often fire several setValue() calls synchronously (e.g. sort key +
+// dir + page reset). Each hook instance reads its own stale `searchParams`
+// snapshot, so independent router.replace() calls would clobber each other —
+// only the last one would stick. Batch same-tick updates per pathname into
+// one merged replace instead.
+const pendingUpdates = new Map<
+  string,
+  { params: URLSearchParams; scheduled: boolean }
+>()
+
 export function useQueryState<T extends string>(
   key: string,
   defaultValue: T,
@@ -25,16 +36,31 @@ export function useQueryState<T extends string>(
 
   const setValue = useCallback(
     (next: T) => {
-      const params = new URLSearchParams(searchParams.toString())
-      if (next === defaultValue) {
-        params.delete(key)
-      } else {
-        params.set(key, next)
+      let entry = pendingUpdates.get(pathname)
+      if (!entry) {
+        entry = {
+          params: new URLSearchParams(searchParams.toString()),
+          scheduled: false,
+        }
+        pendingUpdates.set(pathname, entry)
       }
-      const query = params.toString()
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      })
+
+      if (next === defaultValue) {
+        entry.params.delete(key)
+      } else {
+        entry.params.set(key, next)
+      }
+
+      if (!entry.scheduled) {
+        entry.scheduled = true
+        queueMicrotask(() => {
+          pendingUpdates.delete(pathname)
+          const query = entry!.params.toString()
+          router.replace(query ? `${pathname}?${query}` : pathname, {
+            scroll: false,
+          })
+        })
+      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [searchParams, pathname, key, defaultValue]

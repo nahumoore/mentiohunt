@@ -4,19 +4,29 @@ import { NextResponse, type NextRequest } from "next/server"
 const PROTECTED_ROUTES = ["/dashboard", "/onboarding"]
 
 export async function proxy(request: NextRequest) {
-  const { supabase, supabaseResponse } = createClient(request)
+  const { pathname } = request.nextUrl
+  const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route))
 
+  let supabaseResponse: NextResponse
   let user = null
+
   try {
-    const { data } = await supabase.auth.getUser()
+    const client = createClient(request)
+    supabaseResponse = client.supabaseResponse
+    const { data } = await client.supabase.auth.getUser()
     user = data.user
   } catch {
+    // Stale/invalid refresh token (e.g. AuthApiError refresh_token_not_found) can throw
+    // from Supabase's internal auto-refresh path, outside the getUser() promise chain.
+    // Treat as unauthenticated and clear the stale sb-* cookies so it doesn't retrigger.
+    supabaseResponse = NextResponse.next({ request: { headers: request.headers } })
+    for (const cookie of request.cookies.getAll()) {
+      if (cookie.name.startsWith("sb-")) {
+        supabaseResponse.cookies.delete(cookie.name)
+      }
+    }
     user = null
   }
-
-  const { pathname } = request.nextUrl
-
-  const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route))
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone()

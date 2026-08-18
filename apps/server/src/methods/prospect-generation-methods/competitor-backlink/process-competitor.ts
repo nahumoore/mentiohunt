@@ -54,7 +54,50 @@ export async function processCompetitor(
     const { items: rawItems, nextCursor, costUsd: fetchCost } = await extractBacklinks(competitorDomain, { ...settings, mozCursor, limit: fetchLimit })
     const tagged: TaggedBacklinkItem[] = rawItems.map((item) => ({ ...item, competitorDomain }))
 
-    const filtered = filterBacklinks(tagged, settings, product.website_url)
+    let filtered = filterBacklinks(tagged, settings, product.website_url)
+    if (filtered.length === 0) {
+      log.info("competitor digest", {
+        competitorDomain,
+        extracted: rawItems.length,
+        passedFilters: 0,
+        discardedByFilters: rawItems.length,
+        scoredTotal: 0,
+        discardedByScore: 0,
+        kept: 0,
+        inserted: 0,
+      })
+      return {
+        prospectsCreated: 0,
+        costUsd: fetchCost,
+        nextCursor,
+        funnel: { extracted: rawItems.length, passedFilters: 0, scoredTotal: 0, kept: 0, toEnrich: 0, enrichedWithContact: 0 },
+      }
+    }
+
+    // Real domain rating — only when the user has set a DR floor, checked as early as
+    // possible so we don't pay for LLM relevance scoring or contact enrichment on sites
+    // we're going to reject anyway. item.domainRating up to this point is DataForSEO's
+    // own rank (used for the DataForSEO-side fetch filter and local dedup/cap), not
+    // Ahrefs DR — don't persist it as domain_rating.
+    let drByDomain = new Map<string, number | null>()
+    if (settings.dr_min > 0) {
+      const domains = [...new Set(filtered.map((item) => extractDomainFromUrl(item.urlFrom)))]
+      drByDomain = await enrichDomainRatings(domains)
+      filtered = filtered.filter((item) => {
+        const dr = drByDomain.get(extractDomainFromUrl(item.urlFrom))
+        if (dr == null) return false
+        if (dr < settings.dr_min) return false
+        if (settings.dr_max !== null && dr > settings.dr_max) return false
+        return true
+      })
+      log.info("dr filter applied", {
+        competitorDomain,
+        dr_min: settings.dr_min,
+        dr_max: settings.dr_max,
+        kept: filtered.length,
+      })
+    }
+
     if (filtered.length === 0) {
       log.info("competitor digest", {
         competitorDomain,
@@ -185,15 +228,6 @@ export async function processCompetitor(
           enrichedWithContact: 0,
         },
       }
-    }
-
-    // Real domain rating — only when the user has set a DR floor. item.domainRating
-    // up to this point is DataForSEO's own rank (used for the DataForSEO-side fetch
-    // filter and local dedup/cap), not Ahrefs DR — don't persist it as domain_rating.
-    let drByDomain = new Map<string, number | null>()
-    if (settings.dr_min > 0) {
-      const domains = [...new Set(toProcess.map((item) => extractDomainFromUrl(item.urlFrom)))]
-      drByDomain = await enrichDomainRatings(domains)
     }
 
     // Insert bare rows immediately so the UI shows discovered sites right

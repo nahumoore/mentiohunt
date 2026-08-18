@@ -44,8 +44,8 @@ Score guide (1-5):
 - 5: Perfect fit — roundup/comparison of tools in this exact category, or resource page for this product's audience
 - 4: Strong fit — clearly relevant page, product could be added with minimal stretch
 - 3: Moderate fit — some relevance but requires context; borderline inclusion
-- 2: Weak fit — loose connection, product mention would feel forced
-- 1: No fit — different domain entirely (lifestyle, physical products, unrelated B2C)
+- 2: Weak fit — loose connection, product mention would feel forced; OR the page is published by a competing product's own site (a company blog promoting its own tool, that only names well-known/established competitors) — no editorial reason to add an unfamiliar, smaller competitor; OR the page's content is about a different language/locale/audience than this product's own (e.g. the page is about learning German when this product is for French learners) even if the linked competitor is the same
+- 1: No fit — different domain entirely (lifestyle, physical products, unrelated B2C), OR the linking page is a forum thread, forum post, or auto-generated tool/app directory listing with no identifiable human editor to contact
 
 Also classify the page type:
 - "roundup": list of multiple tools/products (e.g., "11 best X tools")

@@ -36,6 +36,8 @@ Score guide (0-100):
 - 25-49: Weak alignment — tangential connection, audience unlikely to care about this product
 - 0-24: No alignment — different market entirely
 
+Cap the score at 20, regardless of topical fit, if the site itself is a competing product's own marketing site or company blog (its content mainly promotes its own tool, and any "alternatives"/comparison content only names well-known, established competitors). Such sites have no editorial reason to link out to a smaller or newer player in their own market — they are a poor outreach fit even when the audience overlap is perfect.
+
 Return only a numeric score (integer, 0-100) per site.`
 
 const RESPONSE_FORMAT = {

@@ -45,7 +45,7 @@ Score guide (1-5):
 - 5: Clear "best/top X tools" roundup in the exact category, product absent, inclusion is a natural fit
 - 4: Roundup in an adjacent but closely related category, product absent
 - 3: Listicle format but category fit is loose, or unclear if maintained/updated
-- 2: Weak — thin listicle, wrong category, or looks abandoned/outdated
+- 2: Weak — thin listicle, wrong category, or looks abandoned/outdated, OR the page is published by a competing product's own site (a company blog promoting its own tool, that only names well-known/established competitors) — these sites have no editorial reason to add an unfamiliar, smaller competitor, even when the listicle itself looks genuine
 - 1: Not a listicle (single review, news article, aggregator page) OR the product is already listed
 
 If a well-known competitor is featured on the page, name it as topCompetitor (empty string if none identifiable).

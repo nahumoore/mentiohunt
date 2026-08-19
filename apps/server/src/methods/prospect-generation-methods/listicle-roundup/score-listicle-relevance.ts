@@ -1,5 +1,5 @@
 import pLimit from "p-limit"
-import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
+import { generateTextWithUsage, LlmAllModelsFailedError } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../../helpers/logger.js"
 import { withLlmRetries } from "../../../helpers/llm-retry.js"
@@ -182,6 +182,7 @@ async function scoreBatch(
       return { results: scored, cost }
     })
   } catch (err) {
+    if (err instanceof LlmAllModelsFailedError) throw err
     log.warn("scoring failed", { error: String(err) })
     return { results: [], cost: 0 }
   }

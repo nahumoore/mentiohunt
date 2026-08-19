@@ -1,5 +1,5 @@
 import pLimit from "p-limit"
-import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
+import { generateTextWithUsage, LlmAllModelsFailedError } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../../helpers/logger.js"
 import { withLlmRetries } from "../../../helpers/llm-retry.js"
@@ -110,6 +110,10 @@ async function scoreBatch(
       return { results, cost }
     })
   } catch (err) {
+    // A total model-chain failure (e.g. OpenRouter out of credits) means
+    // scoring never ran at all — swallowing it here would report a clean
+    // "0 relevant sites" indistinguishable from real low relevance.
+    if (err instanceof LlmAllModelsFailedError) throw err
     log.warn("batch scoring failed", { error: String(err) })
     return { results: new Map(), cost: 0 }
   }

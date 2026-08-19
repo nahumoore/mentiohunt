@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import type { LimitFunction } from "p-limit"
+import { LlmAllModelsFailedError } from "@workspace/openrouter/generate-text"
 import { createLogger } from "../../../helpers/logger.js"
 import { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
@@ -326,6 +327,11 @@ export async function processCompetitor(
       },
     }
   } catch (err) {
+    // A total LLM outage isn't specific to this one competitor — every other
+    // competitor in the run would fail the same way, so let it propagate to
+    // the run-level catch (which marks the run "failed") instead of
+    // reporting a clean zero per competitor.
+    if (err instanceof LlmAllModelsFailedError) throw err
     const msg = err instanceof Error ? err.message : String(err)
     log.error("competitor processing failed", { productId: product.id, competitorDomain, error: msg })
     return {

@@ -3,6 +3,24 @@ import pLimit, { type LimitFunction } from "p-limit"
 
 import { DEFAULT_GENERATE_TEXT_MODEL, OPENROUTER_MODELS, type OpenRouterModel } from "./models.ts"
 
+/**
+ * Thrown when every model in the primary+fallback chain fails (e.g. all of
+ * them reject with "Insufficient credits" during an OpenRouter balance
+ * outage). Distinct from a single model's transient error so callers that
+ * retry-then-swallow (see helpers/llm-retry.ts) can tell "the LLM never ran"
+ * apart from "the LLM ran and scored this low" instead of treating both as
+ * an ordinary zero result.
+ */
+export class LlmAllModelsFailedError extends Error {
+  attemptErrors: string[]
+
+  constructor(attemptErrors: string[]) {
+    super(`All models failed — ${attemptErrors.join(" | ")}`)
+    this.name = "LlmAllModelsFailedError"
+    this.attemptErrors = attemptErrors
+  }
+}
+
 type ProcessEnv = {
   env?: Record<string, string | undefined>
 }
@@ -216,7 +234,7 @@ async function generateStructuredText({
     }
   }
 
-  throw new Error(`All models failed — ${attemptErrors.join(" | ")}`)
+  throw new LlmAllModelsFailedError(attemptErrors)
 }
 
 export async function generateText({

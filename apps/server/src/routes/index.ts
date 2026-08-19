@@ -29,6 +29,7 @@ import { prospectManualOutreachRouter } from "./prospect-manual-outreach.js"
 import { prospectReplyRouter } from "./prospect-reply.js"
 import { prospectSubmittedUrlRouter } from "./prospect-submitted-url.js"
 import { resendInboundWebhookRouter } from "./resend-inbound-webhook.js"
+import { runDiscoveryRouter } from "./run-discovery.js"
 import { verifyDirectoryUrlsRouter } from "./verify-directory-urls.js"
 import { devSubmitUrlRouter } from "./dev-submit-url.js"
 
@@ -44,6 +45,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(freeToolBacklinkMonitorRouter)
   app.use(onboardingCompleteRouter)
   app.use(onboardingFetchSiteRouter)
+  app.use(runDiscoveryRouter)
   app.use(prospectManualOutreachRouter)
   app.use(prospectReplyRouter)
   app.use(prospectSubmittedUrlRouter)

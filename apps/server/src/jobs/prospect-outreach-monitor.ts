@@ -594,6 +594,7 @@ async function notifyUserOfReply(prospect: ProspectRow, contactName: string | nu
     productName: founder.productName,
     domain: prospect.domain,
     contactName,
+    prospectId: prospect.id,
   })
 }
 

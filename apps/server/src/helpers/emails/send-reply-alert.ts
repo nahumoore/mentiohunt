@@ -8,6 +8,7 @@ export async function sendReplyAlertEmail({
   productName,
   domain,
   contactName,
+  prospectId,
 }: {
   to: string
   userId: string
@@ -15,6 +16,7 @@ export async function sendReplyAlertEmail({
   productName: string
   domain: string | null
   contactName: string | null
+  prospectId: string
 }) {
   const firstName = userName?.trim().split(/\s+/)[0]
   const greeting = firstName ? `Hi ${firstName},` : "Hi,"
@@ -34,7 +36,7 @@ export async function sendReplyAlertEmail({
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="border-radius:10px; background-color:#FF5400;">
-            <a href="${APP_URL}/dashboard" style="display:inline-block; padding:13px 18px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:14px; font-weight:700; color:#FFFFFF; text-decoration:none; border-radius:10px;">View reply details</a>
+            <a href="${APP_URL}/dashboard/prospects/${prospectId}" style="display:inline-block; padding:13px 18px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size:14px; font-weight:700; color:#FFFFFF; text-decoration:none; border-radius:10px;">View reply details</a>
           </td>
         </tr>
       </table>

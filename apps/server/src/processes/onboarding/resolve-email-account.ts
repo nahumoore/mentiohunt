@@ -30,13 +30,30 @@ async function pickLeastLoadedAccount(candidates: CandidateAccount[]): Promise<s
     sentCountByAccount.set(row.email_account_id, (sentCountByAccount.get(row.email_account_id) ?? 0) + 1)
   }
 
+  // Tie-break by total prospects ever assigned to the account (not just today's
+  // sends) — ties on sentToday are the common case, since throughput is low
+  // enough that most accounts sit at 0 sent-today most of the day. Breaking
+  // ties by array order instead of load left newly added accounts starved,
+  // since they'd always lose the tie to whichever account came back first.
+  const { data: totalAssigned } = await supabaseAdmin
+    .from("prospect_sequences")
+    .select("email_account_id")
+    .in("email_account_id", accountIds)
+    .eq("step", 1)
+
+  const totalCountByAccount = new Map<string, number>()
+  for (const row of totalAssigned ?? []) {
+    totalCountByAccount.set(row.email_account_id, (totalCountByAccount.get(row.email_account_id) ?? 0) + 1)
+  }
+
   const selected = [...candidates]
     .map((account) => ({
       ...account,
       sentToday: sentCountByAccount.get(account.id) ?? 0,
+      totalAssigned: totalCountByAccount.get(account.id) ?? 0,
     }))
     .filter((account) => account.sentToday < account.daily_send_cap)
-    .sort((a, b) => a.sentToday - b.sentToday || a.daily_send_cap - b.daily_send_cap)[0]
+    .sort((a, b) => a.sentToday - b.sentToday || a.totalAssigned - b.totalAssigned)[0]
 
   return (selected ?? firstCandidate).id
 }

@@ -34,7 +34,14 @@ export async function deriveFeedbackStage({
 
   const productIds = (products ?? []).map((p) => p.id)
 
-  const [prospectActions, reportedIssues] = await Promise.all([
+  const [anyProspects, prospectActions, reportedIssues] = await Promise.all([
+    productIds.length > 0
+      ? supabaseAdmin
+          .from("backlink_prospects")
+          .select("id")
+          .in("product_id", productIds)
+          .limit(1)
+      : Promise.resolve({ data: [], error: null }),
     productIds.length > 0
       ? supabaseAdmin
           .from("backlink_prospects")
@@ -50,11 +57,21 @@ export async function deriveFeedbackStage({
       .limit(1),
   ])
 
+  if (anyProspects.error) {
+    log.warn("failed to check prospect existence", { userId, error: anyProspects.error.message })
+  }
   if (prospectActions.error) {
     log.warn("failed to check prospect actions", { userId, error: prospectActions.error.message })
   }
   if (reportedIssues.error) {
     log.warn("failed to check reported issues", { userId, error: reportedIssues.error.message })
+  }
+
+  // No prospects at all yet means there's nothing to "review" — sending the
+  // "opportunities are ready" copy here would be a false claim, so this
+  // takes priority over the acted/not-acted split below.
+  if ((anyProspects.data?.length ?? 0) === 0) {
+    return { stage: "onboarding_done_no_prospects", productName }
   }
 
   const hasActedOnOpportunities =

@@ -7,6 +7,7 @@ import { Resend } from "resend"
 import { createLogger } from "../helpers/logger.js"
 export type FunnelStage =
   | "stuck_onboarding"
+  | "onboarding_done_no_prospects"
   | "onboarding_done_no_action"
   | "used_opportunities_only"
 
@@ -54,6 +55,36 @@ function step0Content(
 You started setting up but didn't finish. Did something feel confusing, or did life just get busy? Either way, a few words are more than enough.
 
 Thanks for signing up!
+
+${signoff} <3
+Nico
+Founder @ Mentiohunt`,
+      }
+    case "onboarding_done_no_prospects":
+      return {
+        subject: productName
+          ? pick(
+              `an update on ${productName}`,
+              "quick heads up",
+              "quick thing from the founder"
+            )
+          : spin(
+              "{a quick update|quick heads up|quick thing from the founder}"
+            ),
+        previewText: "still searching, no opportunities found yet",
+        body: `${greeting} ${name} - Nico here, founder of Mentiohunt :)
+
+${
+  productName
+    ? `We finished setting up ${productName}, but haven't found any solid link building opportunities yet — we keep searching daily.`
+    : `We finished onboarding, but haven't found any solid link building opportunities yet — we keep searching daily.`
+}
+
+That happens sometimes with a newer or more specific niche. Nothing wrong on your end, just wanted you to know it's not stuck.
+
+Anything I can help with in the meantime? One line is enough.
+
+Thanks for giving Mentiohunt a try!
 
 ${signoff} <3
 Nico
@@ -137,6 +168,20 @@ function step1Content(
 I'm just trying to figure out what actually got in the way. Was the setup confusing, or did something break on our end? I'd rather know than guess.
 
 A few words are more than enough :)
+
+${signoff},
+Nico
+Founder @ Mentiohunt`,
+      }
+    case "onboarding_done_no_prospects":
+      return {
+        subject: spin("{still on it|quick update|honest update}"),
+        previewText: "still searching, no strong fits yet",
+        body: `${greeting} ${name},
+
+Still haven't surfaced opportunities for ${productName ?? "your product"} — we keep searching daily, but no strong fits yet.
+
+If you want, reply and tell me more about ${productName ?? "your product"} or who you're trying to reach. That helps me tune the search.
 
 ${signoff},
 Nico

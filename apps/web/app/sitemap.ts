@@ -103,6 +103,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-07-25"),
       priority: 0.75 as const,
     })),
+    {
+      url: "https://mentiohunt.com/link-building-outreach-statistics-2026",
+      lastModified: new Date("2026-08-19"),
+      priority: 0.75,
+    },
     { url: "https://mentiohunt.com/privacy", priority: 0.3 as const },
     { url: "https://mentiohunt.com/tos", priority: 0.3 as const },
   ]

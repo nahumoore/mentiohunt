@@ -1,1 +1,1 @@
-export { LinkBuildingStatisticsPage } from "./statistics-page"
+export { StatisticsReport } from "./report/report"

@@ -40,15 +40,13 @@ onboardingCompleteRouter.post("/onboarding/complete", async (req, res) => {
     return
   }
 
-  const rawPageLimit =
-    req.body !== null && typeof req.body === "object"
-      ? Number((req.body as Record<string, unknown>)["pageLimit"])
-      : NaN
-  const pageLimit = Number.isFinite(rawPageLimit) && rawPageLimit > 0 ? rawPageLimit : 50
+  const body = req.body !== null && typeof req.body === "object" ? (req.body as Record<string, unknown>) : {}
+  const rawCrawlLimit = Number(body["crawlLimit"] ?? body["pageLimit"])
+  const crawlLimit = Number.isFinite(rawCrawlLimit) && rawCrawlLimit > 0 ? rawCrawlLimit : 50
 
   res.status(202).json({ queued: true })
 
   withRouteLog(`onboarding-complete-${productId}`, () =>
-    runOnboardingJobs(userId, productId, pageLimit)
+    runOnboardingJobs(userId, productId, crawlLimit)
   ).catch((err) => log.error("unhandled onboarding jobs error", { error: String(err) }))
 })

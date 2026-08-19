@@ -17,6 +17,7 @@ import * as React from "react"
 import { HowItWorksDialog } from "@/components/link-building/prospects/how-it-works-dialog"
 import { SubmitUrlDialog } from "@/components/link-building/prospects/submit-url-dialog"
 import { AddTrackedLinksDialog } from "@/components/link-tracker/add-tracked-links-dialog"
+import { NotificationBell } from "@/components/dashboard/notification-bell"
 import { useEmailAccountStore } from "@/stores/email-account-store"
 import { useProfileStore } from "@/stores/profile-store"
 import { useProspectStore } from "@/stores/prospect-store"
@@ -141,7 +142,7 @@ export function DashboardHeader() {
         />
         <nav
           aria-label="Dashboard breadcrumb"
-          className="flex min-w-0 items-center gap-1.5 text-[0.65rem] font-bold uppercase"
+          className="flex min-w-0 flex-1 items-center gap-1.5 text-[0.65rem] font-bold uppercase"
         >
           {breadcrumbs.map((breadcrumb, index) => {
             const isLast = index === breadcrumbs.length - 1
@@ -166,6 +167,7 @@ export function DashboardHeader() {
             )
           })}
         </nav>
+        <NotificationBell />
       </div>
 
       {pageConfig && PageIcon && (

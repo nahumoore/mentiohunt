@@ -7,6 +7,7 @@ import { classifyInboundEmail, extractMessageIds, normalizeEmail, normalizeMessa
 import { CONTACT_ENRICHABLE_CLASSIFICATIONS, enrichContactFromReply } from "../helpers/outreach/enrich-contact-from-reply.js"
 import { stopProspectSequence } from "../helpers/outreach/stop-prospect-sequence.js"
 import { sendReplyAlertEmail } from "../helpers/emails/send-reply-alert.js"
+import { createNotification } from "../helpers/notifications/create-notification.js"
 import { createLogger } from "../helpers/logger.js"
 import { loadProspectIdsForUser } from "./prospect-outreach-sender.js"
 
@@ -594,6 +595,15 @@ async function notifyUserOfReply(prospect: ProspectRow, contactName: string | nu
     productName: founder.productName,
     domain: prospect.domain,
     contactName,
+    prospectId: prospect.id,
+  })
+
+  await createNotification({
+    userId: founder.userId,
+    type: "prospect_reply",
+    title: `${contactName ?? prospect.domain} replied`,
+    body: `New reply on your outreach to ${prospect.domain}.`,
+    linkHref: `/dashboard/prospects/${prospect.id}`,
     prospectId: prospect.id,
   })
 }

@@ -53,6 +53,7 @@ export async function discoverBrokenLinkBuilding(
     .select("id, url, title, description, page_type, priority, keywords")
     .eq("product_id", product.id)
     .eq("crawl_status", "crawled")
+    .eq("is_target", true)
     .in("page_type", ELIGIBLE_PAGE_TYPES)
     .order("priority", { ascending: false })
     .limit(REPLACEMENT_PAGE_LIMIT)

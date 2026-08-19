@@ -1,4 +1,4 @@
-import { FREE_TRIAL_MAX_PAGES } from "@/consts/billing"
+import { MAX_MANUAL_PAGES_FREE, MAX_MANUAL_PAGES_PAID } from "@/consts/billing"
 import { supabaseServer } from "@/lib/supabase/server"
 import { waitUntil } from "@vercel/functions"
 import { NextResponse } from "next/server"
@@ -71,45 +71,44 @@ export async function POST(request: Request) {
     .single()
 
   const isPaid = profile?.tier === "pro" || profile?.tier === "agency"
+  const manualCap = isPaid ? MAX_MANUAL_PAGES_PAID : MAX_MANUAL_PAGES_FREE
 
-  if (!isPaid) {
-    const { count } = await supabase
-      .from("product_pages")
-      .select("id", { count: "exact", head: true })
-      .eq("product_id", product.id)
-
-    if ((count ?? 0) >= FREE_TRIAL_MAX_PAGES) {
-      return buildError(`Free trial is limited to ${FREE_TRIAL_MAX_PAGES} pages.`, 403)
-    }
-  }
-
-  // Prevent duplicates
-  const { data: existing } = await supabase
+  const { count } = await supabase
     .from("product_pages")
-    .select("id")
+    .select("id", { count: "exact", head: true })
     .eq("product_id", product.id)
-    .eq("url", url)
-    .maybeSingle()
+    .eq("is_manual", true)
 
-  if (existing) {
-    return buildError("This page is already being tracked.", 409)
+  if ((count ?? 0) >= manualCap) {
+    return buildError(`You can add up to ${manualCap} manual pages.`, 403)
   }
 
   const { data: page, error: insertError } = await supabase
     .from("product_pages")
-    .insert({
-      product_id: product.id,
-      url,
-      page_type,
-      priority,
-      crawl_status: "pending",
-    })
+    .upsert(
+      {
+        product_id: product.id,
+        url,
+        page_type,
+        priority,
+        is_manual: true,
+        is_target: true,
+        crawl_status: "pending",
+      },
+      { onConflict: "product_id,url", ignoreDuplicates: true }
+    )
     .select("id, url, title, description, page_type, priority, crawl_status")
     .single()
 
-  if (insertError || !page) {
+  if (insertError) {
+    if (insertError.code === "PGRST116") {
+      return buildError("This page is already being tracked.", 409)
+    }
     console.error("Error inserting product page:", insertError)
     return buildError("Failed to add page.", 500)
+  }
+  if (!page) {
+    return buildError("This page is already being tracked.", 409)
   }
 
   waitUntil(

@@ -7,8 +7,9 @@ type ProspectOnboardingResult = {
 }
 
 type PagesOnboardingResult = {
-  pagesFound: number
+  candidatesFound: number
   pagesCrawled: number
+  pagesSelected: number
   pagesFailed: number
   totalCostUsd: number
 }
@@ -45,9 +46,9 @@ export async function sendOnboardingCompleteEmail({
   const pagesCard =
     pagesResult.status === "fulfilled"
       ? statCard(
-          "Pages found",
-          String(pagesResult.value.pagesFound),
-          "product pages found for opportunity matching",
+          "Target pages",
+          String(pagesResult.value.pagesSelected),
+          "pages selected from your target keywords",
           "33%"
         )
       : ""

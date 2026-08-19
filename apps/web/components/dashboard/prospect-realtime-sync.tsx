@@ -169,6 +169,10 @@ export function ProspectRealtimeSync() {
               description: row.description,
               page_type: row.page_type,
               priority: row.priority,
+              relevance_score: row.relevance_score,
+              matched_keywords: row.matched_keywords,
+              is_target: row.is_target,
+              is_manual: row.is_manual,
             })
           }
         )

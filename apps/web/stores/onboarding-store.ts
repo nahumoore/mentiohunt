@@ -35,11 +35,31 @@ export const useOnboardingStore = create<OnboardingStore>()(
     }),
     {
       name: "mentions-onboarding-progress",
+      version: 1,
       partialize: (state) => ({
         currentStep: state.currentStep,
         isCompleted: state.isCompleted,
         data: state.data,
       }),
+      migrate: (persisted) => {
+        const state = persisted as {
+          currentStep?: number
+          isCompleted?: boolean
+          data?: Record<string, unknown>
+        }
+        const rest = { ...(state.data ?? {}) }
+        delete rest.resourceMode
+        delete rest.resourceUrls
+        return {
+          currentStep: state.currentStep ?? 0,
+          isCompleted: state.isCompleted ?? false,
+          data: {
+            ...INITIAL_ONBOARDING_DATA,
+            ...rest,
+            targetKeywords: [],
+          },
+        }
+      },
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true)
       },

@@ -2,9 +2,18 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import { canSendAlerts } from "../helpers/emails/should-send-alerts.js"
 import { sendLinkTrackerDigestEmail, type DigestChange } from "../helpers/emails/send-link-tracker-digest.js"
 import { createLogger } from "../helpers/logger.js"
+import { createNotification } from "../helpers/notifications/create-notification.js"
 import type { LinkSnapshot, TrackedLinkChangeType } from "../methods/link-tracker/types.js"
 
 const log = createLogger("link-tracker-digest")
+
+// Recoveries are good news, not something worth a bell notification — only
+// the transitions that need the user's attention count toward the badge.
+const RECOVERY_CHANGE_TYPES = new Set<TrackedLinkChangeType>([
+  "link_restored",
+  "rel_removed",
+  "source_page_recovered",
+])
 
 type RawEvent = {
   id: string
@@ -162,6 +171,17 @@ export async function sendTrackedLinkDigests(): Promise<void> {
     if (stampError) {
       log.error("failed to stamp notified_at after send", { userId, error: stampError.message })
       continue
+    }
+
+    const issueCount = userEvents.filter((event) => !RECOVERY_CHANGE_TYPES.has(event.change_type)).length
+    if (issueCount > 0) {
+      await createNotification({
+        userId,
+        type: "tracked_link_issue",
+        title: issueCount === 1 ? "1 backlink issue detected" : `${issueCount} backlink issues detected`,
+        body: "A tracked backlink changed and needs a look.",
+        linkHref: "/dashboard/link-tracker",
+      })
     }
 
     usersSent++

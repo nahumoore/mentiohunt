@@ -17,7 +17,7 @@ function buildValidationError(message: string, status = 400) {
 async function runOnboardingJobsOnServer(payload: {
   userId: string
   productId: string
-  pageLimit: number
+  crawlLimit: number
 }) {
   const serverResponse = await fetch(`${SERVER_URL}/onboarding/complete`, {
     method: "POST",
@@ -62,6 +62,7 @@ export async function POST(request: Request) {
     product_name: parsedRequest.data.productName,
     product_description: parsedRequest.data.productDescription,
     competitors: parsedRequest.data.competitors,
+    target_keywords: parsedRequest.data.targetKeywords,
   }
 
   const { data: existingProducts, error: existingProductsError } = await supabase
@@ -89,6 +90,7 @@ export async function POST(request: Request) {
       product_name: productPayload.product_name,
       product_description: productPayload.product_description,
       competitors: productPayload.competitors,
+      target_keywords: productPayload.target_keywords,
     }
 
     const { error: updateProductError } = await supabase
@@ -129,36 +131,6 @@ export async function POST(request: Request) {
     return buildValidationError("Failed to complete onboarding.", 500)
   }
 
-  const { resourceUrls, resourceMode } = parsedRequest.data
-
-  if (resourceUrls.length > 0) {
-    const { error: deletePagesError } = await supabase
-      .from("product_pages")
-      .delete()
-      .eq("product_id", productId)
-
-    if (deletePagesError) {
-      console.error("Error clearing product pages:", deletePagesError)
-      return buildValidationError("Failed to complete onboarding.", 500)
-    }
-
-    const pageType = resourceMode === "sitemap" ? "sitemap" : "manual"
-    const pagesPayload = resourceUrls.map((url) => ({
-      product_id: productId,
-      url,
-      page_type: pageType,
-    }))
-
-    const { error: insertPagesError } = await supabase
-      .from("product_pages")
-      .insert(pagesPayload)
-
-    if (insertPagesError) {
-      console.error("Error inserting product pages:", insertPagesError)
-      return buildValidationError("Failed to complete onboarding.", 500)
-    }
-  }
-
   const profileUpdate: TablesUpdate<"profiles"> = {
     onboarding_completed: true,
     ...(parsedRequest.data.userName ? { name: parsedRequest.data.userName } : {}),
@@ -183,7 +155,7 @@ export async function POST(request: Request) {
     runOnboardingJobsOnServer({
       userId: user.id,
       productId,
-      pageLimit: FREE_TRIAL_MAX_PAGES,
+      crawlLimit: FREE_TRIAL_MAX_PAGES,
     }).catch((error) => {
       console.error("Failed to reach the onboarding server:", error)
     })

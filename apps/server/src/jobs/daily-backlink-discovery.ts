@@ -98,6 +98,7 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         .select("id", { count: "exact", head: true })
         .eq("product_id", product.id)
         .eq("crawl_status", "crawled")
+        .eq("is_target", true)
       return (count ?? 0) > 0
     },
     discover: async (product, filterSettings, emailSettings, onProspectCreated) => {
@@ -121,6 +122,7 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         .select("id", { count: "exact", head: true })
         .eq("product_id", product.id)
         .eq("crawl_status", "crawled")
+        .eq("is_target", true)
         .in("page_type", ["article", "resource", "free_tool"])
       return (count ?? 0) > 0
     },

@@ -57,7 +57,7 @@ async function runPageCrawl(productId: string, pageId: string) {
         .single(),
       supabaseAdmin
         .from("products")
-        .select("product_name, product_description")
+        .select("product_name, product_description, target_keywords")
         .eq("id", productId)
         .single(),
     ])
@@ -82,10 +82,13 @@ async function runPageCrawl(productId: string, pageId: string) {
     return
   }
 
-  // Extract keywords via LLM — keep user's page_type and priority unchanged
+  // Extract keywords via LLM — keep user's page_type and priority unchanged,
+  // but score against the product's target keywords so manually added pages
+  // are comparable to auto-selected ones.
   const { results: categorized } = await categorizePages(
     [{ url: page.url, ...scraped }],
-    { product_name: product.product_name, product_description: product.product_description }
+    { product_name: product.product_name, product_description: product.product_description },
+    product.target_keywords ?? []
   )
 
   const cat = categorized[0]
@@ -96,6 +99,9 @@ async function runPageCrawl(productId: string, pageId: string) {
       title: scraped.title || null,
       description: scraped.description || null,
       keywords: cat?.keywords ?? [],
+      relevance_score: cat?.relevanceScore ?? null,
+      matched_keywords: cat?.matchedKeywords ?? [],
+      selection_reason: cat?.reason || null,
       crawl_status: "crawled",
       crawled_at: new Date().toISOString(),
     })

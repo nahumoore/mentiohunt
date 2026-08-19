@@ -22,9 +22,9 @@ export const ONBOARDING_STEPS = [
       "We'll mine these sites' backlinks for outreach targets. Use competitors similar in size to yours.",
   },
   {
-    title: "Your target pages",
+    title: "Your target keywords",
     description:
-      "Add your sitemap URL or the specific pages you want to earn backlinks to.",
+      "Tell us what you want to rank for. We'll scan your site, pick the pages that match best, and hunt backlinks for them.",
   },
   {
     title: "Launch",
@@ -59,7 +59,6 @@ export const REFERRAL_SOURCES = [
 export type CompanySize = (typeof COMPANY_SIZES)[number]
 export type UserRole = (typeof USER_ROLES)[number]
 export type ReferralSource = (typeof REFERRAL_SOURCES)[number]
-export type ResourceMode = "sitemap" | "pages"
 
 export const OPPORTUNITY_TYPE_IDS = [
   "competitor_backlinks",
@@ -102,8 +101,7 @@ export type OnboardingData = {
   productDescription: string
   competitors: string[]
   opportunityTypes: OpportunityTypeId[]
-  resourceMode: ResourceMode
-  resourceUrls: string[]
+  targetKeywords: string[]
   userName: string
   companySize: string
   role: string
@@ -119,8 +117,7 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   productDescription: "",
   competitors: [],
   opportunityTypes: DEFAULT_OPPORTUNITY_TYPES,
-  resourceMode: "sitemap",
-  resourceUrls: [],
+  targetKeywords: [],
   userName: "",
   companySize: "",
   role: "",
@@ -139,6 +136,10 @@ export function normalizeUrl(value: string) {
   return URL_PROTOCOL_PATTERN.test(trimmedValue)
     ? trimmedValue
     : `https://${trimmedValue}`
+}
+
+export function normalizeKeyword(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLowerCase()
 }
 
 const siteUrlSchema = z
@@ -198,25 +199,27 @@ export const companyStepSchema = z.object({
   referralSource: z.string().trim().optional().default(""),
 })
 
-const resourceUrlSchema = z
+const keywordSchema = z
   .string()
   .trim()
-  .min(1, "Enter a URL.")
-  .transform(normalizeUrl)
-  .pipe(z.string().url("Enter a valid URL."))
+  .min(2, "Keywords must be at least 2 characters.")
+  .max(60, "Keep each keyword under 60 characters.")
+  .transform(normalizeKeyword)
 
-export const resourcesStepSchema = z.object({
-  resourceMode: z.enum(["sitemap", "pages"]).default("sitemap"),
-  resourceUrls: z
-    .array(resourceUrlSchema)
-    .min(1, "Add at least one page URL or your sitemap URL.")
-    .max(20, "You can add up to 20 URLs."),
+export const keywordsStepSchema = z.object({
+  targetKeywords: z
+    .array(keywordSchema)
+    .min(5, "Add at least 5 target keywords.")
+    .max(10, "You can add up to 10 keywords.")
+    .refine((keywords) => new Set(keywords).size === keywords.length, {
+      message: "Each keyword should be unique.",
+    }),
 })
 
 export const onboardingSchema = websiteUrlStepSchema
   .merge(productDescriptionStepSchema)
   .merge(competitorsStepSchema)
   .merge(opportunityTypesStepSchema)
-  .merge(resourcesStepSchema)
+  .merge(keywordsStepSchema)
   .merge(userNameStepSchema)
   .merge(companyStepSchema)

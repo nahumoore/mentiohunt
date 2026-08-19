@@ -5,7 +5,6 @@ import { discoverBrokenLinkBuilding } from "../../methods/prospect-generation-me
 import { discoverCompetitorBacklinks } from "../../methods/prospect-generation-methods/competitor-backlink/index.js"
 import { discoverListicleRoundups } from "../../methods/prospect-generation-methods/listicle-roundup/index.js"
 import { discoverResourcePageInclusions } from "../../methods/prospect-generation-methods/resource-page-inclusion/index.js"
-import { DEFAULT_PAGE_TYPES } from "../../methods/prospect-generation-methods/resource-page-inclusion/types.js"
 import { ALL_OPPORTUNITY_TYPES } from "../../methods/prospect-generation-methods/shared/opportunity-types.js"
 import type { ProspectCreatedPayload } from "../../methods/prospect-generation-methods/shared/prospect-types.js"
 import { discoverUnlinkedMentions } from "../../methods/prospect-generation-methods/unlinked-mention/index.js"
@@ -30,12 +29,8 @@ const ONBOARDING_LISTICLE_LIMITS = { maxCandidates: 25, maxProspects: 10 }
 
 // resource_page_inclusion and broken_link_building both require crawled
 // product_pages rows, so they run in a second stage after the crawl (stage 1
-// below) finishes, instead of racing it. A brand-new SaaS whose sitemap is
-// mostly homepage/pricing/features gets every page classified `landing_page`
-// by categorize-pages.ts, which DEFAULT_PAGE_TYPES excludes — include it here
-// so those accounts have eligible target pages at all.
-const ONBOARDING_RPI_PAGE_TYPES = [...DEFAULT_PAGE_TYPES, "landing_page"]
-const ONBOARDING_RPI_LIMITS = { maxProspects: 10, pageTypes: ONBOARDING_RPI_PAGE_TYPES }
+// below) finishes, instead of racing it.
+const ONBOARDING_RPI_LIMITS = { maxProspects: 10 }
 
 export async function runOnboardingJobs(
   userId: string,
@@ -159,7 +154,7 @@ export async function runOnboardingJobs(
         const t = Date.now()
         log.info("crawlProductPages START", { productId, pageLimit })
         try {
-          const result = await crawlProductPages(productId, pageLimit)
+          const result = await crawlProductPages(productId, { crawlLimit: pageLimit })
           log.success("crawlProductPages done", { durationMs: Date.now() - t, ...result })
           return result
         } catch (err) {
@@ -181,7 +176,7 @@ export async function runOnboardingJobs(
   let rpiSettled: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }> | undefined
   let blbSettled: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }> | undefined
 
-  const crawlProducedPages = pagesResult.status === "fulfilled" && pagesResult.value.pagesCrawled > 0
+  const crawlProducedPages = pagesResult.status === "fulfilled" && pagesResult.value.pagesSelected > 0
 
   if (product && crawlProducedPages) {
     const t2 = Date.now()

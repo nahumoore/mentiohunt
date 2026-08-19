@@ -23,7 +23,7 @@ import {
   type ScoredResourceInclusionCandidate,
   type TargetPageForInclusion,
 } from "./score-resource-page-inclusion.js"
-import { DEFAULT_LIMITS, DEFAULT_PAGE_TYPES, DEFAULT_QUERY_TEMPLATES, type Product, type ResourcePageInclusionOptions } from "./types.js"
+import { DEFAULT_LIMITS, DEFAULT_QUERY_TEMPLATES, type Product, type ResourcePageInclusionOptions } from "./types.js"
 
 const log = createLogger("discover-resource-page-inclusions")
 
@@ -53,7 +53,12 @@ export async function discoverResourcePageInclusions(
   const scoringThreshold = limitNumber(options.scoringThreshold, DEFAULT_LIMITS.scoringThreshold)
   const country = options.country?.trim() || DEFAULT_LIMITS.country
   const serpResultsPerQuery = options.serpResultsPerQuery ?? DEFAULT_LIMITS.serpResultsPerQuery
-  const pageTypes = options.pageTypes?.length ? options.pageTypes : DEFAULT_PAGE_TYPES
+  // Page type is no longer a hard filter by default — keyword relevance
+  // (is_target, set by crawlProductPages's top-N selection) is a strictly
+  // better "is this a plausible link target" signal than page type, which
+  // was only ever a proxy for it. pageTypes stays available as an explicit
+  // override for callers that want it (e.g. the free tool).
+  const pageTypes = options.pageTypes?.length ? options.pageTypes : null
   const queryTemplates = options.queryTemplates?.length ? options.queryTemplates : DEFAULT_QUERY_TEMPLATES
   const dryRun = options.dryRun === true
 
@@ -70,11 +75,12 @@ export async function discoverResourcePageInclusions(
     .select("id, url, title, description, page_type, priority, keywords")
     .eq("product_id", product.id)
     .eq("crawl_status", "crawled")
+    .eq("is_target", true)
     .gte("priority", minPriority)
-    .in("page_type", pageTypes)
     .order("priority", { ascending: false })
     .limit(pageFetchLimit)
 
+  if (pageTypes) pagesQuery = pagesQuery.in("page_type", pageTypes)
   if (options.pageIds?.length) pagesQuery = pagesQuery.in("id", options.pageIds)
 
   const { data: rawPages, error: pagesError } = await pagesQuery

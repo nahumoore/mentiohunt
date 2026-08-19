@@ -8,7 +8,16 @@ type ProductPageRow = Tables<"product_pages">
 
 export type ProductPageListItem = Pick<
   ProductPageRow,
-  "id" | "url" | "title" | "description" | "page_type" | "priority"
+  | "id"
+  | "url"
+  | "title"
+  | "description"
+  | "page_type"
+  | "priority"
+  | "relevance_score"
+  | "matched_keywords"
+  | "is_target"
+  | "is_manual"
 >
 
 type PagesStore = {

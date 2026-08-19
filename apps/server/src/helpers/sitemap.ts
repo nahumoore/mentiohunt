@@ -1,30 +1,62 @@
+import pLimit from "p-limit"
 import { XMLParser } from "fast-xml-parser"
 import { fetchWithRetry } from "./http.js"
 import { createLogger } from "./logger.js"
 
 const log = createLogger("sitemap")
 
-/** Fetch all `<loc>` URLs from a sitemap or sitemap index (1 level deep). */
-export async function fetchSitemapUrls(sitemapUrl: string, depth = 0): Promise<string[]> {
-  if (depth > 1) return []
+type SitemapFetchOptions = {
+  /** Max child sitemaps to expand when the root is a sitemap index. */
+  maxChildSitemaps?: number
+  /** Hard cap on total URLs returned across all children. */
+  maxUrls?: number
+  /** Internal recursion guard — do not set from callers. */
+  depth?: number
+}
+
+const DEFAULT_MAX_CHILD_SITEMAPS = 10
+const DEFAULT_MAX_URLS = 5000
+
+function extractLoc(entry: unknown): string | null {
+  if (typeof entry === "string") return entry
+  if (entry && typeof entry === "object" && "loc" in entry) {
+    const loc = (entry as Record<string, unknown>).loc
+    return typeof loc === "string" ? loc : null
+  }
+  return null
+}
+
+async function fetchSingleSitemap(sitemapUrl: string): Promise<unknown> {
+  const res = await fetchWithRetry(sitemapUrl, { timeoutMs: 15_000, maxAttempts: 2 })
+  const parser = new XMLParser({ ignoreAttributes: false })
+  return parser.parse(res.body)
+}
+
+/**
+ * Fetch all `<loc>` URLs from a sitemap or sitemap index. Sitemap indexes are
+ * expanded across all child sitemaps (capped, concurrency-limited) rather
+ * than only the first — a single-child expansion badly under-collects on
+ * sites that split content into several sitemaps (WordPress's
+ * post-sitemap.xml / page-sitemap.xml being the common case).
+ */
+export async function fetchSitemapUrls(
+  sitemapUrl: string,
+  options: SitemapFetchOptions = {}
+): Promise<string[]> {
+  const maxChildSitemaps = options.maxChildSitemaps ?? DEFAULT_MAX_CHILD_SITEMAPS
+  const maxUrls = options.maxUrls ?? DEFAULT_MAX_URLS
+  const depth = options.depth ?? 0
+
+  if (depth > 2) return []
 
   log.info("fetching sitemap", { url: sitemapUrl, depth })
 
-  let body: string
+  let parsed: unknown
   try {
-    const res = await fetchWithRetry(sitemapUrl, { timeoutMs: 15_000, maxAttempts: 2 })
-    body = res.body
+    parsed = await fetchSingleSitemap(sitemapUrl)
   } catch (err) {
     log.error("sitemap fetch failed", { url: sitemapUrl, err: String(err) })
     throw new Error("Could not fetch sitemap. Check the URL and try again.")
-  }
-
-  const parser = new XMLParser({ ignoreAttributes: false })
-  let parsed: unknown
-  try {
-    parsed = parser.parse(body)
-  } catch {
-    throw new Error("Could not parse sitemap XML.")
   }
 
   if (
@@ -35,15 +67,26 @@ export async function fetchSitemapUrls(sitemapUrl: string, depth = 0): Promise<s
   ) {
     const idx = (parsed as Record<string, unknown>).sitemapindex as Record<string, unknown>
     const sitemaps = Array.isArray(idx.sitemap) ? idx.sitemap : idx.sitemap ? [idx.sitemap] : []
-    log.info("sitemap index found", { childCount: sitemaps.length })
-    const first = sitemaps[0]
-    const loc = first
-      ? typeof first === "string"
-        ? first
-        : (first as Record<string, unknown>).loc
-      : null
-    if (loc && typeof loc === "string") return fetchSitemapUrls(loc, depth + 1)
-    return []
+    const childUrls = sitemaps.map(extractLoc).filter((u): u is string => u !== null).slice(0, maxChildSitemaps)
+    log.info("sitemap index found", { childCount: sitemaps.length, expanding: childUrls.length })
+
+    const limit = pLimit(5)
+    const results = await Promise.allSettled(
+      childUrls.map((child) => limit(() => fetchSitemapUrls(child, { maxUrls, depth: depth + 1 })))
+    )
+
+    const seen = new Set<string>()
+    const combined: string[] = []
+    for (const result of results) {
+      if (result.status !== "fulfilled") continue
+      for (const url of result.value) {
+        if (seen.has(url)) continue
+        seen.add(url)
+        combined.push(url)
+        if (combined.length >= maxUrls) return combined
+      }
+    }
+    return combined
   }
 
   if (
@@ -55,15 +98,9 @@ export async function fetchSitemapUrls(sitemapUrl: string, depth = 0): Promise<s
     const urlset = (parsed as Record<string, unknown>).urlset as Record<string, unknown>
     const urls = Array.isArray(urlset.url) ? urlset.url : urlset.url ? [urlset.url] : []
     const result = urls
-      .map((u: unknown) => {
-        if (typeof u === "string") return u
-        if (u && typeof u === "object" && "loc" in u) {
-          const loc = (u as Record<string, unknown>).loc
-          return typeof loc === "string" ? loc : String(loc)
-        }
-        return null
-      })
+      .map(extractLoc)
       .filter((u): u is string => u !== null && u.startsWith("http"))
+      .slice(0, maxUrls)
     log.info("sitemap parsed", { urlCount: result.length })
     return result
   }

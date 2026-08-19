@@ -13,6 +13,7 @@ import {
   IconLinkFilled,
   IconLoader2,
   IconPlus,
+  IconRefresh,
   IconSearch,
   IconX,
 } from "@tabler/icons-react"
@@ -49,12 +50,11 @@ import { useEffect, useState } from "react"
 
 import Link from "next/link"
 
-import { FREE_TRIAL_MAX_PAGES } from "@/consts/billing"
 import { PAGE_TYPE_CONFIG, type PageType } from "@/consts/page-types"
 import { useQueryState } from "@/hooks/use-query-state"
 import { usePagesStore } from "@/stores/pages-store"
-import { useProfileStore } from "@/stores/profile-store"
-import { useProspectStore } from "@/stores/prospect-store"
+import { useProductStore } from "@/stores/product-store"
+import { useProspectStore, type ProspectListItem } from "@/stores/prospect-store"
 
 
 type PagePriority = 1 | 2 | 3 | 4 | 5
@@ -66,7 +66,15 @@ type ProductPage = {
   description: string | null
   page_type: PageType
   priority: PagePriority
+  matched_keywords: string[]
+  is_manual: boolean
   opportunities_count: number
+}
+
+const SITE_WIDE_TIER_LABELS: Partial<Record<ProspectListItem["tier"], string>> = {
+  competitor_backlink: "Competitor backlinks",
+  unlinked_mention: "Unlinked mentions",
+  listicle_roundup: "Listicle roundups",
 }
 
 const PAGE_SIZE = 20
@@ -201,7 +209,7 @@ function PriorityInfoPopover() {
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-foreground">
-              How priority works
+              How relevance works
             </p>
             <PopoverClose asChild>
               <button
@@ -213,16 +221,17 @@ function PriorityInfoPopover() {
             </PopoverClose>
           </div>
           <p className="text-xs leading-5 text-muted-foreground">
-            Score from 1 to 5 controls how aggressively we hunt backlinks for
-            each page. Higher scores get more discovery cycles and more outreach
-            slots.
+            Score from 1 to 5 measures how well this page matches your target
+            keywords. Pages at 3+ are eligible for resource-page and
+            broken-link discovery, and the highest scorer wins when we
+            auto-pick which page to pitch.
           </p>
           <div className="space-y-1.5 pt-0.5">
             {(
               [
-                [5, "high-intent landing pages, pillar content"],
-                [3, "supporting blog posts, secondary features"],
-                [1, "about, legal, auxiliary pages"],
+                [5, "closely matches your target keywords"],
+                [3, "partial match"],
+                [1, "barely related"],
               ] as const
             ).map(([score, desc]) => (
               <div key={score} className="flex items-center gap-2.5">
@@ -331,6 +340,18 @@ function PageRow({
                 {page.description}
               </p>
             )}
+            {page.matched_keywords.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {page.matched_keywords.slice(0, 4).map((kw) => (
+                  <span
+                    key={kw}
+                    className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] text-muted-foreground"
+                  >
+                    {kw}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </td>
@@ -400,6 +421,8 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
         description: data.description,
         page_type: toPageType(data.page_type),
         priority: (data.priority as PagePriority) ?? priority,
+        matched_keywords: [],
+        is_manual: true,
         opportunities_count: 0,
       })
 
@@ -549,18 +572,31 @@ export function PagesClient() {
   const addPage = usePagesStore((s) => s.addPage)
   const prospects = useProspectStore((s) => s.prospects)
   const hasCompletedRun = useProspectStore((s) => s.hasCompletedRun)
-  const pages: ProductPage[] = storePages.map((p) => {
-    const count = prospects.filter((pr) => pr.target_url === p.url).length
-    return {
-      id: p.id,
-      url: p.url,
-      title: p.title,
-      description: p.description,
-      page_type: toPageType(p.page_type),
-      priority: (p.priority as unknown as PagePriority) ?? 3,
-      opportunities_count: count,
-    }
-  })
+  const product = useProductStore((s) => s.product)
+  const targetKeywords = product?.target_keywords ?? []
+
+  const pages: ProductPage[] = storePages
+    .filter((p) => p.is_target)
+    .map((p) => {
+      const count = prospects.filter((pr) => pr.product_page_id === p.id).length
+      return {
+        id: p.id,
+        url: p.url,
+        title: p.title,
+        description: p.description,
+        page_type: toPageType(p.page_type),
+        priority: (p.priority as unknown as PagePriority) ?? 3,
+        matched_keywords: p.matched_keywords ?? [],
+        is_manual: p.is_manual,
+        opportunities_count: count,
+      }
+    })
+
+  const siteWideProspects = prospects.filter((pr) => !pr.product_page_id)
+  const siteWideByTier = new Map<string, number>()
+  for (const pr of siteWideProspects) {
+    siteWideByTier.set(pr.tier, (siteWideByTier.get(pr.tier) ?? 0) + 1)
+  }
 
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [sortKey, setSortKey] = useQueryState<SortKey>(
@@ -591,8 +627,6 @@ export function PagesClient() {
   useEffect(() => {
     if (localStorage.getItem(TRIAL_BANNER_KEY) === "1") setBannerDismissed(true)
   }, [])
-  const profile = useProfileStore((s) => s.profile)
-  const isPaid = profile?.tier === "pro" || profile?.tier === "agency"
 
   function dismissBanner() {
     localStorage.setItem(TRIAL_BANNER_KEY, "1")
@@ -626,7 +660,33 @@ export function PagesClient() {
       description: page.description,
       page_type: page.page_type,
       priority: page.priority,
+      relevance_score: null,
+      matched_keywords: page.matched_keywords,
+      is_target: true,
+      is_manual: page.is_manual,
     })
+  }
+
+  const [rescanning, setRescanning] = useState(false)
+  const [rescanMessage, setRescanMessage] = useState<string | null>(null)
+
+  async function handleRescan() {
+    if (rescanning) return
+    setRescanning(true)
+    setRescanMessage(null)
+    try {
+      const res = await fetch("/api/pages/reselect", { method: "POST" })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setRescanMessage(data.error ?? "Failed to start scan.")
+        return
+      }
+      setRescanMessage("Scanning your site — this can take a few minutes. Refresh to see updates.")
+    } catch {
+      setRescanMessage("Failed to reach the server.")
+    } finally {
+      setRescanning(false)
+    }
   }
 
   const sorted = sortPages(pages, sortKey, sortDir)
@@ -653,22 +713,20 @@ export function PagesClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Trial banner */}
-      {!isPaid && !bannerDismissed && (
-        <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
-          <IconAlertTriangle className="size-4 shrink-0 text-amber-500" />
+      {/* Summary banner */}
+      {!bannerDismissed && targetKeywords.length > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 px-4 py-2.5">
+          <IconSearch className="size-4 shrink-0 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            Free trial is limited to{" "}
+            Tracking{" "}
             <span className="font-medium text-foreground">
-              {FREE_TRIAL_MAX_PAGES} pages
+              {pages.length} target page{pages.length === 1 ? "" : "s"}
+            </span>{" "}
+            matched to{" "}
+            <span className="font-medium text-foreground">
+              {targetKeywords.length} keyword{targetKeywords.length === 1 ? "" : "s"}
             </span>
-            .{" "}
-            <Link
-              href="/dashboard/billing"
-              className="font-medium text-foreground underline underline-offset-2 hover:text-amber-600"
-            >
-              Upgrade to track more pages.
-            </Link>
+            .
           </p>
           <button
             type="button"
@@ -679,6 +737,53 @@ export function PagesClient() {
             <IconX className="size-3.5" />
           </button>
         </div>
+      )}
+      {targetKeywords.length === 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
+          <IconAlertTriangle className="size-4 shrink-0 text-amber-500" />
+          <p className="text-sm text-muted-foreground">
+            You haven&apos;t set any target keywords yet, so we don&apos;t know
+            which pages to build backlinks to.{" "}
+            <Link
+              href="/dashboard/prospects/settings?tab=keywords"
+              className="font-medium text-foreground underline underline-offset-2 hover:text-amber-600"
+            >
+              Add your target keywords.
+            </Link>
+          </p>
+        </div>
+      )}
+
+      {/* Site-wide opportunities */}
+      {siteWideProspects.length > 0 && (
+        <Card className="rounded-xl border border-border px-5 py-4 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Site-wide opportunities — {siteWideProspects.length}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                These pitch your site as a whole, so they aren&apos;t tied to a
+                single page.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(SITE_WIDE_TIER_LABELS).map(([tier, label]) => {
+                const count = siteWideByTier.get(tier) ?? 0
+                if (count === 0) return null
+                return (
+                  <Link
+                    key={tier}
+                    href={`/dashboard/prospects?tier=${tier}`}
+                    className="rounded-full border border-border bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                  >
+                    {label} — {count}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </Card>
       )}
 
       {/* Toolbar */}
@@ -693,10 +798,27 @@ export function PagesClient() {
             className="h-9 w-full rounded-md border-border/60 bg-white pl-8 text-sm shadow-sm sm:w-64"
           />
         </div>
-        <div className="shrink-0 sm:ml-auto">
+        <div className="flex shrink-0 items-center gap-2 sm:ml-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void handleRescan()}
+            disabled={rescanning || targetKeywords.length === 0}
+            className="rounded-full"
+          >
+            {rescanning ? (
+              <IconLoader2 className="size-3.5 animate-spin" />
+            ) : (
+              <IconRefresh className="size-3.5" />
+            )}
+            Re-scan my site
+          </Button>
           <AddPageDialog onAdd={handleAddPage} />
         </div>
       </div>
+      {rescanMessage && (
+        <p className="text-xs text-muted-foreground">{rescanMessage}</p>
+      )}
 
       {/* States */}
       {pages.length === 0 && !hasCompletedRun ? (
@@ -709,9 +831,9 @@ export function PagesClient() {
               Scanning your site for pages
             </h2>
             <p className="text-sm leading-6 text-muted-foreground">
-              We&apos;re fetching your sitemap and identifying the best pages to
-              target for backlinks. This usually takes a few minutes — you&apos;ll
-              receive an email once done!
+              We&apos;re fetching your sitemap and picking the pages that best
+              match your target keywords. This usually takes a few minutes —
+              you&apos;ll receive an email once done!
             </p>
           </div>
         </Card>
@@ -724,9 +846,8 @@ export function PagesClient() {
             No pages tracked yet
           </h2>
           <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-            Add the pages you want to earn backlinks to. Prioritize pages
-            targeting your most important keywords — they get the most discovery
-            attention.
+            We couldn&apos;t find matching pages on your site automatically.
+            Add the pages you want to earn backlinks to yourself instead.
           </p>
           <AddPageDialog onAdd={handleAddPage} />
         </div>
@@ -774,6 +895,18 @@ export function PagesClient() {
                         <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
                           {page.description}
                         </p>
+                      )}
+                      {page.matched_keywords.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {page.matched_keywords.slice(0, 3).map((kw) => (
+                            <span
+                              key={kw}
+                              className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] text-muted-foreground"
+                            >
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                     <a
@@ -844,7 +977,7 @@ export function PagesClient() {
                     </th>
                     <th className="px-3 py-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
                       <div className="flex items-center gap-1.5">
-                        Priority
+                        Relevance
                         <SortButton
                           sortKey="priority"
                           activeKey={sortKey}

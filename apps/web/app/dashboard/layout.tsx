@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardStoreHydrator } from "@/components/dashboard/dashboard-store-hydrator"
 import { FirstLoginWalkthrough } from "@/components/dashboard/first-login-walkthrough"
+import { NotificationRealtimeSync } from "@/components/dashboard/notification-realtime-sync"
 import { supabaseServer } from "@/lib/supabase/server"
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
@@ -12,6 +13,7 @@ import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
 import type { ProspectListItem } from "@/stores/prospect-store"
+import type { NotificationListItem, PlatformUpdateListItem } from "@/stores/notification-store"
 import type { TrackedLinkListItem } from "@/stores/link-tracker-store"
 import type { Tables } from "@workspace/supabase/database-types"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
@@ -113,27 +115,62 @@ export default async function DashboardLayout({
     redirect("/signin")
   }
 
-  const [profileResult, productResult] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select(
-        "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at, email_settings, walkthrough_seen_at, deactivated_at"
-      )
-      .eq("id", user.id)
-      .maybeSingle(),
-    supabase
-      .from("products")
-      .select(
-        "id, user_id, website_url, product_name, product_description, competitors, created_at, updated_at"
-      )
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ])
+  const [profileResult, productResult, notificationsResult, platformUpdatesResult, platformUpdateReadsResult] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select(
+          "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at, email_settings, walkthrough_seen_at, deactivated_at"
+        )
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("products")
+        .select(
+          "id, user_id, website_url, product_name, product_description, competitors, target_keywords, created_at, updated_at"
+        )
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("notifications")
+        .select("id, type, title, body, link_href, prospect_id, tracked_link_id, read_at, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabase
+        .from("notification_platform_updates")
+        .select("id, title, body, link_href, published_at")
+        .order("published_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("notification_platform_update_reads")
+        .select("platform_update_id, read_at")
+        .eq("user_id", user.id),
+    ])
 
   const profile = profileResult.data
   const product = productResult.data
+
+  if (notificationsResult.error) {
+    console.error("Error fetching notifications:", notificationsResult.error)
+  }
+  if (platformUpdatesResult.error) {
+    console.error("Error fetching platform updates:", platformUpdatesResult.error)
+  }
+  if (platformUpdateReadsResult.error) {
+    console.error("Error fetching platform update reads:", platformUpdateReadsResult.error)
+  }
+
+  const notifications: NotificationListItem[] = notificationsResult.data ?? []
+  const platformUpdateReadAtById = new Map(
+    (platformUpdateReadsResult.data ?? []).map((row) => [row.platform_update_id, row.read_at])
+  )
+  const platformUpdates: PlatformUpdateListItem[] = (platformUpdatesResult.data ?? []).map((update) => ({
+    ...update,
+    read_at: platformUpdateReadAtById.get(update.id) ?? null,
+  }))
 
   if (!profile?.onboarding_completed) {
     redirect("/onboarding")
@@ -230,10 +267,12 @@ export default async function DashboardLayout({
         .order("started_at", { ascending: false }),
       supabase
         .from("product_pages")
-        .select("id, url, title, description, page_type, priority")
+        .select(
+          "id, url, title, description, page_type, priority, relevance_score, matched_keywords, is_target, is_manual"
+        )
         .eq("product_id", product.id)
-        .order("created_at", { ascending: false })
-        .limit(100),
+        .order("priority", { ascending: false })
+        .limit(50),
       // No RLS policy exists on email_accounts, so a user-session-scoped
       // query here would silently return zero rows for every user.
       supabaseAdmin
@@ -392,6 +431,8 @@ export default async function DashboardLayout({
       poolDelayedCount={poolDelayedCount}
       sentAt={sentAt}
       trackedLinks={trackedLinks}
+      notifications={notifications}
+      platformUpdates={platformUpdates}
     >
       <SidebarProvider>
         <AppSidebar user={sidebarUser} initialProduct={product} />
@@ -401,6 +442,7 @@ export default async function DashboardLayout({
         </SidebarInset>
         <ActivationTracker />
         <FirstLoginWalkthrough />
+        <NotificationRealtimeSync userId={user.id} />
       </SidebarProvider>
     </DashboardStoreHydrator>
   )

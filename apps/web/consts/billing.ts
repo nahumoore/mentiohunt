@@ -15,12 +15,26 @@ export const PAID_MAX_URL_SUBMISSIONS_PER_DAY = 20
 // the nightly sweep's cost scaling unbounded.
 export const TRACKED_LINKS_MAX_PER_PRODUCT = 200
 
+// Competitors tracked per product, gates discovery's overlap/comparison/
+// alternative-page scans. Free/trial cap matches the onboarding step's max
+// (competitorsStepSchema in consts/onboarding.ts) so trial users who already
+// filled that step out aren't left over their own cap.
+export const MAX_COMPETITORS_FREE = 10
+export const MAX_COMPETITORS_PRO = 10
+export const MAX_COMPETITORS_AGENCY = 15
+
 export type BillingTier = Database["public"]["Enums"]["billing_tier"]
 
 export const PLAN_TIERS = {
   pro: "pro",
   agency: "agency",
 } as const satisfies Record<string, BillingTier>
+
+export function getMaxCompetitors(tier: BillingTier | null | undefined) {
+  if (tier === PLAN_TIERS.agency) return MAX_COMPETITORS_AGENCY
+  if (tier === PLAN_TIERS.pro) return MAX_COMPETITORS_PRO
+  return MAX_COMPETITORS_FREE
+}
 
 export interface Plan {
   key: keyof typeof PLAN_TIERS
@@ -43,7 +57,7 @@ export const PLANS: Plan[] = [
     description: "For individual founders building their backlink queue.",
     features: [
       "1 website",
-      "10 competitors tracked",
+      `${MAX_COMPETITORS_PRO} competitors tracked`,
       "~25 daily backlink opportunities",
       "Free inbox warmup",
       "Unlimited outreach inbox accounts",
@@ -62,7 +76,7 @@ export const PLANS: Plan[] = [
     description: "For teams managing backlinks across multiple sites.",
     features: [
       "Up to 5 websites",
-      "Up to 15 competitors tracked",
+      `Up to ${MAX_COMPETITORS_AGENCY} competitors tracked`,
       "~25 daily backlink opportunities, per website",
     ],
     popular: false,

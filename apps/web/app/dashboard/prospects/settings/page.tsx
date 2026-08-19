@@ -24,12 +24,14 @@ import { useQueryState } from "@/hooks/use-query-state"
 import type { OpportunityType } from "@/lib/opportunity-types"
 import { TYPE_CONFIG } from "@/lib/opportunity-types"
 import { captureEvent } from "@/lib/analytics"
+import { getMaxCompetitors } from "@/consts/billing"
 import type { DiscoverySettings } from "@/stores/discovery-settings-store"
 import { useDiscoverySettingsStore } from "@/stores/discovery-settings-store"
 import { useEmailAccountStore } from "@/stores/email-account-store"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import { useOutreachSettingsStore } from "@/stores/outreach-settings-store"
 import { useProductStore } from "@/stores/product-store"
+import { useProfileStore } from "@/stores/profile-store"
 
 const OPPORTUNITY_TYPES = Object.keys(TYPE_CONFIG) as OpportunityType[]
 
@@ -64,6 +66,8 @@ export default function DiscoverySetupPage() {
     isSettingsTab
   )
   const product = useProductStore((state) => state.product)
+  const setProduct = useProductStore((state) => state.setProduct)
+  const profileTier = useProfileStore((state) => state.profile?.tier)
   const hasOwnOutreachMailbox = useEmailAccountStore(
     (state) => state.hasOwnOutreachMailbox
   )
@@ -126,6 +130,53 @@ export default function DiscoverySetupPage() {
   const activeOutreach = outreachSettings ?? DEFAULT_OUTREACH_SETTINGS
   const activeTypes = new Set(discoverySettings.opportunityTypes)
   const competitors = product?.competitors ?? []
+  const maxCompetitors = getMaxCompetitors(profileTier)
+
+  async function addCompetitor(url: string) {
+    try {
+      const response = await fetch("/api/link-building/competitors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      })
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string
+        competitors?: string[]
+      } | null
+
+      if (!response.ok || !payload?.competitors) {
+        return payload?.error ?? "Could not add competitor."
+      }
+
+      if (product) setProduct({ ...product, competitors: payload.competitors })
+      return null
+    } catch (error) {
+      return error instanceof Error ? error.message : "Could not add competitor."
+    }
+  }
+
+  async function removeCompetitor(url: string) {
+    try {
+      const response = await fetch("/api/link-building/competitors", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      })
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string
+        competitors?: string[]
+      } | null
+
+      if (!response.ok || !payload?.competitors) {
+        return payload?.error ?? "Could not remove competitor."
+      }
+
+      if (product) setProduct({ ...product, competitors: payload.competitors })
+      return null
+    } catch (error) {
+      return error instanceof Error ? error.message : "Could not remove competitor."
+    }
+  }
 
   const hasUnsavedDiscoveryChanges = useMemo(() => {
     const baseline = lastSaved ?? DEFAULT_DISCOVERY_SETTINGS
@@ -384,7 +435,12 @@ export default function DiscoverySetupPage() {
           </TabsContent>
 
           <TabsContent value="competitors">
-            <CompetitorsSection competitors={competitors} />
+            <CompetitorsSection
+              competitors={competitors}
+              maxCompetitors={maxCompetitors}
+              onAdd={addCompetitor}
+              onRemove={removeCompetitor}
+            />
           </TabsContent>
 
           <TabsContent value="seo-metrics">

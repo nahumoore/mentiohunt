@@ -397,7 +397,7 @@ export default async function DashboardLayout({
         <AppSidebar user={sidebarUser} initialProduct={product} />
         <SidebarInset>
           <DashboardHeader />
-          <div className="p-4 sm:p-6">{children}</div>
+          <div className="p-4 pb-24 sm:p-6 sm:pb-28">{children}</div>
         </SidebarInset>
         <ActivationTracker />
         <FirstLoginWalkthrough />

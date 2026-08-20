@@ -4,12 +4,15 @@
 # text, and any competitor-domain anchors found) for the Node side to diff
 # against what it observed on the previous check without re-fetching anything.
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
 from core import (
+    CallerGone,
+    QueueSaturated,
     _anchors_to_target,
+    _dropped_slot_response,
     _execution_log,
     _require_api_key,
     _scrape_slot,
@@ -57,14 +60,17 @@ class CheckLinkResponse(BaseModel):
 
 
 @router.post("/check-link", response_model=CheckLinkResponse, dependencies=[Depends(_require_api_key)])
-async def check_link(request: CheckLinkRequest):
+async def check_link(request: CheckLinkRequest, http_request: Request):
     with _execution_log("check-link"):
         log.info(
             f"check-link request: {request.url} target={request.target_domain} "
             f"force_dynamic={request.force_dynamic}"
         )
-        async with _scrape_slot("light"):
-            result = await fetch_page_detailed(request.url, force_dynamic=request.force_dynamic)
+        try:
+            async with _scrape_slot("light", http_request):
+                result = await fetch_page_detailed(request.url, force_dynamic=request.force_dynamic)
+        except (QueueSaturated, CallerGone) as e:
+            raise _dropped_slot_response(e)
 
         if result.page is None:
             return CheckLinkResponse(

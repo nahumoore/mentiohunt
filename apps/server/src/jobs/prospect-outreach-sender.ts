@@ -48,7 +48,7 @@ function toJson(value: Record<string, unknown>): Json {
 
 function isAccountConfigurationError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error)
-  return /auth|login|credential|password|username|ea?uth|invalid user|invalid login|missing smtp configuration/i.test(
+  return /auth|login|credential|password|username|ea?uth|invalid user|invalid login|missing smtp configuration|invalid encrypted payload/i.test(
     message
   )
 }

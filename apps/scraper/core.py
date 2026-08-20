@@ -16,7 +16,7 @@ from typing import Any
 from urllib.parse import urljoin, urlparse
 
 from dotenv import load_dotenv
-from fastapi import HTTPException, Security
+from fastapi import HTTPException, Request, Security
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
 from scrapling.fetchers import Fetcher
@@ -278,12 +278,22 @@ _stealthy_semaphore = asyncio.Semaphore(_STEALTHY_CONCURRENCY)
 
 _SEMAPHORES = {"heavy": _heavy_semaphore, "light": _light_semaphore, "stealthy": _stealthy_semaphore}
 
+# Hard cap on how many callers may sit queued per pool. Without this the queue
+# only ever grows once arrivals outpace pool capacity — see
+# 2026-08-20-scraper-queue-never-drains-abandoned-jobs.md. Sized well above
+# normal burst depth so routine bursts still queue; a backlog past this
+# rejects (503) instead of piling on further.
+_HEAVY_MAX_QUEUE = int(os.getenv("SCRAPE_HEAVY_MAX_QUEUE", "40"))
+_LIGHT_MAX_QUEUE = int(os.getenv("SCRAPE_LIGHT_MAX_QUEUE", "60"))
+_STEALTHY_MAX_QUEUE = int(os.getenv("SCRAPE_STEALTHY_MAX_QUEUE", "20"))
+_MAX_QUEUE = {"heavy": _HEAVY_MAX_QUEUE, "light": _LIGHT_MAX_QUEUE, "stealthy": _STEALTHY_MAX_QUEUE}
+
 # Live occupancy per pool, for the /health endpoint and queue logging. Guarded
 # only by the single-threaded event loop — no lock needed.
 _pool_stats = {
-    "heavy": {"active": 0, "waiting": 0, "capacity": _HEAVY_CONCURRENCY},
-    "light": {"active": 0, "waiting": 0, "capacity": _LIGHT_CONCURRENCY},
-    "stealthy": {"active": 0, "waiting": 0, "capacity": _STEALTHY_CONCURRENCY},
+    "heavy": {"active": 0, "waiting": 0, "capacity": _HEAVY_CONCURRENCY, "abandoned": 0, "rejected": 0},
+    "light": {"active": 0, "waiting": 0, "capacity": _LIGHT_CONCURRENCY, "abandoned": 0, "rejected": 0},
+    "stealthy": {"active": 0, "waiting": 0, "capacity": _STEALTHY_CONCURRENCY, "abandoned": 0, "rejected": 0},
 }
 
 
@@ -291,13 +301,44 @@ def pool_stats() -> dict:
     return {pool: dict(stats) for pool, stats in _pool_stats.items()}
 
 
+class QueueSaturated(Exception):
+    """Raised by _scrape_slot when `pool`'s queue is already at its cap — the
+    route should fail fast (503) instead of queueing on top of an already
+    backed-up pool."""
+
+    def __init__(self, pool: str):
+        self.pool = pool
+
+
+class CallerGone(Exception):
+    """Raised by _scrape_slot when `request` disconnected while queued — the
+    route should drop the job instead of running a fetch nobody will read."""
+
+    def __init__(self, pool: str):
+        self.pool = pool
+
+
 @asynccontextmanager
-async def _scrape_slot(pool: str):
+async def _scrape_slot(pool: str, request: Request | None = None):
     """Acquire a global concurrency slot for the given pool ("heavy" | "light" |
-    "stealthy"). Blocks (does not fail) while the pool is full — callers just
-    wait in line."""
+    "stealthy"). Blocks (does not fail) while the pool is full but under its
+    queue cap — callers just wait in line.
+
+    Raises QueueSaturated immediately if the pool's queue is already at
+    _MAX_QUEUE. Raises CallerGone once this caller reaches the front of the
+    queue if `request` is given and its client already disconnected (Node
+    callers abort client-side on their own timeout budget — see
+    2026-08-20-scraper-queue-never-drains-abandoned-jobs.md) — dropping the
+    job here instead of running the real fetch is what lets the queue drain
+    once arrivals outpace capacity.
+    """
     semaphore = _SEMAPHORES[pool]
     stats = _pool_stats[pool]
+    if stats["waiting"] >= _MAX_QUEUE[pool]:
+        stats["rejected"] += 1
+        log.warning(f"scrape slot ({pool}) queue saturated (waiting={stats['waiting']}), rejecting")
+        raise QueueSaturated(pool)
+
     waited = semaphore.locked()
     if waited:
         log.info(f"scrape slot ({pool}) full, queueing (waiting={stats['waiting'] + 1})")
@@ -310,10 +351,23 @@ async def _scrape_slot(pool: str):
     try:
         if waited:
             log.info(f"scrape slot ({pool}) acquired after wait")
+        if request is not None and await request.is_disconnected():
+            stats["abandoned"] += 1
+            log.info(f"scrape slot ({pool}) caller already gone — dropping abandoned job before work starts")
+            raise CallerGone(pool)
         yield
     finally:
         stats["active"] -= 1
         semaphore.release()
+
+
+def _dropped_slot_response(exc: QueueSaturated | CallerGone) -> HTTPException:
+    """Shared mapping from a _scrape_slot drop to the HTTPException a route
+    should raise — routes just need `except (QueueSaturated, CallerGone) as e:
+    raise _dropped_slot_response(e)`."""
+    if isinstance(exc, QueueSaturated):
+        return HTTPException(status_code=503, detail=f"scraper {exc.pool} queue is saturated, try again later")
+    return HTTPException(status_code=499, detail="client disconnected")
 
 # --- Auth --------------------------------------------------------------------
 API_KEY = os.getenv("API_KEY")
@@ -905,6 +959,9 @@ __all__ = [
     "_execution_log",
     "_require_api_key",
     "_scrape_slot",
+    "_dropped_slot_response",
+    "QueueSaturated",
+    "CallerGone",
     "pool_stats",
     "_get_agent_helpers",
     "_seeded_helpers",

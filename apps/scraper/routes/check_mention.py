@@ -4,12 +4,15 @@
 
 import re
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.routing import APIRouter
 
 from core import (
+    CallerGone,
     CheckMentionRequest,
     CheckMentionResponse,
+    QueueSaturated,
+    _dropped_slot_response,
     _execution_log,
     _get_agent_helpers,
     _links_to_target,
@@ -26,15 +29,18 @@ router = APIRouter()
 
 
 @router.post("/check-mention", response_model=CheckMentionResponse, dependencies=[Depends(_require_api_key)])
-async def check_mention(request: CheckMentionRequest):
+async def check_mention(request: CheckMentionRequest, http_request: Request):
     with _execution_log("check-mention"):
         log.info(f"check-mention request: {request.url} terms={request.brand_terms}")
 
         # Whole route (not just the agent-scrape branch) uses the heavy pool: the
         # initial fetch can itself escalate through dynamic/stealthy browser tiers,
         # and Node's client timeout here (180s) already assumes worst-case cost.
-        async with _scrape_slot("heavy"):
-            return await _run_check_mention(request)
+        try:
+            async with _scrape_slot("heavy", http_request):
+                return await _run_check_mention(request)
+        except (QueueSaturated, CallerGone) as e:
+            raise _dropped_slot_response(e)
 
 
 async def _run_check_mention(request: CheckMentionRequest) -> CheckMentionResponse:

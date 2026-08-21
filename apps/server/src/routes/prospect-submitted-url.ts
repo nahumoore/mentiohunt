@@ -113,7 +113,7 @@ async function resolveTargetChoice(
     .select("id, url, title, description, page_type, priority, keywords")
     .eq("product_id", productId)
     .eq("crawl_status", "crawled")
-    .order("priority", { ascending: false })
+    .order("priority", { ascending: true })
     .limit(25)
 
   const candidates: TargetPageCandidate[] = (pages ?? []).map((p) => ({ ...p, keywords: p.keywords ?? [] }))

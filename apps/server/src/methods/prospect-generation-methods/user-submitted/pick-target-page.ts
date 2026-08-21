@@ -113,7 +113,7 @@ export async function pickTargetPageForUrl(
     return choice
   } catch (err) {
     log.warn("target page pick failed, falling back to highest-priority page", { error: String(err) })
-    const fallback = [...pages].sort((a, b) => b.priority - a.priority)[0]
+    const fallback = [...pages].sort((a, b) => a.priority - b.priority)[0]
     if (!fallback) return null
     return {
       page: fallback,

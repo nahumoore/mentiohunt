@@ -55,7 +55,7 @@ export async function discoverBrokenLinkBuilding(
     .eq("crawl_status", "crawled")
     .eq("is_target", true)
     .in("page_type", ELIGIBLE_PAGE_TYPES)
-    .order("priority", { ascending: false })
+    .order("priority", { ascending: true })
     .limit(REPLACEMENT_PAGE_LIMIT)
 
   if (pagesError) {

@@ -79,7 +79,7 @@ devDiscoverResourcePageInclusionsRouter.post("/dev/discover-resource-page-inclus
       maxCandidates: numberOrUndefined(body.maxCandidates),
       maxProspects: numberOrUndefined(body.maxProspects),
       serpResultsPerQuery: body.serpResultsPerQuery,
-      minPriority: numberOrUndefined(body.minPriority),
+      maxPriority: numberOrUndefined(body.maxPriority),
       country: typeof body.country === "string" ? body.country : undefined,
       scoringThreshold: numberOrUndefined(body.scoringThreshold),
       dryRun: body.dryRun === true,

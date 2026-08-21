@@ -271,7 +271,7 @@ export default async function DashboardLayout({
           "id, url, title, description, page_type, priority, relevance_score, matched_keywords, is_target, is_manual"
         )
         .eq("product_id", product.id)
-        .order("priority", { ascending: false })
+        .order("priority", { ascending: true })
         .limit(50),
       // No RLS policy exists on email_accounts, so a user-session-scoped
       // query here would silently return zero rows for every user.

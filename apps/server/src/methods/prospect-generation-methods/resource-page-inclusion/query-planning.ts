@@ -11,10 +11,14 @@ export function selectPagesForRun(
   const sorted = explicitPageIds
     ? pages
     : [...pages].sort((a, b) => {
-        const aLast = lastRunByPageId.get(a.id) ?? ""
-        const bLast = lastRunByPageId.get(b.id) ?? ""
+        // Day-bucketed so priority — not a few seconds of timestamp jitter —
+        // decides ordering among pages last run on the same day. Rotation
+        // across days is still preserved: least-recently-run day wins first.
+        const aLast = (lastRunByPageId.get(a.id) ?? "").slice(0, 10)
+        const bLast = (lastRunByPageId.get(b.id) ?? "").slice(0, 10)
         if (aLast !== bLast) return aLast < bLast ? -1 : 1
-        return b.priority - a.priority
+        // Priority is user-ranked, 1 = highest.
+        return a.priority - b.priority
       })
 
   return sorted.slice(0, maxPages)

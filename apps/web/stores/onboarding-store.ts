@@ -35,7 +35,7 @@ export const useOnboardingStore = create<OnboardingStore>()(
     }),
     {
       name: "mentions-onboarding-progress",
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         currentStep: state.currentStep,
         isCompleted: state.isCompleted,

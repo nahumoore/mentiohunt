@@ -18,6 +18,7 @@ async function runOnboardingJobsOnServer(payload: {
   userId: string
   productId: string
   crawlLimit: number
+  autoDiscoverPages: boolean
 }) {
   const serverResponse = await fetch(`${SERVER_URL}/onboarding/complete`, {
     method: "POST",
@@ -131,6 +132,31 @@ export async function POST(request: Request) {
     return buildValidationError("Failed to complete onboarding.", 500)
   }
 
+  if (parsedRequest.data.importantPages.length > 0) {
+    // Array order is the priority the user dragged into the onboarding step —
+    // index 0 = priority 1 (highest), same convention as target_keywords.
+    const pagesPayload: TablesInsert<"product_pages">[] = parsedRequest.data.importantPages.map(
+      (url, index) => ({
+        product_id: productId,
+        url,
+        page_type: "manual",
+        priority: index + 1,
+        is_manual: true,
+        is_target: true,
+        crawl_status: "pending",
+      })
+    )
+
+    const { error: upsertPagesError } = await supabase
+      .from("product_pages")
+      .upsert(pagesPayload, { onConflict: "product_id,url" })
+
+    if (upsertPagesError) {
+      console.error("Error saving onboarding important pages:", upsertPagesError)
+      return buildValidationError("Failed to complete onboarding.", 500)
+    }
+  }
+
   const profileUpdate: TablesUpdate<"profiles"> = {
     onboarding_completed: true,
     ...(parsedRequest.data.userName ? { name: parsedRequest.data.userName } : {}),
@@ -156,6 +182,7 @@ export async function POST(request: Request) {
       userId: user.id,
       productId,
       crawlLimit: FREE_TRIAL_MAX_PAGES,
+      autoDiscoverPages: parsedRequest.data.autoDiscoverPages,
     }).catch((error) => {
       console.error("Failed to reach the onboarding server:", error)
     })

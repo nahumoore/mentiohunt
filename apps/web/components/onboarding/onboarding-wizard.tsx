@@ -8,6 +8,7 @@ import {
   IconArrowRight,
   IconBuilding,
   IconCheck,
+  IconFiles,
   IconLoader2,
   IconPackage,
   IconRocket,
@@ -22,6 +23,7 @@ import { useEffect, useState } from "react"
 import { StepCompany } from "@/components/onboarding/step-company"
 import { StepKeywords } from "@/components/onboarding/step-keywords"
 import { StepCompetitors } from "@/components/onboarding/step-competitors"
+import { StepImportantPages } from "@/components/onboarding/step-important-pages"
 import { StepLaunch } from "@/components/onboarding/step-launch"
 import { StepProduct } from "@/components/onboarding/step-product"
 import { StepUrl } from "@/components/onboarding/step-url"
@@ -36,6 +38,7 @@ import {
   normalizeUrl,
   onboardingSchema,
   productDescriptionStepSchema,
+  validateImportantPages,
   type OnboardingData,
   type OnboardingField,
   type OnboardingFieldErrors,
@@ -67,6 +70,7 @@ function normalizeSubmissionData(data: OnboardingData): OnboardingData {
     productDescription: data.productDescription.trim(),
     competitors: data.competitors.map(normalizeUrl),
     targetKeywords: data.targetKeywords.map(normalizeKeyword).filter(Boolean),
+    importantPages: data.importantPages.map(normalizeUrl),
   }
 }
 
@@ -297,6 +301,11 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
       }
     }
 
+    if (step === 5) {
+      const message = validateImportantPages(normalizedData)
+      if (message) nextErrors.importantPages = message
+    }
+
     if (Object.keys(nextErrors).length > 0) {
       setFieldErrors(nextErrors)
       return false
@@ -309,7 +318,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
 
   const nextStep = () => {
     if (!validateStep(currentStep)) return
-    const stepNames = ["url", "company", "product", "competitors", "keywords", "launch"] as const
+    const stepNames = ["url", "company", "product", "competitors", "keywords", "pages", "launch"] as const
     captureEvent("onboarding_step_completed", {
       step: stepNames[currentStep] ?? String(currentStep),
       step_index: currentStep,
@@ -416,7 +425,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
   const lastStepIndex = ONBOARDING_STEPS.length - 1
   const isLastStep = currentStep === lastStepIndex
 
-  const stepIcons = [null, IconBuilding, IconPackage, IconSwords, IconSearch, IconRocket]
+  const stepIcons = [null, IconBuilding, IconPackage, IconSwords, IconSearch, IconFiles, IconRocket]
   const StepIcon = stepIcons[currentStep] ?? null
 
   return (
@@ -491,7 +500,14 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
                 updateField={updateField}
               />
             )}
-            {currentStep === 5 && <StepLaunch data={safeData} />}
+            {currentStep === 5 && (
+              <StepImportantPages
+                data={safeData}
+                errors={fieldErrors}
+                updateField={updateField}
+              />
+            )}
+            {currentStep === 6 && <StepLaunch data={safeData} />}
           </div>
         </div>
 

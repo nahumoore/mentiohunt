@@ -49,7 +49,7 @@ export async function discoverResourcePageInclusions(
   const maxQueriesPerPage = limitNumber(options.maxQueriesPerPage, DEFAULT_LIMITS.maxQueriesPerPage)
   const maxCandidates = limitNumber(options.maxCandidates, DEFAULT_LIMITS.maxCandidates)
   const maxProspects = limitNumber(options.maxProspects, DEFAULT_LIMITS.maxProspects)
-  const minPriority = limitNumber(options.minPriority, DEFAULT_LIMITS.minPriority, 0)
+  const maxPriority = limitNumber(options.maxPriority, DEFAULT_LIMITS.maxPriority)
   const scoringThreshold = limitNumber(options.scoringThreshold, DEFAULT_LIMITS.scoringThreshold)
   const country = options.country?.trim() || DEFAULT_LIMITS.country
   const serpResultsPerQuery = options.serpResultsPerQuery ?? DEFAULT_LIMITS.serpResultsPerQuery
@@ -76,8 +76,8 @@ export async function discoverResourcePageInclusions(
     .eq("product_id", product.id)
     .eq("crawl_status", "crawled")
     .eq("is_target", true)
-    .gte("priority", minPriority)
-    .order("priority", { ascending: false })
+    .lte("priority", maxPriority)
+    .order("priority", { ascending: true })
     .limit(pageFetchLimit)
 
   if (pageTypes) pagesQuery = pagesQuery.in("page_type", pageTypes)
@@ -112,7 +112,7 @@ export async function discoverResourcePageInclusions(
       keywords: p.keywords,
     })),
     page_types: pageTypes,
-    min_priority: minPriority,
+    max_priority: maxPriority,
     query_templates: queryTemplates,
     queries: queryPlan.map((q) => ({ query: q.query, target_page_id: q.targetPage.id, target_url: q.targetPage.url })),
     limits: { maxPages, maxQueriesPerPage, maxCandidates, maxProspects, serpResultsPerQuery },

@@ -167,6 +167,14 @@ async function categorizeBatch(
     }
   })
 
+  // Flat 60s default timeout (see generateTextWithUsage) starves larger
+  // batches — a 15-page batch generates enough output + reasoning tokens to
+  // routinely exceed it, so it fails on every model on every retry and the
+  // whole batch is silently dropped (see crawlProductPages' EMPTY_RESULT
+  // path). Scale headroom with batch size so bigger batches aren't
+  // structurally doomed.
+  const timeoutMs = 60_000 + pages.length * 4_000
+
   try {
     return await withLlmRetries(log, async () => {
       const input = `Pages:\n${JSON.stringify(payload, null, 2)}`
@@ -176,6 +184,7 @@ async function categorizeBatch(
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
         systemInstructions,
         thinkingBudget: 1000,
+        timeoutMs,
         input,
       })
       const { text, cost, modelUsed } = await generateTextWithUsage({
@@ -183,6 +192,7 @@ async function categorizeBatch(
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
         systemInstructions,
         thinkingBudget: 1000,
+        timeoutMs,
         input,
         responseFormat: RESPONSE_FORMAT,
       })

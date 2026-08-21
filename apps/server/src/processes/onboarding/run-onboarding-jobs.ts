@@ -35,7 +35,8 @@ const ONBOARDING_RPI_LIMITS = { maxProspects: 10 }
 export async function runOnboardingJobs(
   userId: string,
   productId: string,
-  pageLimit: number
+  pageLimit: number,
+  autoDiscoverPages = true
 ): Promise<void> {
   const t0 = Date.now()
   log.info("jobs START", { userId, productId })
@@ -154,7 +155,7 @@ export async function runOnboardingJobs(
         const t = Date.now()
         log.info("crawlProductPages START", { productId, pageLimit })
         try {
-          const result = await crawlProductPages(productId, { crawlLimit: pageLimit })
+          const result = await crawlProductPages(productId, { crawlLimit: pageLimit, autoDiscover: autoDiscoverPages })
           log.success("crawlProductPages done", { durationMs: Date.now() - t, ...result })
           return result
         } catch (err) {

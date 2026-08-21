@@ -26,7 +26,8 @@ type PagesStore = {
   addPage: (page: ProductPageListItem) => void
   upsertPage: (page: ProductPageListItem) => void
   removePage: (id: string) => void
-  updatePagePriority: (id: string, priority: ProductPageRow["priority"]) => void
+  /** Sets priority = index + 1 (1 = highest) for each id in the given order; other pages untouched. */
+  reorderPages: (orderedIds: string[]) => void
 }
 
 export const usePagesStore = create<PagesStore>()((set) => ({
@@ -45,8 +46,13 @@ export const usePagesStore = create<PagesStore>()((set) => ({
     }),
   removePage: (id) =>
     set((state) => ({ pages: state.pages.filter((page) => page.id !== id) })),
-  updatePagePriority: (id, priority) =>
-    set((state) => ({
-      pages: state.pages.map((p) => (p.id === id ? { ...p, priority } : p)),
-    })),
+  reorderPages: (orderedIds) =>
+    set((state) => {
+      const priorityById = new Map(orderedIds.map((id, index) => [id, (index + 1) as ProductPageRow["priority"]]))
+      return {
+        pages: state.pages.map((p) =>
+          priorityById.has(p.id) ? { ...p, priority: priorityById.get(p.id)! } : p
+        ),
+      }
+    }),
 }))

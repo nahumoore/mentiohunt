@@ -2,14 +2,16 @@ import type { Database } from "@workspace/supabase/database-types"
 
 export const FREE_TRIAL_DAYS = 7
 // How many sitemap-discovered candidate pages we're willing to scan when
-// picking the top 5 keyword-matched targets. Not a "pages tracked" cap —
-// see MAX_MANUAL_PAGES_FREE/PAID for that.
+// picking the top MAX_TRACKED_PAGES keyword-matched targets. Not a "pages
+// tracked" cap — see MAX_TRACKED_PAGES for that.
 export const FREE_TRIAL_MAX_PAGES = 50
 
-// Manually added pages only — auto-selected keyword-matched targets aren't
-// counted against this. Escape hatch for a page the automatic scan missed.
-export const MAX_MANUAL_PAGES_FREE = 3
-export const MAX_MANUAL_PAGES_PAID = 25
+// The one source of truth for "how many pages can a product track" — auto-
+// selected keyword-matched targets and manually-added ones both count
+// against it, and it's flat across every plan for now. Also mirrored as
+// DEFAULT_KEEP_TOP in apps/server/src/methods/product-pages/crawl-product-pages.ts
+// (server code can't import from apps/web) — keep both at 5 if this changes.
+export const MAX_TRACKED_PAGES = 5
 
 // Each submitted URL costs a real scrape + email verification + LLM calls, so
 // it needs a per-day throttle. Paid-plan only — free/trial users see a

@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { MAX_TRACKED_PAGES } from "./billing"
+
 export const ONBOARDING_STEPS = [
   {
     title: "Welcome to Mentiohunt",
@@ -25,6 +27,11 @@ export const ONBOARDING_STEPS = [
     title: "Your target keywords",
     description:
       "Tell us what you want to rank for. We'll scan your site, pick the pages that match best, and hunt backlinks for them.",
+  },
+  {
+    title: "Your most important pages",
+    description:
+      "Which pages matter most for your link building strategy? We'll prioritize backlinks to them so you build topical authority where it matters most.",
   },
   {
     title: "Launch",
@@ -102,6 +109,8 @@ export type OnboardingData = {
   competitors: string[]
   opportunityTypes: OpportunityTypeId[]
   targetKeywords: string[]
+  importantPages: string[]
+  autoDiscoverPages: boolean
   userName: string
   companySize: string
   role: string
@@ -121,6 +130,8 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   competitors: [],
   opportunityTypes: DEFAULT_OPPORTUNITY_TYPES,
   targetKeywords: [],
+  importantPages: [],
+  autoDiscoverPages: true,
   userName: "",
   companySize: "",
   role: "",
@@ -219,6 +230,83 @@ export const keywordsStepSchema = z.object({
     }),
 })
 
+const importantPageUrlSchema = z
+  .string()
+  .trim()
+  .min(1, "Enter a page URL.")
+  .transform(normalizeUrl)
+  .pipe(z.string().url("Enter a valid page URL."))
+
+// Cross-field rule (pages present OR auto-discover checked) lives outside this
+// schema, in validateStep — zod's object-level .refine() would return a
+// ZodEffects that can't be folded into onboardingSchema via .merge() below.
+export const importantPagesStepSchema = z.object({
+  importantPages: z
+    .array(importantPageUrlSchema)
+    .max(MAX_TRACKED_PAGES, `You can add up to ${MAX_TRACKED_PAGES} pages.`)
+    .refine((pages) => new Set(pages).size === pages.length, {
+      message: "Each page should be unique.",
+    }),
+  autoDiscoverPages: z.boolean(),
+})
+
+function getHostname(url: string): string | null {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase()
+    return hostname.startsWith("www.") ? hostname.slice(4) : hostname
+  } catch {
+    return null
+  }
+}
+
+/** Same host as the product's website (subdomains allowed) — catches both
+ *  off-site pastes and garbage like "https" or a bare keyword, which
+ *  normalizeUrl would otherwise turn into a syntactically "valid" URL
+ *  (e.g. "https://https") that z.string().url() alone can't reject. */
+function belongsToWebsite(pageUrl: string, websiteUrl: string): boolean {
+  const siteHostname = getHostname(normalizeUrl(websiteUrl))
+  if (!siteHostname) return true
+  const pageHostname = getHostname(pageUrl)
+  if (!pageHostname) return false
+  return pageHostname === siteHostname || pageHostname.endsWith(`.${siteHostname}`)
+}
+
+/** Per-item check used by the EditableList's Add button / Enter key, so a
+ *  bad URL is rejected immediately instead of only at Continue. */
+export function validateImportantPageUrl(rawUrl: string, websiteUrl: string): string | null {
+  const result = importantPageUrlSchema.safeParse(rawUrl)
+  if (!result.success) {
+    return result.error.issues[0]?.message ?? "Enter a valid page URL."
+  }
+  if (!belongsToWebsite(result.data, websiteUrl)) {
+    const siteHostname = getHostname(normalizeUrl(websiteUrl))
+    return `Pages must be on ${siteHostname ?? "your site"}.`
+  }
+  return null
+}
+
+export function validateImportantPages(data: {
+  importantPages: string[]
+  autoDiscoverPages: boolean
+  websiteUrl: string
+}): string | null {
+  const result = importantPagesStepSchema.safeParse(data)
+  if (!result.success) {
+    return result.error.issues[0]?.message ?? "Invalid pages."
+  }
+  if (result.data.importantPages.length === 0 && !result.data.autoDiscoverPages) {
+    return "Add a page or let us auto-discover them from your keywords."
+  }
+  const offSite = result.data.importantPages.find(
+    (url) => !belongsToWebsite(url, data.websiteUrl)
+  )
+  if (offSite) {
+    const siteHostname = getHostname(normalizeUrl(data.websiteUrl))
+    return `Pages must be on ${siteHostname ?? "your site"} — "${offSite}" isn't.`
+  }
+  return null
+}
+
 export const onboardingSchema = websiteUrlStepSchema
   .merge(productDescriptionStepSchema)
   .merge(competitorsStepSchema)
@@ -226,3 +314,4 @@ export const onboardingSchema = websiteUrlStepSchema
   .merge(keywordsStepSchema)
   .merge(userNameStepSchema)
   .merge(companyStepSchema)
+  .merge(importantPagesStepSchema)

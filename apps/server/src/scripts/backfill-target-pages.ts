@@ -27,11 +27,6 @@ const log = createLogger("backfill-target-pages")
 const dryRun = process.argv.includes("--dry-run")
 const KEEP_TOP = 5
 
-function scoreToPriority(score: number): number {
-  const bucket = score >= 80 ? 5 : score >= 60 ? 4 : score >= 40 ? 3 : score >= 20 ? 2 : 1
-  return Math.max(bucket, 3)
-}
-
 async function main() {
   const { data: products, error } = await supabaseAdmin
     .from("products")
@@ -89,7 +84,10 @@ async function main() {
       continue
     }
 
-    for (const r of top) {
+    // `top` is already sorted best-first (relevanceScore desc) — priority is
+    // a dense 1..5 rank of that order, 1 = highest, matching target_keywords'
+    // array-index convention (not a derived score bucket).
+    for (const [index, r] of top.entries()) {
       const id = byUrl.get(r.url)
       if (!id) continue
       const { error: updateError } = await supabaseAdmin
@@ -99,7 +97,7 @@ async function main() {
           relevance_score: r.relevanceScore,
           matched_keywords: r.matchedKeywords,
           selection_reason: r.reason || null,
-          priority: scoreToPriority(r.relevanceScore),
+          priority: index + 1,
         })
         .eq("id", id)
       if (updateError) log.warn("failed to update selected page", { id, error: updateError.message })

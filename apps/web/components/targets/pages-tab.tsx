@@ -10,12 +10,10 @@ import {
   IconFiles,
   IconInfoCircle,
   IconLink,
-  IconLinkFilled,
   IconLoader2,
   IconPlus,
-  IconRefresh,
   IconSearch,
-  IconX,
+  IconTrash,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
@@ -34,27 +32,21 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
 import {
-  Popover,
-  PopoverClose,
-  PopoverContent,
-  PopoverTrigger,
-} from "@workspace/ui/components/popover"
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react"
 
-import Link from "next/link"
-
+import { PriorityReorderList } from "@/components/ui/priority-reorder-list"
+import { MAX_TRACKED_PAGES } from "@/consts/billing"
 import { PAGE_TYPE_CONFIG, type PageType } from "@/consts/page-types"
 import { useQueryState } from "@/hooks/use-query-state"
 import { usePagesStore } from "@/stores/pages-store"
 import { useProductStore } from "@/stores/product-store"
-import { useProspectStore, type ProspectListItem } from "@/stores/prospect-store"
+import { useProspectStore } from "@/stores/prospect-store"
 
 
 type PagePriority = 1 | 2 | 3 | 4 | 5
@@ -71,37 +63,11 @@ type ProductPage = {
   opportunities_count: number
 }
 
-const SITE_WIDE_TIER_LABELS: Partial<Record<ProspectListItem["tier"], string>> = {
-  competitor_backlink: "Competitor backlinks",
-  unlinked_mention: "Unlinked mentions",
-  listicle_roundup: "Listicle roundups",
-}
-
 const PAGE_SIZE = 20
 
 function toPageType(t: string): PageType {
   if (t in PAGE_TYPE_CONFIG) return t as PageType
   return "article"
-}
-
-function PriorityIcons({
-  filled,
-  size = "size-4",
-}: {
-  filled: number
-  size?: string
-}) {
-  return (
-    <span className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) =>
-        i < filled ? (
-          <IconLinkFilled key={i} className={size} style={{ color: "var(--color-blaze-orange)" }} />
-        ) : (
-          <IconLink key={i} className={cn(size, "text-muted-foreground/30")} />
-        )
-      )}
-    </span>
-  )
 }
 
 type SortKey = "page" | "type" | "priority" | "opportunities"
@@ -193,103 +159,98 @@ function getDisplayUrl(url: string) {
   }
 }
 
-function PriorityInfoPopover() {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="flex items-center text-muted-foreground/50 transition-colors hover:text-muted-foreground"
-          aria-label="Priority explained"
-        >
-          <IconInfoCircle className="size-3.5" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent side="top" align="start" className="rounded-xl">
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-foreground">
-              How relevance works
-            </p>
-            <PopoverClose asChild>
-              <button
-                type="button"
-                className="text-muted-foreground/50 transition-colors hover:text-muted-foreground"
-              >
-                <IconX className="size-3.5" />
-              </button>
-            </PopoverClose>
-          </div>
-          <p className="text-xs leading-5 text-muted-foreground">
-            Score from 1 to 5 measures how well this page matches your target
-            keywords. Pages at 3+ are eligible for resource-page and
-            broken-link discovery, and the highest scorer wins when we
-            auto-pick which page to pitch.
-          </p>
-          <div className="space-y-1.5 pt-0.5">
-            {(
-              [
-                [5, "closely matches your target keywords"],
-                [3, "partial match"],
-                [1, "barely related"],
-              ] as const
-            ).map(([score, desc]) => (
-              <div key={score} className="flex items-center gap-2.5">
-                <PriorityIcons filled={score} size="size-3" />
-                <span className="text-xs font-medium text-foreground">
-                  {score}
-                </span>
-                <span className="text-xs text-muted-foreground">— {desc}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-function PriorityDropdown({
-  value,
-  onChange,
+function DeletePageButton({
+  page,
+  onDeleted,
 }: {
-  value: PagePriority
-  onChange: (p: PagePriority) => void
+  page: ProductPage
+  onDeleted: (id: string) => void
 }) {
+  const [open, setOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const displayUrl = getDisplayUrl(page.url)
+
+  async function handleDelete() {
+    setDeleting(true)
+    setError(null)
+
+    try {
+      const res = await fetch("/api/pages", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: page.id }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? "Failed to delete page.")
+        return
+      }
+
+      onDeleted(page.id)
+      setOpen(false)
+    } catch {
+      setError("Failed to delete page.")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center gap-1 transition-opacity hover:opacity-70"
-          aria-label={`Priority: ${value}`}
+          className="shrink-0 text-muted-foreground/40 transition-colors hover:text-destructive"
+          aria-label="Delete page"
         >
-          <PriorityIcons filled={value} />
-          <IconChevronDown className="size-3 text-muted-foreground/50" />
+          <IconTrash className="size-4.5" />
         </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-40 rounded-xl">
-        {([5, 4, 3, 2, 1] as const).map((p) => (
-          <DropdownMenuItem
-            key={p}
-            onSelect={() => onChange(p)}
-            className={cn("focus:bg-muted focus:text-foreground", value === p && "bg-muted")}
+      </DialogTrigger>
+      <DialogContent className="rounded-xl">
+        <DialogTitle>Delete page</DialogTitle>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          Stop tracking{" "}
+          <span className="font-medium text-foreground">{displayUrl}</span>?
+          {page.opportunities_count > 0 && (
+            <>
+              {" "}
+              This page has {page.opportunities_count} backlink
+              {page.opportunities_count === 1 ? " opportunity" : " opportunities"} linked to
+              it — those will stay, just without a page reference.
+            </>
+          )}
+        </p>
+        {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+        <div className="mt-4 flex justify-end gap-2">
+          <DialogClose asChild>
+            <Button type="button" variant="ghost" size="sm" className="rounded-full" disabled={deleting}>
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => void handleDelete()}
+            disabled={deleting}
+            className="rounded-full bg-destructive text-white hover:bg-destructive/90"
           >
-            <PriorityIcons filled={p} size="size-3.5" />
-            <span className="font-medium text-foreground">{p}</span>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+            {deleting ? <IconLoader2 className="size-3.5 animate-spin" /> : null}
+            Delete
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
 function PageRow({
   page,
-  onPriorityChange,
+  onDeleted,
 }: {
   page: ProductPage
-  onPriorityChange: (id: string, priority: PagePriority) => void
+  onDeleted: (id: string) => void
 }) {
   const favicon = getFaviconUrl(page.url)
   const displayUrl = getDisplayUrl(page.url)
@@ -317,9 +278,9 @@ function PageRow({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1">
-              <span className="truncate text-xs text-muted-foreground">
-                {displayUrl}
-              </span>
+              <p className="truncate text-sm font-medium text-foreground">
+                {page.title || displayUrl}
+              </p>
               <a
                 href={page.url}
                 target="_blank"
@@ -331,26 +292,14 @@ function PageRow({
               </a>
             </div>
             {page.title && (
-              <p className="mt-0.5 truncate text-sm font-medium text-foreground">
-                {page.title}
-              </p>
+              <span className="truncate text-xs text-muted-foreground">
+                {displayUrl}
+              </span>
             )}
             {page.description && (
               <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
                 {page.description}
               </p>
-            )}
-            {page.matched_keywords.length > 0 && (
-              <div className="mt-1.5 flex flex-wrap gap-1">
-                {page.matched_keywords.slice(0, 4).map((kw) => (
-                  <span
-                    key={kw}
-                    className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] text-muted-foreground"
-                  >
-                    {kw}
-                  </span>
-                ))}
-              </div>
             )}
           </div>
         </div>
@@ -364,16 +313,26 @@ function PageRow({
         </div>
       </td>
 
-      {/* Priority col */}
+      {/* Keywords col */}
       <td className="px-3 py-4 align-top">
-        <PriorityDropdown
-          value={page.priority}
-          onChange={(p) => onPriorityChange(page.id, p)}
-        />
+        {page.matched_keywords.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {page.matched_keywords.slice(0, 4).map((kw) => (
+              <span
+                key={kw}
+                className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] text-muted-foreground"
+              >
+                {kw}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground/50">—</span>
+        )}
       </td>
 
       {/* Opportunities col */}
-      <td className="py-4 pr-6 pl-3 align-top">
+      <td className="px-3 py-4 align-top">
         <div className="flex items-center gap-1.5">
           <IconLink className="size-4 text-muted-foreground/50" />
           <span className="text-sm font-medium text-foreground tabular-nums">
@@ -381,21 +340,34 @@ function PageRow({
           </span>
         </div>
       </td>
+
+      {/* Actions col */}
+      <td className="py-4 pr-6 pl-3 align-top">
+        <div className="flex justify-center">
+          <DeletePageButton page={page} onDeleted={onDeleted} />
+        </div>
+      </td>
     </tr>
   )
 }
 
-function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
-  const [open, setOpen] = useState(false)
+function AddPageBar({
+  onAdd,
+  disabled,
+  disabledReason,
+}: {
+  onAdd: (page: ProductPage) => void
+  disabled?: boolean
+  disabledReason?: string
+}) {
   const [url, setUrl] = useState("")
   const [pageType, setPageType] = useState<PageType>("landing_page")
-  const [priority, setPriority] = useState<PagePriority>(3)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!url.trim() || submitting) return
+  async function handleSubmit() {
+    const trimmed = url.trim()
+    if (!trimmed || submitting || disabled) return
 
     setSubmitting(true)
     setError(null)
@@ -404,7 +376,7 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
       const res = await fetch("/api/pages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), page_type: pageType, priority }),
+        body: JSON.stringify({ url: trimmed, page_type: pageType }),
       })
 
       const data = await res.json()
@@ -420,7 +392,7 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
         title: data.title,
         description: data.description,
         page_type: toPageType(data.page_type),
-        priority: (data.priority as PagePriority) ?? priority,
+        priority: (data.priority as PagePriority) ?? 5,
         matched_keywords: [],
         is_manual: true,
         opportunities_count: 0,
@@ -428,8 +400,6 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
 
       setUrl("")
       setPageType("landing_page")
-      setPriority(3)
-      setOpen(false)
     } catch {
       setError("Failed to add page.")
     } finally {
@@ -437,174 +407,200 @@ function AddPageDialog({ onAdd }: { onAdd: (page: ProductPage) => void }) {
     }
   }
 
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter") return
+    event.preventDefault()
+    void handleSubmit()
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <div className="space-y-1.5">
+      <div className="flex gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              disabled={disabled}
+              className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-input bg-background px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50"
+            >
+              {(() => {
+                const TypeIcon = PAGE_TYPE_CONFIG[pageType].icon
+                return <TypeIcon className="size-3.5" />
+              })()}
+              <span className="hidden sm:inline">{PAGE_TYPE_CONFIG[pageType].label}</span>
+              <IconChevronDown className="size-3.5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="rounded-xl">
+            {(Object.keys(PAGE_TYPE_CONFIG) as PageType[]).map((t) => {
+              const TypeIcon = PAGE_TYPE_CONFIG[t].icon
+              return (
+                <DropdownMenuItem
+                  key={t}
+                  onSelect={() => setPageType(t)}
+                  className={cn(pageType === t && "bg-accent")}
+                >
+                  <TypeIcon className="size-3.5 text-muted-foreground" />
+                  {PAGE_TYPE_CONFIG[t].label}
+                </DropdownMenuItem>
+              )
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Input
+          placeholder="https://yoursite.com/your-page"
+          value={url}
+          onChange={(e) => {
+            setUrl(e.target.value)
+            setError(null)
+          }}
+          onKeyDown={handleKeyDown}
+          disabled={disabled || submitting}
+          className="h-10 flex-1 rounded-lg"
+        />
         <Button
-          size="sm"
-          className="rounded-full bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot)"
+          type="button"
+          onClick={() => void handleSubmit()}
+          disabled={!url.trim() || submitting || disabled}
+          className="h-10 shrink-0 rounded-lg bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot) disabled:opacity-40"
         >
-          <IconPlus className="size-4" />
+          {submitting ? (
+            <IconLoader2 className="size-4 animate-spin" />
+          ) : (
+            <IconPlus className="size-4" />
+          )}
           Add page
         </Button>
-      </DialogTrigger>
-      <DialogContent className="rounded-xl">
-        <DialogTitle>Add page</DialogTitle>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
-              URL
-            </label>
-            <Input
-              placeholder="https://yoursite.com/your-page"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              autoFocus
-              className="rounded-md"
-            />
-          </div>
+      </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
-                Page type
-              </label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted/50"
-                  >
-                    <span className="flex items-center gap-1.5 text-muted-foreground">
-                      {(() => {
-                        const TypeIcon = PAGE_TYPE_CONFIG[pageType].icon
-                        return <TypeIcon className="size-3.5" />
-                      })()}
-                      {PAGE_TYPE_CONFIG[pageType].label}
-                    </span>
-                    <IconChevronDown className="size-4 text-muted-foreground" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="rounded-xl">
-                  {(Object.keys(PAGE_TYPE_CONFIG) as PageType[]).map((t) => {
-                    const TypeIcon = PAGE_TYPE_CONFIG[t].icon
-                    return (
-                      <DropdownMenuItem
-                        key={t}
-                        onSelect={() => setPageType(t)}
-                        className={cn(pageType === t && "bg-accent")}
-                      >
-                        <TypeIcon className="size-3.5 text-muted-foreground" />
-                        {PAGE_TYPE_CONFIG[t].label}
-                      </DropdownMenuItem>
-                    )
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
-                Priority
-              </label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm text-foreground transition-colors hover:bg-muted/50"
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <PriorityIcons filled={priority} size="size-3.5" />
-                      <span className="font-medium text-foreground">
-                        {priority}
-                      </span>
-                    </span>
-                    <IconChevronDown className="size-4 text-muted-foreground" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="rounded-xl">
-                  {([5, 4, 3, 2, 1] as const).map((p) => (
-                    <DropdownMenuItem
-                      key={p}
-                      onSelect={() => setPriority(p)}
-                      className={cn("focus:bg-muted focus:text-foreground", priority === p && "bg-muted")}
-                    >
-                      <PriorityIcons filled={p} size="size-3.5" />
-                      <span className="font-medium text-foreground">{p}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-
-          {error && (
-            <p className="text-xs text-destructive">{error}</p>
-          )}
-
-          <div className="flex justify-end gap-2 pt-2">
-            <DialogClose asChild>
-              <Button type="button" variant="ghost" size="sm" className="rounded-full" disabled={submitting}>
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              type="submit"
-              size="sm"
-              disabled={!url.trim() || submitting}
-              className="rounded-full bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot) disabled:opacity-40"
-            >
-              {submitting ? <IconLoader2 className="size-3.5 animate-spin" /> : null}
-              Add page
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      {disabled && disabledReason && !error && (
+        <p className="text-xs text-muted-foreground">{disabledReason}</p>
+      )}
+    </div>
   )
 }
 
-const TRIAL_BANNER_KEY = "pages-trial-banner-dismissed"
+function PageReorderRow({
+  page,
+  onDeleted,
+}: {
+  page: ProductPage
+  onDeleted: (id: string) => void
+}) {
+  const favicon = getFaviconUrl(page.url)
+  const displayUrl = getDisplayUrl(page.url)
+  const typeCfg = PAGE_TYPE_CONFIG[page.page_type]
+  const TypeIcon = typeCfg.icon
 
-export function PagesClient() {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <div className="shrink-0">
+        {favicon ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={favicon} alt="" width={14} height={14} className="size-3.5 rounded-sm" />
+        ) : (
+          <div className="size-3.5 rounded-sm bg-muted" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1">
+          <p className="truncate text-sm font-medium text-foreground">
+            {page.title || displayUrl}
+          </p>
+          <a
+            href={page.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 text-muted-foreground/40 hover:text-muted-foreground"
+            aria-label="Open page"
+          >
+            <IconExternalLink className="size-3" />
+          </a>
+        </div>
+        {page.title && (
+          <span className="truncate text-xs text-muted-foreground">{displayUrl}</span>
+        )}
+      </div>
+      <div className="hidden shrink-0 items-center gap-1.5 text-muted-foreground sm:flex">
+        <TypeIcon className="size-3.5 shrink-0" />
+        <span className="truncate text-xs">{typeCfg.label}</span>
+      </div>
+      {page.matched_keywords.length > 0 && (
+        <div className="hidden shrink-0 flex-wrap gap-1 md:flex">
+          {page.matched_keywords.slice(0, 2).map((kw) => (
+            <span
+              key={kw}
+              className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] text-muted-foreground"
+            >
+              {kw}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="flex shrink-0 items-center gap-1.5">
+        <IconLink className="size-4 text-muted-foreground/50" />
+        <span className="text-sm font-medium text-foreground tabular-nums">
+          {page.opportunities_count}
+        </span>
+      </div>
+      <DeletePageButton page={page} onDeleted={onDeleted} />
+    </div>
+  )
+}
+
+export function PagesTab({ onGoToKeywords }: { onGoToKeywords: () => void }) {
   const storePages = usePagesStore((s) => s.pages)
-  const updatePagePriority = usePagesStore((s) => s.updatePagePriority)
+  const reorderPages = usePagesStore((s) => s.reorderPages)
   const addPage = usePagesStore((s) => s.addPage)
+  const removePage = usePagesStore((s) => s.removePage)
   const prospects = useProspectStore((s) => s.prospects)
   const hasCompletedRun = useProspectStore((s) => s.hasCompletedRun)
   const product = useProductStore((s) => s.product)
   const targetKeywords = product?.target_keywords ?? []
 
-  const pages: ProductPage[] = storePages
-    .filter((p) => p.is_target)
-    .map((p) => {
-      const count = prospects.filter((pr) => pr.product_page_id === p.id).length
-      return {
-        id: p.id,
-        url: p.url,
-        title: p.title,
-        description: p.description,
-        page_type: toPageType(p.page_type),
-        priority: (p.priority as unknown as PagePriority) ?? 3,
-        matched_keywords: p.matched_keywords ?? [],
-        is_manual: p.is_manual,
-        opportunities_count: count,
-      }
-    })
+  // Memoized so array/object identity is stable across re-renders that don't
+  // actually change the underlying data — PriorityReorderList re-syncs its
+  // local drag state whenever the `items` prop reference changes, and this
+  // is recomputed with a fresh .filter().map().sort() on every render, which
+  // would otherwise snap an in-progress drag back on every unrelated store
+  // update (e.g. a live prospect count ticking in elsewhere on the page).
+  const pages: ProductPage[] = useMemo(
+    () =>
+      storePages
+        .filter((p) => p.is_target)
+        .map((p) => {
+          const count = prospects.filter((pr) => pr.product_page_id === p.id).length
+          return {
+            id: p.id,
+            url: p.url,
+            title: p.title,
+            description: p.description,
+            page_type: toPageType(p.page_type),
+            priority: (p.priority as unknown as PagePriority) ?? 5,
+            matched_keywords: p.matched_keywords ?? [],
+            is_manual: p.is_manual,
+            opportunities_count: count,
+          }
+        })
+        .sort((a, b) => a.priority - b.priority),
+    [storePages, prospects]
+  )
 
-  const siteWideProspects = prospects.filter((pr) => !pr.product_page_id)
-  const siteWideByTier = new Map<string, number>()
-  for (const pr of siteWideProspects) {
-    siteWideByTier.set(pr.tier, (siteWideByTier.get(pr.tier) ?? 0) + 1)
-  }
+  const atPagesLimit = pages.length >= MAX_TRACKED_PAGES
+  // Products that predate the 5-page cap can carry many more than
+  // MAX_TRACKED_PAGES rows until the manual reprocess pass (see
+  // todo/tickets/2026-08-21-reprocess-over-cap-product-pages.md) trims and
+  // renumbers them — a 5-slot drag list can't render that, so those
+  // products fall back to the old sortable table until then.
+  const overCap = pages.length > MAX_TRACKED_PAGES
 
-  const [bannerDismissed, setBannerDismissed] = useState(false)
   const [sortKey, setSortKey] = useQueryState<SortKey>(
     "sort",
     "priority",
     isSortKey
   )
-  const [sortDir, setSortDir] = useQueryState<SortDir>("dir", "desc", isSortDir)
+  const [sortDir, setSortDir] = useQueryState<SortDir>("dir", "asc", isSortDir)
   const [search, setSearch] = useQueryState("q", "", isAnyString)
   const [pageParam, setPageParam] = useQueryState(
     "page",
@@ -613,6 +609,8 @@ export function PagesClient() {
   )
   const currentPage = Number(pageParam)
   const setCurrentPage = (page: number) => setPageParam(String(page))
+
+  const [reorderError, setReorderError] = useState<string | null>(null)
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
@@ -624,32 +622,32 @@ export function PagesClient() {
     setCurrentPage(1)
   }
 
-  useEffect(() => {
-    if (localStorage.getItem(TRIAL_BANNER_KEY) === "1") setBannerDismissed(true)
-  }, [])
+  async function handleReorderCommit(ordered: ProductPage[]): Promise<string | null> {
+    const ids = ordered.map((p) => p.id)
+    const prevIds = pages.map((p) => p.id)
+    reorderPages(ids)
+    setReorderError(null)
 
-  function dismissBanner() {
-    localStorage.setItem(TRIAL_BANNER_KEY, "1")
-    setBannerDismissed(true)
-  }
-
-  function handlePriorityChange(id: string, priority: PagePriority) {
-    const prev = storePages.find((p) => p.id === id)?.priority
-    updatePagePriority(id, priority as Parameters<typeof updatePagePriority>[1])
-
-    fetch("/api/pages", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, priority }),
-    }).then((res) => {
-      if (!res.ok && prev !== undefined) {
-        updatePagePriority(id, prev as Parameters<typeof updatePagePriority>[1])
+    try {
+      const res = await fetch("/api/pages", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        reorderPages(prevIds)
+        const message = data.error ?? "Failed to reorder pages."
+        setReorderError(message)
+        return message
       }
-    }).catch(() => {
-      if (prev !== undefined) {
-        updatePagePriority(id, prev as Parameters<typeof updatePagePriority>[1])
-      }
-    })
+      return null
+    } catch {
+      reorderPages(prevIds)
+      const message = "Failed to reorder pages."
+      setReorderError(message)
+      return message
+    }
   }
 
   function handleAddPage(page: ProductPage) {
@@ -667,26 +665,8 @@ export function PagesClient() {
     })
   }
 
-  const [rescanning, setRescanning] = useState(false)
-  const [rescanMessage, setRescanMessage] = useState<string | null>(null)
-
-  async function handleRescan() {
-    if (rescanning) return
-    setRescanning(true)
-    setRescanMessage(null)
-    try {
-      const res = await fetch("/api/pages/reselect", { method: "POST" })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        setRescanMessage(data.error ?? "Failed to start scan.")
-        return
-      }
-      setRescanMessage("Scanning your site — this can take a few minutes. Refresh to see updates.")
-    } catch {
-      setRescanMessage("Failed to reach the server.")
-    } finally {
-      setRescanning(false)
-    }
+  function handleDeletePage(id: string) {
+    removePage(id)
   }
 
   const sorted = sortPages(pages, sortKey, sortDir)
@@ -713,112 +693,54 @@ export function PagesClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Summary banner */}
-      {!bannerDismissed && targetKeywords.length > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 px-4 py-2.5">
-          <IconSearch className="size-4 shrink-0 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            Tracking{" "}
-            <span className="font-medium text-foreground">
-              {pages.length} target page{pages.length === 1 ? "" : "s"}
-            </span>{" "}
-            matched to{" "}
-            <span className="font-medium text-foreground">
-              {targetKeywords.length} keyword{targetKeywords.length === 1 ? "" : "s"}
-            </span>
-            .
-          </p>
-          <button
-            type="button"
-            onClick={dismissBanner}
-            className="ml-auto shrink-0 text-muted-foreground/50 transition-colors hover:text-muted-foreground"
-            aria-label="Dismiss"
-          >
-            <IconX className="size-3.5" />
-          </button>
-        </div>
-      )}
       {targetKeywords.length === 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
           <IconAlertTriangle className="size-4 shrink-0 text-amber-500" />
           <p className="text-sm text-muted-foreground">
             You haven&apos;t set any target keywords yet, so we don&apos;t know
             which pages to build backlinks to.{" "}
-            <Link
-              href="/dashboard/prospects/settings?tab=keywords"
+            <button
+              type="button"
+              onClick={onGoToKeywords}
               className="font-medium text-foreground underline underline-offset-2 hover:text-amber-600"
             >
               Add your target keywords.
-            </Link>
+            </button>
           </p>
         </div>
       )}
 
-      {/* Site-wide opportunities */}
-      {siteWideProspects.length > 0 && (
-        <Card className="rounded-xl border border-border px-5 py-4 shadow-sm">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                Site-wide opportunities — {siteWideProspects.length}
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                These pitch your site as a whole, so they aren&apos;t tied to a
-                single page.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(SITE_WIDE_TIER_LABELS).map(([tier, label]) => {
-                const count = siteWideByTier.get(tier) ?? 0
-                if (count === 0) return null
-                return (
-                  <Link
-                    key={tier}
-                    href={`/dashboard/prospects?tier=${tier}`}
-                    className="rounded-full border border-border bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
-                  >
-                    {label} — {count}
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        </Card>
+      {overCap && (
+        <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
+          <IconAlertTriangle className="size-4 shrink-0 text-amber-500" />
+          <p className="text-sm text-muted-foreground">
+            You&apos;re tracking {pages.length} pages. The limit is now{" "}
+            {MAX_TRACKED_PAGES} — we&apos;ll re-pick your top {MAX_TRACKED_PAGES}{" "}
+            shortly, and you&apos;ll be able to drag them into priority order.
+          </p>
+        </div>
       )}
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative">
-          <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground/50" />
-          <Input
-            type="search"
-            placeholder="Search pages…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-9 w-full rounded-md border-border/60 bg-white pl-8 text-sm shadow-sm sm:w-64"
-          />
-        </div>
-        <div className="flex shrink-0 items-center gap-2 sm:ml-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void handleRescan()}
-            disabled={rescanning || targetKeywords.length === 0}
-            className="rounded-full"
-          >
-            {rescanning ? (
-              <IconLoader2 className="size-3.5 animate-spin" />
-            ) : (
-              <IconRefresh className="size-3.5" />
-            )}
-            Re-scan my site
-          </Button>
-          <AddPageDialog onAdd={handleAddPage} />
-        </div>
+      <div className="flex flex-col gap-3">
+        {overCap && (
+          <div className="relative sm:w-64">
+            <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground/50" />
+            <Input
+              type="search"
+              placeholder="Search pages…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 w-full rounded-md border-border/60 bg-white pl-8 text-sm shadow-sm"
+            />
+          </div>
+        )}
+        <AddPageBar
+          onAdd={handleAddPage}
+          disabled={atPagesLimit}
+          disabledReason={`You're tracking ${pages.length}/${MAX_TRACKED_PAGES} pages, the max for now.`}
+        />
       </div>
-      {rescanMessage && (
-        <p className="text-xs text-muted-foreground">{rescanMessage}</p>
-      )}
 
       {/* States */}
       {pages.length === 0 && !hasCompletedRun ? (
@@ -849,7 +771,25 @@ export function PagesClient() {
             We couldn&apos;t find matching pages on your site automatically.
             Add the pages you want to earn backlinks to yourself instead.
           </p>
-          <AddPageDialog onAdd={handleAddPage} />
+          <div className="w-full max-w-md">
+            <AddPageBar
+              onAdd={handleAddPage}
+              disabled={atPagesLimit}
+              disabledReason={`You're tracking ${pages.length}/${MAX_TRACKED_PAGES} pages, the max for now.`}
+            />
+          </div>
+        </div>
+      ) : !overCap ? (
+        <div className="flex flex-col gap-3">
+          {reorderError && <p className="text-xs text-destructive">{reorderError}</p>}
+          <PriorityReorderList
+            items={pages}
+            getKey={(page) => page.id}
+            max={MAX_TRACKED_PAGES}
+            onReorderCommit={handleReorderCommit}
+            placeholderLabel={(priority) => `Add a page to fill priority ${priority}`}
+            renderItem={(page) => <PageReorderRow page={page} onDeleted={handleDeletePage} />}
+          />
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -925,16 +865,13 @@ export function PagesClient() {
                       <TypeIcon className="size-3.5 shrink-0" />
                       <span className="truncate text-xs">{typeCfg.label}</span>
                     </div>
-                    <PriorityDropdown
-                      value={page.priority}
-                      onChange={(p) => handlePriorityChange(page.id, p)}
-                    />
                     <div className="flex items-center gap-1.5">
                       <IconLink className="size-4 text-muted-foreground/50" />
                       <span className="text-sm font-medium text-foreground tabular-nums">
                         {page.opportunities_count}
                       </span>
                     </div>
+                    <DeletePageButton page={page} onDeleted={handleDeletePage} />
                   </div>
                 </div>
               )
@@ -946,10 +883,11 @@ export function PagesClient() {
             <TooltipProvider>
               <table className="w-full table-fixed">
                 <colgroup>
-                  <col className="w-[30%]" />
-                  <col className="w-[18%]" />
-                  <col className="w-[22%]" />
-                  <col className="w-[30%]" />
+                  <col className="w-[37%]" />
+                  <col className="w-[9%]" />
+                  <col className="w-[25%]" />
+                  <col className="w-[21%]" />
+                  <col className="w-[8%]" />
                 </colgroup>
                 <thead>
                   <tr className="border-b border-border/60 bg-muted/20">
@@ -976,20 +914,11 @@ export function PagesClient() {
                       </div>
                     </th>
                     <th className="px-3 py-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
-                      <div className="flex items-center gap-1.5">
-                        Relevance
-                        <SortButton
-                          sortKey="priority"
-                          activeKey={sortKey}
-                          dir={sortDir}
-                          onSort={handleSort}
-                        />
-                        <PriorityInfoPopover />
-                      </div>
+                      Keywords
                     </th>
                     <th className="py-3 pr-6 pl-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
                       <div className="flex items-center gap-1.5">
-                        Opportunities
+                        Found Opportunities
                         <SortButton
                           sortKey="opportunities"
                           activeKey={sortKey}
@@ -1011,15 +940,14 @@ export function PagesClient() {
                         </Tooltip>
                       </div>
                     </th>
+                    <th className="py-3 pr-6 pl-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
+                      <span className="sr-only">Actions</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginated.map((page) => (
-                    <PageRow
-                      key={page.id}
-                      page={page}
-                      onPriorityChange={handlePriorityChange}
-                    />
+                    <PageRow key={page.id} page={page} onDeleted={handleDeletePage} />
                   ))}
                 </tbody>
               </table>

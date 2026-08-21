@@ -19,6 +19,7 @@ type EditableListProps = {
   loadingMessage?: string
   badgeIcon?: React.ReactNode
   normalizeItem?: (value: string) => string
+  validateItem?: (value: string) => string | null
   onChange: (items: string[]) => void
 }
 
@@ -34,6 +35,7 @@ export function EditableList({
   loadingMessage = "Loading",
   badgeIcon,
   normalizeItem = (value) => value.trim(),
+  validateItem,
   onChange,
 }: EditableListProps) {
   const [value, setValue] = useState("")
@@ -48,6 +50,11 @@ export function EditableList({
     }
     if (items.some((item) => item.toLowerCase() === normalized.toLowerCase())) {
       setDraftError("Already added.")
+      return
+    }
+    const validationError = validateItem?.(normalized)
+    if (validationError) {
+      setDraftError(validationError)
       return
     }
     onChange([...items, normalized])

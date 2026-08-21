@@ -1,4 +1,4 @@
-import { normalizeKeyword } from "@/consts/onboarding"
+import { MAX_TARGET_KEYWORDS, MIN_TARGET_KEYWORDS, normalizeKeyword } from "@/consts/onboarding"
 import { generateText } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { supabaseServer } from "@/lib/supabase/server"
@@ -8,7 +8,7 @@ import { z } from "zod"
 export const runtime = "nodejs"
 
 const keywordsSchema = z.object({
-  keywords: z.array(z.string().min(2)).min(8).max(10),
+  keywords: z.array(z.string().min(2)).min(MIN_TARGET_KEYWORDS).max(MAX_TARGET_KEYWORDS),
 })
 
 const RESPONSE_SCHEMA = {
@@ -18,8 +18,8 @@ const RESPONSE_SCHEMA = {
   properties: {
     keywords: {
       type: "array",
-      minItems: 8,
-      maxItems: 10,
+      minItems: MAX_TARGET_KEYWORDS,
+      maxItems: MAX_TARGET_KEYWORDS,
       items: {
         type: "string",
       },
@@ -56,7 +56,8 @@ const systemInstructions = [
   "Return JSON only with this exact shape:",
   '{"keywords":["backlink outreach software"]}',
   "Rules:",
-  "- keywords must contain 8 to 10 unique search phrases, 1 to 5 words each, lowercase, no punctuation.",
+  `- keywords must contain exactly ${MAX_TARGET_KEYWORDS} unique search phrases, 1 to 5 words each, lowercase, no punctuation.`,
+  "- Return them ranked by importance, most important first. Position 1 must be the single keyword this site most needs to rank for — the term closest to its core product. Each following position matters progressively less.",
   "- Prefer commercial or informational intent terms a real buyer would search — not brand names, not the company's own name (unless the brand name is also the category), not questions, not full sentences.",
   "- Each keyword must plausibly map to a real page this site could publish or already has (a product, feature, guide, or comparison topic) — these keywords are used to pick which of the site's existing pages to promote for backlinks.",
   "- Prefer specific phrases over generic ones (e.g. 'saas link building outreach' over 'marketing').",
@@ -111,6 +112,8 @@ export async function POST(request: Request) {
       // ignore
     }
 
+    // Dedupe via Set, which preserves insertion order — the model's
+    // most-important-first ranking survives this filtering untouched.
     const keywords = Array.from(
       new Set(
         result.data.keywords
@@ -118,9 +121,9 @@ export async function POST(request: Request) {
           .filter((k) => k.length > 0 && k.split(" ").length <= 6)
           .filter((k) => !hostname || !k.includes(hostname))
       )
-    ).slice(0, 10)
+    ).slice(0, MAX_TARGET_KEYWORDS)
 
-    if (keywords.length === 0) {
+    if (keywords.length < MIN_TARGET_KEYWORDS) {
       return NextResponse.json({ error: "Failed to generate keywords." }, { status: 502 })
     }
 

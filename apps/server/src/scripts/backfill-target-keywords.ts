@@ -6,8 +6,9 @@
  *
  * For products with crawled product_pages, this is free and a genuinely good
  * signal — union the LLM-extracted `keywords` column across those pages,
- * frequency-rank, take the top 10. Only products with zero crawled pages
- * fall back to one LLM call from product_name + product_description.
+ * frequency-rank, take the top 5 (array order is priority: most-frequent
+ * first). Only products with zero crawled pages fall back to one LLM call
+ * from product_name + product_description.
  *
  * Never overwrites a product that already has target_keywords set (e.g. one
  * that completed the new onboarding).
@@ -26,7 +27,7 @@ const log = createLogger("backfill-target-keywords")
 
 const dryRun = process.argv.includes("--dry-run")
 
-const MAX_KEYWORDS = 10
+const MAX_KEYWORDS = 5
 
 function normalizeKeyword(value: string): string {
   return value.trim().replace(/\s+/g, " ").toLowerCase()
@@ -49,7 +50,7 @@ async function generateKeywordsFromProduct(product: {
   const systemInstructions = [
     "Given a product's name and description, list the search keywords this site should be earning backlinks for.",
     'Return JSON only: {"keywords":["backlink outreach software"]}',
-    "8 to 10 unique keywords, 1-5 words each, lowercase, no punctuation, no brand names, no questions.",
+    "5 unique keywords, 1-5 words each, lowercase, no punctuation, no brand names, no questions, ranked most important first.",
   ].join("\n")
 
   try {

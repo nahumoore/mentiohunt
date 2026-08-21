@@ -69,9 +69,10 @@ For each page provided:
 ${
   targetKeywords.length > 0
     ? `
-4. Score 0-100 how well this page serves as a backlink destination for these target keywords: ${targetKeywords.join(", ")}.
-   - relevanceScore: 0-100, how strongly the page's actual content matches the intent behind these keywords (not just superficial word overlap).
-   - matchedKeywords: which of the target keywords (verbatim from the list above) this page genuinely serves.
+4. Score 0-100 how well this page serves as a backlink destination for these target keywords, listed most important first (priority 1 is the site's top keyword, and each one below it matters progressively less):
+${targetKeywords.map((k, i) => `   ${i + 1}. ${k}`).join("\n")}
+   - relevanceScore: 0-100, how strongly the page's actual content matches the intent behind these keywords (not just superficial word overlap). Weight this toward the higher-priority keywords — a strong match on keyword 1 should score well above an equally strong match on keyword 5.
+   - matchedKeywords: which of the target keywords this page genuinely serves, copied verbatim from the list above — do NOT include the leading number, only the keyword text itself.
    - reason: one short sentence explaining the score.
    If none of the target keywords fit this page, return relevanceScore: 0, matchedKeywords: [], and a reason saying so.`
     : `
@@ -146,6 +147,16 @@ async function categorizeBatch(
   product: { product_name: string; product_description: string },
   targetKeywords: string[]
 ): Promise<{ results: PageCategorization[]; cost: number }> {
+  // matchedKeywords is persisted verbatim and shown in the UI, so guard
+  // against the model echoing back the "N. " ranking prefix we prompt it
+  // with — only keep entries that map back to an actual target keyword,
+  // restored to its canonical casing.
+  const targetKeywordByLower = new Map(targetKeywords.map((k) => [k.toLowerCase(), k]))
+  function sanitizeMatchedKeyword(raw: string): string | null {
+    const stripped = raw.replace(/^\s*\d+[.)]\s*/, "").trim()
+    return targetKeywordByLower.get(stripped.toLowerCase()) ?? null
+  }
+
   const payload = pages.map((p) => {
     const hasMetadata = Boolean(p.title || p.description)
     return {
@@ -205,7 +216,9 @@ async function categorizeBatch(
             keywords: r.keywords,
             priority: r.priority as PagePriority,
             relevanceScore: r.relevanceScore ?? 0,
-            matchedKeywords: r.matchedKeywords ?? [],
+            matchedKeywords: (r.matchedKeywords ?? [])
+              .map(sanitizeMatchedKeyword)
+              .filter((k): k is string => k !== null),
             reason: r.reason ?? "",
           }
         })

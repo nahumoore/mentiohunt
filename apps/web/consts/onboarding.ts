@@ -111,6 +111,9 @@ export type OnboardingData = {
 export type OnboardingField = keyof OnboardingData
 export type OnboardingFieldErrors = Partial<Record<OnboardingField, string>>
 
+export const MIN_TARGET_KEYWORDS = 3
+export const MAX_TARGET_KEYWORDS = 5
+
 export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   websiteUrl: "",
   productName: "",
@@ -209,8 +212,8 @@ const keywordSchema = z
 export const keywordsStepSchema = z.object({
   targetKeywords: z
     .array(keywordSchema)
-    .min(5, "Add at least 5 target keywords.")
-    .max(10, "You can add up to 10 keywords.")
+    .min(MIN_TARGET_KEYWORDS, `Add at least ${MIN_TARGET_KEYWORDS} target keywords.`)
+    .max(MAX_TARGET_KEYWORDS, `You can rank up to ${MAX_TARGET_KEYWORDS} keywords.`)
     .refine((keywords) => new Set(keywords).size === keywords.length, {
       message: "Each keyword should be unique.",
     }),

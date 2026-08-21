@@ -22,11 +22,16 @@ function pathTokens(pathname: string): string[] {
  * token overlap only — this is what keeps the crawl budget bounded before
  * any scraping happens. Always keeps the homepage as a candidate even at
  * score 0, since it's always a legitimate fallback target.
+ *
+ * `keywords` arrives in priority order (index 0 = priority 1, highest), so
+ * each keyword's contribution is weighted by its rank — a priority-1 slug
+ * match outranks a priority-5 match on an otherwise identical URL.
  */
 export function rankCandidateUrls(urls: string[], keywords: string[], limit: number): string[] {
-  const keywordTokenSets = keywords.map((k) => ({
+  const keywordTokenSets = keywords.map((k, i) => ({
     phrase: k.toLowerCase().replace(/\s+/g, "-"),
     tokens: new Set(tokenize(k)),
+    weight: keywords.length > 0 ? (keywords.length - i) / keywords.length : 1,
   }))
 
   const scored = urls.map((url, index) => {
@@ -42,15 +47,15 @@ export function rankCandidateUrls(urls: string[], keywords: string[], limit: num
     const lowerPath = pathname.toLowerCase()
 
     let score = 0
-    for (const { phrase, tokens: kwTokens } of keywordTokenSets) {
+    for (const { phrase, tokens: kwTokens, weight } of keywordTokenSets) {
       if (kwTokens.size === 0) continue
       if (lowerPath.includes(phrase)) {
-        score += 3
+        score += 3 * weight
         continue
       }
       const matched = [...kwTokens].filter((t) => tokenSet.has(t)).length
-      if (matched === kwTokens.size) score += 2
-      else if (matched >= kwTokens.size / 2) score += 1
+      if (matched === kwTokens.size) score += 2 * weight
+      else if (matched >= kwTokens.size / 2) score += 1 * weight
     }
 
     // Shallow-path tie-break bonus, and homepage always survives at score 0.

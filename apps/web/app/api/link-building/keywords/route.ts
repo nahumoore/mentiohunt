@@ -1,11 +1,9 @@
-import { normalizeKeyword } from "@/consts/onboarding"
+import { MAX_TARGET_KEYWORDS, MIN_TARGET_KEYWORDS, normalizeKeyword } from "@/consts/onboarding"
 import { supabaseServer } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
 export const runtime = "nodejs"
-
-const MAX_TARGET_KEYWORDS = 10
 
 function buildError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status })
@@ -16,6 +14,16 @@ const keywordSchema = z
   .min(1)
   .transform(normalizeKeyword)
   .pipe(z.string().min(2, "Keywords must be at least 2 characters.").max(60, "Keep each keyword under 60 characters."))
+
+const reorderSchema = z.object({
+  keywords: z
+    .array(keywordSchema)
+    .min(MIN_TARGET_KEYWORDS, `Keep at least ${MIN_TARGET_KEYWORDS} target keywords.`)
+    .max(MAX_TARGET_KEYWORDS, `You can rank up to ${MAX_TARGET_KEYWORDS} target keywords.`)
+    .refine((keywords) => new Set(keywords).size === keywords.length, {
+      message: "Each keyword should be unique.",
+    }),
+})
 
 async function loadProduct(
   supabase: Awaited<ReturnType<typeof supabaseServer>>,
@@ -68,7 +76,7 @@ export async function POST(request: Request) {
   }
 
   if (keywords.length >= MAX_TARGET_KEYWORDS) {
-    return buildError(`You can track up to ${MAX_TARGET_KEYWORDS} target keywords.`, 403)
+    return buildError(`You can rank up to ${MAX_TARGET_KEYWORDS} target keywords.`, 403)
   }
 
   const nextKeywords = [...keywords, keyword]
@@ -84,6 +92,52 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ keywords: nextKeywords }, { status: 201 })
+}
+
+export async function PUT(request: Request) {
+  const supabase = await supabaseServer()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) return buildError("Unauthorized", 401)
+
+  const body = await request.json().catch(() => null)
+  const parsed = reorderSchema.safeParse(body)
+
+  if (!parsed.success) {
+    return buildError(parsed.error.issues[0]?.message ?? "Invalid request payload.")
+  }
+
+  const { product, error } = await loadProduct(supabase, user.id)
+  if (error) return error
+
+  const current = product.target_keywords ?? []
+  const nextKeywords = parsed.data.keywords
+
+  // PUT reorders the existing set — it does not add or remove keywords.
+  const currentSet = new Set<string>(current.map((k: string) => k.toLowerCase()))
+  const nextSet = new Set<string>(nextKeywords.map((k: string) => k.toLowerCase()))
+  const sameSet =
+    currentSet.size === nextSet.size &&
+    Array.from(currentSet).every((k: string) => nextSet.has(k))
+
+  if (!sameSet) {
+    return buildError("Reordering can't add or remove keywords.")
+  }
+
+  const { error: updateError } = await supabase
+    .from("products")
+    .update({ target_keywords: nextKeywords })
+    .eq("id", product.id)
+
+  if (updateError) {
+    console.error("Error reordering target keywords:", updateError)
+    return buildError("Failed to reorder keywords.", 500)
+  }
+
+  return NextResponse.json({ keywords: nextKeywords })
 }
 
 export async function DELETE(request: Request) {
@@ -107,6 +161,10 @@ export async function DELETE(request: Request) {
 
   const keywords = product.target_keywords ?? []
   const nextKeywords = keywords.filter((existing: string) => existing !== parsed.data.keyword)
+
+  if (nextKeywords.length < keywords.length && nextKeywords.length < MIN_TARGET_KEYWORDS) {
+    return buildError(`Keep at least ${MIN_TARGET_KEYWORDS} target keywords.`)
+  }
 
   const { error: updateError } = await supabase
     .from("products")

@@ -49,8 +49,6 @@ const DEFAULT_OUTREACH_SETTINGS: OutreachSettings = {
   signatureText: "",
 }
 
-const MAX_TARGET_KEYWORDS = 10
-
 type SettingsTab = "backlink-types" | "competitors" | "keywords" | "seo-metrics" | "outreach"
 
 function isSettingsTab(value: string): value is SettingsTab {
@@ -226,6 +224,32 @@ export default function DiscoverySetupPage() {
       return null
     } catch (error) {
       return error instanceof Error ? error.message : "Could not remove keyword."
+    }
+  }
+
+  // KeywordPriorityList tracks the dragged order locally and only calls this
+  // once the drag settles, so the store is untouched (and rollback-free)
+  // until the reorder is actually confirmed by the server.
+  async function reorderKeywords(keywords: string[]) {
+    try {
+      const response = await fetch("/api/link-building/keywords", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keywords }),
+      })
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string
+        keywords?: string[]
+      } | null
+
+      if (!response.ok || !payload?.keywords) {
+        return payload?.error ?? "Could not save keyword order."
+      }
+
+      if (product) setProduct({ ...product, target_keywords: payload.keywords })
+      return null
+    } catch (error) {
+      return error instanceof Error ? error.message : "Could not save keyword order."
     }
   }
 
@@ -501,9 +525,9 @@ export default function DiscoverySetupPage() {
           <TabsContent value="keywords">
             <KeywordsSection
               keywords={targetKeywords}
-              maxKeywords={MAX_TARGET_KEYWORDS}
               onAdd={addKeyword}
               onRemove={removeKeyword}
+              onReorderCommit={reorderKeywords}
             />
           </TabsContent>
 

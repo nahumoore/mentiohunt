@@ -2,23 +2,27 @@ import type { Metadata } from "next"
 import Script from "next/script"
 
 import { Footer, Navbar } from "@/components/landing"
-import { LinkBuildingStatisticsPage } from "@/components/link-building-statistics"
+import { StatisticsReport } from "@/components/link-building-statistics"
+import { pageUrlFor } from "@/components/link-building-statistics/shared/links"
+import { getEdition } from "@/content/link-building-statistics"
 
-import { DATASET_META, OVERALL_REPLY_RATE } from "./_data"
+const edition = getEdition(2026)
+const { meta } = edition
+const PAGE_URL = pageUrlFor(edition.year)
 
-const TITLE = "Link Building Statistics: Real Outreach Data (2026)"
-const DESCRIPTION = `Real backlink outreach statistics from ${DATASET_META.totalSent.toLocaleString()} sends across ${DATASET_META.distinctProducts} products — reply rates by Domain Rating, site fit, response time, and more.`
+const TITLE = "Link Building Statistics 2026: Real Outreach Data"
+const DESCRIPTION = `Real backlink outreach data from ${meta.totalSent.toLocaleString()} emails sent across ${meta.distinctProducts} products — reply rates by Domain Rating, site fit, response time, and more.`
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: {
-    canonical: "/link-building-statistics",
+    canonical: `/link-building-outreach-statistics-${edition.year}`,
   },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
-    url: "https://mentiohunt.com/link-building-statistics",
+    url: PAGE_URL,
     siteName: "Mentiohunt",
     type: "article",
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mentiohunt – Backlink outreach on autopilot" }],
@@ -31,15 +35,15 @@ export const metadata: Metadata = {
   },
 }
 
-export default function LinkBuildingStatistics() {
+export default function LinkBuildingOutreachStatistics2026() {
   const datasetSchema = {
     "@context": "https://schema.org",
     "@type": "Dataset",
     name: "Mentiohunt Link Building & Backlink Outreach Statistics",
     description: DESCRIPTION,
-    url: "https://mentiohunt.com/link-building-statistics",
-    temporalCoverage: DATASET_META.dateRangeLabel,
-    dateModified: DATASET_META.lastUpdatedLabel,
+    url: PAGE_URL,
+    temporalCoverage: meta.dateRangeLabel,
+    dateModified: meta.publishedLabel,
     creator: {
       "@type": "Organization",
       name: "Mentiohunt",
@@ -57,18 +61,20 @@ export default function LinkBuildingStatistics() {
       "Aggregated directly from Mentiohunt's outreach platform logs (outreach sends, inbound replies, and prospect classification).",
   }
 
-  const overallReplyRateSchema = {
+  const overallReplyRate = meta.uniqueRepliedProspects / meta.prospectsContacted
+
+  const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: TITLE,
     description: DESCRIPTION,
-    url: "https://mentiohunt.com/link-building-statistics",
-    datePublished: "2026-08-19",
-    dateModified: DATASET_META.lastUpdatedLabel,
+    url: PAGE_URL,
+    datePublished: meta.publishedLabel,
+    dateModified: meta.publishedLabel,
     author: { "@type": "Organization", name: "Mentiohunt" },
     publisher: { "@type": "Organization", name: "Mentiohunt" },
     about: "Link building and backlink outreach statistics",
-    mainEntityOfPage: `Overall reply rate: ${(OVERALL_REPLY_RATE * 100).toFixed(1)}%`,
+    mainEntityOfPage: `Overall reply rate: ${(overallReplyRate * 100).toFixed(1)}%`,
   }
 
   return (
@@ -81,10 +87,10 @@ export default function LinkBuildingStatistics() {
       <Script
         id="article-schema"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(overallReplyRateSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
       <Navbar overlay />
-      <LinkBuildingStatisticsPage />
+      <StatisticsReport edition={edition} />
       <Footer />
     </main>
   )

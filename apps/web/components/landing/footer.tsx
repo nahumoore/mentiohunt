@@ -6,6 +6,7 @@ import { IconBrandClaude } from "@/components/custom-icons/brand-claude"
 import { IconBrandChatGPT } from "@/components/custom-icons/brand-chatgpt"
 import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
 import IconBrandPerplexity from "@/components/custom-icons/brand-perplexity"
+import { pathFor } from "@/components/link-building-statistics/shared/links"
 import { Button } from "@workspace/ui/components/button"
 import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
 
@@ -33,6 +34,7 @@ const resourceLinks = [
   { href: "/backlinks-from", label: "Backlinks From" },
   { href: "/outreach-templates", label: "Outreach Templates" },
   { href: "/free-tools", label: "Free Tools" },
+  { href: pathFor(2026), label: "Link Building Statistics" },
   { href: "/directory-submission", label: "Submit a Directory" },
   { href: "/about", label: "About" },
   { href: "/alternatives", label: "Alternatives" },

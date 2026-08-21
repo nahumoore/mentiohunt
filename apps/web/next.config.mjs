@@ -60,6 +60,11 @@ const nextConfig = {
         destination: "/blog/best-automated-link-building-tools-for-founders",
         permanent: true,
       },
+      {
+        source: "/link-building-statistics",
+        destination: "/link-building-outreach-statistics-2026",
+        permanent: true,
+      },
     ]
   },
 }

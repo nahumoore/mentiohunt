@@ -34,11 +34,11 @@ export function TargetsClient() {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="pages">
+      <TabsContent value="pages" forceMount className={tab !== "pages" ? "hidden" : undefined}>
         <PagesTab onGoToKeywords={() => setTab("keywords")} />
       </TabsContent>
 
-      <TabsContent value="keywords">
+      <TabsContent value="keywords" forceMount className={tab !== "keywords" ? "hidden" : undefined}>
         <KeywordsTab />
       </TabsContent>
     </Tabs>

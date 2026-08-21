@@ -46,22 +46,22 @@ export const STATUS_CONFIG: Record<ProspectStatus, StatusConfig> = {
   new: {
     label: "New",
     icon: IconSparkles,
-    color: "text-blue-600 bg-blue-500/10",
+    color: "text-primary bg-primary/10",
   },
   contacted: {
     label: "Contacted",
     icon: IconSend,
-    color: "text-orange-600 bg-orange-500/10",
+    color: "text-primary bg-primary/20",
   },
   negotiating: {
     label: "Negotiating",
     icon: IconLink,
-    color: "text-yellow-600 bg-yellow-500/10",
+    color: "text-amber-700 dark:text-brand-warning bg-brand-warning/15",
   },
   won: {
     label: "Won",
     icon: IconCircleCheck,
-    color: "text-green-600 bg-green-500/10",
+    color: "text-emerald-700 dark:text-brand-success bg-brand-success/10",
   },
   dismissed: {
     label: "Dismissed",
@@ -71,12 +71,12 @@ export const STATUS_CONFIG: Record<ProspectStatus, StatusConfig> = {
   email_not_found: {
     label: "Email not found",
     icon: IconMailQuestion,
-    color: "text-amber-600 bg-amber-500/10",
+    color: "text-amber-700 dark:text-brand-warning bg-brand-warning/15",
   },
   bounced: {
     label: "Undeliverable",
     icon: IconMailX,
-    color: "text-red-600 bg-red-500/10",
+    color: "text-destructive bg-destructive/10",
   },
 }
 

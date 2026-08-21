@@ -307,10 +307,15 @@ function PageRow({
 
       {/* Type col */}
       <td className="px-3 py-4 align-top">
-        <div className="flex items-center gap-1.5 text-muted-foreground">
+        <span
+          className={cn(
+            "inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-xs",
+            typeCfg.color
+          )}
+        >
           <TypeIcon className="size-3.5 shrink-0" />
-          <span className="truncate text-xs">{typeCfg.label}</span>
-        </div>
+          <span className="truncate">{typeCfg.label}</span>
+        </span>
       </td>
 
       {/* Keywords col */}
@@ -462,7 +467,7 @@ function AddPageBar({
           type="button"
           onClick={() => void handleSubmit()}
           disabled={!url.trim() || submitting || disabled}
-          className="h-10 shrink-0 rounded-lg bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot) disabled:opacity-40"
+          className="h-10 shrink-0 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
         >
           {submitting ? (
             <IconLoader2 className="size-4 animate-spin" />
@@ -522,10 +527,15 @@ function PageReorderRow({
           <span className="truncate text-xs text-muted-foreground">{displayUrl}</span>
         )}
       </div>
-      <div className="hidden shrink-0 items-center gap-1.5 text-muted-foreground sm:flex">
+      <span
+        className={cn(
+          "hidden w-fit shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-xs sm:inline-flex",
+          typeCfg.color
+        )}
+      >
         <TypeIcon className="size-3.5 shrink-0" />
-        <span className="truncate text-xs">{typeCfg.label}</span>
-      </div>
+        <span className="truncate">{typeCfg.label}</span>
+      </span>
       {page.matched_keywords.length > 0 && (
         <div className="hidden shrink-0 flex-wrap gap-1 md:flex">
           {page.matched_keywords.slice(0, 2).map((kw) => (
@@ -746,8 +756,8 @@ export function PagesTab({ onGoToKeywords }: { onGoToKeywords: () => void }) {
       {pages.length === 0 && !hasCompletedRun ? (
         <Card className="rounded-xl border border-border px-6 py-16 text-center shadow-sm">
           <div className="mx-auto flex max-w-md flex-col items-center gap-3">
-            <span className="flex size-12 items-center justify-center rounded-full bg-(--color-blaze-orange)/10">
-              <IconLoader2 className="size-5 animate-spin text-(--color-blaze-orange)" />
+            <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+              <IconLoader2 className="size-5 animate-spin text-primary" />
             </span>
             <h2 className="text-base font-semibold text-foreground">
               Scanning your site for pages
@@ -761,8 +771,8 @@ export function PagesTab({ onGoToKeywords }: { onGoToKeywords: () => void }) {
         </Card>
       ) : pages.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
-          <span className="flex size-12 items-center justify-center rounded-full bg-(--color-blaze-orange)/10">
-            <IconFiles className="size-5 text-(--color-blaze-orange)" />
+          <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+            <IconFiles className="size-5 text-primary" />
           </span>
           <h2 className="text-base font-semibold text-foreground">
             No pages tracked yet
@@ -861,10 +871,15 @@ export function PagesTab({ onGoToKeywords }: { onGoToKeywords: () => void }) {
                   </div>
 
                   <div className="mt-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <span
+                      className={cn(
+                        "inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-xs",
+                        typeCfg.color
+                      )}
+                    >
                       <TypeIcon className="size-3.5 shrink-0" />
-                      <span className="truncate text-xs">{typeCfg.label}</span>
-                    </div>
+                      <span className="truncate">{typeCfg.label}</span>
+                    </span>
                     <div className="flex items-center gap-1.5">
                       <IconLink className="size-4 text-muted-foreground/50" />
                       <span className="text-sm font-medium text-foreground tabular-nums">

@@ -1,4 +1,4 @@
-import { onboardingSchema } from "@/consts/onboarding"
+import { onboardingSchema, validateImportantPages } from "@/consts/onboarding"
 import { FREE_TRIAL_MAX_PAGES } from "@/consts/billing"
 import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
 import { supabaseServer } from "@/lib/supabase/server"
@@ -55,6 +55,20 @@ export async function POST(request: Request) {
     return buildValidationError(
       parsedRequest.error.issues[0]?.message ?? "Invalid request payload."
     )
+  }
+
+  // Cross-field rule (pages present OR auto-discover checked) can't live in
+  // onboardingSchema itself — see the comment on importantPagesStepSchema in
+  // consts/onboarding.ts — so it's only enforced client-side by the wizard's
+  // validateStep. Re-check it here so a request bypassing the UI can't create
+  // a product with zero target pages and no auto-discovery.
+  const importantPagesError = validateImportantPages({
+    importantPages: parsedRequest.data.importantPages,
+    autoDiscoverPages: parsedRequest.data.autoDiscoverPages,
+    websiteUrl: parsedRequest.data.websiteUrl,
+  })
+  if (importantPagesError) {
+    return buildValidationError(importantPagesError)
   }
 
   const productPayload: TablesInsert<"products"> = {

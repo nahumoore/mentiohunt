@@ -20,7 +20,7 @@ devRunDailyBacklinkDiscoveryRouter.post("/dev/run-daily-backlink-discovery", asy
 
     const { data: product, error: productError } = await supabaseAdmin
       .from("products")
-      .select("id, user_id, product_name, product_description, website_url, competitors")
+      .select("id, user_id, product_name, product_description, website_url, competitors, target_keywords")
       .eq("id", productId)
       .single()
 
@@ -53,6 +53,7 @@ devRunDailyBacklinkDiscoveryRouter.post("/dev/run-daily-backlink-discovery", asy
     const discoveryProduct: DiscoveryProduct = {
       ...product,
       competitors: (product.competitors as string[] | null) ?? null,
+      target_keywords: (product.target_keywords as string[] | null) ?? null,
     }
 
     try {

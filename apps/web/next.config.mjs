@@ -65,6 +65,11 @@ const nextConfig = {
         destination: "/link-building-outreach-statistics-2026",
         permanent: true,
       },
+      {
+        source: "/dashboard/pages",
+        destination: "/dashboard/targets",
+        permanent: true,
+      },
     ]
   },
 }

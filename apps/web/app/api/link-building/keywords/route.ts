@@ -1,4 +1,4 @@
-import { MAX_TARGET_KEYWORDS, MIN_TARGET_KEYWORDS, normalizeKeyword } from "@/consts/onboarding"
+import { MAX_TARGET_KEYWORDS, normalizeKeyword } from "@/consts/onboarding"
 import { supabaseServer } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { z } from "zod"
@@ -16,9 +16,12 @@ const keywordSchema = z
   .pipe(z.string().min(2, "Keywords must be at least 2 characters.").max(60, "Keep each keyword under 60 characters."))
 
 const reorderSchema = z.object({
+  // MIN_TARGET_KEYWORDS is an onboarding-wizard rule (keywordsStepSchema), not
+  // an invariant of the stored column — an existing user can hold 0-2
+  // keywords post-onboarding and still needs to reorder them.
   keywords: z
     .array(keywordSchema)
-    .min(MIN_TARGET_KEYWORDS, `Keep at least ${MIN_TARGET_KEYWORDS} target keywords.`)
+    .min(1, "Add at least one target keyword.")
     .max(MAX_TARGET_KEYWORDS, `You can rank up to ${MAX_TARGET_KEYWORDS} target keywords.`)
     .refine((keywords) => new Set(keywords).size === keywords.length, {
       message: "Each keyword should be unique.",
@@ -162,10 +165,10 @@ export async function DELETE(request: Request) {
   const keywords = product.target_keywords ?? []
   const nextKeywords = keywords.filter((existing: string) => existing !== parsed.data.keyword)
 
-  if (nextKeywords.length < keywords.length && nextKeywords.length < MIN_TARGET_KEYWORDS) {
-    return buildError(`Keep at least ${MIN_TARGET_KEYWORDS} target keywords.`)
-  }
-
+  // MIN_TARGET_KEYWORDS is an onboarding-wizard rule, not an invariant of the
+  // stored column — existing users start at 0 keywords and must be able to
+  // remove one without first being forced up to 4. The reselect route's own
+  // "add your keywords first" gate covers the >= 1 floor for discovery.
   const { error: updateError } = await supabase
     .from("products")
     .update({ target_keywords: nextKeywords })

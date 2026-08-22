@@ -32,11 +32,24 @@ function extractUrlPath(url: string): string {
   }
 }
 
-const SYSTEM_INSTRUCTIONS = (product: { product_name: string; product_description: string }) =>
+// Emitted only when the product has target_keywords — most don't yet (see the
+// 2026-08-21 target-keywords-in-discovery ticket), and an unconditional block
+// would change scoring for every product that has never set one.
+function keywordAnchor(targetKeywords?: string[] | null): string {
+  const keywords = (targetKeywords ?? []).filter(Boolean)
+  if (keywords.length === 0) return ""
+  return `\n\nThis product's confirmed target keywords, most important first (priority 1 is the top keyword, and each one below it matters progressively less): weight fit toward the higher-priority ones.\n${keywords.map((k, i) => `${i + 1}. ${k}`).join("\n")}`
+}
+
+const SYSTEM_INSTRUCTIONS = (product: {
+  product_name: string
+  product_description: string
+  target_keywords?: string[] | null
+}) =>
   `You are evaluating pages that link to a competitor product. Score how relevant each page is as a backlink outreach opportunity for this product.
 
 Product: ${product.product_name}
-Description: ${product.product_description}
+Description: ${product.product_description}${keywordAnchor(product.target_keywords)}
 
 Each item is a page that currently links to a competitor. Score whether this product could realistically be added to or featured on that page.
 
@@ -87,7 +100,7 @@ const RESPONSE_FORMAT = {
 
 export async function scoreBacklinkRelevance(
   items: TaggedBacklinkItem[],
-  product: { product_name: string; product_description: string }
+  product: { product_name: string; product_description: string; target_keywords?: string[] | null }
 ): Promise<{ results: ScoredBacklinkItem[]; totalCost: number }> {
   if (items.length === 0) return { results: [], totalCost: 0 }
 
@@ -113,7 +126,7 @@ export async function scoreBacklinkRelevance(
 
 async function scoreBatch(
   items: TaggedBacklinkItem[],
-  product: { product_name: string; product_description: string }
+  product: { product_name: string; product_description: string; target_keywords?: string[] | null }
 ): Promise<{ results: ScoredBacklinkItem[]; cost: number }> {
   const payload = items.map((item) => {
     const entry: Record<string, string | number> = {

@@ -126,3 +126,18 @@ fix is probably to just widen the reprocess pass to all products with `target_ke
 set, not only the 37 over-cap ones — the script change already applies to any product
 with more than `KEEP_TOP` crawled pages, so this may already be moot for most; worth
 confirming counts again once the over-cap pass has run.
+
+## Dependency: `backfill-target-keywords.ts` must run first
+
+Re-confirmed 2026-08-22 during the Targets/target-keywords readiness review: **55 of 57
+products have zero `target_keywords`** (only the 2 paid products have any set). Since this
+reprocess pass re-ranks each page's `relevance_score` against `target_keywords`
+(`categorizePages`), those 55 products have nothing to re-rank against — running the
+over-cap pass on them without keywords first would just re-apply the same
+score-bucket noise this ticket exists to remove.
+
+`apps/server/src/scripts/backfill-target-keywords.ts` already exists for this (frequency-
+ranks the union of each product's crawled `product_pages.keywords`, LLM fallback only for
+products with zero crawled pages, never overwrites an existing set, `--dry-run` supported)
+and has not been run. Order: run the backfill (dry-run reviewed first, especially for the
+2 paid products) before `backfill-target-pages.ts`'s reprocess pass, not after.

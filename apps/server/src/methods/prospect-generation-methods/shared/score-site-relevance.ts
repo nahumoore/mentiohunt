@@ -23,11 +23,25 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out
 }
 
-const SYSTEM_INSTRUCTIONS = (product: { product_name: string; product_description: string }) =>
+// Emitted only when the product has target_keywords — most products don't
+// yet (see the 2026-08-21 target-keywords-in-discovery ticket), and an
+// unconditional keyword block would change scoring for every product that
+// has never set one.
+function keywordAnchor(targetKeywords?: string[] | null): string {
+  const keywords = (targetKeywords ?? []).filter(Boolean)
+  if (keywords.length === 0) return ""
+  return `\n\nThis product's confirmed target keywords, most important first (priority 1 is the top keyword, and each one below it matters progressively less): weight fit toward the higher-priority ones — a site whose audience plausibly searches for keyword 1 is a stronger match than one that only fits keyword 5.\n${keywords.map((k, i) => `${i + 1}. ${k}`).join("\n")}`
+}
+
+const SYSTEM_INSTRUCTIONS = (product: {
+  product_name: string
+  product_description: string
+  target_keywords?: string[] | null
+}) =>
   `You are evaluating websites as backlink outreach targets for a software product. Assess how well each site's audience and topic area aligns with this product's target market — not just the specific page, but the site as a whole.
 
 Product: ${product.product_name}
-Description: ${product.product_description}
+Description: ${product.product_description}${keywordAnchor(product.target_keywords)}
 
 Score guide (0-100):
 - 90-100: Perfect match — site squarely serves this product's ICP, backlink placement highly relevant
@@ -69,7 +83,7 @@ const RESPONSE_FORMAT = {
 
 async function scoreBatch(
   items: SiteRelevanceInput[],
-  product: { product_name: string; product_description: string }
+  product: { product_name: string; product_description: string; target_keywords?: string[] | null }
 ): Promise<{ results: Map<string, { score: number }>; cost: number }> {
   const payload = items.map((item) => ({
     id: item.id,
@@ -121,7 +135,7 @@ async function scoreBatch(
 
 export async function scoreSiteRelevance(
   items: SiteRelevanceInput[],
-  product: { product_name: string; product_description: string }
+  product: { product_name: string; product_description: string; target_keywords?: string[] | null }
 ): Promise<{ results: Map<string, { score: number }>; cost: number }> {
   if (items.length === 0) return { results: new Map(), cost: 0 }
 

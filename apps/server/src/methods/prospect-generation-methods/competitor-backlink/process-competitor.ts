@@ -25,6 +25,7 @@ export async function processCompetitor(
     product_name: string
     product_description: string
     website_url: string
+    target_keywords?: string[] | null
   },
   settings: FilterSettings,
   sender: ResolvedSender,

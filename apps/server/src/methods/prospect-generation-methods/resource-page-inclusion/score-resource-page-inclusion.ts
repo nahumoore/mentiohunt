@@ -15,6 +15,7 @@ export type TargetPageForInclusion = {
   page_type: string
   priority: number
   keywords: string[]
+  matched_keywords: string[]
 }
 
 export type ResourceInclusionCandidate = {
@@ -44,11 +45,24 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out
 }
 
-const SYSTEM_INSTRUCTIONS = (product: { product_name: string; product_description: string }) =>
+// Emitted only when the product has target_keywords — most don't yet (see the
+// 2026-08-21 target-keywords-in-discovery ticket), and an unconditional block
+// would change scoring for every product that has never set one.
+function keywordAnchor(targetKeywords?: string[] | null): string {
+  const keywords = (targetKeywords ?? []).filter(Boolean)
+  if (keywords.length === 0) return ""
+  return `\nThis product's confirmed target keywords, most important first (priority 1 is the top keyword, and each one below it matters progressively less): weight fit toward the higher-priority ones.\n${keywords.map((k, i) => `${i + 1}. ${k}`).join("\n")}`
+}
+
+const SYSTEM_INSTRUCTIONS = (product: {
+  product_name: string
+  product_description: string
+  target_keywords?: string[] | null
+}) =>
   `You are evaluating external web pages as outreach targets for adding one specific user-owned page as a useful resource.
 
 Product: ${product.product_name}
-Description: ${product.product_description}
+Description: ${product.product_description}${keywordAnchor(product.target_keywords)}
 
 For each candidate, decide whether the external page is a good "resource page inclusion" prospect for the provided target page.
 
@@ -99,7 +113,7 @@ const RESPONSE_FORMAT = {
 
 export async function scoreResourcePageInclusion(
   items: ResourceInclusionCandidate[],
-  product: { product_name: string; product_description: string }
+  product: { product_name: string; product_description: string; target_keywords?: string[] | null }
 ): Promise<{ results: ScoredResourceInclusionCandidate[]; totalCost: number }> {
   if (items.length === 0) return { results: [], totalCost: 0 }
 
@@ -124,7 +138,7 @@ export async function scoreResourcePageInclusion(
 
 async function scoreBatch(
   items: ResourceInclusionCandidate[],
-  product: { product_name: string; product_description: string }
+  product: { product_name: string; product_description: string; target_keywords?: string[] | null }
 ): Promise<{ results: ScoredResourceInclusionCandidate[]; cost: number }> {
   const payload = items.map((item, index) => ({
     id: String(index),
@@ -139,6 +153,10 @@ async function scoreBatch(
       pageType: item.targetPage.page_type,
       priority: item.targetPage.priority,
       keywords: item.targetPage.keywords.slice(0, 8),
+      // Which of the product's confirmed target keywords this page genuinely
+      // serves (categorize-pages.ts) — a sharper topical signal than the
+      // page's own LLM-extracted `keywords` above when it's populated.
+      matchedKeywords: item.targetPage.matched_keywords.slice(0, 8),
     },
   }))
 

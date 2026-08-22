@@ -1,6 +1,6 @@
 "use client"
 
-import { MAX_TARGET_KEYWORDS, MIN_TARGET_KEYWORDS } from "@/consts/onboarding"
+import { MAX_TARGET_KEYWORDS } from "@/consts/onboarding"
 import { PriorityReorderList } from "@/components/ui/priority-reorder-list"
 import { IconLoader2, IconPlus, IconX } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
@@ -37,7 +37,6 @@ export function KeywordPriorityList({
   const [removingKeyword, setRemovingKeyword] = useState<string | null>(null)
 
   const atMax = keywords.length >= MAX_TARGET_KEYWORDS
-  const atMin = keywords.length <= MIN_TARGET_KEYWORDS
 
   async function handleAdd() {
     const trimmed = value.trim()
@@ -64,11 +63,6 @@ export function KeywordPriorityList({
 
   async function handleRemove(keyword: string) {
     if (removingKeyword) return
-
-    if (atMin) {
-      setError(`Keep at least ${MIN_TARGET_KEYWORDS} target keywords.`)
-      return
-    }
 
     setRemovingKeyword(keyword)
     setError(null)

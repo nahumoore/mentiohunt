@@ -12,6 +12,7 @@ import {
   IconLink,
   IconLoader2,
   IconPlus,
+  IconRefresh,
   IconSearch,
   IconTrash,
 } from "@tabler/icons-react"
@@ -622,6 +623,28 @@ export function PagesTab({ onGoToKeywords }: { onGoToKeywords: () => void }) {
 
   const [reorderError, setReorderError] = useState<string | null>(null)
 
+  const [rescanning, setRescanning] = useState(false)
+  const [rescanMessage, setRescanMessage] = useState<string | null>(null)
+
+  async function handleRescan() {
+    if (rescanning) return
+    setRescanning(true)
+    setRescanMessage(null)
+    try {
+      const res = await fetch("/api/pages/reselect", { method: "POST" })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setRescanMessage(data.error ?? "Failed to start scan.")
+        return
+      }
+      setRescanMessage("Scanning your site — this can take a few minutes. Refresh to see updates.")
+    } catch {
+      setRescanMessage("Failed to reach the server.")
+    } finally {
+      setRescanning(false)
+    }
+  }
+
   function handleSort(key: SortKey) {
     if (sortKey === key) {
       setSortDir(sortDir === "asc" ? "desc" : "asc")
@@ -725,8 +748,8 @@ export function PagesTab({ onGoToKeywords }: { onGoToKeywords: () => void }) {
           <IconAlertTriangle className="size-4 shrink-0 text-amber-500" />
           <p className="text-sm text-muted-foreground">
             You&apos;re tracking {pages.length} pages. The limit is now{" "}
-            {MAX_TRACKED_PAGES} — we&apos;ll re-pick your top {MAX_TRACKED_PAGES}{" "}
-            shortly, and you&apos;ll be able to drag them into priority order.
+            {MAX_TRACKED_PAGES} — re-scan your site below to re-pick your top{" "}
+            {MAX_TRACKED_PAGES}, and you&apos;ll be able to drag them into priority order.
           </p>
         </div>
       )}
@@ -745,6 +768,24 @@ export function PagesTab({ onGoToKeywords }: { onGoToKeywords: () => void }) {
             />
           </div>
         )}
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void handleRescan()}
+            disabled={rescanning || targetKeywords.length === 0}
+            className="rounded-full"
+          >
+            {rescanning ? (
+              <IconLoader2 className="size-3.5 animate-spin" />
+            ) : (
+              <IconRefresh className="size-3.5" />
+            )}
+            Re-scan my site
+          </Button>
+        </div>
+        {rescanMessage && <p className="text-xs text-muted-foreground">{rescanMessage}</p>}
         <AddPageBar
           onAdd={handleAddPage}
           disabled={atPagesLimit}

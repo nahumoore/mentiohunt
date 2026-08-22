@@ -12,7 +12,8 @@ const log = createLogger("listicle-roundup-prospect-run")
 export async function selectQueriesForRun(
   productId: string,
   allQueries: string[],
-  maxQueries: number
+  maxQueries: number,
+  weightByQuery: Map<string, number> = new Map()
 ): Promise<string[]> {
   const { data: recentRuns } = await supabaseAdmin
     .from("backlink_prospect_runs" as string)
@@ -38,7 +39,8 @@ export async function selectQueriesForRun(
     .sort((a, b) => {
       const aTime = lastRunByQuery.get(a) ?? ""
       const bTime = lastRunByQuery.get(b) ?? ""
-      return aTime < bTime ? -1 : 1
+      if (aTime !== bTime) return aTime < bTime ? -1 : 1
+      return (weightByQuery.get(b) ?? 1) - (weightByQuery.get(a) ?? 1)
     })
     .slice(0, maxQueries)
 }

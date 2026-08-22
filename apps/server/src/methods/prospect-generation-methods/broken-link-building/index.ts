@@ -15,8 +15,12 @@ const MAX_PROSPECTS_PER_RUN = 20
 const MAX_COMPETITORS_PER_RUN = 3
 const REPLACEMENT_PAGE_LIMIT = 30
 // Landing pages excluded deliberately — nobody replaces a dead reference
-// with a pricing page.
-const ELIGIBLE_PAGE_TYPES = ["article", "resource", "free_tool"]
+// with a pricing page. "manual" is included — a user-picked important page
+// from onboarding has no LLM-assigned type, but is exactly the kind of page
+// the customer wants backlinks to; match-replacement-page.ts's own topical-fit
+// check rejects it at scoring time if it's a poor replacement, same as any
+// other candidate.
+const ELIGIBLE_PAGE_TYPES = ["article", "resource", "free_tool", "manual"]
 
 export type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
 

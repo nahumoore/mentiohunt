@@ -44,7 +44,7 @@ devDiscoverResourcePageInclusionsRouter.post("/dev/discover-resource-page-inclus
 
     const { data: product, error: productError } = await supabaseAdmin
       .from("products")
-      .select("id, user_id, product_name, product_description, website_url")
+      .select("id, user_id, product_name, product_description, website_url, target_keywords")
       .eq("id", productId)
       .single()
 

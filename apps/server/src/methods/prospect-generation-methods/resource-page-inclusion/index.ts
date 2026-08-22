@@ -72,7 +72,7 @@ export async function discoverResourcePageInclusions(
 
   let pagesQuery = supabaseAdmin
     .from("product_pages")
-    .select("id, url, title, description, page_type, priority, keywords")
+    .select("id, url, title, description, page_type, priority, keywords, matched_keywords")
     .eq("product_id", product.id)
     .eq("crawl_status", "crawled")
     .eq("is_target", true)
@@ -94,11 +94,18 @@ export async function discoverResourcePageInclusions(
     page_type: p.page_type,
     priority: p.priority,
     keywords: p.keywords ?? [],
+    matched_keywords: p.matched_keywords ?? [],
   }))
 
   const pages = selectPagesForRun(eligiblePages, maxPages, runHistory.lastRunByPageId, explicitPageIds)
 
-  const queryPlan = buildQueryPlan(pages, queryTemplates, maxQueriesPerPage, runHistory.lastRunByQueryKey)
+  const queryPlan = buildQueryPlan(
+    pages,
+    queryTemplates,
+    maxQueriesPerPage,
+    runHistory.lastRunByQueryKey,
+    product.target_keywords ?? []
+  )
   const runInput = {
     product_id: product.id,
     opportunity_type: "resource_page_inclusion",
@@ -110,7 +117,9 @@ export async function discoverResourcePageInclusions(
       page_type: p.page_type,
       priority: p.priority,
       keywords: p.keywords,
+      matched_keywords: p.matched_keywords,
     })),
+    product_target_keywords: product.target_keywords ?? [],
     page_types: pageTypes,
     max_priority: maxPriority,
     query_templates: queryTemplates,

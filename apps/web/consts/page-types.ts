@@ -2,12 +2,23 @@ import {
   IconAppWindow,
   IconArticle,
   IconBook2,
+  IconGitCompare,
+  IconPointer,
   IconSitemap,
+  IconTrophy,
   IconWand,
 } from "@tabler/icons-react"
 import type { ComponentType } from "react"
 
-export type PageType = "landing_page" | "article" | "resource" | "free_tool" | "sitemap"
+export type PageType =
+  | "landing_page"
+  | "article"
+  | "resource"
+  | "free_tool"
+  | "sitemap"
+  | "case_study"
+  | "comparison"
+  | "manual"
 
 export const PAGE_TYPE_CONFIG: Record<
   PageType,
@@ -42,5 +53,20 @@ export const PAGE_TYPE_CONFIG: Record<
     label: "Sitemap",
     icon: IconSitemap,
     color: "text-slate-700 dark:text-slate-300 bg-slate-500/10",
+  },
+  case_study: {
+    label: "Case Study",
+    icon: IconTrophy,
+    color: "text-amber-700 dark:text-amber-300 bg-amber-500/10",
+  },
+  comparison: {
+    label: "Comparison",
+    icon: IconGitCompare,
+    color: "text-orange-700 dark:text-orange-300 bg-orange-500/10",
+  },
+  manual: {
+    label: "Manual",
+    icon: IconPointer,
+    color: "text-emerald-700 dark:text-emerald-300 bg-emerald-500/10",
   },
 }

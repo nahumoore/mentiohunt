@@ -43,6 +43,7 @@ export type DiscoveryProduct = {
   product_description: string
   website_url: string
   competitors: string[] | null
+  target_keywords: string[] | null
 }
 
 type DiscoveryResult = { prospectsCreated: number; totalCostUsd: number }
@@ -123,7 +124,10 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         .eq("product_id", product.id)
         .eq("crawl_status", "crawled")
         .eq("is_target", true)
-        .in("page_type", ["article", "resource", "free_tool"])
+        // Mirrors ELIGIBLE_PAGE_TYPES in broken-link-building/index.ts —
+        // "manual" included so a product whose only target pages are
+        // user-picked onboarding pages still makes this method runnable.
+        .in("page_type", ["article", "resource", "free_tool", "manual"])
       return (count ?? 0) > 0
     },
     discover: (product, filterSettings, emailSettings, onProspectCreated) =>
@@ -284,7 +288,7 @@ export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }
 
   const { data: products, error } = await supabaseAdmin
     .from("products")
-    .select("id, user_id, product_name, product_description, website_url, competitors")
+    .select("id, user_id, product_name, product_description, website_url, competitors, target_keywords")
 
   if (error) {
     log.error("failed to fetch products", { error: error.message })
@@ -319,6 +323,7 @@ export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }
       product_description: p.product_description,
       website_url: p.website_url,
       competitors: (p.competitors as string[] | null) ?? null,
+      target_keywords: (p.target_keywords as string[] | null) ?? null,
     } satisfies DiscoveryProduct,
     profile: profileById.get(p.user_id),
   }))

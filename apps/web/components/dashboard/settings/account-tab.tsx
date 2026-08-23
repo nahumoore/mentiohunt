@@ -1,10 +1,14 @@
 "use client"
 
 import { IconAlertTriangle, IconPlayerPause, IconPower } from "@tabler/icons-react"
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { toast } from "sonner"
 
-import { deactivateAccount, stopAllOutreach } from "@/actions/account-actions"
+import {
+  deactivateAccount,
+  getHasPendingOutreach,
+  stopAllOutreach,
+} from "@/actions/account-actions"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -18,6 +22,17 @@ export function AccountTab() {
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false)
   const [isStopping, startStopTransition] = useTransition()
   const [isDeactivating, startDeactivateTransition] = useTransition()
+  // null while loading -- keep the button enabled until we know for sure,
+  // rather than flashing disabled then re-enabling.
+  const [hasPendingOutreach, setHasPendingOutreach] = useState<boolean | null>(
+    null
+  )
+
+  useEffect(() => {
+    getHasPendingOutreach().then((result) => {
+      if (!result.error) setHasPendingOutreach(result.hasPending ?? true)
+    })
+  }, [])
 
   function handleStopOutreach() {
     startStopTransition(async () => {
@@ -27,6 +42,7 @@ export function AccountTab() {
         toast.error(result.error)
         return
       }
+      setHasPendingOutreach(false)
       toast.success(
         result.pausedCount
           ? `Paused ${result.pausedCount} pending email${result.pausedCount === 1 ? "" : "s"}.`
@@ -34,6 +50,8 @@ export function AccountTab() {
       )
     })
   }
+
+  const outreachStopped = hasPendingOutreach === false
 
   function handleDeactivate() {
     startDeactivateTransition(async () => {
@@ -62,9 +80,14 @@ export function AccountTab() {
           </p>
         </div>
         <div className="px-5 py-4">
-          <Button variant="outline" size="sm" onClick={() => setShowStopDialog(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowStopDialog(true)}
+            disabled={isStopping || outreachStopped}
+          >
             <IconPlayerPause />
-            Stop all outreach
+            {outreachStopped ? "Outreach stopped" : "Stop all outreach"}
           </Button>
         </div>
       </div>

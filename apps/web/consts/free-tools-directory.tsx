@@ -7,6 +7,7 @@ import {
   IconLinkOff,
   IconMail,
   IconMailCheck,
+  IconNews,
   IconShieldCheck,
   IconSitemap,
   IconSwords,
@@ -141,6 +142,14 @@ export const FREE_TOOLS_DIRECTORY: FreeToolDirectoryEntry[] = [
       "Paste your domain and the pages where you have backlinks, and check right now which ones are still live, gone nofollow, or dropped.",
     icon: IconActivity,
   },
+  {
+    slug: FREE_TOOL_NAMES.pressReleaseGenerator,
+    name: "Press Release Generator",
+    eyebrow: "Details to formatted release",
+    description:
+      "Fill in your announcement details and get a properly formatted press release — dateline, lead paragraph, quote, boilerplate, and media contact — for a launch, funding round, partnership, or milestone.",
+    icon: IconNews,
+  },
 ]
 
 export function getFreeToolEntry(slug: FreeToolName) {
@@ -192,12 +201,12 @@ export const RELATED_FREE_TOOLS: Record<FreeToolName, FreeToolName[]> = {
   [FREE_TOOL_NAMES.guestPostSitesFinder]: [
     FREE_TOOL_NAMES.authorContactFinder,
     FREE_TOOL_NAMES.backlinkOutreachEmailGenerator,
-    FREE_TOOL_NAMES.backlinkOpportunityFinder,
+    FREE_TOOL_NAMES.pressReleaseGenerator,
   ],
   [FREE_TOOL_NAMES.backlinkOutreachEmailGenerator]: [
     FREE_TOOL_NAMES.bulkEmailVerifier,
     FREE_TOOL_NAMES.authorContactFinder,
-    FREE_TOOL_NAMES.anchorTextGenerator,
+    FREE_TOOL_NAMES.pressReleaseGenerator,
   ],
   [FREE_TOOL_NAMES.dofollowLinkChecker]: [
     FREE_TOOL_NAMES.backlinkMonitor,
@@ -218,6 +227,11 @@ export const RELATED_FREE_TOOLS: Record<FreeToolName, FreeToolName[]> = {
     FREE_TOOL_NAMES.dofollowLinkChecker,
     FREE_TOOL_NAMES.competitorBacklinkGap,
     FREE_TOOL_NAMES.brokenLinkFinder,
+  ],
+  [FREE_TOOL_NAMES.pressReleaseGenerator]: [
+    FREE_TOOL_NAMES.backlinkOutreachEmailGenerator,
+    FREE_TOOL_NAMES.guestPostSitesFinder,
+    FREE_TOOL_NAMES.authorContactFinder,
   ],
   // Registered in FREE_TOOL_NAMES but has no live page yet — no related-tools entry needed.
   [FREE_TOOL_NAMES.directoryOpportunityFinder]: [],

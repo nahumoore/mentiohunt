@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     canonical: "/free-tools/dofollow-link-checker",
   },
   openGraph: {
-    title: "Dofollow Link Checker - Free Tool",
+    title: "Free Dofollow Link Checker — No Login, Instant Results",
     description:
       "Paste any page URL and see every outbound link on it — dofollow, nofollow, ugc, or sponsored — split by internal and external, free with no login required.",
     url: "https://mentiohunt.com/free-tools/dofollow-link-checker",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     images: ["/opengraph-image"],
-    title: "Dofollow Link Checker - Free Tool",
+    title: "Free Dofollow Link Checker — No Login, Instant Results",
     description:
       "Paste any page URL and see every outbound link on it — dofollow, nofollow, ugc, or sponsored — split by internal and external, free with no login required.",
   },

@@ -18,9 +18,8 @@
 
 ## Resources
 
-- [How to Find Unlinked Brand Mentions and Turn Them Into Backlinks](https://mentiohunt.com/blog/unlinked-brand-mentions): Flagship guide explaining what unlinked mentions are, how to find them at scale, and how to convert them into backlinks — the core use case Mentiohunt automates.
 - [Backlink Building for B2B SaaS Founders](https://mentiohunt.com/blog/saas-backlink-building): An opportunity-first playbook covering which pages to prioritize, which tactics fit early-stage SaaS, and how to build a repeatable link-building workflow.
-- [How to Find Backlink Opportunities](https://mentiohunt.com/blog/how-to-find-backlink-opportunities): Practical walkthrough of competitor gap analysis, Google operators, resource pages, and unlinked mentions — with a prioritization framework.
+- [How to Find Backlink Opportunities](https://mentiohunt.com/blog/how-to-find-backlink-opportunities): Flagship guide covering competitor gap analysis, Google operators, resource pages, and unlinked brand mentions — how to find backlink opportunities at scale and turn them into backlinks, with a prioritization framework.
 - [Email Outreach for Link Building](https://mentiohunt.com/blog/link-building-outreach-email): Templates, follow-up sequences, and deliverability checklist for founders sending personalized link-building emails at 20–50 per week.
 - [HARO Link Building in 2026](https://mentiohunt.com/blog/haro-link-building): Current guide to journalist query platforms (HARO/Connectively and alternatives) for earning editorial backlinks through expert sourcing.
 - [Guest Post Prospecting for SaaS Founders](https://mentiohunt.com/blog/guest-posting-for-saas): Repeatable system for finding qualified guest post targets, filtering out low-value sites, and building a placement pipeline.

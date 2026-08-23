@@ -55,6 +55,12 @@ Long-tail industries (dentists, healthcare, hvac, automotive, photographers — 
 
 - [x] `/alternatives` pages
 - [x] `/blog/how-to-find-backlink-opportunities` — pillar for `/backlinks-from/` cluster
+- [x] Template B — `/outreach-templates/[type]`: `backlink-request`, `blogger-outreach`, `broken-link-building`, `guest-post` all shipped. Only `podcast` (10/mo, lowest-priority in the table above) remains unbuilt.
+- [ ] Template A — `/link-building-for/[niche]`: **nothing built.** Route/template doesn't exist yet in `app/`. This is the only real gap left in this doc — see "Recommended pages, ranked" above for build order.
+
+**Unresolved as of 2026-08-22:**
+- The "reconcile Template B against `outreach-email-content-cluster.md`" step below was never done, and that file doesn't exist anywhere in the repo — dangling reference, drop it or recreate it if the reconciliation still needs doing.
+- Template B shipped without that reconciliation, and it shows: `/outreach-templates/blogger-outreach` (position 74.9, 180 impressions, 0 clicks/90d) and `/blog/link-building-outreach-email` (position 44.2, 207 impressions, 0 clicks/90d) look like the exact landing-page-vs-blog-post overlap this doc warned against — same topic, both dead in GSC. Worth deciding whether to merge, differentiate, or redirect one into the other before building anything else in this space.
 
 ## Methodology notes
 
@@ -65,7 +71,9 @@ Long-tail industries (dentists, healthcare, hvac, automotive, photographers — 
 
 ## Next steps
 
+- [ ] Build the `/link-building-for/[niche]` route/template — doesn't exist yet, needed before any page in this template can ship
 - [ ] Build `/link-building-for/lawyers` first — cheapest, cleanest confirmed win
 - [ ] Build `/link-building-for/saas` second
 - [ ] Re-check `/link-building-for/ecommerce` and `/link-building-for/real-estate` SERPs live before committing (currently running on July 21 data only)
-- [ ] Reconcile Template B slugs against [outreach-email-content-cluster.md](outreach-email-content-cluster.md) before drafting either — pick landing page vs blog post per keyword, not both
+- [ ] Decide what to do about `/outreach-templates/blogger-outreach` vs `/blog/link-building-outreach-email` — both live, both ranking past position 40 with zero clicks on the same topic (see "Unresolved" note above). `outreach-email-content-cluster.md` doesn't exist to resolve this against, so this needs a fresh call, not just a reconciliation.
+- [ ] Build `/outreach-templates/podcast` — lowest priority, 10/mo volume, only if capacity allows

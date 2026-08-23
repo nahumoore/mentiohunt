@@ -10,21 +10,23 @@ GSC note: `google-index-checker` gets impressions (105) but ranks pos ~84 — ge
 
 ## Build (low KD, buildable, product-aligned)
 
+Status as of 2026-08-22: every row below is built and shipped except `press-release-generator`, which remains the only open item.
+
 | Slug                                         | Primary keyword            | Vol | KD  | Secondary                                                                      | Why it fits                                                                                                                                       |
 | -------------------------------------------- | -------------------------- | --- | --- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `free-tools/guest-post-sites-finder` (DONE)  | guest posting sites        | 390 | 3   | guest post sites list (90, KD16)                                               | Best opportunity. Curated/searchable guest-post sites per niche. Pairs with `directory-backlink-opportunity-finder`. Feeds the opportunity queue. |
-| `free-tools/outreach-email-generator` (DONE) | outreach email template    | 170 | 6   | cold email generator (70, KD14) · link building outreach email (50, KD9)       | Product already generates outreach drafts — strongest product CTA of the set.                                                                     |
+| `free-tools/backlink-outreach-email-generator` (DONE) | outreach email template    | 170 | 6   | cold email generator (70, KD14) · link building outreach email (50, KD9)       | Product already generates outreach drafts — strongest product CTA of the set.                                                                     |
 | `free-tools/anchor-text-generator` (DONE)    | anchor text generator      | 30  | low | —                                                                              | Niche, cheap. Generates varied/safe anchors. Low effort, fills topical gap.                                                                       |
-| `free-tools/dofollow-link-checker` (DONE)    | do-follow backlink checker | 320 | 22  | —                                                                              | Dofollow vs nofollow checker for qualifying prospects.                                                                                            |
+| `free-tools/dofollow-link-checker` (DONE)    | do-follow backlink checker | 320 | 22  | —                                                                              | Dofollow vs nofollow checker for qualifying prospects. GSC as of 2026-08-22 (90d): 3,233 impressions but position ~80 — confirms this doc's own warning that generic "checker" SERPs are saturated. Don't build more commodity checkers on this result. |
 | `free-tools/bulk-email-verifier` (DONE)      | bulk email verifier free   | 390 | 19  | free bulk email verifier (390, KD19)                                           | Verify contact emails before sending — direct tie to the scraper's contact-enrichment step. Cleaner fit than a generic email finder.              |
 | `free-tools/backlink-monitor` (DONE)         | backlink monitoring tool   | 720 | 36  | backlink monitor tool (720, same SERP)                                         | Ties directly to the paid Link Tracker feature — free single-domain snapshot, upsell to full daily monitoring.                                    |
 | `free-tools/press-release-generator`         | press release generator    | 70  | 14  | press release template (4,400, KD14 — informational, template-download intent) | Cheap, template-driven. Loosest product tie of the set (SaaS-launch PR angle) but very low KD for the volume.                                     |
 
 ### Priority order
 
-1. **bulk-email-verifier** — KD19, 390 vol, strongest new find — ties to contact enrichment.
-2. **backlink-monitor** — highest volume of the batch, direct tie to the Link Tracker upsell despite KD36.
-3. **press-release-generator** — cheap build, KD14, weakest product tie — build if capacity allows.
+1. ~~**bulk-email-verifier**~~ — done.
+2. ~~**backlink-monitor**~~ — done.
+3. **press-release-generator** — cheap build, KD14, weakest product tie — the only remaining item, build if capacity allows.
 
 ## Bigger bet (not sized yet)
 

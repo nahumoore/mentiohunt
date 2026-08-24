@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
 import { createLogger } from "../../../helpers/logger.js"
-import { extractCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
+import { extractCompetitorDomain, isBlockedCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import type { FilterSettings } from "./filter-dead-link-candidates.js"
@@ -88,7 +88,16 @@ export async function discoverBrokenLinkBuilding(
 
   const sender = await resolveSenderName(product.user_id)
 
-  const allDomains = product.competitors.map(extractCompetitorDomain)
+  const allDomains = product.competitors
+    .map(extractCompetitorDomain)
+    .filter((domain) => domain && !isBlockedCompetitorDomain(domain))
+
+  if (allDomains.length === 0) {
+    log.info("no valid competitors set, skipping", { productId: product.id })
+    const runId = await createProspectRun(product.id, [])
+    if (runId) await completeProspectRun(runId, 0, 0, {}, { skip_reason: "no_valid_competitors" })
+    return { prospectsCreated: 0, totalCostUsd: 0 }
+  }
   const competitorsToProcess = await selectCompetitorsForRun(product.id, allDomains, maxCompetitors)
   const enrichLimit = pLimit(5)
 

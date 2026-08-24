@@ -84,6 +84,7 @@ export async function discoverUnlinkedMentions(
 
   const runId = await createProspectRun(product.id, brandTerms, queries)
   let totalCostUsd = 0
+  let serpFailures = 0
 
   try {
     // 1. SERP discovery — pages mentioning the brand, excluding our own site.
@@ -98,6 +99,7 @@ export async function discoverUnlinkedMentions(
               90
             )
           } catch (err) {
+            serpFailures += 1
             log.warn("SERP query failed", { productId: product.id, keyword, error: String(err) })
             return []
           }
@@ -148,6 +150,7 @@ export async function discoverUnlinkedMentions(
     })
     funnel.candidates_gathered = byDomain.size
     funnel.after_dedupe = freshCandidates.length
+    funnel.serp_failures = serpFailures
 
     if (candidates.length === 0) {
       if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
@@ -175,6 +178,7 @@ export async function discoverUnlinkedMentions(
       qualified: qualified.length,
     })
     funnel.after_mention_check = qualified.length
+    funnel.transport_failures = checked.filter((c) => c.result === null).length
 
     // 4. Domain rating — only when the user has set a DR floor.
     if (settings.dr_min > 0 && qualified.length > 0) {

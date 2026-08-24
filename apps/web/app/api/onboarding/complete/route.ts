@@ -1,6 +1,7 @@
 import { onboardingSchema, validateImportantPages } from "@/consts/onboarding"
 import { FREE_TRIAL_MAX_PAGES } from "@/consts/billing"
 import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
+import { extractHostname, validateDomains } from "@/lib/onboarding/validate-domain"
 import { supabaseServer } from "@/lib/supabase/server"
 import { waitUntil } from "@vercel/functions"
 import type { TablesInsert, TablesUpdate } from "@workspace/supabase/database-types"
@@ -69,6 +70,22 @@ export async function POST(request: Request) {
   })
   if (importantPagesError) {
     return buildValidationError(importantPagesError)
+  }
+
+  const websiteHostname = extractHostname(parsedRequest.data.websiteUrl)
+  const ownSiteCompetitor = parsedRequest.data.competitors.find(
+    (competitor) => {
+      const competitorHostname = extractHostname(competitor)
+      return competitorHostname === websiteHostname || competitorHostname.endsWith(`.${websiteHostname}`)
+    }
+  )
+  if (ownSiteCompetitor) {
+    return buildValidationError("A competitor must be different from your own website.")
+  }
+
+  const { invalid: invalidCompetitors } = await validateDomains(parsedRequest.data.competitors)
+  if (invalidCompetitors.length > 0) {
+    return buildValidationError("Each competitor must be a live domain that resolves on the internet.")
   }
 
   const productPayload: TablesInsert<"products"> = {

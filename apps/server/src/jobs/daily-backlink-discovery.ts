@@ -9,11 +9,17 @@ import { createLogger } from "../helpers/logger.js"
 import { discoverBrokenLinkBuilding } from "../methods/prospect-generation-methods/broken-link-building/index.js"
 import { discoverCompetitorBacklinks } from "../methods/prospect-generation-methods/competitor-backlink/index.js"
 import type { FilterSettings } from "../methods/prospect-generation-methods/competitor-backlink/filter-backlinks.js"
+import { extractCompetitorDomain, isBlockedCompetitorDomain } from "../methods/prospect-generation-methods/competitor-backlink/extract-backlinks.js"
 import { discoverListicleRoundups } from "../methods/prospect-generation-methods/listicle-roundup/index.js"
 import { discoverResourcePageInclusions } from "../methods/prospect-generation-methods/resource-page-inclusion/index.js"
 import { discoverUnlinkedMentions } from "../methods/prospect-generation-methods/unlinked-mention/index.js"
 import { ALL_OPPORTUNITY_TYPES } from "../methods/prospect-generation-methods/shared/opportunity-types.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../methods/prospect-generation-methods/shared/prospect-types.js"
+import {
+  getStrategyCooldownRuns,
+  orderStrategiesByStaleness,
+  type RotationHistoryRun,
+} from "../methods/prospect-generation-methods/shared/strategy-rotation.js"
 import { assignSequences, createSequencesForProspect } from "../processes/onboarding/prospect-sequences.js"
 import { resolveEmailAccount } from "../processes/onboarding/resolve-email-account.js"
 
@@ -68,7 +74,11 @@ type StrategyHandler = {
 
 const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
   competitor_backlink: {
-    isRunnable: (product) => (product.competitors ?? []).length > 0,
+    isRunnable: (product) =>
+      (product.competitors ?? []).some((competitor) => {
+        const domain = extractCompetitorDomain(competitor)
+        return Boolean(domain) && !isBlockedCompetitorDomain(domain)
+      }),
     discover: (product, filterSettings, emailSettings, onProspectCreated) =>
       discoverCompetitorBacklinks(
         { ...product, competitors: product.competitors ?? [] },
@@ -117,7 +127,11 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
   },
   broken_link_building: {
     isRunnable: async (product) => {
-      if ((product.competitors ?? []).length === 0) return false
+      const hasUsableCompetitor = (product.competitors ?? []).some((competitor) => {
+        const domain = extractCompetitorDomain(competitor)
+        return Boolean(domain) && !isBlockedCompetitorDomain(domain)
+      })
+      if (!hasUsableCompetitor) return false
       const { count } = await supabaseAdmin
         .from("product_pages")
         .select("id", { count: "exact", head: true })
@@ -146,7 +160,9 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
 /**
  * Pick the least-recently-started enabled strategy whose precondition passes.
  * Failed and still-running runs count as "ran" so an erroring strategy goes to
- * the back of the queue instead of being retried every day.
+ * the back of the queue instead of being retried every day. Clean zero-yield
+ * streaks receive a short cooldown, while partial/failed runs remain eligible
+ * for a normal retry after the other strategies have had their turn.
  */
 async function selectStrategyForRun(
   product: DiscoveryProduct,
@@ -154,30 +170,30 @@ async function selectStrategyForRun(
 ): Promise<RotationStrategy | null> {
   const { data: runs, error } = await supabaseAdmin
     .from("backlink_prospect_runs" as string)
-    .select("strategy, started_at")
+    .select("strategy, started_at, status, prospects_created, metadata, error")
     .eq("product_id", product.id)
     .in("strategy", enabled)
     .order("started_at", { ascending: false })
-    .limit(50)
+    .limit(100)
 
   if (error) {
     log.warn("failed to load run history for rotation", { productId: product.id, error: error.message })
   }
 
-  const lastRunByStrategy = new Map<string, string>()
-  for (const run of (runs ?? []) as Array<{ strategy: string; started_at: string | null }>) {
-    if (!lastRunByStrategy.has(run.strategy)) {
-      lastRunByStrategy.set(run.strategy, run.started_at ?? "")
-    }
-  }
-
-  const byStaleness = [...enabled].sort((a, b) => {
-    const aTime = lastRunByStrategy.get(a) ?? ""
-    const bTime = lastRunByStrategy.get(b) ?? ""
-    return aTime < bTime ? -1 : 1
-  })
+  const history = (runs ?? []) as RotationHistoryRun[]
+  const byStaleness = orderStrategiesByStaleness(enabled, history)
 
   for (const strategy of byStaleness) {
+    const cooldownRuns = getStrategyCooldownRuns(history, strategy)
+    if (cooldownRuns > 0) {
+      log.info("strategy cooling down after clean zero-yield streak", {
+        productId: product.id,
+        strategy,
+        remainingProductRuns: cooldownRuns,
+      })
+      continue
+    }
+
     if (await STRATEGY_HANDLERS[strategy].isRunnable(product)) return strategy
     log.info("strategy not runnable, trying next", { productId: product.id, strategy })
   }
@@ -302,11 +318,12 @@ export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }
     tier: string
     active_trial: boolean
     deactivated_at: string | null
+    outreach_paused_at: string | null
   }
   const userIds = [...new Set((products ?? []).map((p) => p.user_id))]
   const { data: profiles, error: profilesError } = await supabaseAdmin
     .from("profiles")
-    .select("id, email, name, tier, active_trial, deactivated_at")
+    .select("id, email, name, tier, active_trial, deactivated_at, outreach_paused_at")
     .in("id", userIds)
 
   if (profilesError) {
@@ -331,6 +348,7 @@ export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }
   const eligible = withProfile.filter(({ profile }) => {
     if (profile === undefined) return false
     if (profile.deactivated_at !== null) return false
+    if (profile.outreach_paused_at !== null) return false
     if (paidOnly) return profile.tier !== "free" && !profile.active_trial
     return profile.tier !== "free" || profile.active_trial
   })

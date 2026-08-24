@@ -35,6 +35,7 @@ import {
   companyStepSchema,
   keywordsStepSchema,
   normalizeKeyword,
+  normalizeCompetitorUrl,
   normalizeUrl,
   onboardingSchema,
   productDescriptionStepSchema,
@@ -68,7 +69,7 @@ function normalizeSubmissionData(data: OnboardingData): OnboardingData {
     websiteUrl: normalizeUrl(data.websiteUrl),
     productName: data.productName.trim(),
     productDescription: data.productDescription.trim(),
-    competitors: data.competitors.map(normalizeUrl),
+    competitors: data.competitors.map((competitor) => normalizeCompetitorUrl(competitor) || normalizeUrl(competitor)),
     targetKeywords: data.targetKeywords.map(normalizeKeyword).filter(Boolean),
     importantPages: data.importantPages.map(normalizeUrl),
   }

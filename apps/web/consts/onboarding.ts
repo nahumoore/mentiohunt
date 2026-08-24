@@ -21,7 +21,7 @@ export const ONBOARDING_STEPS = [
   {
     title: "Competitors",
     description:
-      "We'll mine these sites' backlinks for outreach targets. Use competitors similar in size to yours.",
+      "We'll mine these sites' backlinks for outreach targets. Add 2–3 close competitors; fewer relevant sites are better than a padded list.",
   },
   {
     title: "Your target keywords",
@@ -152,6 +152,85 @@ export function normalizeUrl(value: string) {
     : `https://${trimmedValue}`
 }
 
+const BLOCKED_COMPETITOR_HOSTS = new Set([
+  "alternativeto.net",
+  "amazon.com",
+  "appsumo.com",
+  "capterra.com",
+  "facebook.com",
+  "getapp.com",
+  "google.com",
+  "g2.com",
+  "linkedin.com",
+  "marketplace.zoom.us",
+  "producthunt.com",
+  "quora.com",
+  "reddit.com",
+  "softwareadvice.com",
+  "sporcle.com",
+  "trustradius.com",
+  "trustpilot.com",
+  "yelp.com",
+])
+
+function isBlockedCompetitorHost(hostname: string): boolean {
+  const host = hostname.replace(/^www\./i, "").toLowerCase()
+  if ([...BLOCKED_COMPETITOR_HOSTS].some((blocked) => host === blocked || host.endsWith(`.${blocked}`))) {
+    return true
+  }
+
+  return host.split(".").some((label) =>
+    ["aggregator", "aggregators", "directory", "directories", "marketplace", "review", "reviews"].includes(label)
+  )
+}
+
+/**
+ * Canonical competitor value: HTTPS plus a hostname only. Backlink mining
+ * needs the site's profile, not a marketplace listing or a deep page.
+ */
+export function normalizeCompetitorUrl(value: string): string {
+  const normalized = normalizeUrl(value)
+
+  try {
+    const parsed = new URL(normalized)
+    const hostname = parsed.hostname.replace(/^www\./i, "").toLowerCase()
+    if (!hostname || parsed.pathname !== "/" || parsed.search || parsed.hash || parsed.username || parsed.password || parsed.port) {
+      return ""
+    }
+    if (isBlockedCompetitorHost(hostname)) return ""
+    return `https://${hostname}`
+  } catch {
+    return ""
+  }
+}
+
+export function validateCompetitorUrl(value: string, websiteUrl?: string): string | null {
+  const normalized = normalizeUrl(value)
+
+  try {
+    const parsed = new URL(normalized)
+    if (parsed.pathname !== "/" || parsed.search || parsed.hash) {
+      return "Use the competitor's homepage, not a deep link or listing page."
+    }
+    if (parsed.username || parsed.password || parsed.port) {
+      return "Enter a root competitor domain without credentials or a port."
+    }
+    if (isBlockedCompetitorHost(parsed.hostname)) {
+      return "Use a direct product competitor, not a marketplace, directory, review site, or publisher."
+    }
+    if (websiteUrl) {
+      const competitorHost = parsed.hostname.replace(/^www\./i, "").toLowerCase()
+      const websiteHost = getHostname(normalizeUrl(websiteUrl))
+      if (websiteHost && (competitorHost === websiteHost || competitorHost.endsWith(`.${websiteHost}`))) {
+        return "A competitor must be different from your own website."
+      }
+    }
+    return null
+  } catch {
+    return "Enter a valid competitor URL."
+  }
+}
+
 export function normalizeKeyword(value: string) {
   return value.trim().replace(/\s+/g, " ").toLowerCase()
 }
@@ -169,6 +248,11 @@ const competitorUrlSchema = z
   .min(1, "Enter a competitor URL.")
   .transform(normalizeUrl)
   .pipe(z.string().url("Enter a valid competitor URL."))
+  .superRefine((value, ctx) => {
+    const error = validateCompetitorUrl(value)
+    if (error) ctx.addIssue({ code: "custom", message: error })
+  })
+  .transform((value) => normalizeCompetitorUrl(value))
 
 export const websiteUrlStepSchema = z.object({
   websiteUrl: siteUrlSchema,
@@ -190,7 +274,7 @@ export const productDescriptionStepSchema = z.object({
 export const competitorsStepSchema = z.object({
   competitors: z
     .array(competitorUrlSchema)
-    .min(5, "Add at least 5 competitors.")
+    .min(2, "Add at least 2 relevant competitors.")
     .max(10, "You can add up to 10 competitors.")
     .refine((competitors) => new Set(competitors).size === competitors.length, {
       message: "Each competitor should be unique.",

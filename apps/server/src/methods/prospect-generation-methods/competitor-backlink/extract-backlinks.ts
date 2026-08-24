@@ -3,6 +3,27 @@ import { createLogger } from "../../../helpers/logger.js"
 
 const log = createLogger("extract-competitor-backlinks")
 
+const BLOCKED_COMPETITOR_HOSTS = new Set([
+  "alternativeto.net",
+  "amazon.com",
+  "appsumo.com",
+  "capterra.com",
+  "facebook.com",
+  "getapp.com",
+  "google.com",
+  "g2.com",
+  "linkedin.com",
+  "marketplace.zoom.us",
+  "producthunt.com",
+  "quora.com",
+  "reddit.com",
+  "softwareadvice.com",
+  "sporcle.com",
+  "trustradius.com",
+  "trustpilot.com",
+  "yelp.com",
+])
+
 export function extractCompetitorDomain(competitorUrl: string): string {
   try {
     return new URL(competitorUrl).hostname.replace(/^www\./i, "").toLowerCase()
@@ -13,6 +34,17 @@ export function extractCompetitorDomain(competitorUrl: string): string {
       .replace(/\/.*$/, "")
       .toLowerCase()
   }
+}
+
+export function isBlockedCompetitorDomain(domain: string): boolean {
+  const host = domain.replace(/^www\./i, "").toLowerCase()
+  if ([...BLOCKED_COMPETITOR_HOSTS].some((blocked) => host === blocked || host.endsWith(`.${blocked}`))) {
+    return true
+  }
+
+  return host.split(".").some((label) =>
+    ["aggregator", "aggregators", "directory", "directories", "marketplace", "review", "reviews"].includes(label)
+  )
 }
 
 export type BacklinkItem = {

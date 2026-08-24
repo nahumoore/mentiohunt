@@ -1,4 +1,4 @@
-import { normalizeUrl } from "@/consts/onboarding"
+import { normalizeCompetitorUrl, normalizeUrl } from "@/consts/onboarding"
 import { generateText } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { extractHostname, validateDomains } from "@/lib/onboarding/validate-domain"
@@ -9,7 +9,7 @@ import { z } from "zod"
 export const runtime = "nodejs"
 
 const competitorsSchema = z.object({
-  competitors: z.array(z.string().min(3)).min(8).max(10),
+  competitors: z.array(z.string().min(3)).min(2).max(5),
 })
 
 const RESPONSE_SCHEMA = {
@@ -19,8 +19,8 @@ const RESPONSE_SCHEMA = {
   properties: {
     competitors: {
       type: "array",
-      minItems: 8,
-      maxItems: 10,
+      minItems: 2,
+      maxItems: 5,
       items: {
         type: "string",
       },
@@ -57,7 +57,7 @@ const systemInstructions = [
   "Return JSON only with this exact shape:",
   '{"competitors":["example.com"]}',
   "Rules:",
-  "- competitors must contain 8 to 10 unique root domains of real products that serve the same audience and solve the same problem.",
+  "- competitors must contain 2 to 5 unique root domains of real products that serve the same audience and solve the same problem.",
   "- Match the input site's scale and niche. Exclude category-dominant marketplaces, directories, and aggregators (e.g. Angi, HomeAdvisor, Yelp, Thumbtack, Google, Amazon) even if they compete for the same customers — their backlinks are generic directory badges, not niche editorial mentions, so they make poor mining targets for a smaller site.",
   "- For a local or regional business, prefer other local/regional competitors or niche content sites in the same space over national platforms.",
   "- Return root domains only (e.g. 'example.com'), never full URLs, paths, or subpages.",
@@ -99,7 +99,7 @@ async function retryInvalidDomains({
     "",
     `These do not resolve to a real domain and must be replaced: ${invalid.map(extractHostname).join(", ")}.`,
     `Keep these unchanged, they're valid: ${valid.map(extractHostname).join(", ") || "(none)"}.`,
-    "Replace only the invalid ones with different real competitor domains. Return the same JSON shape with 8 to 10 total unique root domains.",
+    "Replace only the invalid ones with different real competitor domains. Return the same JSON shape with 2 to 5 total unique root domains.",
   ].join("\n")
 
   try {
@@ -113,14 +113,14 @@ async function retryInvalidDomains({
     const retryCompetitors = Array.from(
       new Set(
         retryResult.data.competitors
-          .map((c) => normalizeUrl(c))
-          .filter((c) => c !== websiteUrl)
+          .map((c) => normalizeCompetitorUrl(c))
+          .filter((c) => c && extractHostname(c) !== extractHostname(websiteUrl))
       )
-    ).slice(0, 10)
+    ).slice(0, 5)
 
     const retryValidation = await validateDomains(retryCompetitors)
 
-    return Array.from(new Set([...valid, ...retryValidation.valid])).slice(0, 10)
+    return Array.from(new Set([...valid, ...retryValidation.valid])).slice(0, 5)
   } catch {
     return valid
   }
@@ -158,23 +158,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to generate competitors." }, { status: 502 })
     }
 
+    const ownHostname = extractHostname(normalizeUrl(parsed.data.websiteUrl))
+    const invalidCandidates: string[] = []
     const firstPass = Array.from(
       new Set(
-        result.data.competitors
-          .map((c) => normalizeUrl(c))
-          .filter((c) => c !== parsed.data.websiteUrl)
+        result.data.competitors.flatMap((candidate) => {
+          const normalized = normalizeCompetitorUrl(candidate)
+          if (!normalized || extractHostname(normalized) === ownHostname) {
+            invalidCandidates.push(candidate)
+            return []
+          }
+          return [normalized]
+        })
       )
-    ).slice(0, 10)
+    ).slice(0, 5)
 
     const { valid, invalid } = await validateDomains(firstPass)
 
     let competitors = valid
 
-    if (invalid.length > 0) {
+    if (invalid.length > 0 || invalidCandidates.length > 0) {
       competitors = await retryInvalidDomains({
         input,
         valid,
-        invalid,
+        invalid: [...invalidCandidates, ...invalid],
         websiteUrl: parsed.data.websiteUrl,
       })
     }

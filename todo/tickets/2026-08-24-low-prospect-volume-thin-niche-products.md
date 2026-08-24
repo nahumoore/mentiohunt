@@ -1,6 +1,6 @@
 # Investigate low prospect volume for thin-niche products (RecordFlow case)
 
-**Status: Investigated 2026-08-24 — fix current discovery before adding strategies**
+**Status: Investigated and first discovery fixes implemented 2026-08-24 — fix current discovery before adding strategies**
 
 ## Background
 
@@ -181,3 +181,32 @@ Investigation, not a committed build:
    other accounts with obviously mismatched auto-detected competitors —
    check whether competitor detection has a systemic quality issue worth
    its own ticket.
+
+## Implementation status
+
+The first two corrective slices are now implemented:
+
+1. **Yield-aware rotation and run health**
+   - New runs record `healthy`, `partial`, or `failed` health in metadata.
+   - SERP, scraper, and fetch transport failures are tracked separately from
+     genuine zero-yield runs.
+   - Two consecutive clean zero-yield runs cool down a strategy for one product
+     slot; four or more cool it down for three slots. Partial and failed runs
+     remain eligible for normal retry.
+
+2. **Competitor quality safeguards**
+   - Onboarding and dashboard writes canonicalize competitors to HTTPS root
+     domains, reject deep links and known marketplaces/directories/review
+     platforms, require resolving DNS, and allow 2–5 high-confidence generated
+     suggestions instead of forcing 8–10.
+   - Discovery also ignores blocked legacy competitor entries, so the Zoom
+     Marketplace URL cannot consume backlink, broken-link, or listicle budget.
+
+Still pending:
+
+- One-time production cleanup of RecordFlow's Zoom Marketplace entry and the
+  AnimeTrivia Sporcle entry, including any prospect rows they created.
+- Semantic competitor validation beyond DNS/blocklists.
+- `guest_post_pitch`, then `integration_ecosystem`.
+- A periodic/action-required `directory_gap` workflow rather than a daily
+  rotation slot.

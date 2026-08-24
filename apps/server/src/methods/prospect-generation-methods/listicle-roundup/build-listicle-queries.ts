@@ -3,7 +3,7 @@ import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../../helpers/logger.js"
 import { withLlmRetries } from "../../../helpers/llm-retry.js"
 import { parseLlmJson } from "../../../helpers/parse-llm-json.js"
-import { extractCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
+import { extractCompetitorDomain, isBlockedCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
 
 const log = createLogger("build-listicle-queries")
 
@@ -143,7 +143,7 @@ export async function buildListicleQueries(product: {
 
   for (const competitor of product.competitors ?? []) {
     const domain = extractCompetitorDomain(competitor)
-    if (!domain || domain === ownDomain) continue
+    if (!domain || domain === ownDomain || isBlockedCompetitorDomain(domain)) continue
     const brandName = brandNameFromDomain(domain)
     const query = `"${brandName}" alternatives -site:${ownDomain}`
     queries.add(query)

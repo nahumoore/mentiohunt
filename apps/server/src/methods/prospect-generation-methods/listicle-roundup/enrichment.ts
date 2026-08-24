@@ -1,6 +1,6 @@
 import { createLogger } from "../../../helpers/logger.js"
 import { enrichContact } from "../competitor-backlink/enrich-contact.js"
-import { extractCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
+import { extractCompetitorDomain, isBlockedCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
 import { generateOutreachSequence } from "../shared/generate-outreach-sequence.js"
 import { EMPTY_ENRICHMENT, type EmailSettings, type EnrichedColumns } from "../shared/prospect-types.js"
 import type { ListicleCandidate } from "./score-listicle-relevance.js"
@@ -41,7 +41,9 @@ export async function enrichListicle(
 
     const competitorDomain =
       item.topCompetitor ||
-      (product.competitors?.[0] ? extractCompetitorDomain(product.competitors[0]) : "similar tools")
+      (product.competitors
+        ?.map(extractCompetitorDomain)
+        .find((domain) => domain && !isBlockedCompetitorDomain(domain)) ?? "similar tools")
 
     if (!contact.email) {
       log.info("contact name without email", { domain: item.domain, contactName: contact.name })

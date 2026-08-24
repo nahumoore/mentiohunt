@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
+import { withCompletedRunHealth, withFailedRunHealth } from "../shared/run-health.js"
 import { createLogger } from "../../../helpers/logger.js"
 
 const log = createLogger("resource-page-inclusion-prospect-run")
@@ -39,7 +40,7 @@ export async function completeProspectRun(
       completed_at: new Date().toISOString(),
       prospects_created: prospectsCreated,
       cost_usd: costUsd,
-      metadata: metadata ?? null,
+      metadata: withCompletedRunHealth(metadata),
     })
     .eq("id", runId)
 }
@@ -48,6 +49,6 @@ export async function failProspectRun(runId: string | null, error: string): Prom
   if (!runId) return
   await supabaseAdmin
     .from("backlink_prospect_runs" as string)
-    .update({ status: "failed", completed_at: new Date().toISOString(), error })
+    .update({ status: "failed", completed_at: new Date().toISOString(), error, metadata: withFailedRunHealth() })
     .eq("id", runId)
 }

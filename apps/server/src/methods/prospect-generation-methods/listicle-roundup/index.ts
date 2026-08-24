@@ -52,6 +52,7 @@ export async function discoverListicleRoundups(
   const funnel: Record<string, unknown> = {}
 
   let totalCostUsd = 0
+  let serpFailures = 0
 
   const { queries: queryPool, cost: queryBuildCost, weightByQuery } = await buildListicleQueries(product)
   totalCostUsd += queryBuildCost
@@ -86,6 +87,7 @@ export async function discoverListicleRoundups(
               90
             )
           } catch (err) {
+            serpFailures += 1
             log.warn("SERP query failed", { productId: product.id, keyword, error: String(err) })
             return []
           }
@@ -117,7 +119,12 @@ export async function discoverListicleRoundups(
         uniqueUrls: 0,
         toFetch: 0,
       })
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { candidates_gathered: 0, qualified: 0 })
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          candidates_gathered: 0,
+          qualified: 0,
+          serp_failures: serpFailures,
+        })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -143,6 +150,7 @@ export async function discoverListicleRoundups(
     })
     funnel.candidates_gathered = byUrl.size
     funnel.after_dedupe = freshCandidates.length
+    funnel.serp_failures = serpFailures
 
     if (candidates.length === 0) {
       if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })

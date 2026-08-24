@@ -1,6 +1,6 @@
 # Analytics Events Catalog
 
-All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwards to Plausible.
+All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwards to PostHog.
 
 ---
 
@@ -279,7 +279,7 @@ Fires alongside `onboarding_step_completed` when completing step 1 (company).
 
 ### `outreach_email_copied`
 
-**Plausible name:** `email-draft-copied`  
+**PostHog name:** `email-draft-copied`
 **Source:** `app/dashboard/opportunities/[slug]/client-page.tsx`, `components/link-building/opportunities/outreach-draft.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|

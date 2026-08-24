@@ -8,6 +8,7 @@ import { Toaster } from "sonner"
 
 import { PlaybookExitModal } from "@/components/playbook-modal/playbook-exit-modal"
 import { SupportChatWidget } from "@/components/support-chat/support-chat-widget"
+import { PostHogProvider } from "@/components/analytics/posthog-provider"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mentiohunt.com"),
@@ -56,7 +57,7 @@ export default function RootLayout({
     >
       <body className="overflow-x-hidden">
         {/* <ThemeProvider> */}
-        {children}
+        <PostHogProvider>{children}</PostHogProvider>
         <Toaster richColors position="top-right" />
         <SupportChatWidget />
         <PlaybookExitModal />
@@ -65,18 +66,6 @@ export default function RootLayout({
           <>
             {/* GOOGLE ANALYTICS */}
             <GoogleAnalytics gaId="G-61WK6YY5RC" />
-
-            {/* PLAUSIBLE */}
-            <Script
-              async
-              data-domain="mentiohunt.com"
-              src="https://analytics.karmicup.com/js/pa-asroR_guo18EFSBbZh8_M.js"
-              strategy="afterInteractive"
-            />
-            <Script id="plausible-init" strategy="afterInteractive">{`
-              window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-              plausible.init()
-            `}</Script>
 
             {/* AHREFS */}
             <Script

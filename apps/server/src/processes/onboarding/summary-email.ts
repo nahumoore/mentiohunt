@@ -14,8 +14,9 @@ export async function sendOnboardingSummaryEmail({
   productId: string
   backlinkDiscoveryResult: PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }>
   pagesResult: PromiseSettledResult<{
-    pagesFound: number
+    candidatesFound: number
     pagesCrawled: number
+    pagesSelected: number
     pagesFailed: number
     totalCostUsd: number
   }>

@@ -14,6 +14,7 @@ export type Product = {
   product_description: string
   website_url: string
   competitors?: string[] | null
+  target_keywords?: string[] | null
 }
 
 export type QualifiedListicle = ListicleCandidate & {

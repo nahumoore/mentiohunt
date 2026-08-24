@@ -1,9 +1,11 @@
 import { cn } from "@workspace/ui/lib/utils"
 
-function drStyle(dr: number): string {
-  if (dr >= 70) return "text-emerald-700 bg-emerald-500/10 ring-1 ring-inset ring-emerald-600/20"
-  if (dr >= 50) return "text-orange-600 bg-orange-500/10 ring-1 ring-inset ring-orange-500/20"
-  if (dr >= 30) return "text-amber-700 bg-amber-500/10 ring-1 ring-inset ring-amber-500/20"
+// Single source of truth for domain-rating color coding — was previously
+// duplicated with a different threshold set in prospect-pipeline-row.tsx.
+export function drBadgeClass(dr: number | null | undefined): string {
+  if (dr == null) return "text-muted-foreground bg-muted"
+  if (dr >= 70) return "text-emerald-700 dark:text-brand-success bg-brand-success/10 ring-1 ring-inset ring-brand-success/20"
+  if (dr >= 40) return "text-amber-700 dark:text-brand-warning bg-brand-warning/15 ring-1 ring-inset ring-brand-warning/25"
   return "text-muted-foreground bg-muted ring-1 ring-inset ring-border/60"
 }
 
@@ -19,7 +21,7 @@ export function DrBadge({
     <span
       className={cn(
         "inline-flex items-center rounded-md px-2 py-0.5 text-sm font-bold tabular-nums",
-        drStyle(dr),
+        drBadgeClass(dr),
         className
       )}
     >

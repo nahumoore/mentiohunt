@@ -53,7 +53,7 @@ export async function discoverListicleRoundups(
 
   let totalCostUsd = 0
 
-  const { queries: queryPool, cost: queryBuildCost } = await buildListicleQueries(product)
+  const { queries: queryPool, cost: queryBuildCost, weightByQuery } = await buildListicleQueries(product)
   totalCostUsd += queryBuildCost
 
   if (queryPool.length === 0) {
@@ -63,7 +63,7 @@ export async function discoverListicleRoundups(
     return { prospectsCreated: 0, totalCostUsd }
   }
 
-  const queries = await selectQueriesForRun(product.id, queryPool, MAX_QUERIES_PER_RUN)
+  const queries = await selectQueriesForRun(product.id, queryPool, MAX_QUERIES_PER_RUN, weightByQuery)
 
   log.info("queries selected for run", {
     productId: product.id,

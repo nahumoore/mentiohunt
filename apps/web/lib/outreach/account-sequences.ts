@@ -17,6 +17,27 @@ async function prospectIdsForUser(userId: string): Promise<string[]> {
   return prospects?.map((p) => p.id) ?? []
 }
 
+/** Whether the user has any outreach still queued to send. Used to render
+ * "Stop all outreach" as already-disabled on load, without waiting for a
+ * client action. */
+export async function hasPendingOutreachForUser(userId: string): Promise<boolean> {
+  const prospectIds = await prospectIdsForUser(userId)
+  if (!prospectIds.length) return false
+
+  const { count, error } = await supabaseAdmin
+    .from("prospect_sequences")
+    .select("id", { count: "exact", head: true })
+    .in("prospect_id", prospectIds)
+    .eq("status", "pending")
+
+  if (error) {
+    console.error("Error checking pending outreach for user:", error)
+    throw error
+  }
+
+  return (count ?? 0) > 0
+}
+
 /** Called from "Stop all outreach" and "Deactivate account". Distinct from
  * the per-prospect 'paused' status (permanent dismiss) and 'trial_expired'
  * (billing-driven) so resumeAllOutreachForUser only ever touches sequences

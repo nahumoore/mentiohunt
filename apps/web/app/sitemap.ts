@@ -9,7 +9,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const alternatives = getAllResources("alternatives")
   const articles = getAllResources("articles")
   const backlinksFrom = getAllResources("backlinks-from")
+  const linkBuildingFor = getAllResources("link-building-for")
   const compare = getAllResources("compare")
+  const caseStudies = getAllResources("case-studies")
   const outreachTemplateSlugs = getOutreachTemplateSlugs()
 
   return [
@@ -55,6 +57,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     ...backlinksFrom.map((post) => ({
       url: `https://mentiohunt.com/backlinks-from/${post.slug}`,
+      lastModified: new Date(post.dateModified ?? post.date),
+      priority: 0.75 as const,
+    })),
+    {
+      url: "https://mentiohunt.com/link-building-for",
+      lastModified: new Date("2026-08-22"),
+      priority: 0.8,
+    },
+    ...linkBuildingFor.map((post) => ({
+      url: `https://mentiohunt.com/link-building-for/${post.slug}`,
       lastModified: new Date(post.dateModified ?? post.date),
       priority: 0.75 as const,
     })),
@@ -108,6 +120,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-08-19"),
       priority: 0.75,
     },
+    {
+      url: "https://mentiohunt.com/case-studies",
+      lastModified: new Date("2026-08-22"),
+      priority: 0.8,
+    },
+    ...caseStudies.map((post) => ({
+      url: `https://mentiohunt.com/case-studies/${post.slug}`,
+      lastModified: new Date(post.dateModified ?? post.date),
+      priority: 0.75 as const,
+    })),
     { url: "https://mentiohunt.com/privacy", priority: 0.3 as const },
     { url: "https://mentiohunt.com/tos", priority: 0.3 as const },
   ]

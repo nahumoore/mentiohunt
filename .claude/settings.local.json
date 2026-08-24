@@ -30,5 +30,6 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase"
-  ]
+  ],
+  "outputStyle": "Concise"
 }

@@ -22,6 +22,9 @@ export type PageCategorization = {
   pageType: ProductPageType
   keywords: string[]
   priority: PagePriority
+  relevanceScore: number
+  matchedKeywords: string[]
+  reason: string
 }
 
 export type PageToClassify = {
@@ -39,7 +42,10 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out
 }
 
-const SYSTEM_INSTRUCTIONS = (product: { product_name: string; product_description: string }) =>
+const SYSTEM_INSTRUCTIONS = (
+  product: { product_name: string; product_description: string },
+  targetKeywords: string[]
+) =>
   `You are classifying pages on a B2B SaaS product website to help prioritize them for backlink outreach.
 
 Product: ${product.product_name}
@@ -60,6 +66,18 @@ For each page provided:
    - "high": article, resource, or comparison page — strong fit as a placement target
    - "medium": case_study or free_tool — moderate fit
    - "low": landing_page — hard to get a backlink placed here
+${
+  targetKeywords.length > 0
+    ? `
+4. Score 0-100 how well this page serves as a backlink destination for these target keywords, listed most important first (priority 1 is the site's top keyword, and each one below it matters progressively less):
+${targetKeywords.map((k, i) => `   ${i + 1}. ${k}`).join("\n")}
+   - relevanceScore: 0-100, how strongly the page's actual content matches the intent behind these keywords (not just superficial word overlap). Weight this toward the higher-priority keywords — a strong match on keyword 1 should score well above an equally strong match on keyword 5.
+   - matchedKeywords: which of the target keywords this page genuinely serves, copied verbatim from the list above — do NOT include the leading number, only the keyword text itself.
+   - reason: one short sentence explaining the score.
+   If none of the target keywords fit this page, return relevanceScore: 0, matchedKeywords: [], and a reason saying so.`
+    : `
+4. Set relevanceScore to 0, matchedKeywords to an empty array, and reason to an empty string — no target keywords were provided.`
+}
 
 Return ALL items. Use only the exact enum values listed above.`
 
@@ -83,8 +101,11 @@ const RESPONSE_FORMAT = {
               },
               keywords: { type: "array", items: { type: "string" } },
               priority: { type: "string", enum: ["high", "medium", "low"] },
+              relevanceScore: { type: "number" },
+              matchedKeywords: { type: "array", items: { type: "string" } },
+              reason: { type: "string" },
             },
-            required: ["id", "pageType", "keywords", "priority"],
+            required: ["id", "pageType", "keywords", "priority", "relevanceScore", "matchedKeywords", "reason"],
             additionalProperties: false,
           },
         },
@@ -97,7 +118,8 @@ const RESPONSE_FORMAT = {
 
 export async function categorizePages(
   pages: PageToClassify[],
-  product: { product_name: string; product_description: string }
+  product: { product_name: string; product_description: string },
+  targetKeywords: string[] = []
 ): Promise<{ results: PageCategorization[]; totalCost: number }> {
   if (pages.length === 0) return { results: [], totalCost: 0 }
 
@@ -105,7 +127,7 @@ export async function categorizePages(
   const limit = pLimit(5)
 
   const batchResults = await Promise.all(
-    batches.map((batch) => limit(() => categorizeBatch(batch, product)))
+    batches.map((batch) => limit(() => categorizeBatch(batch, product, targetKeywords)))
   )
 
   const results = batchResults.flatMap((r) => r.results)
@@ -122,8 +144,19 @@ export async function categorizePages(
 
 async function categorizeBatch(
   pages: PageToClassify[],
-  product: { product_name: string; product_description: string }
+  product: { product_name: string; product_description: string },
+  targetKeywords: string[]
 ): Promise<{ results: PageCategorization[]; cost: number }> {
+  // matchedKeywords is persisted verbatim and shown in the UI, so guard
+  // against the model echoing back the "N. " ranking prefix we prompt it
+  // with — only keep entries that map back to an actual target keyword,
+  // restored to its canonical casing.
+  const targetKeywordByLower = new Map(targetKeywords.map((k) => [k.toLowerCase(), k]))
+  function sanitizeMatchedKeyword(raw: string): string | null {
+    const stripped = raw.replace(/^\s*\d+[.)]\s*/, "").trim()
+    return targetKeywordByLower.get(stripped.toLowerCase()) ?? null
+  }
+
   const payload = pages.map((p) => {
     const hasMetadata = Boolean(p.title || p.description)
     return {
@@ -134,26 +167,47 @@ async function categorizeBatch(
     }
   })
 
+  // Flat 60s default timeout (see generateTextWithUsage) starves larger
+  // batches — a 15-page batch generates enough output + reasoning tokens to
+  // routinely exceed it, so it fails on every model on every retry and the
+  // whole batch is silently dropped (see crawlProductPages' EMPTY_RESULT
+  // path). Scale headroom with batch size so bigger batches aren't
+  // structurally doomed.
+  const timeoutMs = 60_000 + pages.length * 4_000
+
   try {
     return await withLlmRetries(log, async () => {
       const input = `Pages:\n${JSON.stringify(payload, null, 2)}`
+      const systemInstructions = SYSTEM_INSTRUCTIONS(product, targetKeywords)
       log.info("llm request", {
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
-        systemInstructions: SYSTEM_INSTRUCTIONS(product),
+        systemInstructions,
         thinkingBudget: 1000,
+        timeoutMs,
         input,
       })
       const { text, cost, modelUsed } = await generateTextWithUsage({
         model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
-        systemInstructions: SYSTEM_INSTRUCTIONS(product),
+        systemInstructions,
         thinkingBudget: 1000,
+        timeoutMs,
         input,
         responseFormat: RESPONSE_FORMAT,
       })
 
-      const parsed = parseLlmJson<{ results: { id: string; pageType: string; keywords: string[]; priority: string }[] }>(text)
+      const parsed = parseLlmJson<{
+        results: {
+          id: string
+          pageType: string
+          keywords: string[]
+          priority: string
+          relevanceScore: number
+          matchedKeywords: string[]
+          reason: string
+        }[]
+      }>(text)
 
       if (!Array.isArray(parsed?.results)) {
         log.warn("unexpected response shape", { rawResponse: text })
@@ -171,6 +225,11 @@ async function categorizeBatch(
             pageType: r.pageType as ProductPageType,
             keywords: r.keywords,
             priority: r.priority as PagePriority,
+            relevanceScore: r.relevanceScore ?? 0,
+            matchedKeywords: (r.matchedKeywords ?? [])
+              .map(sanitizeMatchedKeyword)
+              .filter((k): k is string => k !== null),
+            reason: r.reason ?? "",
           }
         })
         .filter((r): r is PageCategorization => r !== null)
@@ -191,6 +250,7 @@ async function categorizeBatch(
           url: r.url,
           pageType: r.pageType,
           priority: r.priority,
+          relevanceScore: r.relevanceScore,
           keywords: r.keywords.slice(0, 3),
         })
       }

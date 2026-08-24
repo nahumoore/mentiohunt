@@ -68,72 +68,97 @@ export async function buildListicleQueries(product: {
   product_description: string
   website_url: string
   competitors?: string[] | null
-}): Promise<{ queries: string[]; cost: number }> {
+  target_keywords?: string[] | null
+}): Promise<{ queries: string[]; cost: number; weightByQuery: Map<string, number> }> {
   const ownDomain = extractCompetitorDomain(product.website_url)
+
+  const confirmedKeywords = (product.target_keywords ?? []).map((k) => k.trim()).filter(Boolean)
 
   let categories: string[] = []
   let cost = 0
   let modelUsed: string | null = null
+  let source: "target_keywords" | "llm" = "llm"
 
-  try {
-    const { cost: callCost, modelUsed: usedModel, categories: parsedCategories } = await withLlmRetries(log, async () => {
-      const input = `Product: ${product.product_name}\nDescription: ${product.product_description}`
-      log.info("llm request", {
-        model: OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH,
-        fallbackModels: [OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
-        systemInstructions: SYSTEM_INSTRUCTIONS,
-        thinkingBudget: 1000,
-        input,
+  if (confirmedKeywords.length > 0) {
+    // Customer-confirmed keywords are already priority-ordered and capped at
+    // 5 — skip the LLM call entirely and use them as the category list.
+    categories = confirmedKeywords.slice(0, MAX_CATEGORIES)
+    source = "target_keywords"
+  } else {
+    try {
+      const { cost: callCost, modelUsed: usedModel, categories: parsedCategories } = await withLlmRetries(log, async () => {
+        const input = `Product: ${product.product_name}\nDescription: ${product.product_description}`
+        log.info("llm request", {
+          model: OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH,
+          fallbackModels: [OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
+          systemInstructions: SYSTEM_INSTRUCTIONS,
+          thinkingBudget: 1000,
+          input,
+        })
+        const { text, cost: attemptCost, modelUsed: attemptModel } = await generateTextWithUsage({
+          model: OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH,
+          fallbackModels: [OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
+          systemInstructions: SYSTEM_INSTRUCTIONS,
+          thinkingBudget: 1000,
+          input,
+          responseFormat: RESPONSE_FORMAT,
+        })
+        const parsed = parseLlmJson<{ categories?: unknown }>(text)
+        return { cost: attemptCost, modelUsed: attemptModel, categories: parsed.categories }
       })
-      const { text, cost: attemptCost, modelUsed: attemptModel } = await generateTextWithUsage({
-        model: OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH,
-        fallbackModels: [OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
-        systemInstructions: SYSTEM_INSTRUCTIONS,
-        thinkingBudget: 1000,
-        input,
-        responseFormat: RESPONSE_FORMAT,
-      })
-      const parsed = parseLlmJson<{ categories?: unknown }>(text)
-      return { cost: attemptCost, modelUsed: attemptModel, categories: parsed.categories }
-    })
-    cost = callCost
-    modelUsed = usedModel
-    categories = Array.isArray(parsedCategories)
-      ? parsedCategories
-          .filter((c): c is string => typeof c === "string" && c.trim().length > 0)
-          .slice(0, MAX_CATEGORIES)
-      : []
-  } catch (err) {
-    log.warn("category generation failed", { productName: product.product_name, error: String(err) })
+      cost = callCost
+      modelUsed = usedModel
+      categories = Array.isArray(parsedCategories)
+        ? parsedCategories
+            .filter((c): c is string => typeof c === "string" && c.trim().length > 0)
+            .slice(0, MAX_CATEGORIES)
+        : []
+    } catch (err) {
+      log.warn("category generation failed", { productName: product.product_name, error: String(err) })
+    }
   }
 
   const afterDate = formatDate(new Date(Date.now() - FRESHNESS_WINDOW_DAYS * 24 * 60 * 60 * 1000))
 
+  // Weight per query by its category's priority rank — reuses
+  // rank-candidate-urls.ts's (len - i) / len formula rather than a second
+  // priority scheme. Competitor-alternative queries aren't keyword-ranked,
+  // so they get the neutral top weight.
+  const weightByQuery = new Map<string, number>()
   const queries = new Set<string>()
-  for (const category of categories) {
+  categories.forEach((category, i) => {
     const clean = category.trim()
-    queries.add(`best ${clean} -site:${ownDomain}`)
-    queries.add(`top ${clean} -site:${ownDomain}`)
-    // Freshness variant — chases newly published/updated listicles specifically,
-    // instead of only the same evergreen page that has ranked #1 for months.
-    queries.add(`best ${clean} after:${afterDate} -site:${ownDomain}`)
-  }
+    const weight = categories.length > 0 ? (categories.length - i) / categories.length : 1
+    for (const query of [
+      `best ${clean} -site:${ownDomain}`,
+      `top ${clean} -site:${ownDomain}`,
+      // Freshness variant — chases newly published/updated listicles specifically,
+      // instead of only the same evergreen page that has ranked #1 for months.
+      `best ${clean} after:${afterDate} -site:${ownDomain}`,
+    ]) {
+      queries.add(query)
+      weightByQuery.set(query, weight)
+    }
+  })
 
   for (const competitor of product.competitors ?? []) {
     const domain = extractCompetitorDomain(competitor)
     if (!domain || domain === ownDomain) continue
     const brandName = brandNameFromDomain(domain)
-    queries.add(`"${brandName}" alternatives -site:${ownDomain}`)
+    const query = `"${brandName}" alternatives -site:${ownDomain}`
+    queries.add(query)
+    weightByQuery.set(query, 1)
   }
 
   const finalQueries = [...queries]
 
   log.info("query pool built", {
     categories,
+    categorySource: source,
     competitorCount: product.competitors?.length ?? 0,
     poolSize: finalQueries.length,
     model: modelUsed,
   })
 
-  return { queries: finalQueries, cost }
+  return { queries: finalQueries, cost, weightByQuery }
 }

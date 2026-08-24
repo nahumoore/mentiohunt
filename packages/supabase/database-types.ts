@@ -550,6 +550,127 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_platform_update_reads: {
+        Row: {
+          platform_update_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          platform_update_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          platform_update_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_platform_update_reads_platform_update_id_fkey"
+            columns: ["platform_update_id"]
+            isOneToOne: false
+            referencedRelation: "notification_platform_updates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_platform_update_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_platform_updates: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link_href: string | null
+          published_at: string
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link_href?: string | null
+          published_at?: string
+          title: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link_href?: string | null
+          published_at?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link_href: string | null
+          prospect_id: string | null
+          read_at: string | null
+          title: string
+          tracked_link_id: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link_href?: string | null
+          prospect_id?: string | null
+          read_at?: string | null
+          title: string
+          tracked_link_id?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link_href?: string | null
+          prospect_id?: string | null
+          read_at?: string | null
+          title?: string
+          tracked_link_id?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "backlink_prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_tracked_link_id_fkey"
+            columns: ["tracked_link_id"]
+            isOneToOne: false
+            referencedRelation: "tracked_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       outreach_events: {
         Row: {
           created_at: string
@@ -612,10 +733,15 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_manual: boolean
+          is_target: boolean
           keywords: string[]
+          matched_keywords: string[]
           page_type: Database["public"]["Enums"]["page_type"]
           priority: number
           product_id: string
+          relevance_score: number | null
+          selection_reason: string | null
           title: string | null
           updated_at: string
           url: string
@@ -626,10 +752,15 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_manual?: boolean
+          is_target?: boolean
           keywords?: string[]
+          matched_keywords?: string[]
           page_type?: Database["public"]["Enums"]["page_type"]
           priority?: number
           product_id: string
+          relevance_score?: number | null
+          selection_reason?: string | null
           title?: string | null
           updated_at?: string
           url: string
@@ -640,10 +771,15 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_manual?: boolean
+          is_target?: boolean
           keywords?: string[]
+          matched_keywords?: string[]
           page_type?: Database["public"]["Enums"]["page_type"]
           priority?: number
           product_id?: string
+          relevance_score?: number | null
+          selection_reason?: string | null
           title?: string | null
           updated_at?: string
           url?: string
@@ -665,6 +801,7 @@ export type Database = {
           id: string
           product_description: string
           product_name: string
+          target_keywords: string[]
           updated_at: string
           user_id: string
           website_url: string
@@ -675,6 +812,7 @@ export type Database = {
           id?: string
           product_description: string
           product_name: string
+          target_keywords?: string[]
           updated_at?: string
           user_id: string
           website_url: string
@@ -685,6 +823,7 @@ export type Database = {
           id?: string
           product_description?: string
           product_name?: string
+          target_keywords?: string[]
           updated_at?: string
           user_id?: string
           website_url?: string
@@ -1351,6 +1490,7 @@ export type Database = {
       email_account_status: "active" | "error"
       email_sequence_status: "active" | "stopped" | "completed"
       email_sequence_type: "onboarding"
+      notification_type: "prospect_reply" | "tracked_link_issue"
       page_crawl_status: "pending" | "crawled" | "failed"
       page_type:
         | "sitemap"
@@ -1542,6 +1682,7 @@ export const Constants = {
       email_account_status: ["active", "error"],
       email_sequence_status: ["active", "stopped", "completed"],
       email_sequence_type: ["onboarding"],
+      notification_type: ["prospect_reply", "tracked_link_issue"],
       page_crawl_status: ["pending", "crawled", "failed"],
       page_type: [
         "sitemap",

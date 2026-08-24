@@ -1,238 +1,362 @@
 import pLimit from "p-limit"
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { fetchSitemapUrls, filterContentUrls } from "../../helpers/sitemap.js"
+import { fetchPageContent } from "../../helpers/scraper-content-client.js"
 import { createLogger } from "../../helpers/logger.js"
-import { scraperLightLimit } from "../../helpers/scraper-limits.js"
 import { categorizePages, type PageToClassify } from "./categorize-pages.js"
+import { discoverSitemapUrls } from "./discover-sitemap.js"
+import { rankCandidateUrls } from "./rank-candidate-urls.js"
 
 const log = createLogger("crawl-product-pages")
 
-type ScraperContentResult = {
-  url: string
-  title: string
-  description: string
-  text: string
-}
-
-async function fetchContentFromScraper(url: string): Promise<ScraperContentResult | null> {
-  const scraperUrl = process.env.SCRAPER_URL
-  if (!scraperUrl) return null
-  return scraperLightLimit(async () => {
-    try {
-      const scraperApiKey = process.env.SCRAPER_API_KEY
-      const res = await fetch(`${scraperUrl}/fetch-content`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
-        },
-        body: JSON.stringify({ url }),
-        signal: AbortSignal.timeout(60_000),
-      })
-      if (!res.ok) {
-        log.warn("scraper fetch-content failed", { url, status: res.status })
-        return null
-      }
-      return (await res.json()) as ScraperContentResult
-    } catch (err) {
-      log.warn("scraper fetch-content error", { url, error: String(err) })
-      return null
-    }
-  })
-}
-
 const CRAWL_CONCURRENCY = 10
+// Mirrors MAX_TRACKED_PAGES in apps/web/consts/billing.ts — server code can't
+// import from apps/web, so keep both at 5 if this changes.
+const DEFAULT_KEEP_TOP = 5
 
 export type CrawlProductPagesResult = {
-  pagesFound: number
+  candidatesFound: number
   pagesCrawled: number
+  pagesSelected: number
   pagesFailed: number
   totalCostUsd: number
 }
 
+const EMPTY_RESULT: CrawlProductPagesResult = {
+  candidatesFound: 0,
+  pagesCrawled: 0,
+  pagesSelected: 0,
+  pagesFailed: 0,
+  totalCostUsd: 0,
+}
+
 export async function crawlProductPages(
   productId: string,
-  pageLimit: number
+  options: { crawlLimit: number; keepTop?: number; autoDiscover?: boolean }
 ): Promise<CrawlProductPagesResult> {
-  log.info("START", { productId, pageLimit })
+  const { crawlLimit, keepTop = DEFAULT_KEEP_TOP, autoDiscover = true } = options
+  log.info("START", { productId, crawlLimit, keepTop, autoDiscover })
 
-  // Load product + existing product_pages
-  const [{ data: product, error: productError }, { data: pages, error: pagesError }] =
-    await Promise.all([
-      supabaseAdmin
-        .from("products")
-        .select("id, product_name, product_description, website_url")
-        .eq("id", productId)
-        .single(),
-      supabaseAdmin
-        .from("product_pages")
-        .select("id, url, page_type")
-        .eq("product_id", productId),
-    ])
+  const { data: product, error: productError } = await supabaseAdmin
+    .from("products")
+    .select("id, product_name, product_description, website_url, target_keywords")
+    .eq("id", productId)
+    .single()
 
   if (productError || !product) {
     throw new Error(`Could not load product ${productId}: ${productError?.message}`)
   }
-  if (pagesError) {
-    throw new Error(`Could not load product_pages for ${productId}: ${pagesError.message}`)
+
+  const targetKeywords = product.target_keywords ?? []
+
+  // Pages the customer pasted during onboarding (or added manually since).
+  // These are never sitemap-ranked or truncated to keepTop — they're
+  // authoritative — but still need a crawl + categorization pass so
+  // matched_keywords/relevance_score are populated for stage 2 discovery.
+  const { data: manualTargets, error: manualError } = await supabaseAdmin
+    .from("product_pages")
+    .select("id, url, priority")
+    .eq("product_id", productId)
+    .eq("is_manual", true)
+    .eq("is_target", true)
+
+  if (manualError) {
+    log.warn("failed to load manual target pages", { error: manualError.message })
   }
 
-  const allPages = pages ?? []
-  const sitemapRows = allPages.filter((p) => p.page_type === "sitemap")
-  const manualRows = allPages.filter((p) => p.page_type === "manual")
+  const manualUrls = manualTargets ?? []
 
-  let urlsToProcess: string[]
-
-  if (sitemapRows.length > 0) {
-    // Sitemap mode — expand each sitemap row, filter, then cap
-    log.info("sitemap mode", { sitemapCount: sitemapRows.length })
-
-    const rawUrls: string[] = []
-    for (const row of sitemapRows) {
-      try {
-        const fetched = await fetchSitemapUrls(row.url)
-        rawUrls.push(...fetched)
-      } catch (err) {
-        log.warn("sitemap fetch failed, skipping", { url: row.url, error: String(err) })
-      }
-    }
-
-    const filtered = filterContentUrls(rawUrls)
-    urlsToProcess = filtered.slice(0, pageLimit)
-
-    log.info("sitemap expanded", {
-      raw: rawUrls.length,
-      afterFilter: filtered.length,
-      capped: urlsToProcess.length,
-    })
-
-    // Delete the sitemap placeholder rows — real pages will be inserted below
-    const sitemapIds = sitemapRows.map((r) => r.id)
-    const { error: deleteError } = await supabaseAdmin
-      .from("product_pages")
-      .delete()
-      .in("id", sitemapIds)
-
-    if (deleteError) {
-      log.warn("failed to delete sitemap placeholder rows", { error: deleteError.message })
-    }
-  } else {
-    // Manual mode — use existing manual rows (capped)
-    log.info("manual mode", { pageCount: manualRows.length })
-    urlsToProcess = manualRows.map((r) => r.url).slice(0, pageLimit)
+  if (manualUrls.length === 0 && targetKeywords.length === 0) {
+    log.info("no manual pages and no target keywords set, skipping selection", { productId })
+    return EMPTY_RESULT
   }
-
-  if (urlsToProcess.length === 0) {
-    log.info("no URLs to process, skipping")
-    return { pagesFound: 0, pagesCrawled: 0, pagesFailed: 0, totalCostUsd: 0 }
-  }
-
-  // Crawl pages concurrently
-  type CrawledPage = PageToClassify & { crawlFailed: boolean }
 
   const limit = pLimit(CRAWL_CONCURRENCY)
-  const crawled: CrawledPage[] = await Promise.all(
-    urlsToProcess.map((url) =>
-      limit(async () => {
-        try {
-          const scraped = await fetchContentFromScraper(url)
-          if (!scraped) throw new Error("scraper returned null")
-          const { title, description, text } = scraped
-          return { url, title, description, text, crawlFailed: false }
-        } catch (err) {
-          log.warn("page crawl failed", { url, error: String(err) })
-          return { url, title: "", description: "", text: "", crawlFailed: true }
-        }
-      })
+
+  let manualCrawled = 0
+  let manualFailed = 0
+  let manualCost = 0
+
+  if (manualUrls.length > 0) {
+    type CrawledManualPage = PageToClassify & { id: string; crawlFailed: boolean }
+
+    const crawledManual: CrawledManualPage[] = await Promise.all(
+      manualUrls.map((p) =>
+        limit(async () => {
+          try {
+            const scraped = await fetchPageContent(p.url)
+            if (!scraped) throw new Error("scraper returned null")
+            const { title, description, text } = scraped
+            return { id: p.id, url: p.url, title, description, text, crawlFailed: false }
+          } catch (err) {
+            log.warn("manual page crawl failed", { url: p.url, error: String(err) })
+            return { id: p.id, url: p.url, title: "", description: "", text: "", crawlFailed: true }
+          }
+        })
+      )
     )
-  )
 
-  const succeeded = crawled.filter((p) => !p.crawlFailed)
-  const failed = crawled.filter((p) => p.crawlFailed)
+    const succeededManual = crawledManual.filter((p) => !p.crawlFailed)
+    manualFailed = crawledManual.length - succeededManual.length
+    manualCrawled = succeededManual.length
 
-  log.info("crawl complete", { total: crawled.length, ok: succeeded.length, failed: failed.length })
+    log.info("manual pages crawled", { total: crawledManual.length, ok: succeededManual.length, failed: manualFailed })
 
-  // LLM categorize + keyword extraction for successfully crawled pages
-  const { results: categorized, totalCost } = await categorizePages(succeeded, {
-    product_name: product.product_name,
-    product_description: product.product_description,
-  })
+    if (succeededManual.length > 0) {
+      const { results: categorized, totalCost } = await categorizePages(
+        succeededManual,
+        { product_name: product.product_name, product_description: product.product_description },
+        targetKeywords
+      )
+      manualCost = totalCost
 
-  const catByUrl = new Map(categorized.map((c) => [c.url, c]))
+      const categorizedByUrl = new Map(categorized.map((c) => [c.url, c]))
+      const now = new Date().toISOString()
 
-  function priorityToScore(p: string | undefined): number {
-    if (p === "high") return 5
-    if (p === "low") return 1
-    return 3 // medium / fallback
+      // page_type/priority/is_manual/is_target came from the onboarding
+      // form (or /api/pages) and are left untouched here, same as the
+      // single-page crawl route (routes/crawl-single-page.ts).
+      await Promise.all(
+        succeededManual.map(async (p) => {
+          const cat = categorizedByUrl.get(p.url)
+          const { error } = await supabaseAdmin
+            .from("product_pages")
+            .update({
+              title: p.title || null,
+              description: p.description || null,
+              keywords: cat?.keywords ?? [],
+              relevance_score: cat?.relevanceScore ?? null,
+              matched_keywords: cat?.matchedKeywords ?? [],
+              selection_reason: cat?.reason || null,
+              crawl_status: "crawled",
+              crawled_at: now,
+            })
+            .eq("id", p.id)
+          if (error) {
+            log.warn("failed to update manual page after crawl", { url: p.url, error: error.message })
+          }
+        })
+      )
+    }
   }
 
-  const now = new Date().toISOString()
+  let candidatesFound = 0
+  let autoCrawled = 0
+  let autoFailed = 0
+  let autoCost = 0
+  let top: SelectedPage[] = []
 
-  if (sitemapRows.length > 0) {
-    // Insert new rows for sitemap-discovered URLs
-    const toInsert = crawled.map((p) => {
-      const cat = catByUrl.get(p.url)
-      return {
-        product_id: productId,
-        url: p.url,
-        page_type: (cat?.pageType ?? "article") as string,
-        priority: priorityToScore(cat?.priority),
-        keywords: cat?.keywords ?? [],
-        title: p.title || null,
-        description: p.description || null,
-        crawl_status: p.crawlFailed ? "failed" : "crawled",
-        crawled_at: p.crawlFailed ? null : now,
+  const remaining = keepTop - manualUrls.length
+
+  if (autoDiscover && remaining > 0 && targetKeywords.length > 0) {
+    // Discover + expand the sitemap. Always keep the homepage as a candidate
+    // even if sitemap discovery fails entirely or omits it.
+    const sitemapUrls = await discoverSitemapUrls(product.website_url)
+    const rawUrls: string[] = [product.website_url]
+    for (const sitemapUrl of sitemapUrls) {
+      try {
+        rawUrls.push(...(await fetchSitemapUrls(sitemapUrl)))
+      } catch (err) {
+        log.warn("sitemap fetch failed, skipping", { url: sitemapUrl, error: String(err) })
       }
+    }
+
+    const manualUrlSet = new Set(manualUrls.map((p) => p.url))
+    const filtered = filterContentUrls(rawUrls).filter((url) => !manualUrlSet.has(url))
+    const candidates = rankCandidateUrls(filtered, targetKeywords, crawlLimit)
+    candidatesFound = candidates.length
+
+    log.info("candidates ranked", {
+      sitemapsFound: sitemapUrls.length,
+      rawUrls: rawUrls.length,
+      afterFilter: filtered.length,
+      candidates: candidates.length,
+      remaining,
     })
 
-    const { error: insertError } = await supabaseAdmin
-      .from("product_pages")
-      .insert(toInsert)
+    if (candidates.length > 0) {
+      // Crawl candidates concurrently
+      type CrawledPage = PageToClassify & { crawlFailed: boolean }
 
-    if (insertError) {
-      log.error("failed to insert crawled pages", { error: insertError.message })
+      const crawled: CrawledPage[] = await Promise.all(
+        candidates.map((url) =>
+          limit(async () => {
+            try {
+              const scraped = await fetchPageContent(url)
+              if (!scraped) throw new Error("scraper returned null")
+              const { title, description, text } = scraped
+              return { url, title, description, text, crawlFailed: false }
+            } catch (err) {
+              log.warn("page crawl failed", { url, error: String(err) })
+              return { url, title: "", description: "", text: "", crawlFailed: true }
+            }
+          })
+        )
+      )
+
+      const succeeded = crawled.filter((p) => !p.crawlFailed)
+      autoFailed = crawled.length - succeeded.length
+      autoCrawled = succeeded.length
+
+      log.info("crawl complete", { total: crawled.length, ok: succeeded.length, failed: autoFailed })
+
+      const { results: categorized, totalCost } = await categorizePages(
+        succeeded,
+        { product_name: product.product_name, product_description: product.product_description },
+        targetKeywords
+      )
+      autoCost = totalCost
+
+      const crawledByUrl = new Map(succeeded.map((p) => [p.url, p]))
+
+      top = [...categorized]
+        .sort((a, b) => b.relevanceScore - a.relevanceScore)
+        .slice(0, remaining)
+        .map((p) => ({
+          ...p,
+          title: crawledByUrl.get(p.url)?.title || null,
+          description: crawledByUrl.get(p.url)?.description || null,
+        }))
+
+      log.info("top pages selected", {
+        productId,
+        selected: top.map((t) => ({ url: t.url, relevanceScore: t.relevanceScore })),
+      })
+    } else {
+      log.info("no candidate URLs, skipping auto-discovery")
     }
   } else {
-    // Update existing manual rows
-    const manualByUrl = new Map(manualRows.map((r) => [r.url, r.id]))
-
-    await Promise.all(
-      crawled.map(async (p) => {
-        const rowId = manualByUrl.get(p.url)
-        if (!rowId) return
-
-        const cat = catByUrl.get(p.url)
-        const { error } = await supabaseAdmin
-          .from("product_pages")
-          .update({
-            page_type: (cat?.pageType ?? "article") as string,
-            priority: priorityToScore(cat?.priority),
-            keywords: cat?.keywords ?? [],
-            title: p.title || null,
-            description: p.description || null,
-            crawl_status: p.crawlFailed ? "failed" : "crawled",
-            crawled_at: p.crawlFailed ? null : now,
-          })
-          .eq("id", rowId)
-
-        if (error) {
-          log.warn("failed to update product_page row", { url: p.url, error: error.message })
-        }
-      })
-    )
+    log.info("auto-discovery skipped", { autoDiscover, remaining, hasKeywords: targetKeywords.length > 0 })
   }
 
-  log.info("done", {
-    productId,
-    pagesCrawled: succeeded.length,
-    pagesFailed: failed.length,
-    cost_usd: totalCost.toFixed(4),
-  })
+  const usedPriorities = new Set(manualUrls.map((p) => p.priority))
+  await reconcileTargetPages(productId, top, usedPriorities)
 
-  return {
-    pagesFound: urlsToProcess.length,
-    pagesCrawled: succeeded.length,
-    pagesFailed: failed.length,
-    totalCostUsd: totalCost,
+  const result: CrawlProductPagesResult = {
+    candidatesFound,
+    pagesCrawled: manualCrawled + autoCrawled,
+    pagesSelected: manualUrls.length + top.length,
+    pagesFailed: manualFailed + autoFailed,
+    totalCostUsd: manualCost + autoCost,
   }
+
+  log.info("done", { productId, ...result, cost_usd: result.totalCostUsd.toFixed(4) })
+
+  return result
+}
+
+type SelectedPage = {
+  url: string
+  pageType: string
+  keywords: string[]
+  relevanceScore: number
+  matchedKeywords: string[]
+  reason: string
+  title: string | null
+  description: string | null
+}
+
+/**
+ * Upserts the new top-N pages as targets. Previously-targeted auto pages that
+ * fell out of the top N are soft-retired (is_target: false) if they have any
+ * backlink_prospects attached — deleting them would null the prospect's FK
+ * and silently zero its opportunity count — otherwise deleted. Manually
+ * added pages (is_manual) are never touched.
+ *
+ * `top` is already sorted best-first (relevanceScore desc). Priority is now
+ * user-facing intent (1 = highest, matching target_keywords' array-index
+ * convention), not a derived score bucket, so auto-selected pages are handed
+ * the lowest-numbered slots not already claimed by a manually-ranked page —
+ * best auto page gets the best free slot.
+ */
+async function reconcileTargetPages(
+  productId: string,
+  top: SelectedPage[],
+  usedPriorities: Set<number>
+): Promise<void> {
+  const now = new Date().toISOString()
+
+  if (top.length > 0) {
+    const freeSlots: number[] = []
+    for (let p = 1; p <= 5 && freeSlots.length < top.length; p++) {
+      if (!usedPriorities.has(p)) freeSlots.push(p)
+    }
+
+    const toUpsert = top.map((p, i) => ({
+      product_id: productId,
+      url: p.url,
+      title: p.title,
+      description: p.description,
+      page_type: p.pageType,
+      keywords: p.keywords,
+      relevance_score: p.relevanceScore,
+      matched_keywords: p.matchedKeywords,
+      selection_reason: p.reason || null,
+      // Falls back to 5 if keepTop ever exceeds the 1-5 range the DB check
+      // constraint allows — shouldn't happen given DEFAULT_KEEP_TOP mirrors
+      // the web app's MAX_TRACKED_PAGES cap of 5.
+      priority: freeSlots[i] ?? 5,
+      is_target: true,
+      is_manual: false,
+      crawl_status: "crawled" as const,
+      crawled_at: now,
+    }))
+
+    const { error: upsertError } = await supabaseAdmin
+      .from("product_pages")
+      .upsert(toUpsert, { onConflict: "product_id,url" })
+
+    if (upsertError) {
+      log.error("failed to upsert selected pages", { error: upsertError.message })
+    }
+  }
+
+  const selectedUrls = new Set(top.map((p) => p.url))
+
+  const { data: existingTargets, error: existingError } = await supabaseAdmin
+    .from("product_pages")
+    .select("id, url")
+    .eq("product_id", productId)
+    .eq("is_target", true)
+    .eq("is_manual", false)
+
+  if (existingError) {
+    log.warn("failed to load existing target pages for reconciliation", { error: existingError.message })
+    return
+  }
+
+  const fallenOut = (existingTargets ?? []).filter((p) => !selectedUrls.has(p.url))
+  if (fallenOut.length === 0) return
+
+  const fallenOutIds = fallenOut.map((p) => p.id)
+  const { data: attachedProspects, error: prospectsError } = await supabaseAdmin
+    .from("backlink_prospects")
+    .select("product_page_id")
+    .in("product_page_id", fallenOutIds)
+
+  if (prospectsError) {
+    log.warn("failed to check attached prospects, leaving fallen-out pages untouched", {
+      error: prospectsError.message,
+    })
+    return
+  }
+
+  const idsWithProspects = new Set((attachedProspects ?? []).map((p) => p.product_page_id))
+  const toRetire = fallenOutIds.filter((id) => idsWithProspects.has(id))
+  const toDelete = fallenOutIds.filter((id) => !idsWithProspects.has(id))
+
+  if (toRetire.length > 0) {
+    const { error } = await supabaseAdmin
+      .from("product_pages")
+      .update({ is_target: false })
+      .in("id", toRetire)
+    if (error) log.warn("failed to soft-retire pages", { error: error.message })
+  }
+
+  if (toDelete.length > 0) {
+    const { error } = await supabaseAdmin.from("product_pages").delete().in("id", toDelete)
+    if (error) log.warn("failed to delete fallen-out pages", { error: error.message })
+  }
+
+  log.info("reconciled target pages", { retired: toRetire.length, deleted: toDelete.length })
 }

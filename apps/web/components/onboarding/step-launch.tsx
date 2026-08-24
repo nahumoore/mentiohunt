@@ -29,7 +29,15 @@ export function StepLaunch({ data }: { data: OnboardingData }) {
       })(),
     ],
     ["Competitors", `${data.competitors.length} URLs`],
-    ["Target pages", `${data.resourceUrls.length} URL${data.resourceUrls.length === 1 ? "" : "s"}`],
+    ["Target keywords", `${data.targetKeywords.length} keyword${data.targetKeywords.length === 1 ? "" : "s"}`],
+    [
+      "Important pages",
+      data.importantPages.length === 0
+        ? "Auto-discovered from keywords"
+        : data.autoDiscoverPages
+          ? `${data.importantPages.length} page${data.importantPages.length === 1 ? "" : "s"} + auto-discovery`
+          : `${data.importantPages.length} page${data.importantPages.length === 1 ? "" : "s"}`,
+    ],
   ]
 
   return (

@@ -1,4 +1,4 @@
-import { onboardingSchema } from "@/consts/onboarding"
+import { onboardingSchema, validateImportantPages } from "@/consts/onboarding"
 import { FREE_TRIAL_MAX_PAGES } from "@/consts/billing"
 import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
 import { supabaseServer } from "@/lib/supabase/server"
@@ -17,7 +17,8 @@ function buildValidationError(message: string, status = 400) {
 async function runOnboardingJobsOnServer(payload: {
   userId: string
   productId: string
-  pageLimit: number
+  crawlLimit: number
+  autoDiscoverPages: boolean
 }) {
   const serverResponse = await fetch(`${SERVER_URL}/onboarding/complete`, {
     method: "POST",
@@ -56,12 +57,27 @@ export async function POST(request: Request) {
     )
   }
 
+  // Cross-field rule (pages present OR auto-discover checked) can't live in
+  // onboardingSchema itself — see the comment on importantPagesStepSchema in
+  // consts/onboarding.ts — so it's only enforced client-side by the wizard's
+  // validateStep. Re-check it here so a request bypassing the UI can't create
+  // a product with zero target pages and no auto-discovery.
+  const importantPagesError = validateImportantPages({
+    importantPages: parsedRequest.data.importantPages,
+    autoDiscoverPages: parsedRequest.data.autoDiscoverPages,
+    websiteUrl: parsedRequest.data.websiteUrl,
+  })
+  if (importantPagesError) {
+    return buildValidationError(importantPagesError)
+  }
+
   const productPayload: TablesInsert<"products"> = {
     user_id: user.id,
     website_url: parsedRequest.data.websiteUrl,
     product_name: parsedRequest.data.productName,
     product_description: parsedRequest.data.productDescription,
     competitors: parsedRequest.data.competitors,
+    target_keywords: parsedRequest.data.targetKeywords,
   }
 
   const { data: existingProducts, error: existingProductsError } = await supabase
@@ -89,6 +105,7 @@ export async function POST(request: Request) {
       product_name: productPayload.product_name,
       product_description: productPayload.product_description,
       competitors: productPayload.competitors,
+      target_keywords: productPayload.target_keywords,
     }
 
     const { error: updateProductError } = await supabase
@@ -129,32 +146,27 @@ export async function POST(request: Request) {
     return buildValidationError("Failed to complete onboarding.", 500)
   }
 
-  const { resourceUrls, resourceMode } = parsedRequest.data
+  if (parsedRequest.data.importantPages.length > 0) {
+    // Array order is the priority the user dragged into the onboarding step —
+    // index 0 = priority 1 (highest), same convention as target_keywords.
+    const pagesPayload: TablesInsert<"product_pages">[] = parsedRequest.data.importantPages.map(
+      (url, index) => ({
+        product_id: productId,
+        url,
+        page_type: "manual",
+        priority: index + 1,
+        is_manual: true,
+        is_target: true,
+        crawl_status: "pending",
+      })
+    )
 
-  if (resourceUrls.length > 0) {
-    const { error: deletePagesError } = await supabase
+    const { error: upsertPagesError } = await supabase
       .from("product_pages")
-      .delete()
-      .eq("product_id", productId)
+      .upsert(pagesPayload, { onConflict: "product_id,url" })
 
-    if (deletePagesError) {
-      console.error("Error clearing product pages:", deletePagesError)
-      return buildValidationError("Failed to complete onboarding.", 500)
-    }
-
-    const pageType = resourceMode === "sitemap" ? "sitemap" : "manual"
-    const pagesPayload = resourceUrls.map((url) => ({
-      product_id: productId,
-      url,
-      page_type: pageType,
-    }))
-
-    const { error: insertPagesError } = await supabase
-      .from("product_pages")
-      .insert(pagesPayload)
-
-    if (insertPagesError) {
-      console.error("Error inserting product pages:", insertPagesError)
+    if (upsertPagesError) {
+      console.error("Error saving onboarding important pages:", upsertPagesError)
       return buildValidationError("Failed to complete onboarding.", 500)
     }
   }
@@ -183,7 +195,8 @@ export async function POST(request: Request) {
     runOnboardingJobsOnServer({
       userId: user.id,
       productId,
-      pageLimit: FREE_TRIAL_MAX_PAGES,
+      crawlLimit: FREE_TRIAL_MAX_PAGES,
+      autoDiscoverPages: parsedRequest.data.autoDiscoverPages,
     }).catch((error) => {
       console.error("Failed to reach the onboarding server:", error)
     })

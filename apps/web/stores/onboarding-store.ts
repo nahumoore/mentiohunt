@@ -3,7 +3,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
-import { INITIAL_ONBOARDING_DATA, type OnboardingData } from "@/consts/onboarding"
+import { INITIAL_ONBOARDING_DATA, MAX_TARGET_KEYWORDS, type OnboardingData } from "@/consts/onboarding"
 
 type OnboardingStore = {
   hasHydrated: boolean
@@ -35,11 +35,39 @@ export const useOnboardingStore = create<OnboardingStore>()(
     }),
     {
       name: "mentions-onboarding-progress",
+      version: 3,
       partialize: (state) => ({
         currentStep: state.currentStep,
         isCompleted: state.isCompleted,
         data: state.data,
       }),
+      migrate: (persisted) => {
+        const state = persisted as {
+          currentStep?: number
+          isCompleted?: boolean
+          data?: Record<string, unknown>
+        }
+        const rest = { ...(state.data ?? {}) }
+        delete rest.resourceMode
+        delete rest.resourceUrls
+
+        // The keyword cap dropped from 10 to 5 (array order is now
+        // priority). Truncate instead of wiping, so anyone mid-onboarding
+        // with more than 5 saved isn't dropped back to zero.
+        const targetKeywords = Array.isArray(rest.targetKeywords)
+          ? (rest.targetKeywords as string[]).slice(0, MAX_TARGET_KEYWORDS)
+          : []
+
+        return {
+          currentStep: state.currentStep ?? 0,
+          isCompleted: state.isCompleted ?? false,
+          data: {
+            ...INITIAL_ONBOARDING_DATA,
+            ...rest,
+            targetKeywords,
+          },
+        }
+      },
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true)
       },

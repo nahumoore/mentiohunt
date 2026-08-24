@@ -23,25 +23,25 @@ import Script from "next/script"
 import { LANDING_FAQS } from "@/consts/faq"
 
 export const metadata: Metadata = {
-  title: "Mentiohunt – Backlink Outreach Autopilot for Founders",
+  title: "Mentiohunt – Automated Link Building Tool for Founders",
   description:
-    "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
+    "The automated link building tool that turns article URLs into a backlink opportunity queue — fit scoring, contacts, and outreach drafts ready to send.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Mentiohunt – Backlink Outreach Autopilot for Founders",
+    title: "Mentiohunt – Automated Link Building Tool for Founders",
     description:
-      "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
+      "The automated link building tool that turns article URLs into a backlink opportunity queue — fit scoring, contacts, and outreach drafts ready to send.",
     url: "https://mentiohunt.com",
     siteName: "Mentiohunt",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mentiohunt – Backlink Outreach Autopilot for Founders",
+    title: "Mentiohunt – Automated Link Building Tool for Founders",
     description:
-      "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
+      "The automated link building tool that turns article URLs into a backlink opportunity queue — fit scoring, contacts, and outreach drafts ready to send.",
   },
 }
 

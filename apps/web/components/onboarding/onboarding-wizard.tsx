@@ -12,6 +12,7 @@ import {
   IconLoader2,
   IconPackage,
   IconRocket,
+  IconSearch,
   IconSwords,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
@@ -20,8 +21,9 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 import { StepCompany } from "@/components/onboarding/step-company"
-import { StepResources } from "@/components/onboarding/step-resources"
+import { StepKeywords } from "@/components/onboarding/step-keywords"
 import { StepCompetitors } from "@/components/onboarding/step-competitors"
+import { StepImportantPages } from "@/components/onboarding/step-important-pages"
 import { StepLaunch } from "@/components/onboarding/step-launch"
 import { StepProduct } from "@/components/onboarding/step-product"
 import { StepUrl } from "@/components/onboarding/step-url"
@@ -31,9 +33,12 @@ import {
   ONBOARDING_STEPS,
   competitorsStepSchema,
   companyStepSchema,
+  keywordsStepSchema,
+  normalizeKeyword,
   normalizeUrl,
   onboardingSchema,
   productDescriptionStepSchema,
+  validateImportantPages,
   type OnboardingData,
   type OnboardingField,
   type OnboardingFieldErrors,
@@ -44,6 +49,7 @@ type LoadingField =
   | "productName"
   | "productDescription"
   | "competitors"
+  | "targetKeywords"
 
 function normalizeOnboardingData(data: OnboardingData): OnboardingData {
   return {
@@ -63,8 +69,8 @@ function normalizeSubmissionData(data: OnboardingData): OnboardingData {
     productName: data.productName.trim(),
     productDescription: data.productDescription.trim(),
     competitors: data.competitors.map(normalizeUrl),
-    resourceMode: data.resourceMode,
-    resourceUrls: data.resourceUrls.map((u) => normalizeUrl(u.trim())).filter(Boolean),
+    targetKeywords: data.targetKeywords.map(normalizeKeyword).filter(Boolean),
+    importantPages: data.importantPages.map(normalizeUrl),
   }
 }
 
@@ -152,6 +158,28 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
     }
   }
 
+  const generateKeywords = async (
+    site: FetchedSiteDetails,
+    websiteUrl: string,
+    productName: string,
+    productDescription: string
+  ) => {
+    try {
+      const res = await fetch("/api/onboarding/generate/keywords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ site, websiteUrl, productName, productDescription }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        updateData({ targetKeywords: (json as { keywords: string[] }).keywords })
+        captureEvent("onboarding_ai_generated", { field: "keywords" })
+      }
+    } finally {
+      clearLoadingFields("targetKeywords")
+    }
+  }
+
   const generateProduct = async (site: FetchedSiteDetails, websiteUrl: string) => {
     let productName = ""
     let productDescription = ""
@@ -171,6 +199,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
     } finally {
       clearLoadingFields("productName", "productDescription")
       void generateCompetitors(site, websiteUrl, productName, productDescription)
+      void generateKeywords(site, websiteUrl, productName, productDescription)
     }
   }
 
@@ -211,9 +240,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
 
       const fetchedSite = (json as { site: FetchedSiteDetails }).site
       const websiteUrl = (json as { websiteUrl: string }).websiteUrl
-      captureEvent("onboarding_site_fetched", {
-        had_sitemap: Boolean((fetchedSite as { sitemap?: unknown }).sitemap),
-      })
+      captureEvent("onboarding_site_fetched", {})
 
       updateData({ websiteUrl })
       setIsFetchingSite(false)
@@ -222,6 +249,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
           "productName",
           "productDescription",
           "competitors",
+          "targetKeywords",
         ])
       )
       setCurrentStep(1)
@@ -265,22 +293,17 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
     }
 
     if (step === 4) {
-      if (safeData.resourceMode === "sitemap") {
-        const url = normalizedData.resourceUrls[0] ?? ""
-        if (!url) {
-          nextErrors.resourceUrls = "Add your sitemap URL."
-        } else {
-          try { new URL(url) } catch {
-            nextErrors.resourceUrls = "Enter a valid sitemap URL."
-          }
-        }
-      } else {
-        const count = normalizedData.resourceUrls.length
-        if (count < 5) {
-          const remaining = 5 - count
-          nextErrors.resourceUrls = `Add ${remaining} more page URL${remaining === 1 ? "" : "s"}.`
-        }
+      const keywordsResult = keywordsStepSchema.safeParse(normalizedData)
+      if (!keywordsResult.success) {
+        const issue = keywordsResult.error.issues[0]
+        const field = issue?.path[0] as OnboardingField | undefined
+        if (field && issue) nextErrors[field] = issue.message
       }
+    }
+
+    if (step === 5) {
+      const message = validateImportantPages(normalizedData)
+      if (message) nextErrors.importantPages = message
     }
 
     if (Object.keys(nextErrors).length > 0) {
@@ -295,7 +318,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
 
   const nextStep = () => {
     if (!validateStep(currentStep)) return
-    const stepNames = ["url", "company", "product", "competitors", "audience", "launch"] as const
+    const stepNames = ["url", "company", "product", "competitors", "keywords", "pages", "launch"] as const
     captureEvent("onboarding_step_completed", {
       step: stepNames[currentStep] ?? String(currentStep),
       step_index: currentStep,
@@ -354,6 +377,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
 
       captureEvent("onboarding_completed", {
         competitors_count: result.data.competitors?.length ?? 0,
+        keywords_count: result.data.targetKeywords?.length ?? 0,
       })
       setIsCompleted(true)
       router.replace("/dashboard/prospects")
@@ -401,7 +425,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
   const lastStepIndex = ONBOARDING_STEPS.length - 1
   const isLastStep = currentStep === lastStepIndex
 
-  const stepIcons = [null, IconBuilding, IconPackage, IconSwords, IconFiles, IconRocket]
+  const stepIcons = [null, IconBuilding, IconPackage, IconSwords, IconSearch, IconFiles, IconRocket]
   const StepIcon = stepIcons[currentStep] ?? null
 
   return (
@@ -469,13 +493,21 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
               />
             )}
             {currentStep === 4 && (
-              <StepResources
+              <StepKeywords
+                data={safeData}
+                errors={fieldErrors}
+                loadingFields={loadingFields}
+                updateField={updateField}
+              />
+            )}
+            {currentStep === 5 && (
+              <StepImportantPages
                 data={safeData}
                 errors={fieldErrors}
                 updateField={updateField}
               />
             )}
-            {currentStep === 5 && <StepLaunch data={safeData} />}
+            {currentStep === 6 && <StepLaunch data={safeData} />}
           </div>
         </div>
 

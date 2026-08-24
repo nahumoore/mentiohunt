@@ -8,6 +8,7 @@ export type Product = {
   product_name: string
   product_description: string
   website_url: string
+  target_keywords?: string[] | null
 }
 
 export type ResourcePageInclusionOptions = {
@@ -19,7 +20,8 @@ export type ResourcePageInclusionOptions = {
   maxCandidates?: number
   maxProspects?: number
   serpResultsPerQuery?: SerpLimit
-  minPriority?: number
+  /** Priority is user-ranked, 1 = highest. Pages with priority > maxPriority are excluded. */
+  maxPriority?: number
   country?: string
   scoringThreshold?: number
   dryRun?: boolean
@@ -53,7 +55,10 @@ export const DEFAULT_LIMITS = {
   maxCandidates: 20,
   maxProspects: 10,
   serpResultsPerQuery: "20" as const,
-  minPriority: 3,
+  // With a hard 5-page tracked cap and user-chosen priority, this is a no-op
+  // by default — every target page qualifies. Kept as an explicit override
+  // point for callers that want to focus only on the top-ranked pages.
+  maxPriority: 5,
   country: "US",
   scoringThreshold: 3,
 }

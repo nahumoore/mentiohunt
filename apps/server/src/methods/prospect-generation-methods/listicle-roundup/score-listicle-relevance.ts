@@ -28,16 +28,26 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out
 }
 
+// Emitted only when the product has target_keywords — most don't yet (see the
+// 2026-08-21 target-keywords-in-discovery ticket), and an unconditional block
+// would change scoring for every product that has never set one.
+function keywordAnchor(targetKeywords?: string[] | null): string {
+  const keywords = (targetKeywords ?? []).filter(Boolean)
+  if (keywords.length === 0) return ""
+  return `\nThis product's confirmed target keywords, most important first (priority 1 is the top keyword, and each one below it matters progressively less): weight fit toward the higher-priority ones.\n${keywords.map((k, i) => `${i + 1}. ${k}`).join("\n")}`
+}
+
 const SYSTEM_INSTRUCTIONS = (product: {
   product_name: string
   product_description: string
   competitors?: string[] | null
+  target_keywords?: string[] | null
 }) =>
   `You are evaluating web pages as potential "add my product to your list" outreach targets. Each page is a candidate roundup/listicle article ("best X tools", "top N alternatives", etc).
 
 Product: ${product.product_name}
 Description: ${product.product_description}
-${product.competitors?.length ? `Known competitors: ${product.competitors.join(", ")}` : ""}
+${product.competitors?.length ? `Known competitors: ${product.competitors.join(", ")}` : ""}${keywordAnchor(product.target_keywords)}
 
 Score whether this page is a genuine, updatable listicle of tools in this product's exact category, where THIS product is not already listed, and adding it would be a natural fit.
 
@@ -83,7 +93,12 @@ const RESPONSE_FORMAT = {
 
 export async function scoreListicleRelevance(
   items: ListicleCandidate[],
-  product: { product_name: string; product_description: string; competitors?: string[] | null }
+  product: {
+    product_name: string
+    product_description: string
+    competitors?: string[] | null
+    target_keywords?: string[] | null
+  }
 ): Promise<{ results: ScoredListicle[]; totalCost: number }> {
   if (items.length === 0) return { results: [], totalCost: 0 }
 
@@ -109,7 +124,12 @@ export async function scoreListicleRelevance(
 
 async function scoreBatch(
   items: ListicleCandidate[],
-  product: { product_name: string; product_description: string; competitors?: string[] | null }
+  product: {
+    product_name: string
+    product_description: string
+    competitors?: string[] | null
+    target_keywords?: string[] | null
+  }
 ): Promise<{ results: ScoredListicle[]; cost: number }> {
   const payload = items.map((item) => ({
     id: item.url,

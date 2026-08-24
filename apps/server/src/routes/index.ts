@@ -16,6 +16,7 @@ import { devTestScraperRouter } from "./dev-test-scraper.js"
 import { devPopulateMissingSeoMetricsRouter } from "./dev-populate-missing-seo-metrics.js"
 import { devRunOutreachJobsRouter } from "./dev-run-outreach-jobs.js"
 import { devSendBillingNotificationEmailRouter } from "./dev-send-billing-notification-email.js"
+import { devSelectTargetPagesRouter } from "./dev-select-target-pages.js"
 import { devSendOnboardingEmailRouter } from "./dev-send-onboarding-email.js"
 import { devUpdateAllSeoMetricsRouter } from "./dev-update-all-seo-metrics.js"
 import { directoryOpportunitiesByUrlRouter } from "./find-directory-opportunities-by-url.js"
@@ -25,6 +26,7 @@ import { googleIndexCheckerRouter } from "./google-index-checker.js"
 import { linkTrackerCheckRouter } from "./link-tracker-check.js"
 import { onboardingCompleteRouter } from "./onboarding-complete.js"
 import { onboardingFetchSiteRouter } from "./onboarding-fetch-site.js"
+import { pagesReselectRouter } from "./pages-reselect.js"
 import { prospectManualOutreachRouter } from "./prospect-manual-outreach.js"
 import { prospectReplyRouter } from "./prospect-reply.js"
 import { prospectSubmittedUrlRouter } from "./prospect-submitted-url.js"
@@ -50,6 +52,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
   app.use(prospectReplyRouter)
   app.use(prospectSubmittedUrlRouter)
   app.use(crawlSinglePageRouter)
+  app.use(pagesReselectRouter)
   app.use(resendInboundWebhookRouter)
   app.use(googleIndexCheckerRouter)
   app.use(linkTrackerCheckRouter)
@@ -65,6 +68,7 @@ export function registerRoutes(app: Application, isDev: boolean): void {
     app.use(devRunDailyBacklinkDiscoveryRouter)
     app.use(devDiscoverListicleRoundupsRouter)
     app.use(devDiscoverResourcePageInclusionsRouter)
+    app.use(devSelectTargetPagesRouter)
     app.use(devTestScraperRouter)
     app.use(devRunOutreachJobsRouter)
     app.use(devSubmitUrlRouter)

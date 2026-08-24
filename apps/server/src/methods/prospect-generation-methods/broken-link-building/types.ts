@@ -5,6 +5,7 @@ export type Product = {
   product_description: string
   website_url: string
   competitors: string[]
+  target_keywords?: string[] | null
 }
 
 /** One of the product's own crawled pages, eligible to be pitched as a dead-link replacement. */

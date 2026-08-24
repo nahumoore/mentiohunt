@@ -42,13 +42,14 @@ Each item is a dead link found on someone else's page: the dead URL's path, the 
 
 Only pick a page if it is a real topical fit for the anchor text and surrounding context. A wrong replacement suggestion is worse than none — if nothing fits well, return "${NO_MATCH}" and say why in the reason.
 
-Candidate pages (pick by id):
+Candidate pages (pick by id), each with a priority the site owner ranked it at — 1 is their most important page, 5 their least. When two candidates fit equally well, prefer the one with the lower (higher-priority) number:
 ${JSON.stringify(
   pages.map((p) => ({
     id: p.id,
     title: p.title || "(no title)",
     description: p.description || "",
     pageType: p.page_type,
+    priority: p.priority,
     keywords: p.keywords.slice(0, 8),
   })),
   null,

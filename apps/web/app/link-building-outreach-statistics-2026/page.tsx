@@ -44,6 +44,7 @@ export default function LinkBuildingOutreachStatistics2026() {
     url: PAGE_URL,
     temporalCoverage: meta.dateRangeLabel,
     dateModified: meta.publishedLabel,
+    license: "https://creativecommons.org/licenses/by/4.0/",
     creator: {
       "@type": "Organization",
       name: "Mentiohunt",

@@ -22,6 +22,8 @@ import { useEmailAccountStore } from "@/stores/email-account-store"
 import { useOutreachActivityStore } from "@/stores/outreach-activity-store"
 import type { TrackedLinkListItem } from "@/stores/link-tracker-store"
 import { useLinkTrackerStore } from "@/stores/link-tracker-store"
+import type { NotificationListItem, PlatformUpdateListItem } from "@/stores/notification-store"
+import { useNotificationStore } from "@/stores/notification-store"
 
 import { ProspectRealtimeSync } from "./prospect-realtime-sync"
 
@@ -40,6 +42,8 @@ type DashboardStoreHydratorProps = {
   poolDelayedCount: number
   sentAt: string[]
   trackedLinks: TrackedLinkListItem[]
+  notifications: NotificationListItem[]
+  platformUpdates: PlatformUpdateListItem[]
   children: ReactNode
 }
 
@@ -58,6 +62,8 @@ export function DashboardStoreHydrator({
   poolDelayedCount,
   sentAt,
   trackedLinks,
+  notifications,
+  platformUpdates,
   children,
 }: DashboardStoreHydratorProps) {
   useEffect(() => {
@@ -95,7 +101,9 @@ export function DashboardStoreHydrator({
     useEmailAccountStore.getState().setHasOwnOutreachMailbox(hasOwnOutreachMailbox)
     useOutreachActivityStore.getState().setSentAt(sentAt)
     useLinkTrackerStore.getState().setLinks(trackedLinks)
-  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, hasOwnOutreachMailbox, poolDelayedCount, sentAt, trackedLinks])
+    useNotificationStore.getState().setNotifications(notifications)
+    useNotificationStore.getState().setPlatformUpdates(platformUpdates)
+  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, hasOwnOutreachMailbox, poolDelayedCount, sentAt, trackedLinks, notifications, platformUpdates])
 
   return (
     <>

@@ -1,7 +1,29 @@
 "use server"
 
 import { supabaseServer } from "@/lib/supabase/server"
-import { pauseAllOutreachForUser, resumeAllOutreachForUser } from "@/lib/outreach/account-sequences"
+import {
+  hasPendingOutreachForUser,
+  pauseAllOutreachForUser,
+  resumeAllOutreachForUser,
+} from "@/lib/outreach/account-sequences"
+
+/** Whether the account still has outreach queued to send — used to render
+ * "Stop all outreach" as disabled on load when everything's already paused. */
+export async function getHasPendingOutreach() {
+  const supabase = await supabaseServer()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return { error: "Not authenticated" }
+
+  try {
+    const hasPending = await hasPendingOutreachForUser(user.id)
+    return { hasPending }
+  } catch {
+    return { error: "Failed to check outreach status." }
+  }
+}
 
 /** One-shot bulk cancel: pauses every pending outreach send across all of
  * the account's products, without touching the account itself. Discovery

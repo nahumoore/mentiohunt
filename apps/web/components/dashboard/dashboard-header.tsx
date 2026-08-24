@@ -1,7 +1,6 @@
 "use client"
 
 import {
-  IconFiles,
   IconLayoutDashboard,
   IconLayoutGrid,
   IconMailBolt,
@@ -9,6 +8,7 @@ import {
   IconRadar2,
   IconSettings,
   IconSparkles,
+  IconTarget,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -17,7 +17,9 @@ import * as React from "react"
 import { HowItWorksDialog } from "@/components/link-building/prospects/how-it-works-dialog"
 import { SubmitUrlDialog } from "@/components/link-building/prospects/submit-url-dialog"
 import { AddTrackedLinksDialog } from "@/components/link-tracker/add-tracked-links-dialog"
+import { NotificationBell } from "@/components/dashboard/notification-bell"
 import { useEmailAccountStore } from "@/stores/email-account-store"
+import { useProductStore } from "@/stores/product-store"
 import { useProfileStore } from "@/stores/profile-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import { Button } from "@workspace/ui/components/button"
@@ -33,6 +35,7 @@ type PageConfig = {
   icon: React.ElementType
   settingsHref?: string
   action?: React.ReactNode
+  showSiteBadge?: boolean
 }
 
 const PAGE_CONFIG: Record<string, PageConfig> = {
@@ -67,11 +70,12 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
       "A private opt-in list for founders open to direct backlink collaboration. Coming soon — reserve your spot now.",
     icon: IconNetwork,
   },
-  "/dashboard/pages": {
-    title: "Pages",
+  "/dashboard/targets": {
+    title: "Targets",
     description:
-      "The pages we find backlink opportunities for. Prioritize high-value pages targeting your most important keywords to build authority where it matters.",
-    icon: IconFiles,
+      "The pages and keywords we match backlink opportunities against. Prioritize what matters most to build authority where it counts.",
+    icon: IconTarget,
+    showSiteBadge: true,
   },
   "/dashboard/email-accounts": {
     title: "Email Accounts",
@@ -97,6 +101,7 @@ export function DashboardHeader() {
   const pathname = usePathname()
   const isDashboardHome = pathname === "/dashboard"
   const profile = useProfileStore((state) => state.profile)
+  const product = useProductStore((state) => state.product)
   const currentProspectId = getCurrentProspectId(pathname)
   const currentEmailAccountId = getCurrentEmailAccountId(pathname)
   const currentProspectLabel = useProspectStore((state) => {
@@ -130,6 +135,10 @@ export function DashboardHeader() {
       }
     : (PAGE_CONFIG[pathname] ?? null)
   const PageIcon = pageConfig?.icon ?? null
+  const siteBadge =
+    pageConfig?.showSiteBadge && product?.website_url
+      ? { name: product.product_name, favicon: getFaviconUrl(product.website_url) }
+      : null
 
   return (
     <header>
@@ -141,7 +150,7 @@ export function DashboardHeader() {
         />
         <nav
           aria-label="Dashboard breadcrumb"
-          className="flex min-w-0 items-center gap-1.5 text-[0.65rem] font-bold uppercase"
+          className="flex min-w-0 flex-1 items-center gap-1.5 text-[0.65rem] font-bold uppercase"
         >
           {breadcrumbs.map((breadcrumb, index) => {
             const isLast = index === breadcrumbs.length - 1
@@ -166,6 +175,7 @@ export function DashboardHeader() {
             )
           })}
         </nav>
+        <NotificationBell />
       </div>
 
       {pageConfig && PageIcon && (
@@ -178,6 +188,25 @@ export function DashboardHeader() {
             <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">
               {pageConfig.description}
             </p>
+            {siteBadge && (
+              <div className="mt-2.5 flex items-center gap-1.5">
+                {siteBadge.favicon ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={siteBadge.favicon}
+                    alt=""
+                    width={14}
+                    height={14}
+                    className="size-3.5 rounded-sm"
+                  />
+                ) : (
+                  <div className="size-3.5 rounded-sm bg-muted" />
+                )}
+                <span className="text-xs font-medium text-muted-foreground">
+                  {siteBadge.name} — your content
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {pageConfig.action}
@@ -251,6 +280,15 @@ function getCurrentEmailAccountId(pathname: string) {
   if (!pathname.startsWith(base)) return null
   const [id] = pathname.slice(base.length).split("/")
   return id || null
+}
+
+function getFaviconUrl(url: string) {
+  try {
+    const { hostname } = new URL(url)
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`
+  } catch {
+    return null
+  }
 }
 
 function titleizeSegment(segment: string) {

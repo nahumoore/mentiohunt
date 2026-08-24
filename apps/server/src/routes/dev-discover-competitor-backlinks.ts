@@ -22,7 +22,7 @@ devDiscoverCompetitorBacklinksRouter.post("/dev/discover-competitor-backlinks", 
 
     const { data: product, error: productError } = await supabaseAdmin
       .from("products")
-      .select("id, user_id, product_name, product_description, website_url, competitors")
+      .select("id, user_id, product_name, product_description, website_url, competitors, target_keywords")
       .eq("id", productId)
       .single()
 

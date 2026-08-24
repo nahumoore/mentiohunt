@@ -11,7 +11,7 @@ import { useActivationStore, type ActivationStep } from "@/stores/activation-sto
  * and so a user who wanders in from a link still gets credit.
  */
 const STEP_BY_PATH: Record<string, ActivationStep> = {
-  "/dashboard/pages": "reviewed_pages",
+  "/dashboard/targets": "reviewed_pages",
   "/dashboard/prospects/settings": "reviewed_competitors",
 }
 

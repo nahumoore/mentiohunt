@@ -1,7 +1,6 @@
 "use client"
 
 import {
-  IconFiles,
   IconLayoutDashboard,
   IconLayoutGrid,
   IconMailBolt,
@@ -9,6 +8,7 @@ import {
   IconRadar2,
   IconSettings,
   IconSparkles,
+  IconTarget,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -75,9 +75,9 @@ const FEATURES: FeatureModule[] = [
         ],
       },
       {
-        title: "Pages",
-        url: "/dashboard/pages",
-        icon: <IconFiles />,
+        title: "Targets",
+        url: "/dashboard/targets",
+        icon: <IconTarget />,
       },
       {
         title: "Email Accounts",

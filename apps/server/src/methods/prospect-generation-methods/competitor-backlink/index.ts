@@ -22,6 +22,7 @@ export async function discoverCompetitorBacklinks(
     product_description: string
     website_url: string
     competitors: string[]
+    target_keywords?: string[] | null
   },
   settings: FilterSettings,
   emailSettings: EmailSettings = {},

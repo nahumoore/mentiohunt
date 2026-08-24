@@ -64,7 +64,7 @@ runDiscoveryRouter.post("/internal/run-discovery", async (req, res) => {
   await withRouteLog(`run-discovery-${productId}`, async () => {
     const { data: product, error: productError } = await supabaseAdmin
       .from("products")
-      .select("id, user_id, product_name, product_description, website_url, competitors")
+      .select("id, user_id, product_name, product_description, website_url, competitors, target_keywords")
       .eq("id", productId)
       .single()
 
@@ -96,6 +96,7 @@ runDiscoveryRouter.post("/internal/run-discovery", async (req, res) => {
     const discoveryProduct: DiscoveryProduct = {
       ...product,
       competitors: (product.competitors as string[] | null) ?? null,
+      target_keywords: (product.target_keywords as string[] | null) ?? null,
     }
 
     const runs: Awaited<ReturnType<typeof runDiscoveryForProduct>>[] = []

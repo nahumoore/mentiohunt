@@ -23,7 +23,7 @@ import {
   type ScoredResourceInclusionCandidate,
   type TargetPageForInclusion,
 } from "./score-resource-page-inclusion.js"
-import { DEFAULT_LIMITS, DEFAULT_PAGE_TYPES, DEFAULT_QUERY_TEMPLATES, type Product, type ResourcePageInclusionOptions } from "./types.js"
+import { DEFAULT_LIMITS, DEFAULT_QUERY_TEMPLATES, type Product, type ResourcePageInclusionOptions } from "./types.js"
 
 const log = createLogger("discover-resource-page-inclusions")
 
@@ -49,11 +49,16 @@ export async function discoverResourcePageInclusions(
   const maxQueriesPerPage = limitNumber(options.maxQueriesPerPage, DEFAULT_LIMITS.maxQueriesPerPage)
   const maxCandidates = limitNumber(options.maxCandidates, DEFAULT_LIMITS.maxCandidates)
   const maxProspects = limitNumber(options.maxProspects, DEFAULT_LIMITS.maxProspects)
-  const minPriority = limitNumber(options.minPriority, DEFAULT_LIMITS.minPriority, 0)
+  const maxPriority = limitNumber(options.maxPriority, DEFAULT_LIMITS.maxPriority)
   const scoringThreshold = limitNumber(options.scoringThreshold, DEFAULT_LIMITS.scoringThreshold)
   const country = options.country?.trim() || DEFAULT_LIMITS.country
   const serpResultsPerQuery = options.serpResultsPerQuery ?? DEFAULT_LIMITS.serpResultsPerQuery
-  const pageTypes = options.pageTypes?.length ? options.pageTypes : DEFAULT_PAGE_TYPES
+  // Page type is no longer a hard filter by default — keyword relevance
+  // (is_target, set by crawlProductPages's top-N selection) is a strictly
+  // better "is this a plausible link target" signal than page type, which
+  // was only ever a proxy for it. pageTypes stays available as an explicit
+  // override for callers that want it (e.g. the free tool).
+  const pageTypes = options.pageTypes?.length ? options.pageTypes : null
   const queryTemplates = options.queryTemplates?.length ? options.queryTemplates : DEFAULT_QUERY_TEMPLATES
   const dryRun = options.dryRun === true
 
@@ -67,14 +72,15 @@ export async function discoverResourcePageInclusions(
 
   let pagesQuery = supabaseAdmin
     .from("product_pages")
-    .select("id, url, title, description, page_type, priority, keywords")
+    .select("id, url, title, description, page_type, priority, keywords, matched_keywords")
     .eq("product_id", product.id)
     .eq("crawl_status", "crawled")
-    .gte("priority", minPriority)
-    .in("page_type", pageTypes)
-    .order("priority", { ascending: false })
+    .eq("is_target", true)
+    .lte("priority", maxPriority)
+    .order("priority", { ascending: true })
     .limit(pageFetchLimit)
 
+  if (pageTypes) pagesQuery = pagesQuery.in("page_type", pageTypes)
   if (options.pageIds?.length) pagesQuery = pagesQuery.in("id", options.pageIds)
 
   const { data: rawPages, error: pagesError } = await pagesQuery
@@ -88,11 +94,18 @@ export async function discoverResourcePageInclusions(
     page_type: p.page_type,
     priority: p.priority,
     keywords: p.keywords ?? [],
+    matched_keywords: p.matched_keywords ?? [],
   }))
 
   const pages = selectPagesForRun(eligiblePages, maxPages, runHistory.lastRunByPageId, explicitPageIds)
 
-  const queryPlan = buildQueryPlan(pages, queryTemplates, maxQueriesPerPage, runHistory.lastRunByQueryKey)
+  const queryPlan = buildQueryPlan(
+    pages,
+    queryTemplates,
+    maxQueriesPerPage,
+    runHistory.lastRunByQueryKey,
+    product.target_keywords ?? []
+  )
   const runInput = {
     product_id: product.id,
     opportunity_type: "resource_page_inclusion",
@@ -104,9 +117,11 @@ export async function discoverResourcePageInclusions(
       page_type: p.page_type,
       priority: p.priority,
       keywords: p.keywords,
+      matched_keywords: p.matched_keywords,
     })),
+    product_target_keywords: product.target_keywords ?? [],
     page_types: pageTypes,
-    min_priority: minPriority,
+    max_priority: maxPriority,
     query_templates: queryTemplates,
     queries: queryPlan.map((q) => ({ query: q.query, target_page_id: q.targetPage.id, target_url: q.targetPage.url })),
     limits: { maxPages, maxQueriesPerPage, maxCandidates, maxProspects, serpResultsPerQuery },

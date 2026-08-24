@@ -13,6 +13,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useRouter } from "next/navigation"
 
 import { STATUS_CONFIG, TYPE_CONFIG } from "@/app/dashboard/prospects/_data"
+import { drBadgeClass } from "@/components/link-building/directories/dr-badge"
 import { formatRelative } from "@/lib/format-date"
 import type { ProspectListItem } from "@/stores/prospect-store"
 
@@ -34,13 +35,6 @@ function stripDomain(url: string | null): string | null {
   } catch {
     return url
   }
-}
-
-function drBadgeColor(dr: number | null): string {
-  if (dr == null) return "bg-muted text-muted-foreground"
-  if (dr >= 60) return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-  if (dr >= 30) return "bg-blue-500/10 text-blue-700 dark:text-blue-400"
-  return "bg-muted text-muted-foreground"
 }
 
 export function OpportunityPipelineRow({
@@ -137,7 +131,7 @@ export function OpportunityPipelineRow({
         <span
           className={cn(
             "inline-flex items-center justify-center rounded-full px-2.5 py-1 text-sm font-bold tabular-nums",
-            drBadgeColor(dr)
+            drBadgeClass(dr)
           )}
         >
           {dr ?? "—"}
@@ -228,7 +222,7 @@ export function OpportunityPipelineRow({
         {isEnriching ? (
           <Skeleton className="h-6 w-16 rounded-full" />
         ) : (
-          <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors group-hover:border-(--color-blaze-orange)/40 group-hover:text-(--color-blaze-orange)">
+          <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors group-hover:border-primary/40 group-hover:text-primary">
             Open
             <IconArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </span>

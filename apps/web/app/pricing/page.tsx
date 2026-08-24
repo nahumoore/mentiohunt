@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import Script from "next/script"
 import { supabaseServer } from "@workspace/supabase/server"
 import { PLANS, type BillingTier } from "@/consts/billing"
 import { Navbar, Footer, Testimonials, Faq } from "@/components/landing"
@@ -78,7 +77,7 @@ export default async function PricingPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <Script
+      <script
         id="pricing-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingSchema) }}

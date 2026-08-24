@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import Script from "next/script"
 
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
@@ -98,13 +97,13 @@ export default async function OutreachTemplateDetailPage({ params }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <Script
+      <script
         id="article-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
       {faqSchema && (
-        <Script
+        <script
           id="faq-schema"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}

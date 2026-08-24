@@ -1,4 +1,3 @@
-import Script from "next/script"
 import { PLANS } from "@/consts/billing"
 
 const softwareApplicationSchema = {
@@ -30,7 +29,7 @@ const softwareApplicationSchema = {
 
 export function SoftwareApplicationSchema() {
   return (
-    <Script
+    <script
       id="software-application-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{

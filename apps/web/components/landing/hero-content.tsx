@@ -73,15 +73,15 @@ export function HeroContent() {
           animate="animate"
           transition={{ duration: 0.5, ease }}
         >
-          <h1 className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
+          <p className="text-[0.7rem] font-bold tracking-[0.24em] text-(--color-blaze-orange) uppercase">
             <Link href="/features/link-building-software" className="hover:underline">
               Automated link building tool
             </Link>
-          </h1>
+          </p>
           <span className="h-px max-w-16 flex-1 bg-(--color-blaze-orange)/40" />
         </motion.div>
 
-        <motion.h2
+        <motion.h1
           className="mt-6 font-heading text-6xl leading-[0.97] font-semibold tracking-[-0.045em] text-balance text-foreground sm:text-7xl lg:text-[6.5rem]"
           variants={fadeUp}
           initial="initial"
@@ -109,9 +109,9 @@ export function HeroContent() {
               />
             </svg>
           </span>
-        </motion.h2>
+        </motion.h1>
 
-        <motion.h3
+        <motion.p
           className="mt-8 max-w-lg text-lg leading-8 font-medium text-muted-foreground sm:text-xl"
           variants={fadeUp}
           initial="initial"
@@ -149,7 +149,7 @@ export function HeroContent() {
             ))}
           </span>
           .
-        </motion.h3>
+        </motion.p>
 
         <motion.div
           className="mt-10 flex flex-wrap items-center gap-6"

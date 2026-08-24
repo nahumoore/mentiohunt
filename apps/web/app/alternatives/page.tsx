@@ -8,7 +8,6 @@ import {
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
-import Script from "next/script"
 
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
@@ -80,7 +79,7 @@ export default function AlternativesPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Script
+      <script
         id="item-list-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}

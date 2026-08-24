@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import Script from "next/script"
 import { notFound } from "next/navigation"
 
 import { BigTestimonial } from "@/components/landing/big-testimonial"
@@ -110,17 +109,17 @@ export default async function FeaturePage({ params }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <Script
+      <script
         id={`breadcrumb-schema-${feature.slug}`}
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <Script
+      <script
         id={`faq-schema-${feature.slug}`}
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <Script
+      <script
         id={`webpage-schema-${feature.slug}`}
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}

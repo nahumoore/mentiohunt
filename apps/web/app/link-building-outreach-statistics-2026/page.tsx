@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import Script from "next/script"
 
 import { Footer, Navbar } from "@/components/landing"
 import { StatisticsReport } from "@/components/link-building-statistics"
@@ -80,12 +79,12 @@ export default function LinkBuildingOutreachStatistics2026() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <Script
+      <script
         id="dataset-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetSchema) }}
       />
-      <Script
+      <script
         id="article-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}

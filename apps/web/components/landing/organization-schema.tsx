@@ -1,4 +1,3 @@
-import Script from "next/script"
 
 const organizationSchema = {
   "@context": "https://schema.org",
@@ -21,12 +20,12 @@ const websiteSchema = {
 export function OrganizationSchema() {
   return (
     <>
-      <Script
+      <script
         id="organization-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
-      <Script
+      <script
         id="website-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}

@@ -44,6 +44,7 @@ const resourceLinks = [
 const legalLinks = [
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/tos", label: "Terms of Service" },
+  { href: "/llms.txt", label: "llms.txt" },
 ]
 
 const stats = [

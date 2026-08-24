@@ -86,6 +86,21 @@ export default function NotFound() {
             Open dashboard
           </Link>
         </div>
+
+        <nav aria-label="Where to look next" className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground/70">
+          <Link href="/sitemap.xml" className="hover:text-foreground hover:underline">
+            Sitemap
+          </Link>
+          <Link href="/llms.txt" className="hover:text-foreground hover:underline">
+            llms.txt
+          </Link>
+          <Link href="/blog" className="hover:text-foreground hover:underline">
+            Blog
+          </Link>
+          <Link href="/features" className="hover:text-foreground hover:underline">
+            Features
+          </Link>
+        </nav>
       </motion.div>
 
       {/* Bottom label */}

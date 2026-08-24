@@ -11,7 +11,6 @@ import { MDXRemote } from "next-mdx-remote/rsc"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import Script from "next/script"
 import remarkGfm from "remark-gfm"
 
 import { Footer } from "@/components/landing/footer"
@@ -144,13 +143,13 @@ export default async function ComparePage({ params }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Script
+      <script
         id="article-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
       {faqSchema && (
-        <Script
+        <script
           id="faq-schema"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}

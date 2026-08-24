@@ -8,7 +8,6 @@ import {
   IconTargetArrow,
 } from "@tabler/icons-react"
 import type { Metadata } from "next"
-import Script from "next/script"
 import Link from "next/link"
 
 import { Footer } from "@/components/landing/footer"
@@ -59,7 +58,7 @@ const itemListSchema = {
 export default function FeaturesPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <Script
+      <script
         id="item-list-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}

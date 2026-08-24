@@ -58,6 +58,7 @@ export function GET() {
   return new Response(buildPricingMarkdown(), {
     headers: {
       "Content-Type": "text/markdown; charset=utf-8",
+      Vary: "Accept, Accept-Encoding",
     },
   })
 }

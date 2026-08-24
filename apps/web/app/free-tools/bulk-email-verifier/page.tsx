@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { MDXRemote } from "next-mdx-remote/rsc"
-import Script from "next/script"
 import remarkGfm from "remark-gfm"
 
 import { Footer, Navbar } from "@/components/landing"
@@ -80,13 +79,13 @@ export default async function BulkEmailVerifierPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <Script
+      <script
         id="tool-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(toolSchema) }}
       />
       {faqSchema && (
-        <Script
+        <script
           id="faq-schema"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}

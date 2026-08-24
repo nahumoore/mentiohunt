@@ -19,7 +19,6 @@ import {
   WhyMentiohunt,
 } from "@/components/landing"
 import type { Metadata } from "next"
-import Script from "next/script"
 import { LANDING_FAQS } from "@/consts/faq"
 
 export const metadata: Metadata = {
@@ -61,7 +60,7 @@ export default function Page() {
       <LandingPageTracker />
       <SoftwareApplicationSchema />
       <OrganizationSchema />
-      <Script
+      <script
         id="faq-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}

@@ -103,6 +103,19 @@ export function HowItWorksContent({ onDone }: { onDone?: () => void } = {}) {
                 automatically.
               </>
             )}
+            {outreachState === "account_paused" && (
+              <>
+                <IconAlertTriangle className="size-3.5 shrink-0" />
+                You paused outreach — nothing sends until you resume it in{" "}
+                <Link
+                  href="/dashboard/settings?tab=account"
+                  className="underline underline-offset-2 hover:text-amber-700"
+                >
+                  Settings
+                </Link>
+                .
+              </>
+            )}
             {outreachState === "mailbox_paused" && (
               <>
                 <IconAlertTriangle className="size-3.5 shrink-0" />

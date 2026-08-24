@@ -120,7 +120,7 @@ export default async function DashboardLayout({
       supabase
         .from("profiles")
         .select(
-          "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at, email_settings, walkthrough_seen_at, deactivated_at"
+          "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at, email_settings, walkthrough_seen_at, deactivated_at, outreach_paused_at"
         )
         .eq("id", user.id)
         .maybeSingle(),

@@ -127,30 +127,30 @@ export default function SettingsPage() {
 
         <TabsContent value="profile">
           <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
-            <div className="border-b border-border/70 px-5 py-4">
-              <p className="text-sm font-medium">Profile</p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            <div className="border-b border-border/70 px-6 py-5">
+              <p className="text-base font-semibold">Profile</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 Your name and account email.
               </p>
             </div>
-            <div className="space-y-4 px-5 py-4">
+            <div className="space-y-5 px-6 py-5">
               <div className="space-y-2">
-                <Label htmlFor="settings-name">Name</Label>
+                <Label htmlFor="settings-name" className="text-sm">Name</Label>
                 <Input
                   id="settings-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your name"
-                  className="max-w-sm"
+                  className="h-10 max-w-sm text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="settings-email">Email</Label>
+                <Label htmlFor="settings-email" className="text-sm">Email</Label>
                 <Input
                   id="settings-email"
                   value={profile?.email ?? ""}
                   disabled
-                  className="max-w-sm"
+                  className="h-10 max-w-sm text-base"
                 />
               </div>
             </div>
@@ -167,18 +167,18 @@ export default function SettingsPage() {
 
         <TabsContent value="notifications">
           <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
-            <div className="border-b border-border/70 px-5 py-4">
-              <p className="text-sm font-medium">Notifications</p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            <div className="border-b border-border/70 px-6 py-5">
+              <p className="text-base font-semibold">Notifications</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 Choose which emails you want to receive.
               </p>
             </div>
-            <div className="flex items-center gap-4 border-b border-border/70 px-5 py-4 last:border-b-0">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-blaze-orange/10 text-(--color-blaze-orange)">
-                <IconBellRinging className="size-4" />
+            <div className="flex items-center gap-4 border-b border-border/70 px-6 py-5 last:border-b-0">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-blaze-orange/10 text-(--color-blaze-orange)">
+                <IconBellRinging className="size-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">Opportunity alerts</p>
+                <p className="text-base font-medium">Opportunity alerts</p>
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
                   New backlink opportunities ready for review.
                 </p>
@@ -190,12 +190,12 @@ export default function SettingsPage() {
                 className="mt-0.5 shrink-0"
               />
             </div>
-            <div className="flex items-center gap-4 px-5 py-4 last:border-b-0">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-blaze-orange/10 text-(--color-blaze-orange)">
-                <IconSparkles className="size-4" />
+            <div className="flex items-center gap-4 px-6 py-5 last:border-b-0">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-blaze-orange/10 text-(--color-blaze-orange)">
+                <IconSparkles className="size-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">Product updates</p>
+                <p className="text-base font-medium">Product updates</p>
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
                   Tips, new features, and occasional offers.
                 </p>
@@ -212,14 +212,14 @@ export default function SettingsPage() {
 
         <TabsContent value="billing">
           <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
-            <div className="border-b border-border/70 px-5 py-4">
-              <p className="text-sm font-medium">Billing</p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            <div className="border-b border-border/70 px-6 py-5">
+              <p className="text-base font-semibold">Billing</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 Manage your plan and payment details.
               </p>
             </div>
-            <div className="px-5 py-4">
-              <Button variant="outline" size="sm" asChild>
+            <div className="px-6 py-5">
+              <Button variant="outline" asChild>
                 <Link href="/dashboard/billing">
                   <IconCreditCard />
                   Go to billing

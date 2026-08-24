@@ -107,22 +107,22 @@ export function PasswordTab() {
   if (hasPassword === null) {
     return (
       <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
-        <div className="border-b border-border/70 px-5 py-4">
-          <p className="text-sm font-medium">Password</p>
-          <Skeleton className="mt-2 h-3.5 w-full max-w-md" />
-          <Skeleton className="mt-1.5 h-3.5 w-2/3 max-w-sm" />
+        <div className="border-b border-border/70 px-6 py-5">
+          <p className="text-base font-semibold">Password</p>
+          <Skeleton className="mt-2 h-4 w-full max-w-md" />
+          <Skeleton className="mt-1.5 h-4 w-2/3 max-w-sm" />
         </div>
-        <div className="space-y-4 px-5 py-4">
+        <div className="space-y-5 px-6 py-5">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="space-y-2">
-              <Skeleton className="h-3.5 w-32" />
-              <Skeleton className="h-9 max-w-sm" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-10 max-w-sm" />
             </div>
           ))}
         </div>
-        <div className="flex items-center justify-between border-t border-border/70 px-5 py-4">
-          <Skeleton className="h-3.5 w-40" />
-          <Skeleton className="h-9 w-32" />
+        <div className="flex items-center justify-between border-t border-border/70 px-6 py-5">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-10 w-32" />
         </div>
       </div>
     )
@@ -130,18 +130,18 @@ export function PasswordTab() {
 
   return (
     <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
-      <div className="border-b border-border/70 px-5 py-4">
-        <p className="text-sm font-medium">Password</p>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+      <div className="border-b border-border/70 px-6 py-5">
+        <p className="text-base font-semibold">Password</p>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
           {hasPassword === false
             ? "You signed in with Google, so there's no password on this account yet. Set one below if you'd rather sign in with email and password, or to share access with a colleague."
             : "Change the password used to sign in. Sharing account access with a colleague? Give them the new password directly — Mentiohunt doesn’t support separate team logins yet."}
         </p>
       </div>
-      <div className="space-y-4 px-5 py-4">
+      <div className="space-y-5 px-6 py-5">
         {hasPassword !== false && (
           <div className="space-y-2">
-            <Label htmlFor="settings-current-password">Current password</Label>
+            <Label htmlFor="settings-current-password" className="text-sm">Current password</Label>
             <Input
               id="settings-current-password"
               type="password"
@@ -149,12 +149,12 @@ export function PasswordTab() {
               onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Your current password"
               autoComplete="current-password"
-              className="max-w-sm"
+              className="h-10 max-w-sm text-base"
             />
           </div>
         )}
         <div className="space-y-2">
-          <Label htmlFor="settings-new-password">
+          <Label htmlFor="settings-new-password" className="text-sm">
             {hasPassword === false ? "Password" : "New password"}
           </Label>
           <Input
@@ -164,11 +164,11 @@ export function PasswordTab() {
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="At least 8 characters"
             autoComplete="new-password"
-            className="max-w-sm"
+            className="h-10 max-w-sm text-base"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="settings-confirm-password">
+          <Label htmlFor="settings-confirm-password" className="text-sm">
             {hasPassword === false ? "Confirm password" : "Confirm new password"}
           </Label>
           <Input
@@ -178,7 +178,7 @@ export function PasswordTab() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Re-enter password"
             autoComplete="new-password"
-            className="max-w-sm"
+            className="h-10 max-w-sm text-base"
           />
         </div>
       </div>

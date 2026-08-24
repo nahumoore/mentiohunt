@@ -1,14 +1,15 @@
 "use client"
 
-import { IconAlertTriangle, IconPlayerPause, IconPower } from "@tabler/icons-react"
-import { useEffect, useState, useTransition } from "react"
+import { IconAlertTriangle, IconPlayerPause, IconPlayerPlay, IconPower } from "@tabler/icons-react"
+import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import {
   deactivateAccount,
-  getHasPendingOutreach,
+  resumeOutreach,
   stopAllOutreach,
 } from "@/actions/account-actions"
+import { useProfileStore } from "@/stores/profile-store"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -16,23 +17,18 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 export function AccountTab() {
   const [showStopDialog, setShowStopDialog] = useState(false)
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false)
   const [isStopping, startStopTransition] = useTransition()
+  const [isResuming, startResumeTransition] = useTransition()
   const [isDeactivating, startDeactivateTransition] = useTransition()
-  // null while loading -- keep the button enabled until we know for sure,
-  // rather than flashing disabled then re-enabling.
-  const [hasPendingOutreach, setHasPendingOutreach] = useState<boolean | null>(
-    null
-  )
+  const profile = useProfileStore((state) => state.profile)
+  const setProfile = useProfileStore((state) => state.setProfile)
 
-  useEffect(() => {
-    getHasPendingOutreach().then((result) => {
-      if (!result.error) setHasPendingOutreach(result.hasPending ?? true)
-    })
-  }, [])
+  const outreachPaused = profile?.outreach_paused_at != null
 
   function handleStopOutreach() {
     startStopTransition(async () => {
@@ -42,16 +38,30 @@ export function AccountTab() {
         toast.error(result.error)
         return
       }
-      setHasPendingOutreach(false)
+      if (profile) setProfile({ ...profile, outreach_paused_at: result.outreach_paused_at ?? null })
       toast.success(
         result.pausedCount
-          ? `Paused ${result.pausedCount} pending email${result.pausedCount === 1 ? "" : "s"}.`
-          : "No pending emails to pause."
+          ? `Paused everything — canceled ${result.pausedCount} pending email${result.pausedCount === 1 ? "" : "s"}. Discovery and future outreach are paused too.`
+          : "Paused everything — discovery and future outreach are paused."
       )
     })
   }
 
-  const outreachStopped = hasPendingOutreach === false
+  function handleResumeOutreach() {
+    startResumeTransition(async () => {
+      const result = await resumeOutreach()
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      if (profile) setProfile({ ...profile, outreach_paused_at: null })
+      toast.success(
+        result.resumedCount
+          ? `Resumed — ${result.resumedCount} email${result.resumedCount === 1 ? "" : "s"} rescheduled.`
+          : "Resumed — discovery and outreach are running again."
+      )
+    })
+  }
 
   function handleDeactivate() {
     startDeactivateTransition(async () => {
@@ -67,44 +77,83 @@ export function AccountTab() {
     })
   }
 
+  if (!profile) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
+          <div className="border-b border-border/70 px-6 py-5">
+            <Skeleton className="h-5 w-56" />
+            <Skeleton className="mt-2.5 h-4 w-full max-w-md" />
+            <Skeleton className="mt-1.5 h-4 w-2/3 max-w-sm" />
+          </div>
+          <div className="px-6 py-5">
+            <Skeleton className="h-9 w-56" />
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
+          <div className="border-b border-border/70 px-6 py-5">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="mt-2.5 h-4 w-full max-w-md" />
+            <Skeleton className="mt-1.5 h-4 w-1/2 max-w-sm" />
+          </div>
+          <div className="px-6 py-5">
+            <Skeleton className="h-9 w-44" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
-        <div className="border-b border-border/70 px-5 py-4">
-          <p className="text-sm font-medium">Stop all outreach</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Cancels every email that's queued to send but hasn't gone out yet.
-            This is a one-time cleanup of the current queue — new opportunities
-            will still get outreach scheduled as usual going forward. Your
-            account, opportunities, and data stay exactly as they are.
+        <div className="border-b border-border/70 px-6 py-5">
+          <p className="text-base font-semibold">
+            {outreachPaused ? "Outreach and discovery are paused" : "Stop all outreach and discovery"}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            {outreachPaused
+              ? "Every email that's currently queued has been canceled, daily discovery is skipped for your account, and no new outreach gets scheduled. Your account, opportunities, and data stay exactly as they are — resume anytime."
+              : "Cancels every email that's queued to send, pauses daily discovery, and stops any new outreach from being scheduled — until you resume it. Your account, opportunities, and data stay exactly as they are."}
           </p>
         </div>
-        <div className="px-5 py-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowStopDialog(true)}
-            disabled={isStopping || outreachStopped}
-          >
-            <IconPlayerPause />
-            {outreachStopped ? "Outreach stopped" : "Stop all outreach"}
-          </Button>
+        <div className="px-6 py-5">
+          {outreachPaused ? (
+            <Button
+              variant="outline"
+              onClick={handleResumeOutreach}
+              disabled={isResuming}
+            >
+              <IconPlayerPlay />
+              {isResuming ? "Resuming…" : "Resume outreach"}
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={() => setShowStopDialog(true)}
+              disabled={isStopping}
+            >
+              <IconPlayerPause />
+              Stop all outreach and discovery
+            </Button>
+          )}
         </div>
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-destructive/30 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
-        <div className="border-b border-destructive/20 px-5 py-4">
-          <p className="text-sm font-medium text-destructive">Deactivate account</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Stops outreach and pauses daily discovery. Nothing is deleted —
-            but reactivating isn't self-serve. You'll need to email
+        <div className="border-b border-destructive/20 px-6 py-5">
+          <p className="text-base font-semibold text-destructive">Deactivate account</p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            Stops outreach and discovery like pausing above, but also locks
+            you out of the dashboard entirely. Nothing is deleted — but
+            reactivating isn't self-serve. You'll need to email
             support@mentiohunt.com to turn it back on.
           </p>
         </div>
-        <div className="px-5 py-4">
+        <div className="px-6 py-5">
           <Button
             variant="destructive"
-            size="sm"
             onClick={() => setShowDeactivateDialog(true)}
           >
             <IconPower />
@@ -115,12 +164,12 @@ export function AccountTab() {
 
       <Dialog open={showStopDialog} onOpenChange={setShowStopDialog}>
         <DialogContent>
-          <DialogTitle>Stop all outreach?</DialogTitle>
+          <DialogTitle>Stop all outreach and discovery?</DialogTitle>
           <DialogDescription>
-            Every email currently queued to send will be canceled. Your
-            opportunities stay as they are, and new ones will still get
-            scheduled outreach going forward — this only clears what's
-            queued right now.
+            Every email currently queued to send will be canceled, daily
+            discovery will pause, and no new outreach will be scheduled until
+            you resume it. Your opportunities and data stay exactly as they
+            are — this is fully reversible from this page.
           </DialogDescription>
           <div className="mt-4 flex justify-end gap-3">
             <Button
@@ -137,7 +186,7 @@ export function AccountTab() {
               disabled={isStopping}
               className="rounded-full bg-foreground px-5 text-background hover:bg-foreground/90"
             >
-              {isStopping ? "Stopping…" : "Stop all outreach"}
+              {isStopping ? "Stopping…" : "Stop all outreach and discovery"}
             </Button>
           </div>
         </DialogContent>

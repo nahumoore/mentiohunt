@@ -168,6 +168,7 @@ async function loadContext(sequence: ProspectSequence): Promise<{
   signature: string | null
   previousMessageId: string | null
   ownerEligible: boolean
+  outreachPaused: boolean
 } | null> {
   const { data: prospect, error: prospectError } = await supabaseAdmin
     .from("backlink_prospects")
@@ -215,12 +216,13 @@ async function loadContext(sequence: ProspectSequence): Promise<{
 
   const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("name, email, tier, active_trial")
+    .select("name, email, tier, active_trial, outreach_paused_at")
     .eq("id", product.user_id)
     .maybeSingle()
 
   const senderName = profile?.name?.trim() || profile?.email?.split("@")[0] || null
   const ownerEligible = profile !== undefined && profile !== null && (profile.tier !== "free" || profile.active_trial)
+  const outreachPaused = profile?.outreach_paused_at !== null && profile?.outreach_paused_at !== undefined
   let previousMessageId: string | null = null
   if (sequence.step > 1) {
     const { data: previous } = await supabaseAdmin
@@ -235,7 +237,7 @@ async function loadContext(sequence: ProspectSequence): Promise<{
     previousMessageId = previous?.message_id ?? null
   }
 
-  return { prospect, product, account, senderName, signature, previousMessageId, ownerEligible }
+  return { prospect, product, account, senderName, signature, previousMessageId, ownerEligible, outreachPaused }
 }
 
 async function isSuppressed(email: string): Promise<boolean> {
@@ -322,6 +324,18 @@ async function pauseSequenceForTrialExpiry(sequence: ClaimedSequence, recipientE
   })
 }
 
+/** Catches the rare race where a sequence is claimed just as the owner pauses
+ * outreach (account-actions.ts stopAllOutreach), or one is created for an
+ * already-paused account. Re-pauses with the same status pauseAllOutreachForUser
+ * uses, so resumeAllOutreachForUser picks it back up on resume instead of it
+ * being stuck as "sent"/"skipped". */
+async function repauseSequence(sequence: ClaimedSequence): Promise<void> {
+  await supabaseAdmin
+    .from("prospect_sequences")
+    .update({ status: "account_paused", locked_at: null, last_error: "Outreach paused by account owner." })
+    .eq("id", sequence.id)
+}
+
 async function processSequence(sequence: ProspectSequence): Promise<boolean> {
   const claimed = await claimSequence(sequence)
   if (!claimed) {
@@ -339,6 +353,11 @@ async function processSequence(sequence: ProspectSequence): Promise<boolean> {
     const recipientEmail = context.prospect.contact_email ? normalizeEmail(context.prospect.contact_email) : null
     if (!recipientEmail || !claimed.subject?.trim() || !claimed.body?.trim()) {
       await skipSequence(claimed, "Missing recipient, subject, or body.", recipientEmail)
+      return false
+    }
+
+    if (context.outreachPaused) {
+      await repauseSequence(claimed)
       return false
     }
 

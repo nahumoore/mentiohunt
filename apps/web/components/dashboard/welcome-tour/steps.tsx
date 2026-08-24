@@ -312,6 +312,12 @@ function EmailMock() {
             Outreach is live — emails are already going out automatically.
           </>
         )}
+        {outreachState === "account_paused" && (
+          <>
+            <IconAlertTriangle className="size-3.5 shrink-0" />
+            You paused outreach — resume it anytime from Settings.
+          </>
+        )}
         {outreachState === "mailbox_paused" && (
           <>
             <IconInfoCircle className="size-3.5 shrink-0" />

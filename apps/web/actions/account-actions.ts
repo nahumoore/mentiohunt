@@ -2,32 +2,14 @@
 
 import { supabaseServer } from "@/lib/supabase/server"
 import {
-  hasPendingOutreachForUser,
   pauseAllOutreachForUser,
   resumeAllOutreachForUser,
 } from "@/lib/outreach/account-sequences"
 
-/** Whether the account still has outreach queued to send — used to render
- * "Stop all outreach" as disabled on load when everything's already paused. */
-export async function getHasPendingOutreach() {
-  const supabase = await supabaseServer()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) return { error: "Not authenticated" }
-
-  try {
-    const hasPending = await hasPendingOutreachForUser(user.id)
-    return { hasPending }
-  } catch {
-    return { error: "Failed to check outreach status." }
-  }
-}
-
-/** One-shot bulk cancel: pauses every pending outreach send across all of
- * the account's products, without touching the account itself. Discovery
- * keeps running and new opportunities still get sequences as normal. */
+/** Pauses everything: cancels every pending outreach send across the
+ * account's products and marks the account paused so daily discovery skips
+ * it and the sender refuses any sequence it finds for it — until the user
+ * resumes it themselves via resumeOutreach. */
 export async function stopAllOutreach() {
   const supabase = await supabaseServer()
   const {
@@ -38,9 +20,44 @@ export async function stopAllOutreach() {
 
   try {
     const pausedCount = await pauseAllOutreachForUser(user.id)
-    return { pausedCount }
+
+    const outreachPausedAt = new Date().toISOString()
+    const { error } = await supabase
+      .from("profiles")
+      .update({ outreach_paused_at: outreachPausedAt })
+      .eq("id", user.id)
+
+    if (error) return { error: error.message }
+
+    return { pausedCount, outreach_paused_at: outreachPausedAt }
   } catch {
     return { error: "Failed to stop outreach." }
+  }
+}
+
+/** Reverses stopAllOutreach: clears outreach_paused_at so discovery and the
+ * sender resume, then reschedules the paused sequences with a staggered
+ * schedule (not all at once). */
+export async function resumeOutreach() {
+  const supabase = await supabaseServer()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return { error: "Not authenticated" }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ outreach_paused_at: null })
+    .eq("id", user.id)
+
+  if (error) return { error: error.message }
+
+  try {
+    const resumedCount = await resumeAllOutreachForUser(user.id)
+    return { outreach_paused_at: null, resumedCount }
+  } catch {
+    return { error: "Outreach resumed, but restarting the paused emails failed. Contact support." }
   }
 }
 

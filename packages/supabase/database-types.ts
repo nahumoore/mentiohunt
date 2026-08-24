@@ -843,6 +843,7 @@ export type Database = {
           id: string
           name: string | null
           onboarding_completed: boolean
+          outreach_paused_at: string | null
           referral_source: string | null
           role: string | null
           stripe_customer_id: string | null
@@ -862,6 +863,7 @@ export type Database = {
           id: string
           name?: string | null
           onboarding_completed?: boolean
+          outreach_paused_at?: string | null
           referral_source?: string | null
           role?: string | null
           stripe_customer_id?: string | null
@@ -881,6 +883,7 @@ export type Database = {
           id?: string
           name?: string | null
           onboarding_completed?: boolean
+          outreach_paused_at?: string | null
           referral_source?: string | null
           role?: string | null
           stripe_customer_id?: string | null

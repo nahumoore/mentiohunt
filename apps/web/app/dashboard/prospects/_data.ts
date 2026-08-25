@@ -111,16 +111,6 @@ export const STATUS_FILTERS: ProspectFilterConfig[] = [
     label: STATUS_CONFIG.dismissed.label,
     icon: STATUS_CONFIG.dismissed.icon,
   },
-  {
-    value: "email_not_found",
-    label: STATUS_CONFIG.email_not_found.label,
-    icon: STATUS_CONFIG.email_not_found.icon,
-  },
-  {
-    value: "bounced",
-    label: STATUS_CONFIG.bounced.label,
-    icon: STATUS_CONFIG.bounced.icon,
-  },
 ]
 
 export function formatDate(iso: string): string {

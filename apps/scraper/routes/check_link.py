@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from core import (
     CallerGone,
     QueueSaturated,
+    SlotTimedOut,
     _anchors_to_target,
     _dropped_slot_response,
     _execution_log,
@@ -69,7 +70,7 @@ async def check_link(request: CheckLinkRequest, http_request: Request):
         try:
             async with _scrape_slot("light", http_request):
                 result = await fetch_page_detailed(request.url, force_dynamic=request.force_dynamic)
-        except (QueueSaturated, CallerGone) as e:
+        except (QueueSaturated, CallerGone, SlotTimedOut) as e:
             raise _dropped_slot_response(e)
 
         if result.page is None:

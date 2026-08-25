@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express"
 import { createLogger, withRouteLog } from "../helpers/logger.js"
+import { scraperHeavyLimit } from "../helpers/scraper-limits.js"
 
 const log = createLogger("route-dev-test-scraper")
 
@@ -9,27 +10,31 @@ async function callScraper(url: string): Promise<unknown | null> {
     log.warn("SCRAPER_URL not set")
     return null
   }
-  try {
-    const scraperApiKey = process.env.SCRAPER_API_KEY
-    const res = await fetch(`${scraperUrl}/agent-scrape`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
-      },
-      body: JSON.stringify({ url }),
-      signal: AbortSignal.timeout(120_000),
-    })
-    if (!res.ok) {
-      const body = await res.text().catch(() => "(unreadable)")
-      log.warn("scraper error", { url, status: res.status, body })
+
+  // Global heavy-pool slot: the abort timeout starts inside, once we hold it.
+  return scraperHeavyLimit(async () => {
+    try {
+      const scraperApiKey = process.env.SCRAPER_API_KEY
+      const res = await fetch(`${scraperUrl}/agent-scrape`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(scraperApiKey ? { "x-api-key": scraperApiKey } : {}),
+        },
+        body: JSON.stringify({ url }),
+        signal: AbortSignal.timeout(120_000),
+      })
+      if (!res.ok) {
+        const body = await res.text().catch(() => "(unreadable)")
+        log.warn("scraper error", { url, status: res.status, body })
+        return null
+      }
+      return res.json()
+    } catch (err) {
+      log.warn("scraper call failed", { url, error: String(err) })
       return null
     }
-    return res.json()
-  } catch (err) {
-    log.warn("scraper call failed", { url, error: String(err) })
-    return null
-  }
+  })
 }
 
 export const devTestScraperRouter: IRouter = Router()

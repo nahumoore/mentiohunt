@@ -1,4 +1,5 @@
 import { createLogger } from "../../../helpers/logger.js"
+import { competitorNamedInVisibleText } from "../shared/brand-mention.js"
 import { generateOutreachSequence } from "../shared/generate-outreach-sequence.js"
 import { EMPTY_ENRICHMENT, type EmailSettings, type EnrichedColumns } from "../shared/prospect-types.js"
 import { enrichContact } from "./enrich-contact.js"
@@ -21,6 +22,21 @@ export async function enrichProspect(
     const contact = await enrichContact(item.urlFrom, item.pageType, domain)
     const social = Object.keys(contact.social_links).length > 0 ? contact.social_links : null
 
+    const competitorNamedInText = competitorNamedInVisibleText(item.competitorDomain, [
+      item.anchor,
+      item.title,
+      item.textPre,
+      item.textPost,
+    ])
+    const outreachContext = {
+      opportunityType: "competitor_backlink" as const,
+      title: item.title,
+      anchor: item.anchor,
+      pageType: item.pageType,
+      competitorDomain: item.competitorDomain,
+      competitorNamedInText,
+    }
+
     if (!contact.email) {
       log.info("contact name without email", { domain, contactName: contact.name })
       return {
@@ -33,26 +49,14 @@ export async function enrichProspect(
         step3_body: null,
         raw_metadata: {
           ...(contact.rawMetadata ?? {}),
-          outreach_context: {
-            opportunityType: "competitor_backlink",
-            title: item.title,
-            anchor: item.anchor,
-            pageType: item.pageType,
-            competitorDomain: item.competitorDomain,
-          },
+          outreach_context: outreachContext,
         },
       }
     }
 
     const emailResult = await generateOutreachSequence(
       product,
-      {
-        opportunityType: "competitor_backlink",
-        title: item.title,
-        anchor: item.anchor,
-        pageType: item.pageType,
-        competitorDomain: item.competitorDomain,
-      },
+      outreachContext,
       {
         contactName: contact.name,
         senderName: sender.name,
@@ -77,7 +81,10 @@ export async function enrichProspect(
       email_body: emailResult?.step1Body ?? null,
       step2_body: emailResult?.step2Body ?? null,
       step3_body: emailResult?.step3Body ?? null,
-      raw_metadata: contact.rawMetadata,
+      raw_metadata: {
+        ...(contact.rawMetadata ?? {}),
+        outreach_context: outreachContext,
+      },
     }
   } catch (err) {
     log.warn("prospect enrichment failed", { domain, error: String(err) })

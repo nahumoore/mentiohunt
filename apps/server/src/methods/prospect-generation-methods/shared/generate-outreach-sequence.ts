@@ -24,6 +24,11 @@ export type OutreachContext =
       anchor: string
       pageType: PageType
       competitorDomain: string
+      /** Whether the competitor's brand name actually appears in the page's
+       * visible text (anchor, title, or surrounding copy) rather than only
+       * being present as a link destination. False for plain citation links
+       * so the copy never claims they "mentioned" a brand they never named. */
+      competitorNamedInText: boolean
     }
   | {
       opportunityType: "unlinked_mention"
@@ -115,16 +120,20 @@ function sanitizeUserInput(input: string | null | undefined): string | null {
   return stripDashes(input.trim().slice(0, MAX_USER_INPUT_LENGTH))
 }
 
-function buildAngle(pageType: PageType, competitorDomain: string): string {
+function buildAngle(pageType: PageType, competitorDomain: string, competitorNamedInText: boolean): string {
   switch (pageType) {
     case "roundup":
       return `The page is a roundup of tools. Pitch adding this product alongside ${competitorDomain}.`
     case "comparison":
       return `The page compares ${competitorDomain} with others. Offer to provide info or a trial to be included.`
     case "resource":
-      return `The page is an educational resource that mentions ${competitorDomain}. Suggest adding this product as a useful addition for readers.`
+      return competitorNamedInText
+        ? `The page is an educational resource that mentions ${competitorDomain}. Suggest adding this product as a useful addition for readers.`
+        : `The page is an educational resource that links to a ${competitorDomain} article as a citation, but never names ${competitorDomain} in its visible text. Suggest adding this product as a useful additional resource for readers.`
     case "brand-mention":
-      return `The page mentions ${competitorDomain}. Position this product as an alternative worth including.`
+      return competitorNamedInText
+        ? `The page mentions ${competitorDomain}. Position this product as an alternative worth including.`
+        : `The page links to ${competitorDomain} but never names it in visible text (a plain citation link). Position this product as a relevant addition worth including.`
     default:
       return `The page links to ${competitorDomain}. Introduce this product as a relevant alternative.`
   }
@@ -178,9 +187,12 @@ function buildFraming(context: OutreachContext): { situation: string; opening: s
     }
   }
 
-  const angle = buildAngle(context.pageType, context.competitorDomain)
+  const angle = buildAngle(context.pageType, context.competitorDomain, context.competitorNamedInText)
+  const namingCaveat = context.competitorNamedInText
+    ? ""
+    : `\nImportant: ${context.competitorDomain} is never named as visible text on the page, it is only a link destination. Do not say they "mention", "wrote about", or "recommend" ${context.competitorDomain} by name anywhere in the emails, reference the link/citation instead.`
   return {
-    situation: `Anchor text used for competitor: ${context.anchor || "(unknown)"}\nOutreach angle: ${angle}`,
+    situation: `Anchor text used for competitor: ${context.anchor || "(unknown)"}\nOutreach angle: ${angle}${namingCaveat}`,
     opening: `One sentence showing you noticed their specific page, making it feel real, not templated.\n- One sentence on why this product belongs alongside ${context.competitorDomain}, specific, no buzzwords.`,
     ask: `One short, direct ask: inclusion, mention, or link.`,
   }

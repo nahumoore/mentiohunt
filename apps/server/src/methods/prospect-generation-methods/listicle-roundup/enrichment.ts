@@ -45,6 +45,18 @@ export async function enrichListicle(
         ?.map(extractCompetitorDomain)
         .find((domain) => domain && !isBlockedCompetitorDomain(domain)) ?? "similar tools")
 
+    // A roundup is by definition a visible list of tool names, so the
+    // competitor is always named in text here — unlike competitor_backlink,
+    // which can be a plain citation link with no brand name in view.
+    const outreachContext = {
+      opportunityType: "listicle_roundup" as const,
+      title: item.title,
+      anchor: "",
+      pageType: "roundup" as const,
+      competitorDomain,
+      competitorNamedInText: true,
+    }
+
     if (!contact.email) {
       log.info("contact name without email", { domain: item.domain, contactName: contact.name })
       return {
@@ -57,26 +69,14 @@ export async function enrichListicle(
         step3_body: null,
         raw_metadata: {
           ...(contact.rawMetadata ?? {}),
-          outreach_context: {
-            opportunityType: "listicle_roundup",
-            title: item.title,
-            anchor: "",
-            pageType: "roundup",
-            competitorDomain,
-          },
+          outreach_context: outreachContext,
         },
       }
     }
 
     const emailResult = await generateOutreachSequence(
       product,
-      {
-        opportunityType: "listicle_roundup",
-        title: item.title,
-        anchor: "",
-        pageType: "roundup",
-        competitorDomain,
-      },
+      outreachContext,
       {
         contactName: contact.name,
         senderName: sender.name,
@@ -101,7 +101,10 @@ export async function enrichListicle(
       email_body: emailResult?.step1Body ?? null,
       step2_body: emailResult?.step2Body ?? null,
       step3_body: emailResult?.step3Body ?? null,
-      raw_metadata: contact.rawMetadata,
+      raw_metadata: {
+        ...(contact.rawMetadata ?? {}),
+        outreach_context: outreachContext,
+      },
     }
   } catch (err) {
     log.warn("listicle enrichment failed", { domain: item.domain, error: String(err) })

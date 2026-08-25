@@ -10,6 +10,7 @@ import {
   type OutreachContext,
 } from "../methods/prospect-generation-methods/shared/generate-outreach-sequence.js"
 import type { PageType } from "../methods/prospect-generation-methods/competitor-backlink/score-backlink-relevance.js"
+import { extractDomainFromUrl } from "../methods/prospect-generation-methods/shared/url-filters.js"
 
 const log = createLogger("route-prospect-manual-outreach")
 
@@ -40,6 +41,7 @@ type StoredOutreachContext =
       anchor: string
       pageType: PageType
       competitorDomain: string
+      competitorNamedInText: boolean
     }
   | {
       opportunityType: "unlinked_mention"
@@ -125,12 +127,23 @@ export function buildOutreachContext(prospect: {
     }
   }
 
+  // Legacy rows predating outreach_context persistence: for competitor_backlink,
+  // the actual competitor lives in target_url (prospect.domain is the linking
+  // site, not the competitor). No reliable source for listicle_roundup, so it
+  // falls back to the linking domain as before. Either way, treat the
+  // competitor as unnamed in text since we have no anchor/copy to check.
+  const competitorDomain =
+    prospect.tier === "competitor_backlink" && prospect.target_url
+      ? extractDomainFromUrl(prospect.target_url)
+      : (prospect.domain ?? "")
+
   return {
     opportunityType: prospect.tier,
     title: prospect.domain ?? "",
     anchor: "",
     pageType: "other",
-    competitorDomain: prospect.domain ?? "",
+    competitorDomain,
+    competitorNamedInText: false,
   }
 }
 

@@ -9,6 +9,7 @@ from core import (
     CallerGone,
     QueueSaturated,
     ScrapeRequest,
+    SlotTimedOut,
     _clean_name,
     _dropped_slot_response,
     _execution_log,
@@ -31,7 +32,7 @@ async def agent_scrape(request: ScrapeRequest, http_request: Request):
         try:
             async with _scrape_slot("heavy", http_request):
                 return await run_agent_scrape(url=request.url, helpers=_get_agent_helpers())
-        except (QueueSaturated, CallerGone) as e:
+        except (QueueSaturated, CallerGone, SlotTimedOut) as e:
             raise _dropped_slot_response(e)
 
 
@@ -50,7 +51,7 @@ async def byline_scrape(request: ScrapeRequest, http_request: Request):
         try:
             async with _scrape_slot("light", http_request):
                 page = await fetch_page(request.url)
-        except (QueueSaturated, CallerGone) as e:
+        except (QueueSaturated, CallerGone, SlotTimedOut) as e:
             raise _dropped_slot_response(e)
         if not page:
             return BylineScrapeResponse(name=None, author_hints=[], author_url=None)

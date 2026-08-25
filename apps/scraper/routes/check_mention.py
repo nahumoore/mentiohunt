@@ -12,6 +12,7 @@ from core import (
     CheckMentionRequest,
     CheckMentionResponse,
     QueueSaturated,
+    SlotTimedOut,
     _dropped_slot_response,
     _execution_log,
     _get_agent_helpers,
@@ -39,7 +40,7 @@ async def check_mention(request: CheckMentionRequest, http_request: Request):
         try:
             async with _scrape_slot("heavy", http_request):
                 return await _run_check_mention(request)
-        except (QueueSaturated, CallerGone) as e:
+        except (QueueSaturated, CallerGone, SlotTimedOut) as e:
             raise _dropped_slot_response(e)
 
 

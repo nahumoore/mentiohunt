@@ -6,6 +6,7 @@ import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
 import { sendTrackedLinkDigests } from "./link-tracker-digest.js"
 import { runProspectOutreachSender } from "./prospect-outreach-sender.js"
 import { runProspectOutreachMonitor } from "./prospect-outreach-monitor.js"
+import { checkScraperPoolHealth } from "./scraper-pool-health-monitor.js"
 import { resumeEligibleTrialExpiredSequences } from "../helpers/outreach/trial-sequences.js"
 
 export function registerJobs(): void {
@@ -63,23 +64,27 @@ export function registerJobs(): void {
   })
   console.log("[cron] Scheduled: prospect outreach monitor (every 5 minutes)")
 
-  cron.schedule("0 7 * * *", async () => {
+  // :03 rather than :00 — the outreach sender fires every 5 min on the hour
+  // (:00, :05, ...) and the monitor 2 min after (:02, :07, ...); landing here
+  // instead avoids stacking this run's scraper volume on top of both in the
+  // same 1-2 min window. See 2026-08-25-scraper-pool-slots-leak-on-hung-request.md.
+  cron.schedule("3 7 * * *", async () => {
     try {
       await runDailyBacklinkDiscovery()
     } catch (err) {
       console.error("[cron] Error running daily backlink discovery:", err)
     }
   })
-  console.log("[cron] Scheduled: daily backlink discovery, all active users (07:00 UTC)")
+  console.log("[cron] Scheduled: daily backlink discovery, all active users (07:03 UTC)")
 
-  cron.schedule("0 19 * * *", async () => {
+  cron.schedule("3 19 * * *", async () => {
     try {
       await runDailyBacklinkDiscovery({ paidOnly: true })
     } catch (err) {
       console.error("[cron] Error running paid-only backlink discovery:", err)
     }
   })
-  console.log("[cron] Scheduled: 2nd backlink discovery run, paid users only (19:00 UTC)")
+  console.log("[cron] Scheduled: 2nd backlink discovery run, paid users only (19:03 UTC)")
 
   cron.schedule("30 3 * * *", async () => {
     try {
@@ -107,4 +112,13 @@ export function registerJobs(): void {
     }
   })
   console.log("[cron] Scheduled: link tracker digest emails (17:00 UTC)")
+
+  cron.schedule("*/2 * * * *", async () => {
+    try {
+      await checkScraperPoolHealth()
+    } catch (err) {
+      console.error("[cron] Error checking scraper pool health:", err)
+    }
+  })
+  console.log("[cron] Scheduled: scraper pool health monitor (every 2 minutes)")
 }

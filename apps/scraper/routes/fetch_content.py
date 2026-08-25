@@ -9,6 +9,7 @@ from core import (
     CallerGone,
     QueueSaturated,
     ScrapeRequest,
+    SlotTimedOut,
     _dropped_slot_response,
     _execution_log,
     _require_api_key,
@@ -50,7 +51,7 @@ async def fetch_content(request: ScrapeRequest, http_request: Request):
         try:
             async with _scrape_slot("light", http_request):
                 page = await fetch_page(request.url)
-        except (QueueSaturated, CallerGone) as e:
+        except (QueueSaturated, CallerGone, SlotTimedOut) as e:
             raise _dropped_slot_response(e)
         if not page:
             raise HTTPException(status_code=502, detail="fetch failed")

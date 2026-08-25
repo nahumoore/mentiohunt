@@ -288,17 +288,53 @@ _LIGHT_MAX_QUEUE = int(os.getenv("SCRAPE_LIGHT_MAX_QUEUE", "60"))
 _STEALTHY_MAX_QUEUE = int(os.getenv("SCRAPE_STEALTHY_MAX_QUEUE", "20"))
 _MAX_QUEUE = {"heavy": _HEAVY_MAX_QUEUE, "light": _LIGHT_MAX_QUEUE, "stealthy": _STEALTHY_MAX_QUEUE}
 
+# Hard ceiling on how long a caller may hold its slot once acquired. Without
+# this, a coroutine that hangs below the existing tool-level timeouts (60s
+# Playwright nav in main.py, 30s LLM call in agent_enrich.py) — stuck in the
+# network stack, a lock, or anywhere else not covered by those — holds its
+# semaphore slot forever, since _scrape_slot's `finally` only fires once the
+# wrapped work actually returns or raises. Each stuck request then
+# permanently drains one unit from a fixed pool until nothing is left. See
+# 2026-08-25-scraper-pool-slots-leak-on-hung-request.md. Set just above the
+# longest Node-side abort budget (180s for check-mention) so this fires only
+# for requests Node would already have given up on.
+_SLOT_TIMEOUT_SECONDS = int(os.getenv("SCRAPE_SLOT_TIMEOUT_SECONDS", "185"))
+
 # Live occupancy per pool, for the /health endpoint and queue logging. Guarded
 # only by the single-threaded event loop — no lock needed.
 _pool_stats = {
-    "heavy": {"active": 0, "waiting": 0, "capacity": _HEAVY_CONCURRENCY, "abandoned": 0, "rejected": 0},
-    "light": {"active": 0, "waiting": 0, "capacity": _LIGHT_CONCURRENCY, "abandoned": 0, "rejected": 0},
-    "stealthy": {"active": 0, "waiting": 0, "capacity": _STEALTHY_CONCURRENCY, "abandoned": 0, "rejected": 0},
+    "heavy": {
+        "active": 0,
+        "waiting": 0,
+        "capacity": _HEAVY_CONCURRENCY,
+        "abandoned": 0,
+        "rejected": 0,
+        "timed_out": 0,
+    },
+    "light": {
+        "active": 0,
+        "waiting": 0,
+        "capacity": _LIGHT_CONCURRENCY,
+        "abandoned": 0,
+        "rejected": 0,
+        "timed_out": 0,
+    },
+    "stealthy": {
+        "active": 0,
+        "waiting": 0,
+        "capacity": _STEALTHY_CONCURRENCY,
+        "abandoned": 0,
+        "rejected": 0,
+        "timed_out": 0,
+    },
 }
 
 
 def pool_stats() -> dict:
-    return {pool: dict(stats) for pool, stats in _pool_stats.items()}
+    """Live occupancy plus static config (max_queue) per pool — external
+    monitors (e.g. a Node-side cron hitting /health) need max_queue alongside
+    waiting to detect "queue is also fully saturated", not just "pool busy"."""
+    return {pool: {**stats, "max_queue": _MAX_QUEUE[pool]} for pool, stats in _pool_stats.items()}
 
 
 class QueueSaturated(Exception):
@@ -313,6 +349,15 @@ class QueueSaturated(Exception):
 class CallerGone(Exception):
     """Raised by _scrape_slot when `request` disconnected while queued — the
     route should drop the job instead of running a fetch nobody will read."""
+
+    def __init__(self, pool: str):
+        self.pool = pool
+
+
+class SlotTimedOut(Exception):
+    """Raised by _scrape_slot when the wrapped work held its slot longer than
+    _SLOT_TIMEOUT_SECONDS — the route should fail loud (504) instead of
+    leaving the caller hanging past its own abort budget anyway."""
 
     def __init__(self, pool: str):
         self.pool = pool
@@ -355,18 +400,27 @@ async def _scrape_slot(pool: str, request: Request | None = None):
             stats["abandoned"] += 1
             log.info(f"scrape slot ({pool}) caller already gone — dropping abandoned job before work starts")
             raise CallerGone(pool)
-        yield
+        try:
+            async with asyncio.timeout(_SLOT_TIMEOUT_SECONDS):
+                yield
+        except TimeoutError:
+            stats["timed_out"] += 1
+            log.warning(f"scrape slot ({pool}) held past {_SLOT_TIMEOUT_SECONDS}s, forcing release")
+            raise SlotTimedOut(pool)
     finally:
         stats["active"] -= 1
         semaphore.release()
 
 
-def _dropped_slot_response(exc: QueueSaturated | CallerGone) -> HTTPException:
+def _dropped_slot_response(exc: QueueSaturated | CallerGone | SlotTimedOut) -> HTTPException:
     """Shared mapping from a _scrape_slot drop to the HTTPException a route
-    should raise — routes just need `except (QueueSaturated, CallerGone) as e:
+    should raise — routes just need
+    `except (QueueSaturated, CallerGone, SlotTimedOut) as e:
     raise _dropped_slot_response(e)`."""
     if isinstance(exc, QueueSaturated):
         return HTTPException(status_code=503, detail=f"scraper {exc.pool} queue is saturated, try again later")
+    if isinstance(exc, SlotTimedOut):
+        return HTTPException(status_code=504, detail=f"scraper {exc.pool} request exceeded {_SLOT_TIMEOUT_SECONDS}s")
     return HTTPException(status_code=499, detail="client disconnected")
 
 # --- Auth --------------------------------------------------------------------

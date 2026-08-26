@@ -143,8 +143,10 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --font-sans: var(--font-sans);
-  --font-heading: var(--font-heading);
-  --font-ui: var(--font-ui);
+  --font-heading: var(--font-sans);
+  --font-ui: var(--font-sans);
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --color-brand-primary: var(--brand-primary);
   --color-brand-primary-60: var(--brand-primary-60);

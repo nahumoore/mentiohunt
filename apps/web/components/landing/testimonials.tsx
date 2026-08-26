@@ -93,7 +93,8 @@ export function Testimonials() {
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
           <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
-            Loved by founders who build backlinks without running outreach themselves.
+            Loved by founders who build backlinks without running outreach
+            themselves.
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Real feedback from small teams using Mentiohunt to spot relevant
@@ -104,32 +105,6 @@ export function Testimonials() {
         <div className="mx-auto mt-14 max-w-6xl space-y-5 [mask-image:linear-gradient(to_right,transparent,black_9%,black_91%,transparent)]">
           <TestimonialMarquee items={firstRow} />
           <TestimonialMarquee items={secondRow} reverse />
-        </div>
-
-        <div className="mx-auto mt-16 max-w-6xl rounded-[2rem] border border-border bg-card/70 px-8 py-9 shadow-[0_24px_80px_-64px_rgba(255,84,0,0.7)] backdrop-blur-sm sm:px-10 lg:px-14">
-          <div className="text-center">
-            <p className="text-[0.7rem] font-bold text-muted-foreground uppercase">
-              Trusted by Brands like
-            </p>
-          </div>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-6 sm:gap-x-12 lg:gap-x-16 xl:gap-x-20">
-            {trustedBy.map((item) => (
-              <div
-                key={item.name}
-                className="group flex h-14 items-center justify-center gap-3 opacity-65 transition duration-300 hover:-translate-y-0.5 hover:opacity-100"
-                title={item.name}
-              >
-                <item.icon className="h-8 w-auto text-foreground transition duration-300 group-hover:text-blaze-orange" />
-                {item.showName ? (
-                  <span className="text-2xl font-semibold tracking-tight text-foreground transition duration-300 group-hover:text-blaze-orange">
-                    {item.name}
-                  </span>
-                ) : (
-                  <span className="sr-only">{item.name}</span>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 

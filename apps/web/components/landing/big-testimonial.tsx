@@ -40,8 +40,9 @@ export function BigTestimonial() {
                     id="big-testimonial-title"
                     className="font-heading text-2xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-3xl lg:text-[2.45rem]"
                   >
-                    I love how easy Mentiohunt makes it to find relevant and
-                    high-quality websites for link building!!
+                    This tool found an opportunity on one of the sites with
+                    most authority in my niche, and I got a backlink in 12
+                    days without paying for it, crazy!
                   </h2>
                 </blockquote>
               </div>

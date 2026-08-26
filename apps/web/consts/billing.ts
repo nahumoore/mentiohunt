@@ -46,12 +46,20 @@ export function getMaxCompetitors(tier: BillingTier | null | undefined) {
   return MAX_COMPETITORS_FREE
 }
 
+// Shared across /pricing, /dashboard/billing, and the onboarding paywall step —
+// all three render the Pro feature list and need to recognize this one entry
+// to attach its tooltip.
+export const WARMUP_FEATURE_LABEL = "Free inbox warmup"
+export const WARMUP_FEATURE_INFO =
+  "Warmup applies to your personal outreach account. Connect one if you'd rather send from your own domain than using a shared inbox pool."
+
 export interface Plan {
   key: keyof typeof PLAN_TIERS
   tier: BillingTier
   stripePriceId: string
   name: string
   price: string
+  originalPrice: string
   description: string
   features: string[]
   popular: boolean
@@ -64,6 +72,7 @@ export const PLANS: Plan[] = [
     stripePriceId: "price_1TYvkTHoiNfmn8GhTMo6cm2j",
     name: "Pro",
     price: "49",
+    originalPrice: "79",
     description: "For individual founders building their backlink queue.",
     features: [
       "1 website",
@@ -83,6 +92,7 @@ export const PLANS: Plan[] = [
     stripePriceId: "price_1TYvkzHoiNfmn8GhMduOno62",
     name: "Agency",
     price: "99",
+    originalPrice: "149",
     description: "For teams managing backlinks across multiple sites.",
     features: [
       "Up to 5 websites",

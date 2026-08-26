@@ -7,7 +7,6 @@ import {
   IconArrowLeft,
   IconArrowRight,
   IconBuilding,
-  IconCheck,
   IconFiles,
   IconLoader2,
   IconPackage,
@@ -16,15 +15,17 @@ import {
   IconSwords,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
-import { cn } from "@workspace/ui/lib/utils"
+import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
+import { stripeBuyPlanRedirect } from "@/actions/stripe-buy-plan-redirect"
+import { OnboardingShell } from "@/components/onboarding/onboarding-shell"
 import { StepCompany } from "@/components/onboarding/step-company"
 import { StepKeywords } from "@/components/onboarding/step-keywords"
 import { StepCompetitors } from "@/components/onboarding/step-competitors"
 import { StepImportantPages } from "@/components/onboarding/step-important-pages"
-import { StepLaunch } from "@/components/onboarding/step-launch"
+import { StepPaywall } from "@/components/onboarding/step-paywall"
 import { StepProduct } from "@/components/onboarding/step-product"
 import { StepUrl } from "@/components/onboarding/step-url"
 import {
@@ -75,7 +76,13 @@ function normalizeSubmissionData(data: OnboardingData): OnboardingData {
   }
 }
 
-export function OnboardingWizard({ userName, emailConfirmed }: { userName?: string | null; emailConfirmed?: boolean }) {
+export function OnboardingWizard({
+  userName,
+  emailConfirmed,
+}: {
+  userName?: string | null
+  emailConfirmed?: boolean
+}) {
   const router = useRouter()
   const {
     hasHydrated,
@@ -83,7 +90,6 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
     data,
     setCurrentStep,
     updateData,
-    setIsCompleted,
   } = useOnboardingStore()
 
   useEffect(() => {
@@ -105,11 +111,15 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
   const [loadingFields, setLoadingFields] = useState<Set<LoadingField>>(new Set())
 
   const safeData = normalizeOnboardingData(data)
+  // lastStepIndex is the last *counted* setup step (drives the "Step X / Y"
+  // label and progress bar). The trial-start/paywall screen is one more,
+  // un-numbered step past it — maxStepIndex accounts for that.
+  const lastStepIndex = ONBOARDING_STEPS.length - 1
+  const maxStepIndex = lastStepIndex + 1
 
   useEffect(() => {
-    const lastStepIndex = ONBOARDING_STEPS.length - 1
-    if (currentStep > lastStepIndex) setCurrentStep(lastStepIndex)
-  }, [currentStep, setCurrentStep])
+    if (currentStep > maxStepIndex) setCurrentStep(maxStepIndex)
+  }, [currentStep, maxStepIndex, setCurrentStep])
 
   const clearFieldError = (field: OnboardingField) => {
     setFieldErrors((current) => {
@@ -137,6 +147,14 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
     })
   }
 
+  const markGenerationFailure = (field: LoadingField, message: string) => {
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: current[field] ?? message,
+    }))
+    captureEvent("onboarding_failed", { field })
+  }
+
   const generateCompetitors = async (
     site: FetchedSiteDetails,
     websiteUrl: string,
@@ -149,11 +167,26 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ site, websiteUrl, productName, productDescription }),
       })
-      const json = await res.json()
-      if (res.ok) {
-        updateData({ competitors: (json as { competitors: string[] }).competitors })
-        captureEvent("onboarding_ai_generated", { field: "competitors" })
+      const json = (await res.json().catch(() => null)) as {
+        competitors?: string[]
+        error?: string
+      } | null
+
+      if (!res.ok || !json?.competitors) {
+        markGenerationFailure(
+          "competitors",
+          json?.error ?? "We couldn't generate competitors. Add them manually."
+        )
+        return
       }
+
+      updateData({ competitors: json.competitors })
+      captureEvent("onboarding_ai_generated", { field: "competitors" })
+    } catch {
+      markGenerationFailure(
+        "competitors",
+        "We couldn't generate competitors. Add them manually."
+      )
     } finally {
       clearLoadingFields("competitors")
     }
@@ -171,11 +204,26 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ site, websiteUrl, productName, productDescription }),
       })
-      const json = await res.json()
-      if (res.ok) {
-        updateData({ targetKeywords: (json as { keywords: string[] }).keywords })
-        captureEvent("onboarding_ai_generated", { field: "keywords" })
+      const json = (await res.json().catch(() => null)) as {
+        keywords?: string[]
+        error?: string
+      } | null
+
+      if (!res.ok || !json?.keywords) {
+        markGenerationFailure(
+          "targetKeywords",
+          json?.error ?? "We couldn't generate keywords. Add them manually."
+        )
+        return
       }
+
+      updateData({ targetKeywords: json.keywords })
+      captureEvent("onboarding_ai_generated", { field: "targetKeywords" })
+    } catch {
+      markGenerationFailure(
+        "targetKeywords",
+        "We couldn't generate keywords. Add them manually."
+      )
     } finally {
       clearLoadingFields("targetKeywords")
     }
@@ -190,13 +238,29 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ site }),
       })
-      const json = await res.json()
-      if (res.ok) {
-        productName = (json as { productName: string }).productName
-        productDescription = (json as { productDescription: string }).productDescription
-        updateData({ productName, productDescription })
-        captureEvent("onboarding_ai_generated", { field: "product" })
+      const json = (await res.json().catch(() => null)) as {
+        productName?: string
+        productDescription?: string
+        error?: string
+      } | null
+
+      if (!res.ok || !json?.productName || !json.productDescription) {
+        markGenerationFailure(
+          "productName",
+          json?.error ?? "We couldn't draft your product details. Add them manually."
+        )
+        return
       }
+
+      productName = json.productName
+      productDescription = json.productDescription
+      updateData({ productName, productDescription })
+      captureEvent("onboarding_ai_generated", { field: "product" })
+    } catch {
+      markGenerationFailure(
+        "productName",
+        "We couldn't draft your product details. Add them manually."
+      )
     } finally {
       clearLoadingFields("productName", "productDescription")
       void generateCompetitors(site, websiteUrl, productName, productDescription)
@@ -319,7 +383,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
 
   const nextStep = () => {
     if (!validateStep(currentStep)) return
-    const stepNames = ["url", "company", "product", "competitors", "keywords", "pages", "launch"] as const
+    const stepNames = ["url", "company", "product", "competitors", "keywords", "pages"] as const
     captureEvent("onboarding_step_completed", {
       step: stepNames[currentStep] ?? String(currentStep),
       step_index: currentStep,
@@ -330,7 +394,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
         role: safeData.role,
       })
     }
-    setCurrentStep(Math.min(currentStep + 1, ONBOARDING_STEPS.length - 1))
+    setCurrentStep(Math.min(currentStep + 1, maxStepIndex))
     setSubmitMessage("")
   }
 
@@ -340,7 +404,11 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
     setFieldErrors({})
   }
 
-  const handleSubmit = async () => {
+  // Persists setup (no card required yet), then immediately hands off to
+  // Stripe Checkout — a card is always required to finish onboarding, so
+  // there's no direct-complete path. Discovery/outreach only start once
+  // checkout succeeds, via app/onboarding/checkout-complete/route.ts.
+  const handleStartTrial = async () => {
     if (isSubmitting) return
 
     const normalizedData = normalizeSubmissionData(safeData)
@@ -363,7 +431,7 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
       const response = await fetch("/api/onboarding/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(result.data),
+        body: JSON.stringify({ ...result.data, startOutreach: false }),
       })
 
       const json = (await response.json().catch(() => null)) as {
@@ -376,14 +444,24 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
         return
       }
 
-      captureEvent("onboarding_completed", {
+      captureEvent("onboarding_setup_saved", {
         competitors_count: result.data.competitors?.length ?? 0,
         keywords_count: result.data.targetKeywords?.length ?? 0,
       })
-      setIsCompleted(true)
-      router.replace("/dashboard/prospects")
-      router.refresh()
-    } catch {
+
+      try {
+        await stripeBuyPlanRedirect({
+          plan: "pro",
+          context: "onboarding",
+          autoDiscoverPages: result.data.autoDiscoverPages,
+        })
+      } catch (err) {
+        if (isRedirectError(err)) throw err
+        setSubmitMessage("Something went wrong starting checkout. Please try again.")
+        setIsSubmitting(false)
+      }
+    } catch (err) {
+      if (isRedirectError(err)) throw err
       setSubmitMessage("Failed to reach the server. Check your connection.")
       setIsSubmitting(false)
     }
@@ -406,67 +484,55 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
     )
   }
 
-  if (currentStep === 0) {
-    return (
-      <StepUrl
-        userName={userName}
-        data={safeData}
-        errors={fieldErrors}
-        submitMessage={submitMessage}
-        isFetching={isFetchingSite}
-        isSigningOut={isSigningOut}
-        onUrlChange={(value) => updateField("websiteUrl", value)}
-        onNameChange={(value) => updateField("userName", value)}
-        onSubmit={() => void startGeneration()}
-        onSignOut={() => void handleSignOut()}
-      />
-    )
-  }
+  const isUrlStep = currentStep === 0
+  // One extra, un-numbered screen past the counted setup steps — pricing
+  // shows there directly, with no "Launch"/review step in between.
+  const isPaywallStep = currentStep === lastStepIndex + 1
 
-  const lastStepIndex = ONBOARDING_STEPS.length - 1
-  const isLastStep = currentStep === lastStepIndex
-
-  const stepIcons = [null, IconBuilding, IconPackage, IconSwords, IconSearch, IconFiles, IconRocket]
+  const stepIcons = [null, IconBuilding, IconPackage, IconSwords, IconSearch, IconFiles]
   const StepIcon = stepIcons[currentStep] ?? null
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center px-4 py-16 sm:px-6">
-      <button
-        type="button"
-        onClick={() => void handleSignOut()}
-        disabled={isSigningOut}
-        className="fixed top-5 right-5 z-20 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40 sm:top-6 sm:right-6"
-      >
-        {isSigningOut ? "Signing out..." : "Sign out"}
-      </button>
-
-      <div className="w-full max-w-xl">
-        <div className="mb-2 text-xs text-muted-foreground">
-          Step {currentStep} of {lastStepIndex}
-        </div>
-        <div className="mb-8 h-1 w-full rounded-full bg-border">
-          <div
-            className="h-1 rounded-full bg-primary transition-all duration-500"
-            style={{ width: `${(currentStep / lastStepIndex) * 100}%` }}
-          />
-        </div>
-
-        <div
-          key={currentStep}
-          className="animate-in duration-200 fade-in slide-in-from-bottom-2"
-        >
+    <OnboardingShell
+      stepIndex={currentStep}
+      lastStepIndex={lastStepIndex}
+      finalStepLabel={isPaywallStep ? "One last step" : undefined}
+      isSigningOut={isSigningOut}
+      onSignOut={() => void handleSignOut()}
+    >
+      {isUrlStep ? (
+        <StepUrl
+          userName={userName}
+          data={safeData}
+          errors={fieldErrors}
+          submitMessage={submitMessage}
+          isFetching={isFetchingSite}
+          onUrlChange={(value) => updateField("websiteUrl", value)}
+          onNameChange={(value) => updateField("userName", value)}
+          onSubmit={() => void startGeneration()}
+        />
+      ) : (
+        <div>
           <div className="flex items-center gap-3 pt-2">
-            {StepIcon && (
+            {isPaywallStep ? (
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <StepIcon className="h-5 w-5" strokeWidth={1.75} />
+                <IconRocket className="h-5 w-5" strokeWidth={1.75} />
               </div>
+            ) : (
+              StepIcon && (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <StepIcon className="h-5 w-5" strokeWidth={1.75} />
+                </div>
+              )
             )}
             <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              {ONBOARDING_STEPS[currentStep]!.title}
+              {isPaywallStep ? "Start finding backlinks on autopilot" : ONBOARDING_STEPS[currentStep]!.title}
             </h2>
           </div>
           <p className="mt-2 text-base leading-7 text-muted-foreground">
-            {ONBOARDING_STEPS[currentStep]!.description}
+            {isPaywallStep
+              ? "We'll start discovering opportunities and sending outreach the moment your trial begins. You just monitor the queue and cancel anything that isn't a fit."
+              : ONBOARDING_STEPS[currentStep]!.description}
           </p>
 
           <div className="mt-8 space-y-6">
@@ -508,59 +574,53 @@ export function OnboardingWizard({ userName, emailConfirmed }: { userName?: stri
                 updateField={updateField}
               />
             )}
-            {currentStep === 6 && <StepLaunch data={safeData} />}
+            {isPaywallStep && <StepPaywall />}
           </div>
-        </div>
 
-        {submitMessage && (
-          <div className="mt-6 rounded-xl border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-            {submitMessage}
-          </div>
-        )}
-
-        <div className="mt-8 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={prevStep}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <IconArrowLeft className="h-3.5 w-3.5" />
-            Back
-          </button>
-
-          {isLastStep ? (
-            <Button
-              onClick={() => void handleSubmit()}
-              disabled={isSubmitting}
-              className="gap-2 rounded-full px-8 font-medium text-white"
-              style={{
-                background:
-                  "linear-gradient(135deg, var(--blaze-orange), var(--amber-flame))",
-              }}
-            >
-              {isSubmitting ? (
-                <>
-                  <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  Start Discovery &amp; Outreach
-                  <IconCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={nextStep}
-              className="gap-2 rounded-full px-8 font-medium"
-            >
-              Continue
-              <IconArrowRight className="h-3.5 w-3.5" />
-            </Button>
+          {submitMessage && (
+            <div className="mt-6 rounded-xl border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+              {submitMessage}
+            </div>
           )}
+
+          <div className="mt-8 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={prevStep}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <IconArrowLeft className="h-3.5 w-3.5" />
+              Back
+            </button>
+
+            {isPaywallStep ? (
+              <Button
+                onClick={() => void handleStartTrial()}
+                disabled={isSubmitting}
+                className="gap-2 rounded-full px-8 font-medium text-white"
+                style={{ background: "linear-gradient(135deg, var(--blaze-orange), var(--amber-flame))" }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
+                    Redirecting...
+                  </>
+                ) : (
+                  "Start your 7-day free trial"
+                )}
+              </Button>
+            ) : (
+              <Button
+                onClick={nextStep}
+                className="gap-2 rounded-full px-8 font-medium"
+              >
+                Continue
+                <IconArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </OnboardingShell>
   )
 }

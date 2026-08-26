@@ -4,6 +4,8 @@ import { redirect } from "next/navigation"
 import { supabaseServer } from "@/lib/supabase/server"
 
 export const metadata: Metadata = {
+  title: "Account Deactivated",
+  description: "Your Mentiohunt account has been deactivated.",
   robots: { index: false, follow: false },
 }
 

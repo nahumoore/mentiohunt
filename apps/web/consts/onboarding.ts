@@ -33,11 +33,6 @@ export const ONBOARDING_STEPS = [
     description:
       "Which pages matter most for your link building strategy? We'll prioritize backlinks to them so you build topical authority where it matters most.",
   },
-  {
-    title: "Launch",
-    description:
-      "Discovery starts immediately, and outreach sends automatically as prospects are found.",
-  },
 ] as const
 
 export const COMPANY_SIZES = [

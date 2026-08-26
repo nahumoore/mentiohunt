@@ -35,7 +35,10 @@ export const useOnboardingStore = create<OnboardingStore>()(
     }),
     {
       name: "mentions-onboarding-progress",
-      version: 3,
+      // v4: added the optional paywall as an 8th step (index 7). No
+      // OnboardingData shape change, so migrate just carries state forward.
+      // Existing accounts clamp a stale paywall index back to Launch.
+      version: 4,
       partialize: (state) => ({
         currentStep: state.currentStep,
         isCompleted: state.isCompleted,

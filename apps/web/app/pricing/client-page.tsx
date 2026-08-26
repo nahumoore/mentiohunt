@@ -11,7 +11,7 @@ import Link from "next/link"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { useEffect, useTransition, useState } from "react"
 import type { BillingTier, Plan } from "@/consts/billing"
-import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
+import { PLANS, WARMUP_FEATURE_INFO, WARMUP_FEATURE_LABEL } from "@/consts/billing"
 import { captureEvent } from "@/lib/analytics"
 import { stripeBuyPlanRedirect } from "@/actions/stripe-buy-plan-redirect"
 import {
@@ -20,10 +20,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
-
-const WARMUP_FEATURE_LABEL = "Free inbox warmup"
-const WARMUP_FEATURE_INFO =
-  "Warmup applies to your personal outreach account. Connect one if you'd rather send from your own domain than using a shared inbox pool."
 
 type PlanStatus = "current" | "upgrade" | "buy" | "unauthenticated"
 
@@ -102,7 +98,10 @@ export function PricingClientPage({
                       </span>
                     ) : null}
                   </div>
-                  <h2 className="mt-4 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
+                  <p className="mt-4 text-sm font-medium text-muted-foreground line-through">
+                    ${plan.originalPrice}/month
+                  </p>
+                  <h2 className="mt-1 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
                     ${plan.price}
                     <span className="ml-1 text-base font-medium tracking-normal text-muted-foreground">
                       /month
@@ -155,11 +154,6 @@ export function PricingClientPage({
             )
           })}
         </div>
-
-        <p className="mt-8 text-center text-sm leading-6 text-muted-foreground">
-          Both plans include a {FREE_TRIAL_DAYS}-day free trial. No credit card
-          required to start.
-        </p>
       </div>
     </div>
   )

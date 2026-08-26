@@ -2,6 +2,7 @@ import { onboardingSchema, validateImportantPages } from "@/consts/onboarding"
 import { FREE_TRIAL_MAX_PAGES } from "@/consts/billing"
 import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
 import { extractHostname, validateDomains } from "@/lib/onboarding/validate-domain"
+import { startDiscoveryJobs } from "@/lib/onboarding/start-discovery-jobs"
 import { supabaseServer } from "@/lib/supabase/server"
 import { waitUntil } from "@vercel/functions"
 import type { TablesInsert, TablesUpdate } from "@workspace/supabase/database-types"
@@ -9,33 +10,8 @@ import { NextResponse } from "next/server"
 
 export const runtime = "nodejs"
 
-const SERVER_URL = process.env.SERVER_URL ?? "http://localhost:3001"
-
 function buildValidationError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status })
-}
-
-async function runOnboardingJobsOnServer(payload: {
-  userId: string
-  productId: string
-  crawlLimit: number
-  autoDiscoverPages: boolean
-}) {
-  const serverResponse = await fetch(`${SERVER_URL}/onboarding/complete`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-internal-api-key": process.env.INTERNAL_API_KEY ?? "",
-    },
-    body: JSON.stringify(payload),
-  })
-
-  if (!serverResponse.ok) {
-    const data = await serverResponse
-      .json()
-      .catch(() => ({ error: "Failed to complete onboarding." }))
-    console.error("Failed to run onboarding jobs on server:", data)
-  }
 }
 
 export async function POST(request: Request) {
@@ -55,6 +31,23 @@ export async function POST(request: Request) {
   if (!parsedRequest.success) {
     return buildValidationError(
       parsedRequest.error.issues[0]?.message ?? "Invalid request payload."
+    )
+  }
+
+  const startOutreach =
+    typeof body === "object" && body !== null && "startOutreach" in body
+      ? Boolean((body as { startOutreach?: unknown }).startOutreach)
+      : false
+
+  // A card is always required to finish onboarding — the wizard's paywall
+  // screen is the only path that completes it, via
+  // app/onboarding/checkout-complete/route.ts after a real Stripe checkout.
+  // This route only ever persists setup; reject any client trying to skip
+  // straight to onboarding_completed/discovery.
+  if (startOutreach) {
+    return buildValidationError(
+      "Add a payment method to finish onboarding and unlock your dashboard.",
+      402
     )
   }
 
@@ -189,7 +182,7 @@ export async function POST(request: Request) {
   }
 
   const profileUpdate: TablesUpdate<"profiles"> = {
-    onboarding_completed: true,
+    ...(startOutreach ? { onboarding_completed: true } : {}),
     ...(parsedRequest.data.userName ? { name: parsedRequest.data.userName } : {}),
     ...(parsedRequest.data.companySize ? { company_size: parsedRequest.data.companySize } : {}),
     ...(parsedRequest.data.role ? { role: parsedRequest.data.role } : {}),
@@ -208,16 +201,18 @@ export async function POST(request: Request) {
     return buildValidationError("Failed to complete onboarding.", 500)
   }
 
-  waitUntil(
-    runOnboardingJobsOnServer({
-      userId: user.id,
-      productId,
-      crawlLimit: FREE_TRIAL_MAX_PAGES,
-      autoDiscoverPages: parsedRequest.data.autoDiscoverPages,
-    }).catch((error) => {
-      console.error("Failed to reach the onboarding server:", error)
-    })
-  )
+  if (startOutreach) {
+    waitUntil(
+      startDiscoveryJobs({
+        userId: user.id,
+        productId,
+        crawlLimit: FREE_TRIAL_MAX_PAGES,
+        autoDiscoverPages: parsedRequest.data.autoDiscoverPages,
+      }).catch((error) => {
+        console.error("Failed to reach the onboarding server:", error)
+      })
+    )
+  }
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, productId })
 }

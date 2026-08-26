@@ -17,6 +17,7 @@ import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
 import { ArticleTableOfContents } from "@/components/resources/article-table-of-contents"
 import BlogStylings from "@/components/resources/blog-stylings"
+import { SummarizeWithAI } from "@/components/resources/summarize-with-ai"
 import {
   getPostBySlug,
   getRelatedWithFallback,
@@ -289,6 +290,7 @@ export default async function ComparePage({ params }: Props) {
         <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid gap-10 xl:grid-cols-[minmax(0,720px)_360px] xl:items-start xl:justify-between xl:gap-16">
             <article className="text-foreground lg:max-w-[720px]">
+              <SummarizeWithAI url={`https://mentiohunt.com/compare/${meta.slug}`} />
               <MDXContent source={content} />
 
               <div className="mt-12 flex items-start gap-4 rounded-2xl border border-border bg-muted/30 p-5">

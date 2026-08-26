@@ -29,7 +29,7 @@ function buildPricingMarkdown(): string {
 
   return `# Mentiohunt Pricing
 
-> Mentiohunt automates backlink prospecting and outreach for B2B SaaS founders — you take over once a prospect replies. ${PLANS.length} plans, both starting with a ${FREE_TRIAL_DAYS}-day free trial — no card required to sign up. Full page: https://mentiohunt.com/pricing
+> Mentiohunt automates backlink prospecting and outreach for B2B SaaS founders — you take over once a prospect replies. ${PLANS.length} plans, both starting with a ${FREE_TRIAL_DAYS}-day free trial. Full page: https://mentiohunt.com/pricing
 
 ## Plans
 
@@ -37,7 +37,7 @@ ${plansMd}
 
 ## How billing works
 
-- Free trial: ${FREE_TRIAL_DAYS} days, up to ${FREE_TRIAL_MAX_PAGES} pages scanned, no credit card required at signup.
+- Free trial: ${FREE_TRIAL_DAYS} days, up to ${FREE_TRIAL_MAX_PAGES} pages scanned.
 - Billed monthly, cancel anytime — no long-term contract.
 - When a trial ends without upgrading, discovery and outreach pause and dashboard access locks. Nothing is deleted: the opportunity queue, contacts, drafts, and any replies received are preserved and restored on upgrade.
 

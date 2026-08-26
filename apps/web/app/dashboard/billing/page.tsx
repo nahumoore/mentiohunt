@@ -21,12 +21,8 @@ import {
 
 import { stripeBuyPlanRedirect } from "@/actions/stripe-buy-plan-redirect"
 import { stripeCustomerPortalRedirect } from "@/actions/stripe-customer-portal-redirect"
-import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
+import { PLANS, WARMUP_FEATURE_INFO, WARMUP_FEATURE_LABEL } from "@/consts/billing"
 import { useProfileStore } from "@/stores/profile-store"
-
-const WARMUP_FEATURE_LABEL = "Free inbox warmup"
-const WARMUP_FEATURE_INFO =
-  "Warmup applies to your personal outreach account. Connect one if you'd rather send from your own domain than using a shared inbox pool."
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000
 
@@ -192,7 +188,10 @@ export default function BillingPage() {
                       </span>
                     ) : null}
                   </div>
-                  <h2 className="mt-3 font-heading text-4xl font-semibold tracking-tight text-foreground">
+                  <p className="mt-3 text-sm font-medium text-muted-foreground line-through">
+                    ${plan.originalPrice}/month
+                  </p>
+                  <h2 className="mt-0.5 font-heading text-4xl font-semibold tracking-tight text-foreground">
                     ${plan.price}
                     <span className="ml-1 text-sm font-medium tracking-normal text-muted-foreground">
                       /month
@@ -272,11 +271,6 @@ export default function BillingPage() {
             )
           })}
         </div>
-
-        <p className="mt-5 text-center text-xs text-muted-foreground">
-          Both plans include a {FREE_TRIAL_DAYS}-day free trial · No credit card
-          required to start
-        </p>
       </div>
     </div>
   )

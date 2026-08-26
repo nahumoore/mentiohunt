@@ -1,11 +1,18 @@
 import { supabaseServer } from "@/lib/supabase/server"
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import type { Tables } from "@workspace/supabase/database-types"
+import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 
 import { EmailAccountsClient } from "@/components/email-accounts/email-accounts-client"
 import type { UserPlan } from "@/components/email-accounts/email-accounts-client"
 import type { EmailAccount } from "@/app/dashboard/email-accounts/_data"
+
+export const metadata: Metadata = {
+  title: "Email Accounts",
+  description: "Connect the mailboxes Mentiohunt sends automated outreach from.",
+  robots: { index: false, follow: false },
+}
 
 type EmailAccountRow = Pick<
   Tables<"email_accounts">,

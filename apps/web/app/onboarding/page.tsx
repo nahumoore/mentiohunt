@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard"
 
 export const metadata: Metadata = {
+  title: "Onboarding",
+  description: "Set up your product and target pages to start discovering backlink opportunities.",
   robots: { index: false, follow: false },
 }
 import { supabaseServer } from "@workspace/supabase/server"
@@ -30,7 +32,10 @@ export default async function OnboardingPage({
 
   return (
     <main className="min-h-screen bg-background">
-      <OnboardingWizard userName={profile?.name ?? null} emailConfirmed={emailConfirmed} />
+      <OnboardingWizard
+        userName={profile?.name ?? null}
+        emailConfirmed={emailConfirmed}
+      />
     </main>
   )
 }

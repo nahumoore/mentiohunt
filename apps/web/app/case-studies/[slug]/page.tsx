@@ -18,6 +18,7 @@ import { Navbar } from "@/components/landing/navbar"
 import { ArticleTableOfContents } from "@/components/resources/article-table-of-contents"
 import BlogStylings from "@/components/resources/blog-stylings"
 import { RelatedResourcesSection } from "@/components/resources/related-resources-section"
+import { SummarizeWithAI } from "@/components/resources/summarize-with-ai"
 import {
   getPostBySlug,
   getRelatedWithFallback,
@@ -266,6 +267,9 @@ export default async function CaseStudyPage({ params }: Props) {
         <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid gap-10 xl:grid-cols-[minmax(0,740px)_360px] xl:items-start xl:justify-between xl:gap-16">
             <article className="text-foreground lg:max-w-[740px]">
+              <SummarizeWithAI
+                url={`https://mentiohunt.com/case-studies/${meta.slug}`}
+              />
               <MDXContent source={articleBody} />
 
               {meta.quote && (

@@ -269,7 +269,7 @@ export function SignupForm({
               )}
             </Button>
             <p className="mt-2 text-center text-xs text-muted-foreground/70">
-              No credit card required · Cancel anytime
+              Cancel anytime
             </p>
           </Field>
           <FieldSeparator>Or</FieldSeparator>

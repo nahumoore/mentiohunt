@@ -2,7 +2,7 @@ import { GoogleAnalytics } from "@next/third-parties/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Metadata } from "next"
-import { Bricolage_Grotesque, Figtree, Inter } from "next/font/google"
+import { Inter } from "next/font/google"
 import Script from "next/script"
 import { Toaster } from "sonner"
 
@@ -20,22 +20,10 @@ export const metadata: Metadata = {
     "Turn your article URLs into a backlink opportunity queue — with fit scoring, contact details, and outreach drafts ready to send.",
 }
 
-const figtree = Figtree({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  weight: ["400", "500", "600", "700"],
-})
-
-const bricolageGrotesque = Bricolage_Grotesque({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  weight: ["400", "500", "600"],
-})
-
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-ui",
-  weight: ["400", "500", "600"],
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700"],
 })
 
 export default function RootLayout({
@@ -47,13 +35,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn(
-        "antialiased",
-        figtree.variable,
-        bricolageGrotesque.variable,
-        inter.variable,
-        "font-sans"
-      )}
+      className={cn("antialiased", inter.variable, "font-sans")}
     >
       <body className="overflow-x-hidden">
         {/* <ThemeProvider> */}

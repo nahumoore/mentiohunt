@@ -5,6 +5,8 @@ import { TestimonialExtensionCard } from "@/components/expired-trial/testimonial
 import { FREE_TRIAL_DAYS } from "@/consts/billing"
 
 export const metadata: Metadata = {
+  title: "Trial Expired",
+  description: "Your Mentiohunt free trial has ended. Upgrade to keep your outreach running.",
   robots: { index: false, follow: false },
 }
 

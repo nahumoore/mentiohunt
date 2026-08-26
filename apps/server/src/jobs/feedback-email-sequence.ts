@@ -8,6 +8,7 @@ const log = createLogger("feedback-email-sequence")
 const STEP_DELAYS_MS = [
   48 * 60 * 60 * 1000,  // after step 0: wait 48h for step 1
   96 * 60 * 60 * 1000,  // after step 1: wait 96h for step 2
+  168 * 60 * 60 * 1000, // after step 2: wait 7d for the final check-in
 ]
 
 const MIN_PROFILE_AGE_MS = 2 * 60 * 60 * 1000 // never send within 2h of signup
@@ -58,6 +59,26 @@ export async function runFeedbackEmailSequence() {
         onboardingCompleted: profile.onboarding_completed,
       })
 
+      const isFinalStep = seq.step >= 3
+      const isStillInOnboarding =
+        stage === "stuck_onboarding" || stage === "onboarding_payment_pending"
+
+      // The added final email is specifically for onboarding drop-offs. If a
+      // user completed onboarding while the sequence was waiting, close it
+      // without sending an irrelevant extra feedback email.
+      if (isFinalStep && !isStillInOnboarding) {
+        await supabaseAdmin
+          .from("email_sequences")
+          .update({ status: "completed" })
+          .eq("id", seq.id)
+        log.info("sequence completed before final onboarding check-in", {
+          sequenceId: seq.id,
+          userId: seq.user_id,
+          stage,
+        })
+        continue
+      }
+
       await sendFeedbackSequenceEmail({
         to: profile.email,
         userId: seq.user_id,
@@ -68,8 +89,7 @@ export async function runFeedbackEmailSequence() {
         productName,
       })
 
-      const isLastStep = seq.step >= 2
-      if (isLastStep) {
+      if (isFinalStep) {
         await supabaseAdmin
           .from("email_sequences")
           .update({ status: "completed" })
@@ -88,7 +108,7 @@ export async function runFeedbackEmailSequence() {
         userId: seq.user_id,
         step: seq.step,
         stage,
-        completed: isLastStep,
+        completed: isFinalStep,
       })
     } catch (err) {
       log.error("error processing sequence", {

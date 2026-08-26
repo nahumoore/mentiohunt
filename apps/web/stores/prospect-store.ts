@@ -45,7 +45,11 @@ export type ProspectListItem = Pick<
   | "contact_name"
   | "domain_rating"
   | "site_relevance_score"
-> & { source_page?: ProspectSourcePage | null }
+> & {
+  source_page?: ProspectSourcePage | null
+  /** Most recent outbound send or inbound reply for this prospect; null if no email activity yet. */
+  last_interaction_at?: string | null
+}
 
 export type ProspectDetail = ProspectListItem &
   Pick<
@@ -96,6 +100,7 @@ function toListItem(prospect: ProspectDetail): ProspectListItem {
     domain_rating: prospect.domain_rating,
     site_relevance_score: prospect.site_relevance_score,
     source_page: prospect.source_page,
+    last_interaction_at: prospect.last_interaction_at,
   }
 }
 
@@ -129,7 +134,13 @@ export const useProspectStore = create<ProspectStore>()((set) => ({
     }),
   upsertProspectDetail: (prospect) =>
     set((state) => {
-      const listItem = toListItem(prospect)
+      const existing = state.prospects.find((item) => item.id === prospect.id)
+      const merged: ProspectDetail = {
+        ...prospect,
+        last_interaction_at:
+          prospect.last_interaction_at ?? existing?.last_interaction_at ?? null,
+      }
+      const listItem = toListItem(merged)
       const exists = state.prospects.some((item) => item.id === prospect.id)
 
       return {
@@ -140,7 +151,7 @@ export const useProspectStore = create<ProspectStore>()((set) => ({
           : [listItem, ...state.prospects],
         prospectDetailsById: {
           ...state.prospectDetailsById,
-          [prospect.id]: prospect,
+          [prospect.id]: merged,
         },
       }
     }),
@@ -173,6 +184,7 @@ export const useProspectStore = create<ProspectStore>()((set) => ({
           existingDetail?.product_page_id === row.product_page_id
             ? existingDetail.source_page
             : null,
+        last_interaction_at: existingDetail?.last_interaction_at ?? null,
       }
       const listItem = toListItem(detail)
       const exists = state.prospects.some((item) => item.id === row.id)

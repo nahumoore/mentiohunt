@@ -14,6 +14,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { cn } from "@workspace/ui/lib/utils"
 import { useState, type KeyboardEvent } from "react"
 
 function getHostname(url: string): string {
@@ -39,7 +40,6 @@ export function StepImportantPages({
   const [value, setValue] = useState("")
   const [draftError, setDraftError] = useState<string | null>(null)
 
-  const remaining = MAX_TRACKED_PAGES - data.importantPages.length
   const atMax = data.importantPages.length >= MAX_TRACKED_PAGES
 
   function addPage() {
@@ -80,58 +80,13 @@ export function StepImportantPages({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-3">
-          <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
-            Page URLs
-          </label>
-          <span className="text-xs text-muted-foreground">
-            {data.importantPages.length} / {MAX_TRACKED_PAGES}
-          </span>
-        </div>
-
-        <div className="flex gap-2">
-          <Input
-            value={value}
-            placeholder="https://yoursite.com/blog/your-post"
-            onChange={(event) => {
-              setValue(event.target.value)
-              setDraftError(null)
-            }}
-            onKeyDown={handleKeyDown}
-            disabled={atMax}
-            className="h-12 flex-1"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addPage}
-            disabled={!value.trim() || atMax}
-            className="h-12 shrink-0 rounded-lg"
-          >
-            Add
-          </Button>
-        </div>
-
-        {(errors.importantPages || draftError) && (
-          <p className="text-xs text-destructive">{errors.importantPages || draftError}</p>
+      <Label
+        htmlFor="auto-discover-pages"
+        className={cn(
+          "flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3.5 font-normal transition-colors",
+          data.autoDiscoverPages ? "border-primary/40 bg-primary/5" : "border-border hover:border-foreground/20"
         )}
-
-        <PriorityReorderList
-          items={data.importantPages}
-          getKey={(url) => url}
-          max={MAX_TRACKED_PAGES}
-          onReorder={(pages) => updateField("importantPages", pages)}
-          placeholderLabel={(priority) =>
-            data.autoDiscoverPages
-              ? `We'll auto-discover a page for priority ${priority}`
-              : `Add a page to fill priority ${priority}`
-          }
-          renderItem={(url) => <PageRow url={url} onRemove={() => removePage(url)} />}
-        />
-      </div>
-
-      <div className="flex items-start gap-3 rounded-xl border border-border px-4 py-3.5">
+      >
         <Checkbox
           id="auto-discover-pages"
           checked={data.autoDiscoverPages}
@@ -139,19 +94,64 @@ export function StepImportantPages({
           className="mt-0.5"
         />
         <div className="space-y-1">
-          <Label
-            htmlFor="auto-discover-pages"
-            className="cursor-pointer text-sm font-medium text-foreground"
-          >
+          <p className="text-sm font-medium text-foreground">
             Find my best pages automatically from my target keywords
-          </Label>
+          </p>
           <p className="text-xs leading-5 text-muted-foreground">
-            {remaining > 0
-              ? `We'll scan your site and fill the remaining ${remaining} of ${MAX_TRACKED_PAGES} slots with pages that best match your target keywords, ranked below whatever you add here.`
-              : `You've reached the ${MAX_TRACKED_PAGES}-page limit, so there's nothing left for us to auto-discover.`}
+            We&apos;ll scan your site and automatically pick up to {MAX_TRACKED_PAGES} pages
+            that best match your target keywords.
           </p>
         </div>
-      </div>
+      </Label>
+
+      {!data.autoDiscoverPages && (
+        <div className="animate-in space-y-2 duration-200 fade-in slide-in-from-top-1">
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-[0.7rem] font-bold text-muted-foreground uppercase">
+              Page URLs
+            </label>
+            <span className="text-xs text-muted-foreground">
+              {data.importantPages.length} / {MAX_TRACKED_PAGES}
+            </span>
+          </div>
+
+          <div className="flex gap-2">
+            <Input
+              value={value}
+              placeholder="https://yoursite.com/blog/your-post"
+              onChange={(event) => {
+                setValue(event.target.value)
+                setDraftError(null)
+              }}
+              onKeyDown={handleKeyDown}
+              disabled={atMax}
+              className="h-12 flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addPage}
+              disabled={!value.trim() || atMax}
+              className="h-12 shrink-0 rounded-lg"
+            >
+              Add
+            </Button>
+          </div>
+
+          {(errors.importantPages || draftError) && (
+            <p className="text-xs text-destructive">{errors.importantPages || draftError}</p>
+          )}
+
+          <PriorityReorderList
+            items={data.importantPages}
+            getKey={(url) => url}
+            max={MAX_TRACKED_PAGES}
+            onReorder={(pages) => updateField("importantPages", pages)}
+            placeholderLabel={(priority) => `Add a page to fill priority ${priority}`}
+            renderItem={(url) => <PageRow url={url} onRemove={() => removePage(url)} />}
+          />
+        </div>
+      )}
     </div>
   )
 }

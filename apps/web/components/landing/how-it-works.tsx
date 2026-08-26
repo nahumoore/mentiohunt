@@ -526,7 +526,7 @@ export function HowItWorks() {
             </span>
           </Link>
         </motion.div>
-        <p className="mt-5 text-sm text-white/45">No credit card required · Setup in 2 minutes</p>
+        <p className="mt-5 text-sm text-white/45">Setup in 2 minutes</p>
       </div>
     </section>
   )

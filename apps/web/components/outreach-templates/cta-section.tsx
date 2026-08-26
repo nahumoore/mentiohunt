@@ -10,7 +10,7 @@ export function OutreachTemplateCtaSection() {
           body="We find the sites your articles belong on, write the email, and schedule outreach automatically. You monitor the queue and cancel anything that isn't a fit — every opportunity comes with a fit rationale."
           ctaLabel="Get first opportunities"
           ctaHref="/signup"
-          helperText="No credit card · first opportunities in 7 days"
+          helperText="First opportunities in 7 days"
         />
       </div>
     </section>

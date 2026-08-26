@@ -29,7 +29,13 @@ export async function deriveFeedbackStage({
   const productName = products?.[0]?.product_name?.trim() || null
 
   if (!onboardingCompleted) {
-    return { stage: "stuck_onboarding", productName }
+    return {
+      stage:
+        (products?.length ?? 0) > 0
+          ? "onboarding_payment_pending"
+          : "stuck_onboarding",
+      productName,
+    }
   }
 
   const productIds = (products ?? []).map((p) => p.id)

@@ -84,11 +84,6 @@ export function StepKeywords({
           <p className="text-xs text-destructive">{errors.targetKeywords}</p>
         )}
       </div>
-      <p className="text-xs leading-5 text-muted-foreground">
-        Drag to rank them — priority 1 carries the most weight when we decide
-        which of your pages to target and which searches we mine for link
-        opportunities.
-      </p>
     </div>
   )
 }

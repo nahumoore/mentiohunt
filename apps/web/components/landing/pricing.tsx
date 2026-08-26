@@ -76,7 +76,10 @@ export function Pricing() {
                       </span>
                     )}
                   </div>
-                  <h3 className="mt-4 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
+                  <p className="mt-4 text-sm font-medium text-muted-foreground line-through">
+                    ${plan.originalPrice}/month
+                  </p>
+                  <h3 className="mt-1 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
                     ${plan.price}
                     <span className="ml-1 text-base font-medium tracking-normal text-muted-foreground">
                       /month
@@ -139,11 +142,6 @@ export function Pricing() {
             )
           })}
         </div>
-
-        <p className="mt-8 text-center text-sm leading-6 text-muted-foreground">
-          Both plans include a {FREE_TRIAL_DAYS}-day free trial. No credit card
-          required to start.
-        </p>
       </div>
     </section>
   )

@@ -7,6 +7,7 @@ import { Resend } from "resend"
 import { createLogger } from "../helpers/logger.js"
 export type FunnelStage =
   | "stuck_onboarding"
+  | "onboarding_payment_pending"
   | "onboarding_done_no_prospects"
   | "onboarding_done_no_action"
   | "used_opportunities_only"
@@ -55,6 +56,22 @@ function step0Content(
 You started setting up but didn't finish. Did something feel confusing, or did life just get busy? Either way, a few words are more than enough.
 
 Thanks for signing up!
+
+${signoff} <3
+Nico
+Founder @ Mentiohunt`,
+      }
+    case "onboarding_payment_pending":
+      return {
+        subject: spin(
+          "{one last step|quick question about your setup|what got in the way?}"
+        ),
+        previewText: "your setup is saved — what stopped you at the last step?",
+        body: `${greeting} ${name} - Nico here, founder of Mentiohunt :)
+
+You made it through setup and your product is saved, but it looks like you didn't finish the last step. Was it the card requirement, the trial terms, or did something else get in the way?
+
+Reply with one line — I genuinely want to know.
 
 ${signoff} <3
 Nico
@@ -173,6 +190,22 @@ ${signoff},
 Nico
 Founder @ Mentiohunt`,
       }
+    case "onboarding_payment_pending":
+      return {
+        subject: spin(
+          "{did the last step give you pause?|still thinking it over?|honest question}"
+        ),
+        previewText: "was anything unclear about finishing your setup?",
+        body: `${greeting} ${name},
+
+You got through the setup, but didn't make it past the last step. Was anything unclear about the trial, the card requirement, or what happens next?
+
+No pressure — just reply with whatever came to mind.
+
+${signoff},
+Nico
+Founder @ Mentiohunt`,
+      }
     case "onboarding_done_no_prospects":
       return {
         subject: spin("{still on it|quick update|honest update}"),
@@ -242,10 +275,10 @@ function step2Content(
     case "stuck_onboarding":
       return {
         subject: spin("{before I let you go|one last thing|last one from me}"),
-        previewText: "last email, won't follow up after this",
+        previewText: "a quick onboarding check-in",
         body: `${greeting} ${name},
 
-Last email, I won't follow up after this.
+I wanted to check in before I leave you to it.
 
 If there was a reason you dropped off, even one word helps (bad UX / too confusing / just didn't need it). Your account is still there if you ever want to give it another shot :)
 
@@ -255,15 +288,31 @@ ${signoff},
 Nico
 Founder @ Mentiohunt`,
       }
+    case "onboarding_payment_pending":
+      return {
+        subject: spin(
+          "{should I change the last step?|one onboarding question|before I let you go}"
+        ),
+        previewText: "what would have helped you finish setup?",
+        body: `${greeting} ${name},
+
+One onboarding question: what would have helped you finish the last step? Was it the card requirement, the price, the trial terms, or something else?
+
+Even one word helps me improve this.
+
+${signoff},
+Nico
+Founder @ Mentiohunt`,
+      }
     default:
       return {
         subject: spin(
-          "{before I let you go|one last thing|one week in, quick question}"
+          "{before I let you go|one thing|one week in, quick question}"
         ),
         previewText: "one question after your first week",
         body: `${greeting} ${name},
 
-Last email, I promise.
+I wanted to check in before I leave you to it.
 
 One question: what's the one thing that would make Mentiohunt noticeably more useful for ${productName ?? "you"}? Could be a missing feature, something confusing, or a workflow that doesn't quite fit.
 
@@ -276,7 +325,61 @@ Founder @ Mentiohunt`,
   }
 }
 
-const STEP_SUBJECTS = [step0Content, step1Content, step2Content]
+function step3Content(
+  stage: FunnelStage,
+  firstName: string | null,
+  productName: string | null
+): EmailContent {
+  const name = firstName ?? "there"
+  const signoff = spin("{Best|Cheers|Thanks}")
+
+  switch (stage) {
+    case "stuck_onboarding":
+      return {
+        subject: spin("{what stopped you?|one direct question|before I close this out}"),
+        previewText: "what got in the way of continuing with onboarding?",
+        body: `Hey ${name},
+
+One direct question before I close this out: what stopped you from continuing with onboarding?
+
+Was it confusing, too much work, something that broke, or simply not the right time? Reply with one word if that's all you have — it still helps.
+
+${signoff},
+Nico
+Founder @ Mentiohunt`,
+      }
+    case "onboarding_payment_pending":
+      return {
+        subject: spin("{what stopped you at the last step?|one direct question|still thinking it over?}"),
+        previewText: "what would have helped you finish onboarding?",
+        body: `Hey ${name},
+
+One direct question before I close this out: what stopped you from continuing with onboarding?
+
+Your product setup is saved, and the card step is the only thing left. Was it the card requirement, the trial terms, the price, or something else? Reply with one word if that's all you have.
+
+${signoff},
+Nico
+Founder @ Mentiohunt`,
+      }
+    default:
+      return {
+        subject: spin("{one last question|before I close this out|quick final check-in}"),
+        previewText: "what would make Mentiohunt more useful?",
+        body: `Hey ${name},
+
+One last question: what's the one thing that would make Mentiohunt more useful for ${productName ?? "you"}?
+
+A missing feature, something confusing, or a workflow that didn't fit — reply with whatever comes to mind.
+
+${signoff},
+Nico
+Founder @ Mentiohunt`,
+      }
+  }
+}
+
+const STEP_SUBJECTS = [step0Content, step1Content, step2Content, step3Content]
 
 export function buildReplyToAddress(token: string): string {
   return `reply-${token}@${INBOUND_DOMAIN}`

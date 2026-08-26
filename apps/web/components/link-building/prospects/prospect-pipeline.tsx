@@ -19,8 +19,14 @@ import { StatusOverviewV1 } from "./prospect-status-overview"
 
 type StageValue = "all" | ProspectStatus
 
-type SortKey = "contact" | "domain" | "dr" | "discovered"
+type SortKey = "contact" | "domain" | "dr" | "lastInteraction"
 type SortDir = "asc" | "desc"
+
+function lastInteractionTime(prospect: ProspectListItem): number {
+  return new Date(
+    prospect.last_interaction_at ?? prospect.discovered_at
+  ).getTime()
+}
 
 function sortProspects(
   list: ProspectListItem[],
@@ -40,10 +46,8 @@ function sortProspects(
       cmp = (a.domain ?? "").localeCompare(b.domain ?? "")
     else if (key === "dr")
       cmp = (a.domain_rating ?? 0) - (b.domain_rating ?? 0)
-    else if (key === "discovered")
-      cmp =
-        new Date(a.discovered_at).getTime() -
-        new Date(b.discovered_at).getTime()
+    else if (key === "lastInteraction")
+      cmp = lastInteractionTime(a) - lastInteractionTime(b)
     return dir === "asc" ? cmp : -cmp
   })
 }
@@ -91,7 +95,7 @@ function isSortKey(value: string): value is SortKey {
     value === "contact" ||
     value === "domain" ||
     value === "dr" ||
-    value === "discovered"
+    value === "lastInteraction"
   )
 }
 
@@ -196,9 +200,9 @@ export function OpportunityPipeline({ prospects }: OpportunityPipelineProps) {
                 </th>
                 <th className="px-3 py-3 text-left text-[0.65rem] font-bold tracking-wider text-muted-foreground/60 uppercase">
                   <div className="flex items-center gap-1.5">
-                    Discovered
+                    Last interaction
                     <SortButton
-                      sortKey="discovered"
+                      sortKey="lastInteraction"
                       activeKey={sortKey}
                       dir={sortDir}
                       onSort={handleSort}

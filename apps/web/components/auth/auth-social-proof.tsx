@@ -63,9 +63,9 @@ export function AuthSocialProof() {
         </div>
 
         <blockquote className="max-w-lg text-lg leading-relaxed font-semibold text-primary-foreground drop-shadow-[0_1px_1px_rgba(0,0,0,0.35)]">
-          I love how easy Mentiohunt makes it to find relevant and high-quality
-          websites for link building. We&apos;ve saved so much time using it and
-          the results blew my mind!!
+          This tool found an opportunity on one of the sites with most authority
+          in my niche, and I got a backlink in 12 days without paying for it,
+          crazy!
         </blockquote>
 
         <figcaption className="flex items-center gap-3">

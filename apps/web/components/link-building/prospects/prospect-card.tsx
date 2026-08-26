@@ -204,7 +204,7 @@ export function OpportunityCard({ prospect }: { prospect: ProspectListItem }) {
 
             <span className="flex items-center gap-1">
               <IconCalendar className="size-3 shrink-0" />
-              {formatDate(prospect.discovered_at)}
+              {formatDate(prospect.last_interaction_at ?? prospect.discovered_at)}
             </span>
           </div>
         )}

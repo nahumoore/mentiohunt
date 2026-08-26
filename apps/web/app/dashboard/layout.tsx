@@ -17,7 +17,15 @@ import type { NotificationListItem, PlatformUpdateListItem } from "@/stores/noti
 import type { TrackedLinkListItem } from "@/stores/link-tracker-store"
 import type { Tables } from "@workspace/supabase/database-types"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
+import type { Metadata } from "next"
 import { redirect } from "next/navigation"
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description:
+    "Your backlink opportunity queue, discovery status, and account activity in one place.",
+  robots: { index: false, follow: false },
+}
 
 const DEFAULT_DISCOVERY_SETTINGS: DiscoverySettings = {
   opportunityTypes: [
@@ -232,6 +240,7 @@ export default async function DashboardLayout({
       poolDelayedResult,
       sentSequencesResult,
       trackedLinksResult,
+      lastInteractionResult,
     ] = await Promise.all([
       supabase
         .from("backlink_prospects")
@@ -311,6 +320,15 @@ export default async function DashboardLayout({
         .eq("product_id", product.id)
         .order("created_at", { ascending: false })
         .limit(200),
+      // Most recent outbound send or inbound reply per prospect, logged to
+      // prospect_messages for every sequence send and every incoming reply —
+      // powers the "Last interaction" column, ordered so the first row seen
+      // per prospect_id below is already the latest.
+      supabase
+        .from("prospect_messages")
+        .select("prospect_id, received_at, backlink_prospects!inner(product_id)")
+        .eq("backlink_prospects.product_id", product.id)
+        .order("received_at", { ascending: false }),
     ])
 
     const emailAccountRows = emailAccountResult.data ?? []
@@ -397,12 +415,27 @@ export default async function DashboardLayout({
       trackedLinks = (trackedLinksResult.data ?? []) as unknown as TrackedLinkListItem[]
     }
 
+    const lastInteractionByProspectId = new Map<string, string>()
+    if (lastInteractionResult.error) {
+      console.error(
+        "Error fetching prospect messages for last interaction:",
+        lastInteractionResult.error
+      )
+    } else {
+      for (const row of lastInteractionResult.data ?? []) {
+        if (!lastInteractionByProspectId.has(row.prospect_id)) {
+          lastInteractionByProspectId.set(row.prospect_id, row.received_at)
+        }
+      }
+    }
+
     const pageById = new Map(pages.map((page) => [page.id, page]))
     prospects = (prospectRows ?? []).map((prospect) => ({
       ...prospect,
       source_page: prospect.product_page_id
         ? (pageById.get(prospect.product_page_id) ?? null)
         : null,
+      last_interaction_at: lastInteractionByProspectId.get(prospect.id) ?? null,
     }))
   }
 

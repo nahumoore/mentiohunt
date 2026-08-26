@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
           .from("profiles")
           .update({
             tier,
-            active_trial: false,
+            active_trial: subscription.status === "trialing",
             stripe_customer_id: customerId,
             billing_period_start_at: toDateString(item.current_period_start),
             billing_period_end_at: toDateString(item.current_period_end),
@@ -132,8 +132,13 @@ export async function POST(req: NextRequest) {
         const customerId = subscription.customer as string
         const item = subscription.items.data[0]
         if (!item) break
-        const isActive = subscription.status === "active"
-        const tier: BillingTier = isActive
+        // "trialing" is entitled the same as "active" — a card-required
+        // trial subscription (see actions/stripe-buy-plan-redirect.ts) sits
+        // in "trialing" for its first 7 days, and reading only "active" here
+        // would flip a mid-trial user's tier back to "free" the moment
+        // Stripe fires this event.
+        const isEntitled = subscription.status === "active" || subscription.status === "trialing"
+        const tier: BillingTier = isEntitled
           ? (getTierFromPriceId(item.price?.id ?? "") ?? "free")
           : "free"
 
@@ -141,7 +146,7 @@ export async function POST(req: NextRequest) {
           .from("profiles")
           .update({
             tier,
-            active_trial: false,
+            active_trial: subscription.status === "trialing",
             billing_period_start_at: toDateString(item.current_period_start),
             billing_period_end_at: toDateString(item.current_period_end),
           })

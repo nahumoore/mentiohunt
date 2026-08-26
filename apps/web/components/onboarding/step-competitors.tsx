@@ -25,11 +25,6 @@ export function StepCompetitors({
 }) {
   return (
     <div className="space-y-6">
-      <p className="text-sm leading-6 text-muted-foreground">
-        Add 2–3 direct product competitors. We use their backlink profiles, so
-        a short list of genuinely similar sites is more useful than a long list
-        of marketplaces or directories.
-      </p>
       <EditableList
         label="Competitor URLs"
         items={data.competitors}

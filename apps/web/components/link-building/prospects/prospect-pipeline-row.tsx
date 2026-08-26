@@ -138,10 +138,10 @@ export function OpportunityPipelineRow({
         </span>
       </td>
 
-      {/* Discovered col */}
+      {/* Last interaction col */}
       <td className="px-3 py-4 align-top">
         <span className="text-sm text-muted-foreground">
-          {formatRelative(prospect.discovered_at)}
+          {formatRelative(prospect.last_interaction_at ?? prospect.discovered_at)}
         </span>
       </td>
 

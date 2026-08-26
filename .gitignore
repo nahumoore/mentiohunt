@@ -43,5 +43,8 @@ apps/scraper/__pycache__/
 # Local skill with embedded API key
 .agents/skills/keyword-research/
 
+# Local skill with embedded inbox credentials
+.claude/skills/support-inbox/credentials.env
+
 # Supabase CLI local link artifacts
 supabase/.temp/

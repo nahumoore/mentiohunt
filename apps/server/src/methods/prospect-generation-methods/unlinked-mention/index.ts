@@ -11,6 +11,12 @@ import { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
+import {
+  claimDiscoveryCandidates,
+  completeDiscoveryCandidates,
+  retryDiscoveryCandidates,
+  storeDiscoveryCandidates,
+} from "../shared/discovery-candidate-backlog.js"
 import { extractDomainFromUrl, isNoiseDomain } from "../shared/url-filters.js"
 import { checkMention } from "./check-mention-client.js"
 import { enrichMention, type Product, type QualifiedMention } from "./enrichment.js"
@@ -138,7 +144,25 @@ export async function discoverUnlinkedMentions(
       const existingDomains = new Set((existingProspects ?? []).map((r) => r.domain))
       freshCandidates = gathered.filter((c) => !existingUrls.has(c.url) && !existingDomains.has(c.domain))
     }
-    const candidates = freshCandidates.slice(0, maxCandidates)
+    await storeDiscoveryCandidates(
+      product.id,
+      "unlinked_mention",
+      freshCandidates.map((candidate, index) => ({
+        candidateKey: candidate.domain,
+        ...candidate,
+        priorityScore: freshCandidates.length - index,
+      }))
+    )
+    const claimed = await claimDiscoveryCandidates(product.id, "unlinked_mention", maxCandidates)
+    const candidates = claimed.length > 0
+      ? claimed.map((candidate) => ({
+          url: candidate.url,
+          domain: candidate.domain,
+          title: candidate.title ?? "",
+          snippet: candidate.snippet ?? "",
+          backlogId: candidate.id,
+        }))
+      : freshCandidates.slice(0, maxCandidates).map((candidate) => ({ ...candidate, backlogId: null }))
 
     log.info("candidates gathered", {
       productId: product.id,
@@ -166,6 +190,17 @@ export async function discoverUnlinkedMentions(
           return { candidate: c, result }
         })
       )
+    )
+    await retryDiscoveryCandidates(
+      checked
+        .filter((item) => item.result === null && item.candidate.backlogId)
+        .map((item) => item.candidate.backlogId as string),
+      "mention_check_transport_failed"
+    )
+    await completeDiscoveryCandidates(
+      checked
+        .filter((item) => item.result !== null && item.candidate.backlogId)
+        .map((item) => item.candidate.backlogId as string)
     )
 
     let qualified: QualifiedMention[] = checked

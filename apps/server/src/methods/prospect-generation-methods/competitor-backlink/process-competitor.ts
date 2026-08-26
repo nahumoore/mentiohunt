@@ -9,9 +9,11 @@ import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import { extractDomainFromUrl } from "../shared/url-filters.js"
 import { enrichProspect } from "./enrichment.js"
 import { extractBacklinks } from "./extract-backlinks.js"
+import type { ExtractBacklinksResult } from "./extract-backlinks.js"
 import { filterBacklinks, type FilterSettings, type TaggedBacklinkItem } from "./filter-backlinks.js"
 import { getLastMozCursor } from "./prospect-run-tracking.js"
 import { scoreBacklinkRelevance } from "./score-backlink-relevance.js"
+import { matchCompetitorTargetPage, type CompetitorTargetPage } from "./match-target-page.js"
 
 const log = createLogger("process-competitor")
 
@@ -34,7 +36,9 @@ export async function processCompetitor(
   maxProspects: number,
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void,
-  fetchLimit?: number
+  fetchLimit?: number,
+  prefetched?: ExtractBacklinksResult,
+  targetPages: CompetitorTargetPage[] = []
 ): Promise<{
   prospectsCreated: number
   costUsd: number
@@ -48,12 +52,13 @@ export async function processCompetitor(
     enrichedWithContact: number
   }
 }> {
-  const mozCursor = await getLastMozCursor(product.id, competitorDomain)
+  const mozCursor = prefetched ? null : await getLastMozCursor(product.id, competitorDomain)
 
   log.info("processing competitor", { productId: product.id, competitorDomain, hasCursor: !!mozCursor })
 
   try {
-    const { items: rawItems, nextCursor, costUsd: fetchCost } = await extractBacklinks(competitorDomain, { ...settings, mozCursor, limit: fetchLimit })
+    const { items: rawItems, nextCursor, costUsd: fetchCost } = prefetched
+      ?? await extractBacklinks(competitorDomain, { ...settings, mozCursor, limit: fetchLimit })
     const tagged: TaggedBacklinkItem[] = rawItems.map((item) => ({ ...item, competitorDomain }))
 
     let filtered = filterBacklinks(tagged, settings, product.website_url)
@@ -155,12 +160,19 @@ export async function processCompetitor(
     // Drop prospects we've already stored so we don't pay to enrich duplicates.
     const { data: existing } = await supabaseAdmin
       .from("backlink_prospects")
-      .select("found_url")
+      .select("found_url, domain")
       .eq("product_id", product.id)
-      .in("found_url", passing.map((item) => item.urlFrom))
+      .in("domain", [...new Set(passing.map((item) => extractDomainFromUrl(item.urlFrom)))])
 
     const existingUrls = new Set((existing ?? []).map((r) => r.found_url))
-    const newItems = passing.filter((item) => !existingUrls.has(item.urlFrom))
+    const existingDomains = new Set((existing ?? []).map((r) => r.domain))
+    const newDomains = new Set<string>()
+    const newItems = passing.filter((item) => {
+      const domain = extractDomainFromUrl(item.urlFrom)
+      if (existingUrls.has(item.urlFrom) || existingDomains.has(domain) || newDomains.has(domain)) return false
+      newDomains.add(domain)
+      return true
+    })
 
     log.info("competitor digest", {
       competitorDomain,
@@ -237,12 +249,14 @@ export async function processCompetitor(
     const bareRows = toProcess.map((item) => {
       const domain = extractDomainFromUrl(item.urlFrom)
       const sr = siteRelevanceResults.get(item.urlFrom)
+      const targetPage = matchCompetitorTargetPage(item, targetPages)
       return {
         product_id: product.id,
         domain,
         domain_rating: settings.dr_min > 0 ? (drByDomain.get(domain) ?? null) : null,
         found_url: item.urlFrom,
-        target_url: item.urlTo,
+        target_url: targetPage?.url ?? product.website_url,
+        product_page_id: targetPage?.id ?? null,
         tier: "competitor_backlink" as const,
         status: "new" as const,
         site_relevance_score: sr?.score ?? null,

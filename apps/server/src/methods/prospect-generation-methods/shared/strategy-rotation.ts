@@ -7,6 +7,7 @@ export type RotationHistoryRun = {
   prospects_created: number | null
   metadata: unknown
   error: string | null
+  cost_usd?: number | null
 }
 
 const EXPLORATION_COOLDOWN_RUNS = 1
@@ -78,4 +79,66 @@ export function orderStrategiesByStaleness<T extends string>(
       return aTime < bTime ? -1 : 1
     })
     .map(({ strategy }) => strategy as T)
+}
+
+function metadataNumber(metadata: unknown, ...keys: string[]): number | null {
+  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) return null
+  const record = metadata as Record<string, unknown>
+  for (const key of keys) {
+    const value = record[key]
+    if (typeof value === "number" && Number.isFinite(value)) return value
+  }
+  return null
+}
+
+/** Send-ready yield recorded by each source's enrichment funnel. */
+export function getSendReadyCount(run: RotationHistoryRun): number {
+  return metadataNumber(run.metadata, "enriched_with_contact", "enrichedWithContact")
+    ?? Math.max(0, run.prospects_created ?? 0)
+}
+
+/**
+ * Rank target-filling sources by recent send-ready output per dollar. A small
+ * cost floor prevents legacy/unmetered zero-cost runs from dominating. New
+ * sources receive a neutral exploration score instead of being buried.
+ */
+export function getStrategyEfficiency(runs: RotationHistoryRun[], strategy: string): number {
+  const completed = newestFirst(
+    runs.filter((run) => run.strategy === strategy && run.status === "completed" && !run.error)
+  ).slice(0, 5)
+  if (completed.length === 0) return 1
+
+  const sendReady = completed.reduce((total, run) => total + getSendReadyCount(run), 0)
+  const cost = completed.reduce((total, run) => total + Math.max(0, run.cost_usd ?? 0), 0)
+  return sendReady / Math.max(cost, completed.length * 0.01)
+}
+
+/**
+ * Adaptive cooldowns are based only on this source's own clock. Running a
+ * different source no longer burns down an exhausted source's cooldown.
+ */
+export function isStrategyCoolingDown(
+  runs: RotationHistoryRun[],
+  strategy: string,
+  now = new Date()
+): boolean {
+  const strategyRuns = newestFirst(runs.filter((run) => run.strategy === strategy))
+  const latest = strategyRuns[0]
+  if (!latest?.started_at) return false
+
+  const streak = consecutiveZeroYieldRuns(strategyRuns, strategy)
+  if (streak < 2) return false
+
+  const cooldownDays = streak >= EXHAUSTED_STREAK_THRESHOLD ? 3 : 1
+  return now.getTime() - new Date(latest.started_at).getTime() < cooldownDays * 24 * 60 * 60 * 1_000
+}
+
+export function orderStrategiesByEfficiency<T extends string>(
+  enabled: T[],
+  runs: RotationHistoryRun[]
+): T[] {
+  return enabled
+    .map((strategy, index) => ({ strategy, index, efficiency: getStrategyEfficiency(runs, strategy) }))
+    .sort((a, b) => b.efficiency - a.efficiency || a.index - b.index)
+    .map(({ strategy }) => strategy)
 }

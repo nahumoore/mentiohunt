@@ -11,6 +11,12 @@ import { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
+import {
+  claimDiscoveryCandidates,
+  completeDiscoveryCandidates,
+  retryDiscoveryCandidates,
+  storeDiscoveryCandidates,
+} from "../shared/discovery-candidate-backlog.js"
 import { extractDomainFromUrl, isNoiseDomain } from "../shared/url-filters.js"
 import { buildListicleQueries } from "./build-listicle-queries.js"
 import { fetchPageContent } from "./check-listicle-client.js"
@@ -97,18 +103,23 @@ export async function discoverListicleRoundups(
     const serpResults = serpBatches.flatMap((batch) => batch.flatMap((item) => item.results ?? []))
 
     // 2. Dedup by URL, drop own domain + noise/aggregator domains.
-    const byUrl = new Map<string, { url: string; domain: string; title: string; snippet: string }>()
+    const byUrl = new Map<string, { url: string; domain: string; title: string; snippet: string; appearances: number }>()
     for (const r of serpResults) {
       if (!r.url) continue
       const domain = extractDomainFromUrl(r.url)
       if (!domain || domain === ownDomain || isNoiseDomain(domain)) continue
       const normalizedUrl = r.url.replace(/\/$/, "")
-      if (byUrl.has(normalizedUrl)) continue
+      const existing = byUrl.get(normalizedUrl)
+      if (existing) {
+        existing.appearances += 1
+        continue
+      }
       byUrl.set(normalizedUrl, {
         url: r.url,
         domain,
         title: r.title ?? "",
         snippet: r.description ?? "",
+        appearances: 1,
       })
     }
     if (byUrl.size === 0) {
@@ -132,13 +143,42 @@ export async function discoverListicleRoundups(
     // not after. Query rotation means most URLs seen again are ones we already have.
     const { data: existingProspects } = await supabaseAdmin
       .from("backlink_prospects")
-      .select("found_url")
+      .select("found_url, domain")
       .eq("product_id", product.id)
-      .in("found_url", [...byUrl.values()].map((c) => c.url))
+      .in("domain", [...new Set([...byUrl.values()].map((c) => c.domain))])
 
     const existingUrls = new Set((existingProspects ?? []).map((r) => r.found_url))
-    const freshCandidates = [...byUrl.values()].filter((c) => !existingUrls.has(c.url))
-    const candidates = freshCandidates.slice(0, maxCandidates)
+    const existingDomains = new Set((existingProspects ?? []).map((r) => r.domain))
+    const freshDomains = new Set<string>()
+    const freshCandidates = [...byUrl.values()].filter((candidate) => {
+      if (
+        existingUrls.has(candidate.url)
+        || existingDomains.has(candidate.domain)
+        || freshDomains.has(candidate.domain)
+      ) return false
+      freshDomains.add(candidate.domain)
+      return true
+    })
+    await storeDiscoveryCandidates(
+      product.id,
+      "listicle_roundup",
+      freshCandidates.map((candidate, index) => ({
+        candidateKey: candidate.url.replace(/\/$/, ""),
+        ...candidate,
+        priorityScore: candidate.appearances * 100 + freshCandidates.length - index,
+        metadata: { query_appearances: candidate.appearances },
+      }))
+    )
+    const claimed = await claimDiscoveryCandidates(product.id, "listicle_roundup", maxCandidates)
+    const candidates = claimed.length > 0
+      ? claimed.map((candidate) => ({
+          url: candidate.url,
+          domain: candidate.domain,
+          title: candidate.title ?? "",
+          snippet: candidate.snippet ?? "",
+          backlogId: candidate.id,
+        }))
+      : freshCandidates.slice(0, maxCandidates).map((candidate) => ({ ...candidate, backlogId: null }))
 
     log.info("candidates gathered", {
       productId: product.id,
@@ -179,6 +219,10 @@ export async function discoverListicleRoundups(
       (f): f is { candidate: (typeof candidates)[number]; content: NonNullable<(typeof f)["content"]> } =>
         f.content !== null
     )
+    const failedBacklogIds = fetched
+      .filter((item) => item.content === null && item.candidate.backlogId)
+      .map((item) => item.candidate.backlogId as string)
+    await retryDiscoveryCandidates(failedBacklogIds, "page_fetch_failed")
     log.info("content fetched", {
       productId: product.id,
       attempted: fetched.length,
@@ -201,6 +245,9 @@ export async function discoverListicleRoundups(
         text: f.content.text,
       })),
       product
+    )
+    await completeDiscoveryCandidates(
+      withContent.map((item) => item.candidate.backlogId).filter((id): id is string => Boolean(id))
     )
     totalCostUsd += scoringCost
 

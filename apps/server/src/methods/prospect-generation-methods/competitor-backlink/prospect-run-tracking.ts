@@ -3,6 +3,7 @@ import { createLogger } from "../../../helpers/logger.js"
 import { withCompletedRunHealth, withFailedRunHealth } from "../shared/run-health.js"
 
 const log = createLogger("competitor-backlink-prospect-run")
+const EXHAUSTED_RECHECK_MS = 30 * 24 * 60 * 60 * 1_000
 
 export async function getLastMozCursor(
   productId: string,
@@ -24,6 +25,31 @@ export async function getLastMozCursor(
   return mozCursors[competitorDomain] ?? null
 }
 
+export async function getLastCompetitorRefresh(
+  productId: string
+): Promise<{ refreshedAt: string; domains: string[] } | null> {
+  const { data } = await supabaseAdmin
+    .from("backlink_prospect_runs" as string)
+    .select("metadata")
+    .eq("product_id", productId)
+    .eq("strategy", "competitor_backlink")
+    .eq("status", "completed")
+    .order("completed_at", { ascending: false })
+    .limit(30)
+
+  for (const run of (data ?? []) as Array<{
+    metadata: { competitor_refresh_at?: string; inferred_competitors?: string[] } | null
+  }>) {
+    if (run.metadata?.competitor_refresh_at) {
+      return {
+        refreshedAt: run.metadata.competitor_refresh_at,
+        domains: run.metadata.inferred_competitors ?? [],
+      }
+    }
+  }
+  return null
+}
+
 export async function selectCompetitorsForRun(
   productId: string,
   allDomains: string[],
@@ -31,22 +57,37 @@ export async function selectCompetitorsForRun(
 ): Promise<string[]> {
   const { data: recentRuns } = await supabaseAdmin
     .from("backlink_prospect_runs" as string)
-    .select("input, completed_at")
+    .select("input, completed_at, metadata")
     .eq("product_id", productId)
     .eq("strategy", "competitor_backlink")
     .eq("status", "completed")
     .order("completed_at", { ascending: false })
 
   const lastRunByDomain = new Map<string, string>()
-  for (const run of (recentRuns ?? []) as Array<{ input: { competitor_domains?: string[] } | null; completed_at: string | null }>) {
+  const exhaustedAtByDomain = new Map<string, string>()
+  for (const run of (recentRuns ?? []) as Array<{
+    input: { competitor_domains?: string[] } | null
+    completed_at: string | null
+    metadata: { exhausted_competitor_domains?: string[] } | null
+  }>) {
     for (const domain of run.input?.competitor_domains ?? []) {
       if (!lastRunByDomain.has(domain)) {
         lastRunByDomain.set(domain, run.completed_at ?? "")
       }
     }
+    for (const domain of run.metadata?.exhausted_competitor_domains ?? []) {
+      if (!exhaustedAtByDomain.has(domain)) {
+        exhaustedAtByDomain.set(domain, run.completed_at ?? "")
+      }
+    }
   }
 
   return [...allDomains]
+    .filter((domain) => {
+      const exhaustedAt = exhaustedAtByDomain.get(domain)
+      if (!exhaustedAt) return true
+      return Date.now() - new Date(exhaustedAt).getTime() >= EXHAUSTED_RECHECK_MS
+    })
     .sort((a, b) => {
       const aTime = lastRunByDomain.get(a) ?? ""
       const bTime = lastRunByDomain.get(b) ?? ""

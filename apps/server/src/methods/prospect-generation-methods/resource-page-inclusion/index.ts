@@ -11,6 +11,12 @@ import { fetchPageContent } from "../listicle-roundup/check-listicle-client.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
+import {
+  claimDiscoveryCandidates,
+  completeDiscoveryCandidates,
+  retryDiscoveryCandidates,
+  storeDiscoveryCandidates,
+} from "../shared/discovery-candidate-backlog.js"
 import { extractDomainFromUrl, isNoiseDomain } from "../shared/url-filters.js"
 import { enrichDomainRatings, enrichResourceInclusion } from "./enrichment.js"
 import { limitNumber, normalizeUrl, queryKey } from "./helpers.js"
@@ -210,16 +216,49 @@ export async function discoverResourcePageInclusions(
 
     const existingUrls = new Set((existingProspects ?? []).map((r) => r.found_url))
     const existingDomains = new Set((existingProspects ?? []).map((r) => r.domain))
-    const candidates = gathered
-      .filter((c) => !existingUrls.has(c.url) && !existingDomains.has(c.domain))
-      .slice(0, maxCandidates)
+    const freshCandidates = gathered.filter((c) => !existingUrls.has(c.url) && !existingDomains.has(c.domain))
+    await storeDiscoveryCandidates(
+      product.id,
+      "resource_page_inclusion",
+      freshCandidates.map((candidate, index) => ({
+        candidateKey: candidate.id,
+        url: candidate.url,
+        domain: candidate.domain,
+        title: candidate.title,
+        snippet: candidate.snippet,
+        query: candidate.query,
+        targetPageId: candidate.targetPage.id,
+        targetUrl: candidate.targetPage.url,
+        priorityScore: freshCandidates.length - index,
+        metadata: { targetPage: candidate.targetPage },
+      }))
+    )
+    const claimed = await claimDiscoveryCandidates(product.id, "resource_page_inclusion", maxCandidates)
+    type ResourceBacklogCandidate = ResourceInclusionCandidate & { backlogId: string | null }
+    const candidates: ResourceBacklogCandidate[] = claimed.length > 0
+      ? claimed.flatMap((candidate) => {
+          const targetPage = candidate.metadata?.targetPage as TargetPageForInclusion | undefined
+          if (!targetPage) return []
+          return [{
+            id: candidate.candidateKey,
+            url: candidate.url,
+            domain: candidate.domain,
+            title: candidate.title ?? "",
+            snippet: candidate.snippet ?? "",
+            text: "",
+            query: candidate.query ?? "",
+            targetPage,
+            backlogId: candidate.id,
+          }]
+        })
+      : freshCandidates.slice(0, maxCandidates).map((candidate) => ({ ...candidate, backlogId: null }))
 
     log.info("candidates gathered", {
       productId: product.id,
       pages: pages.length,
       queries: queryPlan.length,
       uniquePairs: gathered.length,
-      alreadyStored: gathered.length - candidates.length,
+      alreadyStored: gathered.length - freshCandidates.length,
       toFetch: candidates.length,
     })
 
@@ -237,7 +276,11 @@ export async function discoverResourcePageInclusions(
         })
       )
     )
-    const withContent = fetched.filter((c): c is ResourceInclusionCandidate => c !== null)
+    const withContent = fetched.filter((c): c is ResourceBacklogCandidate => c !== null)
+    const failedBacklogIds = candidates
+      .filter((candidate, index) => fetched[index] === null && candidate.backlogId)
+      .map((candidate) => candidate.backlogId as string)
+    await retryDiscoveryCandidates(failedBacklogIds, "page_fetch_failed")
 
     if (withContent.length === 0) {
       await completeProspectRun(runId, 0, totalCostUsd, { candidates_gathered: gathered.length, fetched: 0 })
@@ -246,6 +289,11 @@ export async function discoverResourcePageInclusions(
 
     const { results: scored, totalCost: scoringCost } = await scoreResourcePageInclusion(withContent, product)
     totalCostUsd += scoringCost
+    await completeDiscoveryCandidates(
+      withContent
+        .map((candidate) => (candidate as ResourceInclusionCandidate & { backlogId?: string }).backlogId)
+        .filter((id): id is string => Boolean(id))
+    )
 
     const bestByDomain = new Map<string, ScoredResourceInclusionCandidate>()
     for (const item of scored) {
@@ -349,6 +397,7 @@ export async function discoverResourcePageInclusions(
     const prospectsCreated = idByUrl.size
     const sender = await resolveSenderName(product.user_id)
     const enrichLimit = pLimit(5)
+    let enrichedWithContact = 0
 
     await Promise.allSettled(
       toProcess
@@ -379,6 +428,7 @@ export async function discoverResourcePageInclusions(
             }
 
             if (ready) {
+              enrichedWithContact += 1
               onProspectCreated?.({
                 id,
                 contactName: enriched.contact_name,
@@ -397,6 +447,7 @@ export async function discoverResourcePageInclusions(
       candidates_fetched: withContent.length,
       candidates_scored: scored.length,
       qualified: qualified.length,
+      enriched_with_contact: enrichedWithContact,
     })
 
     return { prospectsCreated, totalCostUsd, runInput, dryRun, candidatesFound: gathered.length, candidatesScored: scored.length }

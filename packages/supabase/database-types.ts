@@ -208,6 +208,10 @@ export type Database = {
       }
       backlink_prospects_settings: {
         Row: {
+          adaptive_discovery_enabled: boolean
+          daily_discovery_candidate_cap: number
+          daily_discovery_cost_cap_usd: number
+          daily_discovery_target: number
           discovery_status: Json | null
           dr_max: number | null
           dr_min: number
@@ -220,6 +224,10 @@ export type Database = {
           voice_tone: string | null
         }
         Insert: {
+          adaptive_discovery_enabled?: boolean
+          daily_discovery_candidate_cap?: number
+          daily_discovery_cost_cap_usd?: number
+          daily_discovery_target?: number
           discovery_status?: Json | null
           dr_max?: number | null
           dr_min?: number
@@ -232,6 +240,10 @@ export type Database = {
           voice_tone?: string | null
         }
         Update: {
+          adaptive_discovery_enabled?: boolean
+          daily_discovery_candidate_cap?: number
+          daily_discovery_cost_cap_usd?: number
+          daily_discovery_target?: number
           discovery_status?: Json | null
           dr_max?: number | null
           dr_min?: number
@@ -249,6 +261,93 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: true
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discovery_candidates: {
+        Row: {
+          attempt_count: number
+          candidate_key: string
+          claimed_at: string | null
+          discovered_at: string
+          domain: string
+          id: string
+          last_error: string | null
+          last_seen_at: string
+          metadata: Json
+          next_attempt_at: string | null
+          priority_score: number
+          processed_at: string | null
+          product_id: string
+          query: string | null
+          snippet: string
+          source: Database["public"]["Enums"]["prospect_tier"]
+          state: string
+          target_page_id: string | null
+          target_url: string | null
+          title: string
+          url: string
+        }
+        Insert: {
+          attempt_count?: number
+          candidate_key: string
+          claimed_at?: string | null
+          discovered_at?: string
+          domain: string
+          id?: string
+          last_error?: string | null
+          last_seen_at?: string
+          metadata?: Json
+          next_attempt_at?: string | null
+          priority_score?: number
+          processed_at?: string | null
+          product_id: string
+          query?: string | null
+          snippet?: string
+          source: Database["public"]["Enums"]["prospect_tier"]
+          state?: string
+          target_page_id?: string | null
+          target_url?: string | null
+          title?: string
+          url: string
+        }
+        Update: {
+          attempt_count?: number
+          candidate_key?: string
+          claimed_at?: string | null
+          discovered_at?: string
+          domain?: string
+          id?: string
+          last_error?: string | null
+          last_seen_at?: string
+          metadata?: Json
+          next_attempt_at?: string | null
+          priority_score?: number
+          processed_at?: string | null
+          product_id?: string
+          query?: string | null
+          snippet?: string
+          source?: Database["public"]["Enums"]["prospect_tier"]
+          state?: string
+          target_page_id?: string | null
+          target_url?: string | null
+          title?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_candidates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_candidates_target_page_id_fkey"
+            columns: ["target_page_id"]
+            isOneToOne: false
+            referencedRelation: "product_pages"
             referencedColumns: ["id"]
           },
         ]

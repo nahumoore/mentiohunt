@@ -13,10 +13,13 @@ import { extractCompetitorDomain, isBlockedCompetitorDomain } from "../methods/p
 import { discoverListicleRoundups } from "../methods/prospect-generation-methods/listicle-roundup/index.js"
 import { discoverResourcePageInclusions } from "../methods/prospect-generation-methods/resource-page-inclusion/index.js"
 import { discoverUnlinkedMentions } from "../methods/prospect-generation-methods/unlinked-mention/index.js"
+import { crawlProductPages } from "../methods/product-pages/crawl-product-pages.js"
 import { ALL_OPPORTUNITY_TYPES } from "../methods/prospect-generation-methods/shared/opportunity-types.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../methods/prospect-generation-methods/shared/prospect-types.js"
 import {
   getStrategyCooldownRuns,
+  isStrategyCoolingDown,
+  orderStrategiesByEfficiency,
   orderStrategiesByStaleness,
   type RotationHistoryRun,
 } from "../methods/prospect-generation-methods/shared/strategy-rotation.js"
@@ -53,15 +56,22 @@ export type DiscoveryProduct = {
 }
 
 type DiscoveryResult = { prospectsCreated: number; totalCostUsd: number }
+type StrategyRunOptions = {
+  adaptive: boolean
+  budget?: { remaining: number }
+  targetRemaining?: number
+  shouldStop?: () => boolean
+}
 
 type StrategyHandler = {
   /** Cheap precondition — a strategy that can only no-op shouldn't consume the product's daily slot. */
-  isRunnable: (product: DiscoveryProduct) => Promise<boolean> | boolean
+  isRunnable: (product: DiscoveryProduct, adaptive?: boolean) => Promise<boolean> | boolean
   discover: (
     product: DiscoveryProduct,
     filterSettings: FilterSettings,
     emailSettings: EmailSettings,
-    onProspectCreated?: (p: ProspectCreatedPayload) => void
+    onProspectCreated?: (p: ProspectCreatedPayload) => void,
+    options?: StrategyRunOptions
   ) => Promise<DiscoveryResult>
   sendAlert: (args: {
     to: string
@@ -74,32 +84,54 @@ type StrategyHandler = {
 
 const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
   competitor_backlink: {
-    isRunnable: (product) =>
-      (product.competitors ?? []).some((competitor) => {
+    isRunnable: (product, adaptive) =>
+      adaptive || (product.competitors ?? []).some((competitor) => {
         const domain = extractCompetitorDomain(competitor)
         return Boolean(domain) && !isBlockedCompetitorDomain(domain)
       }),
-    discover: (product, filterSettings, emailSettings, onProspectCreated) =>
+    discover: (product, filterSettings, emailSettings, onProspectCreated, options) =>
       discoverCompetitorBacklinks(
         { ...product, competitors: product.competitors ?? [] },
         filterSettings,
         emailSettings,
-        {},
-        undefined,
+        options?.adaptive
+          ? {
+              maxCompetitors: 5,
+              maxProspects: Math.min(options.budget?.remaining ?? 20, options.targetRemaining ?? 10),
+              includeIntersection: true,
+              refreshCompetitors: true,
+              shouldStop: options.shouldStop,
+            }
+          : {},
+        options?.budget,
         onProspectCreated
       ),
     sendAlert: sendCompetitorBacklinkAlertEmail,
   },
   unlinked_mention: {
     isRunnable: (product) => (product.product_name?.trim() ?? "") !== "",
-    discover: (product, filterSettings, emailSettings, onProspectCreated) =>
-      discoverUnlinkedMentions(product, filterSettings, emailSettings, {}, undefined, onProspectCreated),
+    discover: (product, filterSettings, emailSettings, onProspectCreated, options) =>
+      discoverUnlinkedMentions(
+        product,
+        filterSettings,
+        emailSettings,
+        options?.adaptive ? { maxCandidates: 50, maxProspects: options.budget?.remaining } : {},
+        options?.budget,
+        onProspectCreated
+      ),
     sendAlert: sendUnlinkedMentionAlertEmail,
   },
   listicle_roundup: {
     isRunnable: (product) => (product.product_name?.trim() ?? "") !== "",
-    discover: (product, filterSettings, emailSettings, onProspectCreated) =>
-      discoverListicleRoundups(product, filterSettings, emailSettings, {}, undefined, onProspectCreated),
+    discover: (product, filterSettings, emailSettings, onProspectCreated, options) =>
+      discoverListicleRoundups(
+        product,
+        filterSettings,
+        emailSettings,
+        options?.adaptive ? { maxCandidates: 50, maxProspects: options.budget?.remaining } : {},
+        options?.budget,
+        onProspectCreated
+      ),
     sendAlert: sendListicleAlertEmail,
   },
   resource_page_inclusion: {
@@ -112,13 +144,15 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         .eq("is_target", true)
       return (count ?? 0) > 0
     },
-    discover: async (product, filterSettings, emailSettings, onProspectCreated) => {
+    discover: async (product, filterSettings, emailSettings, onProspectCreated, options) => {
       const { prospectsCreated, totalCostUsd } = await discoverResourcePageInclusions(
         product,
         filterSettings,
         emailSettings,
-        {},
-        undefined,
+        options?.adaptive
+          ? { maxCandidates: 50, maxProspects: options.budget?.remaining }
+          : {},
+        options?.budget,
         onProspectCreated
       )
       return { prospectsCreated, totalCostUsd }
@@ -144,13 +178,13 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         .in("page_type", ["article", "resource", "free_tool", "manual"])
       return (count ?? 0) > 0
     },
-    discover: (product, filterSettings, emailSettings, onProspectCreated) =>
+    discover: (product, filterSettings, emailSettings, onProspectCreated, options) =>
       discoverBrokenLinkBuilding(
         { ...product, competitors: product.competitors ?? [] },
         filterSettings,
         emailSettings,
-        {},
-        undefined,
+        options?.adaptive ? { maxCompetitors: 3, maxProspects: options.budget?.remaining } : {},
+        options?.budget,
         onProspectCreated
       ),
     sendAlert: sendBrokenLinkAlertEmail,
@@ -194,11 +228,146 @@ async function selectStrategyForRun(
       continue
     }
 
-    if (await STRATEGY_HANDLERS[strategy].isRunnable(product)) return strategy
+    if (await STRATEGY_HANDLERS[strategy].isRunnable(product, false)) return strategy
     log.info("strategy not runnable, trying next", { productId: product.id, strategy })
   }
 
   return null
+}
+
+async function loadStrategyHistory(
+  productId: string,
+  enabled: RotationStrategy[]
+): Promise<RotationHistoryRun[]> {
+  const { data, error } = await supabaseAdmin
+    .from("backlink_prospect_runs" as string)
+    .select("strategy, started_at, status, prospects_created, cost_usd, metadata, error")
+    .eq("product_id", productId)
+    .in("strategy", enabled)
+    .order("started_at", { ascending: false })
+    .limit(100)
+
+  if (error) {
+    log.warn("failed to load adaptive run history", { productId, error: error.message })
+    return []
+  }
+
+  return (data ?? []) as RotationHistoryRun[]
+}
+
+function metadataNumber(metadata: unknown, key: string): number {
+  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) return 0
+  const value = (metadata as Record<string, unknown>)[key]
+  return typeof value === "number" && Number.isFinite(value) ? value : 0
+}
+
+function shouldExploreUnlinkedMentions(history: RotationHistoryRun[]): boolean {
+  const completed = history
+    .filter((run) => run.strategy === "unlinked_mention" && run.status === "completed")
+    .slice(0, 3)
+  if (completed.length === 0) return true
+  return completed.some((run) => metadataNumber(run.metadata, "candidates_gathered") >= 5)
+}
+
+function isBrokenLinkRunDue(history: RotationHistoryRun[], now = new Date()): boolean {
+  const latest = history.find((run) => run.strategy === "broken_link_building")
+  if (!latest?.started_at) return true
+  return now.getTime() - new Date(latest.started_at).getTime() >= 7 * 24 * 60 * 60 * 1_000
+}
+
+async function buildAdaptiveStrategyQueue(
+  product: DiscoveryProduct,
+  enabled: RotationStrategy[],
+  history: RotationHistoryRun[]
+): Promise<RotationStrategy[]> {
+  const orderedRemainder = orderStrategiesByEfficiency(
+    enabled.filter((strategy) => strategy !== "competitor_backlink"),
+    history
+  )
+  const preferred: RotationStrategy[] = enabled.includes("competitor_backlink")
+    ? ["competitor_backlink", ...orderedRemainder]
+    : orderedRemainder
+  const runnable: RotationStrategy[] = []
+
+  for (const strategy of preferred) {
+    if (isStrategyCoolingDown(history, strategy)) {
+      log.info("adaptive source cooling down", { productId: product.id, strategy })
+      continue
+    }
+    if (strategy === "unlinked_mention" && !shouldExploreUnlinkedMentions(history)) {
+      log.info("adaptive source skipped: no demonstrated branded-search volume", {
+        productId: product.id,
+        strategy,
+      })
+      continue
+    }
+    if (strategy === "broken_link_building" && !isBrokenLinkRunDue(history)) {
+      log.info("adaptive source skipped: weekly scan not due", { productId: product.id, strategy })
+      continue
+    }
+    if (!(await STRATEGY_HANDLERS[strategy].isRunnable(product, true))) {
+      log.info("adaptive source not runnable", { productId: product.id, strategy })
+      continue
+    }
+    runnable.push(strategy)
+  }
+
+  return runnable
+}
+
+async function ensureProductReadiness(product: DiscoveryProduct): Promise<string[]> {
+  const validCompetitors = (product.competitors ?? [])
+    .map(extractCompetitorDomain)
+    .filter((domain) => domain && !isBlockedCompetitorDomain(domain))
+  const reasons: string[] = []
+
+  const getCrawledTargetCount = async () => {
+    const { count, error } = await supabaseAdmin
+      .from("product_pages")
+      .select("id", { count: "exact", head: true })
+      .eq("product_id", product.id)
+      .eq("crawl_status", "crawled")
+      .eq("is_target", true)
+    if (error) {
+      log.warn("readiness target-page check failed", { productId: product.id, error: error.message })
+      return 0
+    }
+    return count ?? 0
+  }
+
+  let crawledTargets = await getCrawledTargetCount()
+  if (crawledTargets === 0) {
+    try {
+      const retry = await crawlProductPages(product.id, { crawlLimit: 50 })
+      log.info("automatic target-page readiness retry complete", { productId: product.id, ...retry })
+      crawledTargets = await getCrawledTargetCount()
+    } catch (error) {
+      log.warn("automatic target-page readiness retry failed", { productId: product.id, error: String(error) })
+    }
+  }
+
+  if (crawledTargets === 0) reasons.push("no_crawled_target_pages")
+  if ((product.target_keywords ?? []).length === 0) reasons.push("no_target_keywords")
+  if (validCompetitors.length < 3) reasons.push("fewer_than_three_configured_competitors")
+
+  const { error: statusError } = await supabaseAdmin.rpc("merge_discovery_status", {
+    p_product_id: product.id,
+    p_updates: {
+      daily_readiness: {
+        checked_at: new Date().toISOString(),
+        ready: reasons.length === 0,
+        reasons,
+        crawled_target_pages: crawledTargets,
+        valid_competitors: validCompetitors.length,
+        target_keywords: (product.target_keywords ?? []).length,
+      },
+    },
+  })
+  if (statusError) {
+    log.warn("failed to persist discovery readiness", { productId: product.id, error: statusError.message })
+  }
+
+  return reasons
 }
 
 export async function runDiscoveryForProduct(
@@ -206,14 +375,20 @@ export async function runDiscoveryForProduct(
   profile: { email: string | null; name: string | null } | undefined
 ): Promise<{
   strategy: RotationStrategy | null
+  strategies: RotationStrategy[]
   prospectsCreated: number
+  sendReadyCreated: number
   totalCostUsd: number
   emailSent: boolean
+  readinessReasons?: string[]
+  stopReason?: "target_reached" | "candidate_cap_reached" | "cost_cap_reached" | "sources_exhausted"
   skipped?: string
 }> {
   const { data: settings } = await supabaseAdmin
     .from("backlink_prospects_settings")
-    .select("dr_min, dr_max, voice_tone, offering, opportunity_types")
+    .select(
+      "dr_min, dr_max, voice_tone, offering, opportunity_types, adaptive_discovery_enabled, daily_discovery_target, daily_discovery_candidate_cap, daily_discovery_cost_cap_usd"
+    )
     .eq("product_id", product.id)
     .single()
 
@@ -223,20 +398,31 @@ export async function runDiscoveryForProduct(
   if (enabled.length === 0) {
     return {
       strategy: null,
+      strategies: [],
       prospectsCreated: 0,
+      sendReadyCreated: 0,
       totalCostUsd: 0,
       emailSent: false,
       skipped: "no rotation strategies enabled",
     }
   }
 
-  const strategy = await selectStrategyForRun(product, enabled)
-  if (!strategy) {
+  const adaptive = settings?.adaptive_discovery_enabled === true
+  const readinessReasons = adaptive ? await ensureProductReadiness(product) : undefined
+  const history = adaptive ? await loadStrategyHistory(product.id, enabled) : []
+  const strategies = adaptive
+    ? await buildAdaptiveStrategyQueue(product, enabled, history)
+    : [await selectStrategyForRun(product, enabled)].filter((value): value is RotationStrategy => value !== null)
+
+  if (strategies.length === 0) {
     return {
       strategy: null,
+      strategies: [],
       prospectsCreated: 0,
+      sendReadyCreated: 0,
       totalCostUsd: 0,
       emailSent: false,
+      readinessReasons,
       skipped: "no runnable strategy (missing competitors / crawled pages)",
     }
   }
@@ -251,7 +437,20 @@ export async function runDiscoveryForProduct(
     offering: settings?.offering ?? null,
   }
 
-  log.info("strategy selected", { productId: product.id, strategy })
+  const dailyTarget = Math.max(1, settings?.daily_discovery_target ?? 10)
+  const candidateCap = Math.max(dailyTarget, settings?.daily_discovery_candidate_cap ?? 15)
+  const costCapUsd = Math.max(0.01, settings?.daily_discovery_cost_cap_usd ?? 0.7)
+  const budget = adaptive ? { remaining: candidateCap } : undefined
+
+  log.info("discovery sources selected", {
+    productId: product.id,
+    adaptive,
+    strategies,
+    dailyTarget: adaptive ? dailyTarget : undefined,
+    candidateCap: adaptive ? candidateCap : undefined,
+    costCapUsd: adaptive ? costCapUsd : undefined,
+    readinessReasons,
+  })
 
   // Resolve the sending account once so newly-created prospects get their sequence
   // rows written in-flight with the LLM-generated step2/step3 bodies, the same way
@@ -259,22 +458,51 @@ export async function runDiscoveryForProduct(
   // can't see them and always falls back to the templated follow-up.
   const account = await resolveEmailAccount(product.user_id)
   const seqLimit = pLimit(3)
-  const seqPromises: Promise<void>[] = []
-  const onProspectCreated: ((p: ProspectCreatedPayload) => void) | undefined = account
-    ? (p) => {
-        seqPromises.push(seqLimit(() => createSequencesForProspect(p, account)))
-      }
-    : undefined
-
-  const result = await STRATEGY_HANDLERS[strategy].discover(product, filterSettings, emailSettings, onProspectCreated)
-  await Promise.allSettled(seqPromises)
-  log.info("discovery done", { productId: product.id, strategy, ...result })
-
+  let prospectsCreated = 0
+  let sendReadyCreated = 0
+  let totalCostUsd = 0
   let emailSent = false
-  if (result.prospectsCreated > 0) {
-    await assignSequences(product.user_id, product.id, account)
+  const ranStrategies: RotationStrategy[] = []
 
-    if (profile?.email) {
+  for (const strategy of strategies) {
+    if (adaptive && sendReadyCreated >= dailyTarget) break
+    if (adaptive && budget && budget.remaining <= 0) break
+    if (adaptive && totalCostUsd >= costCapUsd) break
+
+    const seqPromises: Promise<void>[] = []
+    let sourceSendReady = 0
+    const onProspectCreated = (payload: ProspectCreatedPayload) => {
+      sourceSendReady += 1
+      sendReadyCreated += 1
+      if (account) seqPromises.push(seqLimit(() => createSequencesForProspect(payload, account)))
+    }
+
+    const result = await STRATEGY_HANDLERS[strategy].discover(
+      product,
+      filterSettings,
+      emailSettings,
+      onProspectCreated,
+      {
+        adaptive,
+        budget,
+        targetRemaining: Math.max(0, dailyTarget - sendReadyCreated),
+        shouldStop: () => sendReadyCreated >= dailyTarget,
+      }
+    )
+    await Promise.allSettled(seqPromises)
+    ranStrategies.push(strategy)
+    prospectsCreated += result.prospectsCreated
+    totalCostUsd += result.totalCostUsd
+    log.info("discovery source done", {
+      productId: product.id,
+      strategy,
+      sourceSendReady,
+      cumulativeSendReady: sendReadyCreated,
+      remainingCandidateBudget: budget?.remaining,
+      ...result,
+    })
+
+    if (result.prospectsCreated > 0 && profile?.email) {
       await STRATEGY_HANDLERS[strategy].sendAlert({
         to: profile.email,
         userId: product.user_id,
@@ -283,20 +511,51 @@ export async function runDiscoveryForProduct(
         prospectsCreated: result.prospectsCreated,
       })
       emailSent = true
-    } else {
+    } else if (result.prospectsCreated > 0) {
       log.warn("no profile email, skipping alert", { productId: product.id, userId: product.user_id })
     }
   }
 
-  return { strategy, emailSent, ...result }
+  if (prospectsCreated > 0) {
+    await assignSequences(product.user_id, product.id, account)
+  }
+
+  const stopReason = !adaptive
+    ? undefined
+    : sendReadyCreated >= dailyTarget
+      ? "target_reached" as const
+      : budget && budget.remaining <= 0
+        ? "candidate_cap_reached" as const
+        : totalCostUsd >= costCapUsd
+          ? "cost_cap_reached" as const
+          : "sources_exhausted" as const
+
+  log.info("product discovery done", {
+    productId: product.id,
+    adaptive,
+    strategies: ranStrategies,
+    prospectsCreated,
+    sendReadyCreated,
+    totalCostUsd,
+    stopReason,
+  })
+
+  return {
+    strategy: ranStrategies[0] ?? null,
+    strategies: ranStrategies,
+    prospectsCreated,
+    sendReadyCreated,
+    totalCostUsd,
+    emailSent,
+    readinessReasons,
+    stopReason,
+  }
 }
 
 /**
- * Daily backlink discovery — one prospect-generation method per product per
- * day, rotating least-recently-run first across the strategies the product has
- * enabled in backlink_prospects_settings.opportunity_types. Runs for every
- * paid/trial product and emails the user a method-specific summary whenever it
- * finds at least one new prospect.
+ * Daily backlink discovery. Pilot products use competitor-first target filling
+ * until their ready-opportunity, candidate, or cost cap is reached. Other
+ * products retain the least-recently-run single-source rotation.
  */
 export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }): Promise<void> {
   const paidOnly = options?.paidOnly ?? false

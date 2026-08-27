@@ -1,5 +1,3 @@
-export type ProspectRunHealth = "healthy" | "partial" | "failed"
-
 export type ProspectRunMetadata = Record<string, unknown>
 
 function asRecord(value: unknown): ProspectRunMetadata {

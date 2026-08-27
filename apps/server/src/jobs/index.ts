@@ -10,17 +10,6 @@ import { checkScraperPoolHealth } from "./scraper-pool-health-monitor.js"
 import { resumeEligibleTrialExpiredSequences } from "../helpers/outreach/trial-sequences.js"
 
 export function registerJobs(): void {
-  // cron.schedule("0 2 1 * *", async () => {
-  //   try {
-  //     await updateDirectorySeoMetrics()
-  //   } catch (err) {
-  //     console.error("[cron] Error updating directory SEO metrics:", err)
-  //   }
-  // })
-  // console.log(
-  //   "[cron] Scheduled: directory SEO metrics update (1st of each month)"
-  // )
-
   cron.schedule("15 0,8,16 * * *", async () => {
     try {
       await deactivateExpiredFreeTrials()

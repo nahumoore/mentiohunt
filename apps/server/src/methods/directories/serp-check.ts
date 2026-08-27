@@ -33,48 +33,6 @@ function isListingUrl(url: string, slug: string): boolean {
   return !NON_LISTING_SEGMENTS.some((seg) => lower.includes(`/${seg}`))
 }
 
-export async function serpCheck(
-  directory: Directory,
-  productName: string
-): Promise<CheckResult> {
-  const query = `site:${directory.domain} "${productName}"`
-
-  let items: GoogleSerpItem[]
-  try {
-    items = await runApifyActor<GoogleSerpItem[]>(
-      SCRAPERLINK_GOOGLE_SERP,
-      {
-        keyword: query,
-        limit: "10",
-        country: "US",
-        include_merged: false,
-      } satisfies GoogleSerpInput,
-      90
-    )
-  } catch (err) {
-    return {
-      status: "error",
-      url: directory.submit_url,
-      reason: err instanceof Error ? err.message : String(err),
-    }
-  }
-
-  const results = items.flatMap((item) => item.results ?? [])
-
-  if (results.length === 0) {
-    return { status: "gap", url: directory.submit_url }
-  }
-
-  const slug = toSlug(productName)
-  const listingResult = results.find((r) => r.url && isListingUrl(r.url, slug))
-
-  if (listingResult?.url) {
-    return { status: "listed", url: listingResult.url }
-  }
-
-  return { status: "gap", url: directory.submit_url }
-}
-
 /**
  * Checks multiple directories in a single SERP query using site:A OR site:B syntax.
  * Returns a map of domain → CheckResult. Cuts Apify calls from N to ceil(N / SERP_BATCH_SIZE).

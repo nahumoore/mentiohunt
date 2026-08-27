@@ -38,8 +38,6 @@ export type RunHistory = {
   lastRunByQueryKey: Map<string, string>
 }
 
-export const DEFAULT_PAGE_TYPES = ["article", "resource", "free_tool", "comparison", "case_study"]
-
 export const DEFAULT_QUERY_TEMPLATES = [
   '"{keyword}" resources',
   '"{keyword}" tools',

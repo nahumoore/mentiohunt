@@ -38,12 +38,15 @@ The candidate sets overlap only where a recent link is also a top-authority link
 
 | Resource | Where | Status |
 |---|---|---|
-| Moz `gained_last_60_days` filter | `helpers/moz/data-site-link-list.ts` | **built, never called** |
+| Moz `gained_last_60_days` filter | `helpers/moz/data-site-link-list.ts` | **removed in the 2026-08-26 dead-code cleanup — rebuild or restore from git before starting this ticket** |
 | Competitor rotation | `competitor-backlink/prospect-run-tracking.ts` (`selectCompetitorsForRun`) | exists |
 | Everything downstream | standard | exists |
 
 Shares the Moz client with ticket 02, so whichever ships first pays the "does `MOZ_TOKEN` actually work
-in production" cost. Build these two together if possible.
+in production" cost. Build these two together if possible. The client had zero callers anywhere in the
+codebase and was deleted in the 2026-08-26 dead-code cleanup; recover it from git history
+(`git log --all --full-history -- apps/server/src/helpers/moz/data-site-link-list.ts`) or rebuild it
+before starting either ticket.
 
 ## Precondition (`isRunnable`)
 

@@ -9,14 +9,6 @@ const log = createLogger("generate-outreach-sequence")
 
 const MAX_USER_INPUT_LENGTH = 400
 
-export type OpportunityType =
-  | "competitor_backlink"
-  | "unlinked_mention"
-  | "listicle_roundup"
-  | "resource_page_inclusion"
-  | "user_submitted"
-  | "broken_link_building"
-
 export type OutreachContext =
   | {
       opportunityType: "competitor_backlink" | "listicle_roundup"

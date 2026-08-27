@@ -22,14 +22,17 @@ LLM query generation. The qualifier is a page fetch.
 
 | Resource | Where | Status |
 |---|---|---|
-| Moz Links API — `lost_last_60_days` filter | `helpers/moz/data-site-link-list.ts` | **built, never called** |
+| Moz Links API — `lost_last_60_days` filter | `helpers/moz/data-site-link-list.ts` | **removed in the 2026-08-26 dead-code cleanup — rebuild or restore from git before starting this ticket** |
 | DataForSEO backlinks (alternative source) | `helpers/data-for-seo/get-backlinks.ts` | exists — would need `backlinks_status_type: "lost"` |
 | Backlink count precondition | `helpers/data-for-seo/get-backlinks-summary.ts` | exists |
 | Page fetch | `listicle-roundup/check-listicle-client.ts` | exists |
 | Contact enrichment | `competitor-backlink/enrich-contact.ts` | exists |
 
-`helpers/moz/data-site-link-list.ts` is a complete, documented, unused client. Its header comment even
-describes the pagination strategy for a daily job. This strategy is what it was written for.
+The Moz client (`helpers/moz/data-site-link-list.ts`) was a complete, documented, unused client with
+zero callers anywhere in the codebase, so it was deleted in the 2026-08-26 dead-code cleanup along with
+other zero-reference code. It is still recoverable from git history. Before starting this ticket, either
+restore it (`git log --all --full-history -- apps/server/src/helpers/moz/data-site-link-list.ts`) or
+rebuild it — its header comment describes the pagination strategy this ticket needs.
 
 ## Precondition (`isRunnable`)
 

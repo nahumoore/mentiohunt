@@ -52,11 +52,6 @@ export function buildProspectSequenceSchedule(now = new Date()): { step1: Date; 
   return { step1, step2, step3 }
 }
 
-export function buildRetrySchedule(attemptCount: number, now = new Date()): Date {
-  const delayMinutes = Math.min(24 * 60, Math.max(15, 30 * 2 ** Math.max(0, attemptCount - 1)))
-  return randomUtcBusinessSlotAfter(new Date(now.getTime() + delayMinutes * MINUTE_MS))
-}
-
 export function buildCapacityReschedule(now = new Date()): Date {
   return randomUtcBusinessSlotAfter(new Date(now.getTime() + randomInt(60, 240) * MINUTE_MS))
 }

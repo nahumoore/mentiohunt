@@ -4,7 +4,11 @@ import { useEffect } from "react"
 
 import { useDiscoverySettingsStore } from "@/stores/discovery-settings-store"
 import { supabaseClient } from "@/lib/supabase/client"
-import { OPPORTUNITY_TYPE_TO_PROSPECT_TIER } from "@/lib/opportunity-types"
+import {
+  BROKEN_LINK_ELIGIBLE_PAGE_TYPES,
+  OPPORTUNITY_TYPE_TO_PROSPECT_TIER,
+  PAGE_GATED_PROSPECT_TIERS,
+} from "@/lib/opportunity-types"
 import { usePagesStore } from "@/stores/pages-store"
 import { useProductStore } from "@/stores/product-store"
 import { useProspectStore } from "@/stores/prospect-store"
@@ -39,6 +43,14 @@ export function ProspectRealtimeSync() {
       ProspectRun["strategy"],
       ProspectRun["status"]
     >()
+    // resource_page_inclusion/broken_link_building can never produce a
+    // completed run without a crawled target page — don't wait on them
+    // until one exists, or a product with none stays "in progress" forever.
+    // Fail-safe default is true (still required) so a query error can't be
+    // mistaken for "no pages" and prematurely mark discovery complete.
+    let hasCrawledTargetPage = true
+    let hasEligibleBrokenLinkPage = true
+    let hasUsableCompetitor = true
 
     function updateRunStatus(row: ProspectRun) {
       if (!expectedStrategies.has(row.strategy)) return
@@ -48,16 +60,25 @@ export function ProspectRealtimeSync() {
     function syncCompletedRunState() {
       if (expectedStrategies.size === 0) return
 
-      const allExpectedRunsFinished = [...expectedStrategies].every(
-        (strategy) => {
+      const requiredStrategies = [...expectedStrategies].filter((strategy) => {
+        if (strategy === "broken_link_building") {
+          return hasEligibleBrokenLinkPage && hasUsableCompetitor
+        }
+        if (PAGE_GATED_PROSPECT_TIERS.has(strategy)) return hasCrawledTargetPage
+        return true
+      })
+
+      const allExpectedRunsFinished =
+        requiredStrategies.length > 0 &&
+        requiredStrategies.every((strategy) => {
           const status = runStatusByStrategy.get(strategy)
           return status ? TERMINAL_RUN_STATUSES.has(status) : false
-        }
-      )
+        })
 
-      if (allExpectedRunsFinished) {
-        useProspectStore.getState().setHasCompletedRun(true)
-      }
+      // Always reflects current state (not a one-way latch) — a page-gated
+      // strategy becoming required again after a page gets crawled must be
+      // able to flip this back to false, or the UI shows a stale "done".
+      useProspectStore.getState().setHasCompletedRun(allExpectedRunsFinished)
     }
 
     async function subscribe() {
@@ -74,6 +95,57 @@ export function ProspectRealtimeSync() {
       }
 
       supabase.realtime.setAuth(session.access_token)
+
+      const [
+        { count: crawledTargetPageCount, error: crawledTargetPageError },
+        { count: eligibleBrokenLinkPageCount, error: eligibleBrokenLinkPageError },
+        { data: productRow, error: productError },
+      ] = await Promise.all([
+        supabase
+          .from("product_pages")
+          .select("id", { count: "exact", head: true })
+          .eq("product_id", productId)
+          .eq("is_target", true)
+          .eq("crawl_status", "crawled"),
+        supabase
+          .from("product_pages")
+          .select("id", { count: "exact", head: true })
+          .eq("product_id", productId)
+          .eq("is_target", true)
+          .eq("crawl_status", "crawled")
+          .in("page_type", [...BROKEN_LINK_ELIGIBLE_PAGE_TYPES]),
+        supabase.from("products").select("competitors").eq("id", productId).maybeSingle(),
+      ])
+
+      if (crawledTargetPageError) {
+        console.error(
+          "[ProspectRealtimeSync] failed to fetch crawled target pages",
+          crawledTargetPageError
+        )
+      } else {
+        hasCrawledTargetPage = (crawledTargetPageCount ?? 0) > 0
+      }
+
+      if (eligibleBrokenLinkPageError) {
+        console.error(
+          "[ProspectRealtimeSync] failed to fetch broken-link-eligible pages",
+          eligibleBrokenLinkPageError
+        )
+      } else {
+        hasEligibleBrokenLinkPage = (eligibleBrokenLinkPageCount ?? 0) > 0
+      }
+
+      if (productError) {
+        console.error(
+          "[ProspectRealtimeSync] failed to fetch product competitors",
+          productError
+        )
+      } else {
+        // Approximates the server's extractCompetitorDomain/isBlockedCompetitorDomain
+        // filtering with a simple non-empty check — good enough for gating
+        // since erring toward "still required" just waits a bit longer.
+        hasUsableCompetitor = ((productRow?.competitors as string[] | null)?.length ?? 0) > 0
+      }
 
       const { data: existingRuns, error: existingRunsError } = await supabase
         .from("backlink_prospect_runs")
@@ -161,6 +233,22 @@ export function ProspectRealtimeSync() {
 
             const row = payload.new as Tables<"product_pages">
             if (!row?.id) return
+
+            if (row.is_target && row.crawl_status === "crawled") {
+              let changed = false
+              if (!hasCrawledTargetPage) {
+                hasCrawledTargetPage = true
+                changed = true
+              }
+              if (
+                !hasEligibleBrokenLinkPage &&
+                (BROKEN_LINK_ELIGIBLE_PAGE_TYPES as readonly string[]).includes(row.page_type)
+              ) {
+                hasEligibleBrokenLinkPage = true
+                changed = true
+              }
+              if (changed) syncCompletedRunState()
+            }
 
             usePagesStore.getState().upsertPage({
               id: row.id,

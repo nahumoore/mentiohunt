@@ -9,7 +9,11 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import type { BacklinkNetworkMembership } from "@/stores/backlink-network-store"
 import type { DirectoryListItem } from "@/stores/directory-store"
 import type { DiscoverySettings } from "@/stores/discovery-settings-store"
-import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
+import {
+  BROKEN_LINK_ELIGIBLE_PAGE_TYPES,
+  DEFAULT_PROSPECT_TIERS,
+  PAGE_GATED_PROSPECT_TIERS,
+} from "@/lib/opportunity-types"
 import type { OutreachSettings } from "@/stores/outreach-settings-store"
 import type { ProductPageListItem } from "@/stores/pages-store"
 import type { ProspectListItem } from "@/stores/prospect-store"
@@ -277,7 +281,7 @@ export default async function DashboardLayout({
       supabase
         .from("product_pages")
         .select(
-          "id, url, title, description, page_type, priority, relevance_score, matched_keywords, is_target, is_manual"
+          "id, url, title, description, page_type, priority, relevance_score, matched_keywords, is_target, is_manual, crawl_status"
         )
         .eq("product_id", product.id)
         .order("priority", { ascending: true })
@@ -357,7 +361,15 @@ export default async function DashboardLayout({
 
     if (prospectRunsResult.error) {
       console.error("Error fetching backlink prospect runs:", prospectRunsResult.error)
-    } else {
+    } else if (pagesResult.error) {
+      // Can't tell whether any target page is crawled — fail safe by
+      // requiring every enabled strategy rather than guessing "no pages",
+      // which would incorrectly gate strategies out and could surface the
+      // "we found nothing" empty state on a transient query error.
+      console.error(
+        "Error fetching product pages for discovery-run gating:",
+        pagesResult.error
+      )
       const enabledStrategies = discoverySettingsResult.data?.opportunity_types ?? DEFAULT_PROSPECT_TIERS
       const latestStatusByStrategy = new Map<string, string>()
       for (const run of prospectRunsResult.data ?? []) {
@@ -368,6 +380,40 @@ export default async function DashboardLayout({
       hasCompletedProspectRun =
         enabledStrategies.length > 0 &&
         enabledStrategies.every((strategy: string) => {
+          const status = latestStatusByStrategy.get(strategy)
+          return status !== undefined && TERMINAL_RUN_STATUSES.has(status)
+        })
+    } else {
+      const enabledStrategies = discoverySettingsResult.data?.opportunity_types ?? DEFAULT_PROSPECT_TIERS
+      const crawledTargetPages = (pagesResult.data ?? []).filter(
+        (page) => page.is_target && page.crawl_status === "crawled"
+      )
+      const hasCrawledTargetPage = crawledTargetPages.length > 0
+      const hasEligibleBrokenLinkPage = crawledTargetPages.some((page) =>
+        (BROKEN_LINK_ELIGIBLE_PAGE_TYPES as readonly string[]).includes(page.page_type)
+      )
+      // Approximates the server's extractCompetitorDomain/isBlockedCompetitorDomain
+      // filtering (competitor-backlink/extract-backlinks.ts) with a simple
+      // non-empty check — good enough for gating purposes since erring toward
+      // "still required" just waits a bit longer rather than reintroducing
+      // the stuck-forever bug this is meant to fix.
+      const hasUsableCompetitor = (product.competitors ?? []).length > 0
+      const requiredStrategies = enabledStrategies.filter((strategy: string) => {
+        if (strategy === "broken_link_building") {
+          return hasEligibleBrokenLinkPage && hasUsableCompetitor
+        }
+        if (PAGE_GATED_PROSPECT_TIERS.has(strategy)) return hasCrawledTargetPage
+        return true
+      })
+      const latestStatusByStrategy = new Map<string, string>()
+      for (const run of prospectRunsResult.data ?? []) {
+        if (!latestStatusByStrategy.has(run.strategy)) {
+          latestStatusByStrategy.set(run.strategy, run.status)
+        }
+      }
+      hasCompletedProspectRun =
+        requiredStrategies.length > 0 &&
+        requiredStrategies.every((strategy: string) => {
           const status = latestStatusByStrategy.get(strategy)
           return status !== undefined && TERMINAL_RUN_STATUSES.has(status)
         })

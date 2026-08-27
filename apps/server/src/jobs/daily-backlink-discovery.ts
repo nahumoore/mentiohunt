@@ -13,7 +13,7 @@ import { extractCompetitorDomain, isBlockedCompetitorDomain } from "../methods/p
 import { discoverListicleRoundups } from "../methods/prospect-generation-methods/listicle-roundup/index.js"
 import { discoverResourcePageInclusions } from "../methods/prospect-generation-methods/resource-page-inclusion/index.js"
 import { discoverUnlinkedMentions } from "../methods/prospect-generation-methods/unlinked-mention/index.js"
-import { crawlProductPages } from "../methods/product-pages/crawl-product-pages.js"
+import { crawlProductPages, type CrawlProductPagesResult } from "../methods/product-pages/crawl-product-pages.js"
 import { ALL_OPPORTUNITY_TYPES } from "../methods/prospect-generation-methods/shared/opportunity-types.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../methods/prospect-generation-methods/shared/prospect-types.js"
 import {
@@ -335,14 +335,25 @@ async function ensureProductReadiness(product: DiscoveryProduct): Promise<string
     return count ?? 0
   }
 
+  // Recorded even on a zero-result attempt so a silent crawl failure (no
+  // sitemap candidates, or every candidate fetch failing) leaves a visible
+  // trace in discovery_status instead of just an empty product_pages table.
+  let lastCrawlRetry:
+    | (CrawlProductPagesResult & { attemptedAt: string })
+    | { error: string; attemptedAt: string }
+    | undefined
+
   let crawledTargets = await getCrawledTargetCount()
   if (crawledTargets === 0) {
+    const attemptedAt = new Date().toISOString()
     try {
       const retry = await crawlProductPages(product.id, { crawlLimit: 50 })
       log.info("automatic target-page readiness retry complete", { productId: product.id, ...retry })
+      lastCrawlRetry = { ...retry, attemptedAt }
       crawledTargets = await getCrawledTargetCount()
     } catch (error) {
       log.warn("automatic target-page readiness retry failed", { productId: product.id, error: String(error) })
+      lastCrawlRetry = { error: String(error), attemptedAt }
     }
   }
 
@@ -360,6 +371,7 @@ async function ensureProductReadiness(product: DiscoveryProduct): Promise<string
         crawled_target_pages: crawledTargets,
         valid_competitors: validCompetitors.length,
         target_keywords: (product.target_keywords ?? []).length,
+        ...(lastCrawlRetry ? { last_crawl_retry: lastCrawlRetry } : {}),
       },
     },
   })
@@ -408,7 +420,11 @@ export async function runDiscoveryForProduct(
   }
 
   const adaptive = settings?.adaptive_discovery_enabled === true
-  const readinessReasons = adaptive ? await ensureProductReadiness(product) : undefined
+  // Runs for every product, not just adaptive ones — a non-adaptive product
+  // with zero crawled target pages would otherwise never get an automatic
+  // crawl retry, permanently blocking resource_page_inclusion and
+  // broken_link_building from ever producing a run.
+  const readinessReasons = await ensureProductReadiness(product)
   const history = adaptive ? await loadStrategyHistory(product.id, enabled) : []
   const strategies = adaptive
     ? await buildAdaptiveStrategyQueue(product, enabled, history)

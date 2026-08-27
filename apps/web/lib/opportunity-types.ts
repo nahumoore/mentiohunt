@@ -19,6 +19,35 @@ export const DEFAULT_PROSPECT_TIERS = [
   "broken_link_building",
 ] satisfies ProspectTier[]
 
+/**
+ * Strategies whose server-side isRunnable precondition requires at least one
+ * *any-type* crawled target page (STRATEGY_HANDLERS in
+ * apps/server/src/jobs/daily-backlink-discovery.ts). A product with zero
+ * crawled target pages can never produce a completed run for these, so
+ * "has discovery finished" checks must not wait on them in that case.
+ *
+ * broken_link_building is NOT included here even though it also requires a
+ * crawled page — its server precondition is stricter (a specific page_type,
+ * see BROKEN_LINK_ELIGIBLE_PAGE_TYPES, plus a usable competitor), so it needs
+ * its own check rather than sharing this any-crawled-page gate.
+ */
+export const PAGE_GATED_PROSPECT_TIERS = new Set<string>([
+  "resource_page_inclusion",
+] satisfies ProspectTier[])
+
+/**
+ * page_type values that satisfy broken_link_building's server-side
+ * isRunnable filter (STRATEGY_HANDLERS.broken_link_building in
+ * apps/server/src/jobs/daily-backlink-discovery.ts). Keep in sync with that
+ * list.
+ */
+export const BROKEN_LINK_ELIGIBLE_PAGE_TYPES = [
+  "article",
+  "resource",
+  "free_tool",
+  "manual",
+] as const
+
 export interface TypeConfig {
   label: string
   description: string

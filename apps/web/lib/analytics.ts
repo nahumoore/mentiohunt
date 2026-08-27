@@ -53,3 +53,8 @@ export function setPersonProperties(properties: EventProperties) {
   if (!initializeAnalytics()) return
   posthog.setPersonProperties(properties)
 }
+
+export function captureException(error: unknown, properties?: EventProperties) {
+  if (!initializeAnalytics()) return
+  posthog.captureException(error, properties)
+}

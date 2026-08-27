@@ -26,7 +26,7 @@ export default function SigninPage() {
           className="pointer-events-none absolute bottom-0 right-0 size-64 rounded-full blur-3xl"
           style={{ background: "var(--amber-glow)", opacity: 0.05 }}
         />
-        <div className="relative w-full max-w-sm">
+        <div className="relative w-full max-w-sm" translate="no">
           <Suspense>
             <SigninForm />
           </Suspense>

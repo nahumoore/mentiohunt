@@ -5,6 +5,10 @@ export const EDITIONS: Record<number, Edition> = {
   2026: EDITION_2026,
 }
 
+/** @internal Not read by app code -- consumed by .claude/skills/statistics-article/SKILL.md,
+ * which instructs future runs to update this when adding a new yearly edition. */
+export const LATEST_YEAR = 2026
+
 export function getEdition(year: number): Edition {
   const edition = EDITIONS[year]
   if (!edition) {

@@ -52,7 +52,8 @@ Effort is discovery-and-qualify work only; every one of them also carries the
 
 ## Deliberately excluded
 
-- **Anything social.** `helpers/actors/tweet-scraper.ts` exists and would technically support
+- **Anything social.** `helpers/actors/tweet-scraper.ts` (removed as dead code in the 2026-08-26
+  cleanup, since it had zero callers -- recoverable from git history) would have technically supported
   #journorequest-style discovery, but CLAUDE.md rules out community monitoring and social reply
   automation. Not proposed.
 - **Blog comment / forum link drops.** Spam, and incompatible with the positioning.

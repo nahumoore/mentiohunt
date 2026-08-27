@@ -11,6 +11,8 @@
 - **`apps/web/package.json` lists `@tailwindcss/postcss` as a devDependency with zero direct usage** — check whether it's needed transitively via `packages/ui`'s postcss config before removing.
 - **`packages/ui/postcss.config.mjs` uses `postcss-load-config` without it being a listed dependency anywhere** — same hoisting-risk pattern as the eslint binary above.
 
+**Not covered here on purpose:** the first run also reports ~41 unused exports and ~33 unused exported types across `apps/server` and `apps/web` (things like `buildReplyToAddress`, `normalizeHost`, and a long tail of locally-scoped `type`/`interface` aliases). These weren't triaged or ticketed individually — the approved cleanup plan called this category out explicitly as "exported but used only within their own file... leaky API surface, not dead code, deliberately out of scope." That's a real, if noisy, finding (dropping the unnecessary `export` keyword is zero-risk cleanup whenever someone wants it), just not one anyone has reviewed line-by-line. Don't read the absence of that list here as "already handled" — run `pnpm knip` fresh to see it.
+
 ## What's needed
 
 Triage each item above; most are one-line fixes. None are urgent — flagging here so they don't get lost, and so a future `pnpm knip` run isn't mistaken for finding new regressions when it's really just these pre-existing items.

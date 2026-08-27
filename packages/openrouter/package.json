@@ -8,7 +8,6 @@
     "p-limit": "^6.2.0"
   },
   "exports": {
-    ".": "./index.ts",
     "./generate-text": "./generate-text.ts",
     "./models": "./models.ts"
   }

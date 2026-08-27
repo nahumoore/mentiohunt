@@ -297,18 +297,33 @@ function guessCompanyNameFromDomain(domain: string): string {
 type SerpFindings = { name: string | null; emails: string[] }
 
 /**
- * Cold-start name/email discovery (B1): when the page itself is silent, pivot
- * off-domain via the Google SERP actor we already own instead of buying an
- * identity provider. Two queries only, to keep Apify spend bounded: a
- * LinkedIn-title query for a founder/editor name, and a raw "@domain" query
- * for addresses already indexed elsewhere (directories, press, bios).
+ * Off-domain email discovery via the Google SERP actor we already own, instead
+ * of buying an identity provider. Two modes, both capped at two queries:
+ *
+ * - Named (B2): we already have the author/founder's name but their personal
+ *   email never appeared on-page — search for it directly, anchored to their
+ *   own domain. Measured 20% hit rate (2/10) on a sample of named-but-unemailed
+ *   prospects, zero false positives, because every candidate must end in
+ *   "@domain" — no cross-person collision risk.
+ * - Cold-start (B1): no name either — pivot off-domain to find one via a
+ *   LinkedIn-title query, plus a raw "@domain" query for addresses already
+ *   indexed elsewhere (directories, press, bios).
+ *
+ * Deliberately NOT doing a broad name+"email:" search with no domain anchor:
+ * tested and it triples recall but returns wrong-person hits on common names
+ * (aggregator sites like ContactOut return a same-named stranger's real,
+ * deliverable inbox) — verification confirms the mailbox exists, not that it's
+ * the right person, so that failure mode ships as a wrong-person send, not a
+ * bounce.
  */
-async function searchContactViaSerp(domain: string): Promise<SerpFindings> {
+async function searchContactViaSerp(domain: string, name?: string | null): Promise<SerpFindings> {
   const companyGuess = guessCompanyNameFromDomain(domain)
-  const queries = [
-    `site:linkedin.com/in "${companyGuess}" (founder OR editor OR "head of content" OR "managing editor")`,
-    `"@${domain}"`,
-  ]
+  const queries = name
+    ? [`"${name}" "@${domain}"`, `"${name}" (email OR contact) site:${domain}`]
+    : [
+        `site:linkedin.com/in "${companyGuess}" (founder OR editor OR "head of content" OR "managing editor")`,
+        `"@${domain}"`,
+      ]
 
   const allResults: GoogleSerpResult[] = []
   for (const keyword of queries) {
@@ -322,7 +337,7 @@ async function searchContactViaSerp(domain: string): Promise<SerpFindings> {
         if (item.results) allResults.push(...item.results)
       }
     } catch (err) {
-      log.warn("SERP cold-start query failed", { domain, keyword, error: String(err) })
+      log.warn("SERP contact search query failed", { domain, keyword, error: String(err) })
     }
   }
 
@@ -335,21 +350,29 @@ async function searchContactViaSerp(domain: string): Promise<SerpFindings> {
     }
   }
 
-  let name: string | null = null
-  for (const r of allResults) {
-    if (!r.url?.includes("linkedin.com/in/") || !r.title) continue
-    const candidate = r.title.split(" | ")[0]?.split(" - ")[0]?.trim()
-    if (candidate) {
-      name = candidate
-      break
+  // Only relevant in cold-start mode — in named mode we already have a name.
+  let linkedinName: string | null = null
+  if (!name) {
+    for (const r of allResults) {
+      if (!r.url?.includes("linkedin.com/in/") || !r.title) continue
+      const candidate = r.title.split(" | ")[0]?.split(" - ")[0]?.trim()
+      if (candidate) {
+        linkedinName = candidate
+        break
+      }
     }
   }
 
-  if (emailSet.size > 0 || name) {
-    log.info("SERP cold-start search found signal", { domain, name, emailCount: emailSet.size })
+  if (emailSet.size > 0 || linkedinName) {
+    log.info("SERP contact search found signal", {
+      domain,
+      mode: name ? "named" : "cold-start",
+      name: linkedinName,
+      emailCount: emailSet.size,
+    })
   }
 
-  return { name, emails: [...emailSet] }
+  return { name: linkedinName, emails: [...emailSet] }
 }
 
 export async function enrichContact(
@@ -480,14 +503,17 @@ export async function resolveContactEmail(
     }
   }
 
-  // Tier 1.5: cold start (B1) — page gave us neither a name nor a personal
-  // email, so pivot off-domain via SERP before generating patterns. A name
-  // found here still gets a shot at Tier 2; a raw email found here is
-  // verified with the same priority as a scraped one.
+  // Tier 1.5: SERP contact search — the page gave us no personal email. When
+  // we already have a name (B2), search it anchored to this domain: every
+  // candidate must end in "@domain", so there's no cross-person collision
+  // risk, unlike an unanchored name+"email:" search. When there's no name
+  // either, pivot off-domain cold-start (B1) to find one first. A name found
+  // here still gets a shot at Tier 2; a raw email found here is verified with
+  // the same priority as a scraped one.
   let effectiveName = cleanName
-  if (!cleanName && scrapedPersonal.length === 0) {
-    const serp = await searchContactViaSerp(domain)
-    const serpName = sanitizeContactName(serp.name)
+  if (scrapedPersonal.length === 0) {
+    const serp = await searchContactViaSerp(domain, cleanName)
+    const serpName = cleanName ?? sanitizeContactName(serp.name)
     const serpEmails = serp.emails.filter(isValidContactEmail)
 
     if (serpEmails.length > 0) {
@@ -504,7 +530,9 @@ export async function resolveContactEmail(
       }
     }
 
-    effectiveName = serpName
+    if (!cleanName) {
+      effectiveName = serpName
+    }
   }
 
   // Tier 2: generated personal patterns from the author/founder name — prefer the

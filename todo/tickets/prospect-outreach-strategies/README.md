@@ -14,10 +14,13 @@ The audit turned up three things:
 
 1. **Two discovery methods are fully built but only exposed as public free tools**, never wired into
    the rotation — `methods/guest-post-sites/` and `methods/directories/`.
-2. **Three integrations are built and never called at all** — the Moz Links API client
-   (`helpers/moz/data-site-link-list.ts`), the email verifier actor
-   (`helpers/actors/email-verifier.ts`), and `getBulkTrafficEstimation` outside of
-   `analyze-backlink-site`.
+2. **Two integrations are built and never called at all** — the Moz Links API client
+   (`helpers/moz/data-site-link-list.ts` — removed in the 2026-08-26 dead-code cleanup since it had
+   zero callers anywhere; restore from git or rebuild before starting tickets 02/06) and
+   `getBulkTrafficEstimation` outside of `analyze-backlink-site`. **Correction (2026-08-26):** the
+   email verifier actor (`helpers/actors/email-verifier.ts`) is *not* unused — `EMAIL_VERIFIER` is
+   invoked from `competitor-backlink/enrich-contact.ts` (two call sites). The Moz claim above was
+   accurate.
 3. **The four existing strategies use ~20% of what the SERP scraper + DataForSEO + `product_pages`
    can express.** Several high-reply-rate link building plays need no new vendor, only new query
    plans and qualifiers.

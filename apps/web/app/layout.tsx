@@ -38,7 +38,6 @@ export default function RootLayout({
       className={cn("antialiased", inter.variable, "font-sans")}
     >
       <body className="overflow-x-hidden">
-        {/* <ThemeProvider> */}
         <PostHogProvider>{children}</PostHogProvider>
         <Toaster richColors position="top-right" />
         <SupportChatWidget />

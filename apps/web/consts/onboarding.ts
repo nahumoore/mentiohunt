@@ -58,10 +58,6 @@ export const REFERRAL_SOURCES = [
   "Other",
 ] as const
 
-export type CompanySize = (typeof COMPANY_SIZES)[number]
-export type UserRole = (typeof USER_ROLES)[number]
-export type ReferralSource = (typeof REFERRAL_SOURCES)[number]
-
 export const OPPORTUNITY_TYPE_IDS = [
   "competitor_backlinks",
   "unlinked_mentions",

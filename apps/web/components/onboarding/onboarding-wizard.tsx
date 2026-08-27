@@ -427,42 +427,23 @@ export function OnboardingWizard({
     setFieldErrors({})
     setIsSubmitting(true)
 
+    captureEvent("onboarding_setup_saved", {
+      competitors_count: result.data.competitors?.length ?? 0,
+      keywords_count: result.data.targetKeywords?.length ?? 0,
+    })
+
     try {
-      const response = await fetch("/api/onboarding/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...result.data, startOutreach: false }),
+      // Nothing is persisted here — the setup data rides through Stripe
+      // Checkout in a cookie and is only saved once checkout-complete
+      // confirms payment. Keeps this click to a single fast redirect.
+      await stripeBuyPlanRedirect({
+        plan: "pro",
+        context: "onboarding",
+        onboardingData: result.data,
       })
-
-      const json = (await response.json().catch(() => null)) as {
-        error?: string
-      } | null
-
-      if (!response.ok) {
-        setSubmitMessage(json?.error ?? "Failed to complete onboarding.")
-        setIsSubmitting(false)
-        return
-      }
-
-      captureEvent("onboarding_setup_saved", {
-        competitors_count: result.data.competitors?.length ?? 0,
-        keywords_count: result.data.targetKeywords?.length ?? 0,
-      })
-
-      try {
-        await stripeBuyPlanRedirect({
-          plan: "pro",
-          context: "onboarding",
-          autoDiscoverPages: result.data.autoDiscoverPages,
-        })
-      } catch (err) {
-        if (isRedirectError(err)) throw err
-        setSubmitMessage("Something went wrong starting checkout. Please try again.")
-        setIsSubmitting(false)
-      }
     } catch (err) {
       if (isRedirectError(err)) throw err
-      setSubmitMessage("Failed to reach the server. Check your connection.")
+      setSubmitMessage("Something went wrong starting checkout. Please try again.")
       setIsSubmitting(false)
     }
   }

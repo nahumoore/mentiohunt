@@ -2,10 +2,8 @@ const SERVER_URL = process.env.SERVER_URL ?? "http://localhost:3001"
 
 /**
  * Kicks off the backend onboarding pipeline (crawl + discovery + outreach
- * sequences) for a freshly-completed product. Shared by
- * app/api/onboarding/complete/route.ts (startOutreach: true path) and
- * app/onboarding/checkout-complete/route.ts (post-checkout), so both callers
- * hit the server the same way.
+ * sequences) for a freshly-completed product. Called by
+ * app/onboarding/checkout-complete/route.ts once Stripe checkout confirms.
  */
 export async function startDiscoveryJobs(payload: {
   userId: string

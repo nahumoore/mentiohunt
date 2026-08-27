@@ -4,8 +4,10 @@ import Stripe from "stripe"
 import { redirect } from "next/navigation"
 
 import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
+import { onboardingSchema, type OnboardingData } from "@/consts/onboarding"
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { supabaseServer } from "@/lib/supabase/server"
+import { setPendingOnboardingData } from "@/lib/onboarding/pending-cookie"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
@@ -13,17 +15,19 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 export async function stripeBuyPlanRedirect({
   plan,
   context = "dashboard",
-  autoDiscoverPages,
+  onboardingData,
 }: {
   plan: "pro" | "agency"
   /** "onboarding" gets a card-required trial and routes back into the wizard
    *  to finish setup; "dashboard" keeps today's immediate-charge behavior for
    *  /pricing and /dashboard/billing. */
   context?: "onboarding" | "dashboard"
-  /** Only meaningful for context "onboarding" — carried through Stripe
-   *  metadata since /onboarding/checkout-complete needs it to kick off the
-   *  discovery jobs the same way /api/onboarding/complete does. */
-  autoDiscoverPages?: boolean
+  /** Only meaningful for context "onboarding". Nothing is written to the DB
+   *  yet at this point — the wizard's setup data is stashed in a short-lived
+   *  cookie and only persisted once /onboarding/checkout-complete confirms
+   *  the payment actually went through. Keeps the "Start trial" click down
+   *  to an auth check + one Stripe API call instead of a full save first. */
+  onboardingData?: OnboardingData
 }) {
   const supabase = await supabaseServer()
   const {
@@ -52,6 +56,17 @@ export async function stripeBuyPlanRedirect({
         .maybeSingle()
 
       eligibleForTrial = !profile?.stripe_customer_id
+
+      // Re-validate here — this action is a public server endpoint, and
+      // onboardingData's type is only a compile-time guarantee for callers,
+      // not a runtime one. checkout-complete already treats a missing cookie
+      // as "nothing to persist", so an invalid payload just falls back to it.
+      const parsedOnboardingData = onboardingData
+        ? onboardingSchema.safeParse(onboardingData)
+        : null
+      if (parsedOnboardingData?.success) {
+        await setPendingOnboardingData(parsedOnboardingData.data)
+      }
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -62,7 +77,7 @@ export async function stripeBuyPlanRedirect({
       metadata: {
         supabase_user_id: user.id,
         ...(isOnboarding
-          ? { onboarding_auto_discover: autoDiscoverPages ? "1" : "0" }
+          ? { onboarding_auto_discover: onboardingData?.autoDiscoverPages ? "1" : "0" }
           : {}),
       },
       ...(eligibleForTrial && {

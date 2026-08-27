@@ -3,7 +3,6 @@
   "ui": "tui",
   "globalEnv": [
     "NODE_ENV",
-    "NODE_END",
     "PORT",
     "APIFY_TOKEN",
     "SERVER_URL",
@@ -11,11 +10,6 @@
     "RESEND_API_KEY",
     "SUPPORT_COOKIE_SECRET",
     "APP_URL",
-    "BLUESKY_CLIENT_KEY",
-    "BLUESKY_SECRET_KEY",
-    "REDDIT_CLIENT_KEY",
-    "REDDIT_SECRET_KEY",
-    "ONBOARDING_CARD_REQUIRED_AFTER",
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET"
   ],

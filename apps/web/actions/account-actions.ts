@@ -89,9 +89,16 @@ export async function deactivateAccount() {
   return { deactivated_at: deactivatedAt }
 }
 
-/** Reverses deactivateAccount: clears deactivated_at so discovery resumes,
+/**
+ * Reverses deactivateAccount: clears deactivated_at so discovery resumes,
  * then resumes the paused sequences with a staggered schedule (not all at
- * once). */
+ * once).
+ *
+ * @internal Not wired to any UI yet — there is currently no way for a user
+ * to un-deactivate their own account. Tracked in
+ * todo/tickets/2026-08-26-add-reactivate-account-ui.md. Keep this function;
+ * do not delete as dead code.
+ */
 export async function reactivateAccount() {
   const supabase = await supabaseServer()
   const {

@@ -11,11 +11,13 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "supabase:types": "supabase gen types typescript --project-id eagakiaavexoykhvvkwc --schema public > packages/supabase/database-types.ts",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "knip": "knip"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
+    "knip": "^6.32.3",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "supabase": "^2.100.1",

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "tags": ["-@internal"],
+  "workspaces": {
+    "apps/web": {},
+    "apps/server": {
+      "entry": ["src/**/*.test.ts"]
+    },
+    "packages/ui": {},
+    "packages/openrouter": {},
+    "packages/supabase": {},
+    "packages/email-template": {}
+  },
+  "ignoreIssues": {
+    "apps/web/components/link-building/prospects/prospect-report-issue-dialog.tsx": ["files", "exports"],
+    "apps/web/app/api/link-building/opportunities/[id]/report-issue/route.ts": ["files", "exports"]
+  }
+}

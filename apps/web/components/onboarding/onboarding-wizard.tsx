@@ -17,7 +17,7 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useTransition } from "react"
 
 import { stripeBuyPlanRedirect } from "@/actions/stripe-buy-plan-redirect"
 import { OnboardingShell } from "@/components/onboarding/onboarding-shell"
@@ -107,6 +107,7 @@ export function OnboardingWizard({
   const [submitMessage, setSubmitMessage] = useState("")
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [, startCheckoutTransition] = useTransition()
   const [isFetchingSite, setIsFetchingSite] = useState(false)
   const [loadingFields, setLoadingFields] = useState<Set<LoadingField>>(new Set())
 
@@ -449,19 +450,20 @@ export function OnboardingWizard({
         keywords_count: result.data.targetKeywords?.length ?? 0,
       })
 
-      try {
-        await stripeBuyPlanRedirect({
-          plan: "pro",
-          context: "onboarding",
-          autoDiscoverPages: result.data.autoDiscoverPages,
-        })
-      } catch (err) {
-        if (isRedirectError(err)) throw err
-        setSubmitMessage("Something went wrong starting checkout. Please try again.")
-        setIsSubmitting(false)
-      }
-    } catch (err) {
-      if (isRedirectError(err)) throw err
+      startCheckoutTransition(async () => {
+        try {
+          await stripeBuyPlanRedirect({
+            plan: "pro",
+            context: "onboarding",
+            autoDiscoverPages: result.data.autoDiscoverPages,
+          })
+        } catch (err) {
+          if (isRedirectError(err)) throw err
+          setSubmitMessage("Something went wrong starting checkout. Please try again.")
+          setIsSubmitting(false)
+        }
+      })
+    } catch {
       setSubmitMessage("Failed to reach the server. Check your connection.")
       setIsSubmitting(false)
     }

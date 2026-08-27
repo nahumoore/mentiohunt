@@ -87,7 +87,7 @@ function AddTrackedLinksPaywall() {
           </Button>
         </DialogClose>
         <Button asChild size="sm" className="rounded-full bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot)">
-          <Link href="/dashboard/billing">Upgrade to unlock</Link>
+          <Link href="/dashboard/settings?tab=billing">Upgrade to unlock</Link>
         </Button>
       </div>
     </>

@@ -3,16 +3,15 @@
 import {
   IconBellRinging,
   IconCreditCard,
-  IconExternalLink,
   IconLock,
   IconShieldLock,
   IconSparkles,
   IconUser,
 } from "@tabler/icons-react"
 import { useEffect, useState, useTransition } from "react"
-import Link from "next/link"
 
 import { AccountTab } from "@/components/dashboard/settings/account-tab"
+import { BillingTab } from "@/components/dashboard/settings/billing-tab"
 import { PasswordTab } from "@/components/dashboard/settings/password-tab"
 import { SettingsSaveFooter } from "@/components/link-building/sources/settings-save-footer"
 import {
@@ -21,7 +20,6 @@ import {
 } from "@/actions/update-profile"
 import { useQueryState } from "@/hooks/use-query-state"
 import { useProfileStore } from "@/stores/profile-store"
-import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Switch } from "@workspace/ui/components/switch"
@@ -211,23 +209,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="billing">
-          <div className="overflow-hidden rounded-3xl border border-border/70 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]">
-            <div className="border-b border-border/70 px-6 py-5">
-              <p className="text-base font-semibold">Billing</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Manage your plan and payment details.
-              </p>
-            </div>
-            <div className="px-6 py-5">
-              <Button variant="outline" asChild>
-                <Link href="/dashboard/billing">
-                  <IconCreditCard />
-                  Go to billing
-                  <IconExternalLink />
-                </Link>
-              </Button>
-            </div>
-          </div>
+          <BillingTab />
         </TabsContent>
 
         <TabsContent value="password">

@@ -25,19 +25,19 @@ export async function stripeCustomerPortalRedirect() {
 
   const stripeCustomerId: string | null = profile?.stripe_customer_id ?? null
 
-  if (!stripeCustomerId) redirect("/dashboard/billing")
+  if (!stripeCustomerId) redirect("/dashboard/settings?tab=billing")
 
   let portalUrl: string | null = null
 
   try {
     const session = await stripe.billingPortal.sessions.create({
       customer: stripeCustomerId,
-      return_url: `${appUrl}/dashboard/billing`,
+      return_url: `${appUrl}/dashboard/settings?tab=billing`,
     })
     portalUrl = session.url
   } catch (err) {
     console.error("Stripe portal error:", err)
   }
 
-  redirect(portalUrl ?? "/dashboard/billing")
+  redirect(portalUrl ?? "/dashboard/settings?tab=billing")
 }

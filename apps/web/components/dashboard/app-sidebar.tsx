@@ -8,6 +8,7 @@ import * as React from "react"
 import { IconBrandMentiohunt } from "@/components/custom-icons/brand-mentiohunt"
 import { NavMain } from "@/components/dashboard/nav-main"
 import { NavUser } from "@/components/dashboard/nav-user"
+import { getTrialDaysRemaining, isOnTrial } from "@/lib/billing/trial"
 import {
   type DashboardProduct,
   getProductDisplayName,
@@ -26,8 +27,6 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
-const DAY_IN_MS = 24 * 60 * 60 * 1000
-
 function getProductHostname(websiteUrl: string | null | undefined) {
   if (!websiteUrl) return null
   try {
@@ -35,16 +34,6 @@ function getProductHostname(websiteUrl: string | null | undefined) {
   } catch {
     return null
   }
-}
-
-function getTrialDaysRemaining(periodEndAt: string) {
-  const periodEndTime = new Date(periodEndAt).getTime()
-
-  if (Number.isNaN(periodEndTime)) {
-    return 0
-  }
-
-  return Math.max(0, Math.ceil((periodEndTime - Date.now()) / DAY_IN_MS))
 }
 
 export function AppSidebar({
@@ -62,7 +51,7 @@ export function AppSidebar({
   const productName = getProductDisplayName(activeProduct)
   const productHostname = getProductHostname(activeProduct?.website_url)
   const isTrialProfileLoading = profile === null
-  const isFreeTrial = profile?.tier === "free" && profile.active_trial
+  const isFreeTrial = isOnTrial(profile)
   const trialDaysRemaining = profile
     ? getTrialDaysRemaining(profile.billing_period_end_at)
     : null
@@ -118,16 +107,16 @@ export function AppSidebar({
           <Skeleton className="mx-1 h-[78px] rounded-2xl group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8" />
         ) : isFreeTrial ? (
           <Link
-            href="/dashboard/billing"
+            href="/dashboard/settings?tab=billing"
             className="group/trial mx-1 flex items-center gap-2.5 rounded-xl border border-blaze-orange/20 bg-blaze-orange/5 p-2.5 transition-colors hover:border-blaze-orange/35 hover:bg-blaze-orange/8 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
-            aria-label={`Free trial: ${trialTimeLabel}. Upgrade in billing.`}
+            aria-label={`Trial: ${trialTimeLabel}. Manage in billing.`}
           >
             <span className="flex size-6 shrink-0 items-center justify-center text-blaze-orange">
               <IconAlertTriangle className="size-4" stroke={2} />
             </span>
             <span className="min-w-0 group-data-[collapsible=icon]:hidden">
               <span className="block text-[0.68rem] leading-4 font-semibold text-blaze-orange uppercase">
-                Free trial
+                Trial
               </span>
               <span className="block text-xs leading-4 text-muted-foreground">
                 {trialTimeLabel}

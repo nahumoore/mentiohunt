@@ -162,7 +162,7 @@ export function DashboardUpgradeSuccess() {
               </Link>
             </Button>
             <Link
-              href="/dashboard/billing"
+              href="/dashboard/settings?tab=billing"
               className="text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
             >
               View billing details

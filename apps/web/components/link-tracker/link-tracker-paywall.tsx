@@ -30,7 +30,7 @@ export function LinkTrackerPaywall() {
         ))}
       </ul>
       <Button asChild size="sm" className="mt-2 rounded-full bg-(--color-blaze-orange) text-white hover:bg-(--color-crimson-carrot)">
-        <Link href="/dashboard/billing">
+        <Link href="/dashboard/settings?tab=billing">
           <IconRadar2 className="size-4" />
           Upgrade to unlock
         </Link>

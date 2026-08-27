@@ -29,7 +29,7 @@ export function PoolCapacityBanner() {
         </div>
       </div>
       <Link
-        href="/dashboard/billing"
+        href="/dashboard/settings?tab=billing"
         className="font-ui inline-flex shrink-0 items-center justify-center rounded-full bg-(--color-blaze-orange) px-4 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:bg-(--color-crimson-carrot) active:scale-[0.98]"
       >
         Upgrade

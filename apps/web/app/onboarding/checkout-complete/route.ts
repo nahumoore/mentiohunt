@@ -2,8 +2,7 @@ import { NextRequest } from "next/server"
 import { redirect } from "next/navigation"
 import Stripe from "stripe"
 
-import { FREE_TRIAL_MAX_PAGES, PLANS } from "@/consts/billing"
-import type { BillingTier } from "@/consts/billing"
+import { FREE_TRIAL_MAX_PAGES, getTierFromPriceId } from "@/consts/billing"
 import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
 import { extractHostname, validateDomains } from "@/lib/onboarding/validate-domain"
 import { startDiscoveryJobs } from "@/lib/onboarding/start-discovery-jobs"
@@ -16,10 +15,6 @@ export const runtime = "nodejs"
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not set")
   return new Stripe(process.env.STRIPE_SECRET_KEY)
-}
-
-function getTierFromPriceId(priceId: string): BillingTier | null {
-  return PLANS.find((p) => p.stripePriceId === priceId)?.tier ?? null
 }
 
 function toDateString(unixTimestamp: number): string {

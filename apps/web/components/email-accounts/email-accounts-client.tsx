@@ -600,7 +600,7 @@ function LockedFeatureState({ plan }: { plan: Exclude<UserPlan, "active"> }) {
       {/* CTA */}
       <div className="flex items-center gap-4">
         <Link
-          href="/dashboard/billing"
+          href="/dashboard/settings?tab=billing"
           className="inline-flex h-9 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-crimson-carrot"
         >
           {isTrial ? "Upgrade to reply personally" : "Reactivate to reply personally"}

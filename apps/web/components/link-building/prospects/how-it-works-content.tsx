@@ -134,7 +134,7 @@ export function HowItWorksContent({ onDone }: { onDone?: () => void } = {}) {
                 Today&apos;s shared pool limit is reached — sending resumes
                 automatically tomorrow.{" "}
                 <Link
-                  href="/dashboard/billing"
+                  href="/dashboard/settings?tab=billing"
                   className="underline underline-offset-2 hover:text-amber-700"
                 >
                   Upgrade to send sooner

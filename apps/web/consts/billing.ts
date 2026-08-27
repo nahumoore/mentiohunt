@@ -46,7 +46,7 @@ export function getMaxCompetitors(tier: BillingTier | null | undefined) {
   return MAX_COMPETITORS_FREE
 }
 
-// Shared across /pricing, /dashboard/billing, and the onboarding paywall step —
+// Shared across /pricing, the settings billing tab, and the onboarding paywall step —
 // all three render the Pro feature list and need to recognize this one entry
 // to attach its tooltip.
 export const WARMUP_FEATURE_LABEL = "Free inbox warmup"
@@ -63,6 +63,14 @@ export interface Plan {
   description: string
   features: string[]
   popular: boolean
+}
+
+/** Resolves a Stripe price id back to our plan tier. Single source of truth —
+ * previously duplicated in the payment webhook and the onboarding checkout
+ * finalizer, which risked drifting if a price id ever changed in only one
+ * place. */
+export function getTierFromPriceId(priceId: string): BillingTier | null {
+  return PLANS.find((p) => p.stripePriceId === priceId)?.tier ?? null
 }
 
 export const PLANS: Plan[] = [

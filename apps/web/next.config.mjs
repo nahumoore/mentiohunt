@@ -16,6 +16,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: "/dashboard/billing",
+        destination: "/dashboard/settings?tab=billing",
+        permanent: false,
+      },
+      {
         source: "/resources/:slug",
         destination: "/blog/:slug",
         permanent: true,

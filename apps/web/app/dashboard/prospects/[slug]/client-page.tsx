@@ -1004,7 +1004,7 @@ export function ProspectClientPage({
                     Free plan mailboxes send fewer emails per day than paid plans, so this can be
                     delayed.{" "}
                     <a
-                      href="/dashboard/billing"
+                      href="/dashboard/settings?tab=billing"
                       className="font-medium text-foreground underline underline-offset-2 hover:opacity-70 transition-opacity"
                     >
                       Upgrade

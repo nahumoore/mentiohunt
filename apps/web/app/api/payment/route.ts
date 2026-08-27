@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 
 import { supabaseAdmin } from "@workspace/supabase/admin"
-import { PLANS } from "@/consts/billing"
+import { getTierFromPriceId } from "@/consts/billing"
 import type { BillingTier } from "@/consts/billing"
 
 function getStripe() {
@@ -14,10 +14,6 @@ function getStripe() {
 function getWebhookSecret() {
   if (!process.env.STRIPE_WEBHOOK_SECRET) throw new Error("STRIPE_WEBHOOK_SECRET not set")
   return process.env.STRIPE_WEBHOOK_SECRET
-}
-
-function getTierFromPriceId(priceId: string): BillingTier | null {
-  return PLANS.find((p) => p.stripePriceId === priceId)?.tier ?? null
 }
 
 function toDateString(unixTimestamp: number): string {

@@ -69,7 +69,7 @@ function buildContent({
           ${greetingHtml}
           ${heading("Your plan was updated")}
           ${paragraph(`Your Mentiohunt subscription is now on the <strong style="color:#241611;">${plan}</strong> plan. Billing and discovery limits reflect the new plan starting this cycle.`)}
-          ${ctaButton("Review billing", `${APP_URL}/dashboard/billing`)}
+          ${ctaButton("Review billing", `${APP_URL}/dashboard/settings?tab=billing`)}
         `,
       }
     case "subscription_deleted":
@@ -80,7 +80,7 @@ function buildContent({
           ${greetingHtml}
           ${heading("Subscription canceled")}
           ${paragraph("Your Mentiohunt subscription has been canceled and your account is now on the Free plan. Discovery runs and new opportunities are paused — anything already in your queue stays there.")}
-          ${ctaButton("Resubscribe", `${APP_URL}/dashboard/billing`)}
+          ${ctaButton("Resubscribe", `${APP_URL}/dashboard/settings?tab=billing`)}
         `,
       }
     case "payment_failed":
@@ -91,7 +91,7 @@ function buildContent({
           ${greetingHtml}
           ${heading("Payment failed")}
           ${paragraph("We weren't able to charge your card for your Mentiohunt subscription. Your account has been moved to the Free plan until payment succeeds — update your payment method to pick back up where you left off.")}
-          ${ctaButton("Update payment method", `${APP_URL}/dashboard/billing`)}
+          ${ctaButton("Update payment method", `${APP_URL}/dashboard/settings?tab=billing`)}
         `,
       }
   }

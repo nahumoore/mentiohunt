@@ -2,7 +2,6 @@
 
 import {
   IconCreditCard,
-  IconLoader2,
   IconLogout,
   IconSelector,
   IconSparkles,
@@ -29,9 +28,8 @@ import {
 } from "@workspace/ui/components/sidebar"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useTransition } from "react"
 
-import { stripeCustomerPortalRedirect } from "@/actions/stripe-customer-portal-redirect"
+import { isOnTrial } from "@/lib/billing/trial"
 import { supabaseClient } from "@/lib/supabase/client"
 import { useProfileStore } from "@/stores/profile-store"
 
@@ -46,21 +44,17 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const profile = useProfileStore((state) => state.profile)
-  const [isPortalPending, startPortalTransition] = useTransition()
   const router = useRouter()
 
-  const isFreeTrial = !profile || profile.tier === "free"
+  // A trialing user is already subscribed to a plan (see lib/billing/trial's
+  // isOnTrial doc comment) — "Upgrade plan" only makes sense for accounts
+  // with no Stripe subscription at all, i.e. free/expired.
+  const showUpgrade = !profile || (profile.tier === "free" && !isOnTrial(profile))
 
   async function handleLogout() {
     const supabase = supabaseClient()
     await supabase.auth.signOut()
     router.push("/")
-  }
-
-  function handleBillingPortal() {
-    startPortalTransition(async () => {
-      await stripeCustomerPortalRedirect()
-    })
   }
 
   return (
@@ -102,38 +96,23 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {isFreeTrial && (
+            {showUpgrade && (
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/billing">
+                  <Link href="/dashboard/settings?tab=billing">
                     <IconSparkles />
                     Upgrade plan
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             )}
-            {isFreeTrial && <DropdownMenuSeparator />}
+            {showUpgrade && <DropdownMenuSeparator />}
             <DropdownMenuGroup>
-              <DropdownMenuItem
-                disabled={isPortalPending}
-                onClick={isFreeTrial ? undefined : handleBillingPortal}
-                asChild={isFreeTrial}
-              >
-                {isFreeTrial ? (
-                  <Link href="/dashboard/billing">
-                    <IconCreditCard />
-                    Billing
-                  </Link>
-                ) : (
-                  <>
-                    {isPortalPending ? (
-                      <IconLoader2 className="animate-spin" />
-                    ) : (
-                      <IconCreditCard />
-                    )}
-                    Billing
-                  </>
-                )}
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings?tab=billing">
+                  <IconCreditCard />
+                  Billing
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

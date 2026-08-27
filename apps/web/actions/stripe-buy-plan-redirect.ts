@@ -20,7 +20,8 @@ export async function stripeBuyPlanRedirect({
   plan: "pro" | "agency"
   /** "onboarding" gets a card-required trial and routes back into the wizard
    *  to finish setup; "dashboard" keeps today's immediate-charge behavior for
-   *  /pricing and /dashboard/billing. */
+   *  /pricing and the settings billing tab's legacy no-Stripe-customer
+   *  cohort (see actions/stripe-switch-plan.ts for everyone else). */
   context?: "onboarding" | "dashboard"
   /** Only meaningful for context "onboarding". Nothing is written to the DB
    *  yet at this point — the wizard's setup data is stashed in a short-lived
@@ -37,10 +38,10 @@ export async function stripeBuyPlanRedirect({
   if (!user) redirect("/signin")
 
   const planConfig = PLANS.find((p) => p.key === plan)
-  if (!planConfig) redirect(context === "onboarding" ? "/onboarding" : "/dashboard/billing")
+  if (!planConfig) redirect(context === "onboarding" ? "/onboarding" : "/dashboard/settings?tab=billing")
 
   const isOnboarding = context === "onboarding"
-  const cancelUrl = isOnboarding ? `${appUrl}/onboarding` : `${appUrl}/dashboard/billing`
+  const cancelUrl = isOnboarding ? `${appUrl}/onboarding` : `${appUrl}/dashboard/settings?tab=billing`
 
   let sessionUrl: string | null = null
 

@@ -1,7 +1,7 @@
 import { IconArrowRight, IconLink } from "@tabler/icons-react"
 import Image from "next/image"
 import Link from "next/link"
-import type { ComponentType } from "react"
+import type { ComponentType, ReactNode } from "react"
 
 import type { BlogPostMeta } from "@/lib/mdx"
 
@@ -40,6 +40,7 @@ export function RelatedResourcesSection({
   browseAllLabel = "Browse all",
   showImages = true,
   getItemIcon,
+  renderThumbnail,
 }: {
   eyebrow?: string
   heading: string
@@ -50,6 +51,7 @@ export function RelatedResourcesSection({
   browseAllLabel?: string
   showImages?: boolean
   getItemIcon?: (slug: string) => IconComponent
+  renderThumbnail?: (item: BlogPostMeta) => ReactNode
 }) {
   if (items.length === 0) return null
 
@@ -95,17 +97,20 @@ export function RelatedResourcesSection({
                 <div className="absolute right-0 bottom-0 h-24 w-24 rounded-full bg-[var(--color-princeton-orange)]/8 blur-3xl" />
               </div>
 
-              {showImages && item.image && (
-                <div className="relative aspect-[16/9] overflow-hidden border-b border-border/70 bg-muted">
-                  <Image
-                    src={item.image}
-                    alt={item.imageAlt ?? item.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.035]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
-                </div>
-              )}
+              {renderThumbnail
+                ? renderThumbnail(item)
+                : showImages &&
+                  item.image && (
+                    <div className="relative aspect-[16/9] overflow-hidden border-b border-border/70 bg-muted">
+                      <Image
+                        src={item.image}
+                        alt={item.imageAlt ?? item.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.035]"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
+                    </div>
+                  )}
 
               <div className="relative p-6">
                 <div className="flex items-start justify-between gap-4">

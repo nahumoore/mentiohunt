@@ -36,7 +36,9 @@ export type BlogPostMeta = {
   metric?: string
   timeframe?: string
   quote?: string
-  quoteAuthor?: string
+  quoteAuthorName?: string
+  quoteAuthorRole?: string
+  quoteAuthorImage?: string
   draft?: boolean
 }
 
@@ -145,7 +147,9 @@ export function getPostBySlug(
         metric: toStringValue(data.metric) || undefined,
         timeframe: toStringValue(data.timeframe) || undefined,
         quote: toStringValue(data.quote) || undefined,
-        quoteAuthor: toStringValue(data.quoteAuthor) || undefined,
+        quoteAuthorName: toStringValue(data.quoteAuthorName) || undefined,
+        quoteAuthorRole: toStringValue(data.quoteAuthorRole) || undefined,
+        quoteAuthorImage: toStringValue(data.quoteAuthorImage) || undefined,
         draft: typeof data.draft === "boolean" ? data.draft : undefined,
       },
       content,

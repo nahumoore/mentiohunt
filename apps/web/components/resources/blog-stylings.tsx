@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 import type { MDXComponents } from "mdx/types"
 import Image from "next/image"
 import Link from "next/link"
-import type { ReactElement } from "react"
+import type { ComponentPropsWithoutRef, ReactElement } from "react"
 import { CodeBlock } from "./code-block"
 import {
   PricingComparison,
@@ -17,6 +17,38 @@ import {
 } from "./comparison-components"
 import { EmailDraft } from "./email-draft"
 import { YoutubeVideo } from "./youtube-video"
+
+function renderStyledLink({
+  href,
+  rel,
+  target,
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"a">) {
+  const hrefValue = href || ""
+  const isExternal = /^https?:\/\//.test(hrefValue)
+  const relParts = new Set(rel?.split(/\s+/).filter(Boolean))
+
+  if (isExternal) {
+    relParts.add("noopener")
+    relParts.add("noreferrer")
+  }
+
+  return (
+    <Link
+      {...props}
+      href={hrefValue}
+      className={cn(
+        "text-primary/80 underline decoration-primary/80 underline-offset-4 transition-colors hover:opacity-80",
+        className
+      )}
+      target={target ?? (isExternal ? "_blank" : undefined)}
+      rel={relParts.size > 0 ? Array.from(relParts).join(" ") : undefined}
+    >
+      {props.children}
+    </Link>
+  )
+}
 
 export default function BlogStylings(): MDXComponents {
   return {
@@ -121,31 +153,12 @@ export default function BlogStylings(): MDXComponents {
         {...props}
       />
     ),
-    a: ({ href, rel, target, className, ...props }) => {
-      const hrefValue = href || ""
-      const isExternal = /^https?:\/\//.test(hrefValue)
-      const relParts = new Set(rel?.split(/\s+/).filter(Boolean))
-
-      if (isExternal) {
-        relParts.add("noopener")
-        relParts.add("noreferrer")
-      }
-
-      return (
-        <Link
-          {...props}
-          href={hrefValue}
-          className={cn(
-            "text-primary/80 underline decoration-primary/80 underline-offset-4 transition-colors hover:opacity-80",
-            className
-          )}
-          target={target ?? (isExternal ? "_blank" : undefined)}
-          rel={relParts.size > 0 ? Array.from(relParts).join(" ") : undefined}
-        >
-          {props.children}
-        </Link>
-      )
-    },
+    a: (props) => renderStyledLink(props),
+    NofollowLink: ({ rel, ...props }) =>
+      renderStyledLink({
+        ...props,
+        rel: [rel, "nofollow"].filter(Boolean).join(" "),
+      }),
     table: (props) => (
       <div className="my-6 w-full overflow-x-auto">
         <table

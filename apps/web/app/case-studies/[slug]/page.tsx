@@ -13,6 +13,11 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import remarkGfm from "remark-gfm"
 
+import {
+  CaseStudyIllustration,
+  CaseStudyMark,
+} from "@/components/custom-icons/case-study-illustration"
+import { QuoteSourceBadge } from "@/components/custom-icons/quote-source-badge"
 import { Footer } from "@/components/landing/footer"
 import { Navbar } from "@/components/landing/navbar"
 import { ArticleTableOfContents } from "@/components/resources/article-table-of-contents"
@@ -192,7 +197,7 @@ export default async function CaseStudyPage({ params }: Props) {
               Back to case studies
             </Link>
 
-            <div className="mt-9 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(460px,560px)] lg:items-end lg:gap-16">
+            <div className="mt-9 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(460px,560px)] lg:items-center lg:gap-16">
               <div>
                 <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-princeton-orange)] uppercase">
                   <IconTrendingUp size={14} stroke={2.5} />
@@ -208,12 +213,7 @@ export default async function CaseStudyPage({ params }: Props) {
 
                 <div className="mt-7 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                   {meta.company && (
-                    <a
-                      href={meta.companyUrl ?? "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
-                    >
+                    <span className="inline-flex items-center gap-1.5">
                       {meta.companyUrl && (
                         <Image
                           src={getFaviconUrl(meta.companyUrl)}
@@ -225,7 +225,7 @@ export default async function CaseStudyPage({ params }: Props) {
                         />
                       )}
                       {meta.company}
-                    </a>
+                    </span>
                   )}
                   <span className="inline-flex items-center gap-1.5">
                     <IconClock size={14} stroke={2} />
@@ -249,17 +249,12 @@ export default async function CaseStudyPage({ params }: Props) {
                 </div>
               </div>
 
-              {meta.image && (
-                <div className="relative aspect-video overflow-hidden rounded-[1.75rem] border border-border bg-muted shadow-[0_28px_90px_-48px_rgba(255,133,0,0.58)]">
-                  <Image
-                    src={meta.image}
-                    alt={meta.imageAlt ?? meta.title}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                </div>
-              )}
+              <CaseStudyMark
+                companyUrl={meta.companyUrl}
+                companyName={meta.company}
+                size={160}
+                className="justify-self-center"
+              />
             </div>
           </div>
         </section>
@@ -273,20 +268,67 @@ export default async function CaseStudyPage({ params }: Props) {
               <MDXContent source={articleBody} />
 
               {meta.quote && (
-                <div className="mt-10 rounded-[1.75rem] border border-border bg-muted/30 p-7">
+                <div className="mt-10 rounded-[1.75rem] bg-foreground p-7 text-background">
                   <IconQuote
-                    className="text-[var(--color-princeton-orange)]"
+                    className="text-background/35"
                     size={22}
                     stroke={2}
                   />
                   <p className="mt-3 font-heading text-xl leading-8 text-balance">
                     &ldquo;{meta.quote}&rdquo;
                   </p>
-                  {meta.quoteAuthor && (
-                    <p className="mt-4 text-sm font-semibold text-muted-foreground">
-                      {meta.quoteAuthor}
-                    </p>
-                  )}
+
+                  <div className="mt-6 flex items-center gap-3">
+                    {meta.quoteAuthorImage ? (
+                      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
+                        <Image
+                          src={meta.quoteAuthorImage}
+                          alt={meta.quoteAuthorName ?? ""}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <QuoteSourceBadge
+                        companyUrl={meta.companyUrl}
+                        className="h-11"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      {meta.quoteAuthorName && (
+                        <p className="text-sm font-semibold text-background">
+                          {meta.quoteAuthorName}
+                        </p>
+                      )}
+                      {(meta.quoteAuthorRole || meta.company) && (
+                        <div className="mt-0.5 flex items-center gap-1.5 text-xs text-background/60">
+                          {meta.quoteAuthorRole && (
+                            <span>{meta.quoteAuthorRole} of</span>
+                          )}
+                          {meta.companyUrl ? (
+                            <a
+                              href={meta.companyUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 text-background/80 underline decoration-background/30 underline-offset-2 transition-colors hover:text-background hover:decoration-background/60"
+                            >
+                              <Image
+                                src={getFaviconUrl(meta.companyUrl)}
+                                alt=""
+                                width={12}
+                                height={12}
+                                unoptimized
+                                className="rounded-sm"
+                              />
+                              {meta.company}
+                            </a>
+                          ) : (
+                            meta.company
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -363,6 +405,13 @@ export default async function CaseStudyPage({ params }: Props) {
             basePath="/case-studies"
             browseAllHref="/case-studies"
             browseAllLabel="Browse all case studies"
+            renderThumbnail={(item) => (
+              <CaseStudyIllustration
+                companyUrl={item.companyUrl}
+                companyName={item.company}
+                className="aspect-[16/9] border-b border-border/70"
+              />
+            )}
           />
         </div>
       </main>

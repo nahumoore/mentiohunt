@@ -6,6 +6,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 
+import { CaseStudyIllustration } from "@/components/custom-icons/case-study-illustration"
 import type { BlogPostMeta } from "@/lib/mdx"
 
 function getSummary(post: BlogPostMeta): string {
@@ -51,17 +52,11 @@ export function CaseStudiesIndexSection({
                 href={`/case-studies/${study.slug}`}
                 className="group relative overflow-hidden rounded-[1.9rem] border border-border/80 bg-card/95 shadow-[0_20px_70px_-48px_rgba(17,17,17,0.35)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[var(--color-blaze-orange)]/28 hover:shadow-[0_28px_90px_-44px_rgba(255,96,0,0.38)]"
               >
-                {study.image && (
-                  <div className="relative aspect-[16/9] overflow-hidden border-b border-border/70 bg-muted">
-                    <Image
-                      src={study.image}
-                      alt={study.imageAlt ?? study.title}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.035]"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
-                  </div>
-                )}
+                <CaseStudyIllustration
+                  companyUrl={study.companyUrl}
+                  companyName={study.company}
+                  className="aspect-[16/9] border-b border-border/70 transition-transform duration-500 group-hover:scale-[1.02]"
+                />
 
                 <div className="relative px-6 pt-4 pb-6">
                   <div className="flex items-start gap-4">

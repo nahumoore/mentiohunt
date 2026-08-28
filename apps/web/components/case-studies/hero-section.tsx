@@ -1,3 +1,5 @@
+import { QuoteSourceBadge } from "@/components/custom-icons/quote-source-badge"
+
 export function CaseStudiesHeroSection() {
   return (
     <section className="relative overflow-hidden border-b border-border/60 px-4 pb-18 pt-14 sm:px-6 sm:pb-20 lg:px-8 lg:pb-24">
@@ -29,6 +31,12 @@ export function CaseStudiesHeroSection() {
             queue, the actual reply rate, and the actual links each founder
             earned running Mentiohunt.
           </p>
+          <div className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-border/70 bg-card/70 py-1.5 pr-4 pl-1.5">
+            <QuoteSourceBadge className="h-6" />
+            <span className="text-xs font-medium text-muted-foreground">
+              Real quotes from real founders
+            </span>
+          </div>
         </div>
       </div>
     </section>

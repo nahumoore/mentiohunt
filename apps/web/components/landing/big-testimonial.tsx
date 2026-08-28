@@ -1,6 +1,10 @@
 import UserTestimonial from "@/public/landing/user-testimonial.webp"
-import { IconQuote } from "@tabler/icons-react"
+import { IconArrowRight, IconQuote } from "@tabler/icons-react"
 import Image from "next/image"
+import Link from "next/link"
+
+const ELEVATIONVIBE_FAVICON =
+  "https://www.google.com/s2/favicons?domain=elevationvibe.com&sz=64"
 
 export function BigTestimonial() {
   return (
@@ -47,14 +51,28 @@ export function BigTestimonial() {
                 </blockquote>
               </div>
 
-              <div className="mt-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="font-heading text-base font-semibold tracking-tight text-foreground">
-                    Logan Stuart
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-muted-foreground">
-                    Founder of Elevationvibe
-                  </p>
+              <div className="mt-6">
+                <p className="font-heading text-base font-semibold tracking-tight text-foreground">
+                  Logan Stuart
+                </p>
+                <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                  <Image
+                    src={ELEVATIONVIBE_FAVICON}
+                    alt=""
+                    width={14}
+                    height={14}
+                    unoptimized
+                    className="rounded-sm"
+                  />
+                  Founder of Elevationvibe
+                  <span className="text-muted-foreground/40">&middot;</span>
+                  <Link
+                    href="/case-studies/elevationvibe"
+                    className="inline-flex items-center gap-1 underline decoration-muted-foreground/30 underline-offset-2 transition-colors hover:text-foreground hover:decoration-foreground/50"
+                  >
+                    See case study
+                    <IconArrowRight size={12} stroke={2.5} />
+                  </Link>
                 </div>
               </div>
             </figcaption>

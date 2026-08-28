@@ -16,6 +16,7 @@
     "./database-types": "./database-types.ts",
     "./email-settings": "./email-settings.ts",
     "./middleware": "./middleware.ts",
+    "./public": "./public.ts",
     "./server": "./server.ts"
   },
   "devDependencies": {

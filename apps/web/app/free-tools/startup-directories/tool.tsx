@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import {
   IconArrowsSort,
   IconChartBar,
   IconChevronDown,
+  IconChevronLeft,
+  IconChevronRight,
   IconChevronUp,
   IconExternalLink,
   IconFolderSearch,
@@ -96,6 +98,8 @@ function getSortValue(directory: Directory, sortKey: SortKey): string | number {
 
 type PricingFilter = "all" | "free" | "paid"
 
+const PAGE_SIZE = 50
+
 export function StartupDirectoriesBrowser({
   directories,
 }: {
@@ -106,6 +110,7 @@ export function StartupDirectoriesBrowser({
   const [pricingFilter, setPricingFilter] = useState<PricingFilter>("all")
   const [sortKey, setSortKey] = useState<SortKey>("domain_rating")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+  const [page, setPage] = useState(1)
 
   const categories = Array.from(
     new Set(directories.map((directory) => directory.category).filter(Boolean))
@@ -143,6 +148,18 @@ export function StartupDirectoriesBrowser({
       return sortDirection === "asc" ? result : -result
     })
 
+  const pageCount = Math.max(1, Math.ceil(sortedDirectories.length / PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount)
+  const pageStart = (currentPage - 1) * PAGE_SIZE
+  const visibleDirectories = sortedDirectories.slice(
+    pageStart,
+    pageStart + PAGE_SIZE
+  )
+
+  useEffect(() => {
+    setPage(1)
+  }, [normalizedQuery, categoryFilter, pricingFilter, sortKey, sortDirection])
+
   function updateSort(nextSortKey: SortKey) {
     if (nextSortKey === sortKey) {
       setSortDirection((current) => (current === "asc" ? "desc" : "asc"))
@@ -179,7 +196,7 @@ export function StartupDirectoriesBrowser({
               </div>
               <div>
                 <p className="font-heading text-lg font-semibold tracking-[-0.035em]">
-                  {sortedDirectories.length} directories shown
+                  {sortedDirectories.length} directories match
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Sorted by {sortLabels[sortKey].toLowerCase()} {sortDirection}
@@ -292,7 +309,7 @@ export function StartupDirectoriesBrowser({
                       </td>
                     </tr>
                   ) : (
-                    sortedDirectories.map((directory) => (
+                    visibleDirectories.map((directory) => (
                       <tr
                         key={directory.id}
                         className="border-b border-border/45 transition-colors last:border-0 hover:bg-[var(--color-blaze-orange)]/5"
@@ -372,6 +389,45 @@ export function StartupDirectoriesBrowser({
               </table>
             </div>
           </div>
+
+          {sortedDirectories.length > 0 && (
+            <div className="mt-5 flex flex-col items-center justify-between gap-3 rounded-[1.5rem] border border-border bg-card/70 px-4 py-3 sm:flex-row">
+              <p className="text-sm text-muted-foreground">
+                Showing {pageStart + 1}&ndash;
+                {pageStart + visibleDirectories.length} of{" "}
+                {sortedDirectories.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-full px-4 text-sm"
+                  disabled={currentPage <= 1}
+                  onClick={() => setPage((value) => Math.max(1, value - 1))}
+                >
+                  <IconChevronLeft size={15} stroke={2.4} />
+                  Previous
+                </Button>
+                <span className="px-1 text-sm text-muted-foreground tabular-nums">
+                  Page {currentPage} of {pageCount}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-full px-4 text-sm"
+                  disabled={currentPage >= pageCount}
+                  onClick={() =>
+                    setPage((value) => Math.min(pageCount, value + 1))
+                  }
+                >
+                  Next
+                  <IconChevronRight size={15} stroke={2.4} />
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="mt-6 overflow-hidden rounded-[2rem] border border-[var(--color-blaze-orange)]/20 bg-card p-6 shadow-[0_22px_80px_-58px_rgba(255,96,0,0.65)] sm:p-7">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">

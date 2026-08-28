@@ -42,7 +42,7 @@ function ToolStackIllustration() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`https://www.google.com/s2/favicons?domain=${tool.domain}&sz=32`}
-              alt=""
+              alt={tool.name}
               width={16}
               height={16}
               className="h-4 w-4 shrink-0"
@@ -101,7 +101,7 @@ function ToolStackIllustration() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://www.google.com/s2/favicons?domain=mentiohunt.com&sz=32"
-            alt=""
+            alt="Mentiohunt"
             width={16}
             height={16}
             className="h-4 w-4 shrink-0"
@@ -300,7 +300,7 @@ function LiveScrapingIllustration() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://www.google.com/s2/favicons?domain=saastr.com&sz=32"
-            alt=""
+            alt="saastr.com"
             width={18}
             height={18}
             className="h-[18px] w-[18px] shrink-0 rounded-sm"
@@ -412,7 +412,7 @@ function RealSitesIllustration() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`https://www.google.com/s2/favicons?domain=${site.domain}&sz=32`}
-                alt=""
+                alt={site.domain}
                 width={14}
                 height={14}
                 className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded-sm"

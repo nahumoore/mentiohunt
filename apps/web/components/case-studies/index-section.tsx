@@ -92,7 +92,7 @@ export function CaseStudiesIndexSection({
                       {study.companyUrl && (
                         <Image
                           src={getFaviconUrl(study.companyUrl)}
-                          alt=""
+                          alt={study.company ?? ""}
                           width={14}
                           height={14}
                           className="rounded-sm"

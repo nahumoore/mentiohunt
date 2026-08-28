@@ -83,7 +83,7 @@ function SetupIllustration() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://www.google.com/s2/favicons?domain=notion.so&sz=32"
-              alt=""
+              alt="notion.so"
               width={18}
               height={18}
               className="shrink-0 rounded-sm"
@@ -168,7 +168,7 @@ function DiscoveryIllustration() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={`https://www.google.com/s2/favicons?domain=${opp.domain}&sz=32`}
-                  alt=""
+                  alt={opp.domain}
                   width={16}
                   height={16}
                   className="shrink-0 rounded-sm"
@@ -259,7 +259,7 @@ function EnrichmentIllustration() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`https://www.google.com/s2/favicons?domain=${example.domain}&sz=32`}
-              alt=""
+              alt={example.domain}
               width={16}
               height={16}
               className="shrink-0 rounded-sm"
@@ -351,7 +351,7 @@ function ActionIllustration() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://www.google.com/s2/favicons?domain=zapier.com&sz=32"
-            alt=""
+            alt="zapier.com"
             width={16}
             height={16}
             className="shrink-0 rounded-sm opacity-50"

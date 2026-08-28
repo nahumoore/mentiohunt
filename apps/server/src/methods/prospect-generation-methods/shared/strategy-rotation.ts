@@ -10,6 +10,25 @@ export type RotationHistoryRun = {
   cost_usd?: number | null
 }
 
+export type StrategyPerformance = {
+  expectedReadyOutput: number
+  readyPerAttempt: number
+  costPerAttempt: number
+  averageLatencyMs: number
+  sampleSize: number
+}
+
+const DEFAULT_READY_PER_ATTEMPT: Record<string, number> = {
+  competitor_backlink: 0.6,
+  unlinked_mention: 0.6,
+  listicle_roundup: 0.55,
+  resource_page_inclusion: 0.2,
+  broken_link_building: 0.45,
+}
+const DEFAULT_COST_PER_ATTEMPT_USD = 0.01
+const UNLINKED_MENTION_PROBE_COOLDOWN_DAYS = 3
+const BROKEN_LINK_CADENCE_DAYS = 7
+
 const EXPLORATION_COOLDOWN_RUNS = 1
 const EXHAUSTED_COOLDOWN_RUNS = 3
 const EXHAUSTED_STREAK_THRESHOLD = 4
@@ -93,8 +112,59 @@ function metadataNumber(metadata: unknown, ...keys: string[]): number | null {
 
 /** Send-ready yield recorded by each source's enrichment funnel. */
 export function getSendReadyCount(run: RotationHistoryRun): number {
-  return metadataNumber(run.metadata, "enriched_with_contact", "enrichedWithContact")
+  return metadataNumber(run.metadata, "sequence_ready", "sequenceReady", "enriched_with_contact", "enrichedWithContact")
     ?? Math.max(0, run.prospects_created ?? 0)
+}
+
+export function getAttemptCount(run: RotationHistoryRun): number {
+  return metadataNumber(
+    run.metadata,
+    "enrichment_attempts",
+    "enrichmentAttempts",
+    "attempted",
+    "qualified"
+  ) ?? Math.max(0, run.prospects_created ?? 0)
+}
+
+/**
+ * Recent source performance expressed in the scheduler's actual objective:
+ * sequence-ready output and how many enrichment attempts it consumes.
+ */
+export function getStrategyPerformance(
+  runs: RotationHistoryRun[],
+  strategy: string
+): StrategyPerformance {
+  const completed = newestFirst(
+    runs.filter((run) => run.strategy === strategy && run.status === "completed" && !run.error)
+  ).slice(0, 5)
+  const priorReadyRate = DEFAULT_READY_PER_ATTEMPT[strategy] ?? 0.4
+  if (completed.length === 0) {
+    return {
+      expectedReadyOutput: priorReadyRate * 10,
+      readyPerAttempt: priorReadyRate,
+      costPerAttempt: DEFAULT_COST_PER_ATTEMPT_USD,
+      averageLatencyMs: 0,
+      sampleSize: 0,
+    }
+  }
+
+  const sendReady = completed.reduce((total, run) => total + getSendReadyCount(run), 0)
+  const attempts = completed.reduce((total, run) => total + getAttemptCount(run), 0)
+  const cost = completed.reduce((total, run) => total + Math.max(0, run.cost_usd ?? 0), 0)
+  const latency = completed.reduce(
+    (total, run) => total + (metadataNumber(run.metadata, "duration_ms", "durationMs") ?? 0),
+    0
+  )
+  return {
+    expectedReadyOutput: sendReady / completed.length,
+    // One prior batch keeps a tiny run from swinging allocation too far.
+    readyPerAttempt: (sendReady + priorReadyRate * 5) / Math.max(1, attempts + 5),
+    costPerAttempt: attempts > 0
+      ? Math.max(DEFAULT_COST_PER_ATTEMPT_USD / 10, cost / attempts)
+      : DEFAULT_COST_PER_ATTEMPT_USD,
+    averageLatencyMs: latency / completed.length,
+    sampleSize: completed.length,
+  }
 }
 
 /**
@@ -103,14 +173,8 @@ export function getSendReadyCount(run: RotationHistoryRun): number {
  * sources receive a neutral exploration score instead of being buried.
  */
 export function getStrategyEfficiency(runs: RotationHistoryRun[], strategy: string): number {
-  const completed = newestFirst(
-    runs.filter((run) => run.strategy === strategy && run.status === "completed" && !run.error)
-  ).slice(0, 5)
-  if (completed.length === 0) return 1
-
-  const sendReady = completed.reduce((total, run) => total + getSendReadyCount(run), 0)
-  const cost = completed.reduce((total, run) => total + Math.max(0, run.cost_usd ?? 0), 0)
-  return sendReady / Math.max(cost, completed.length * 0.01)
+  const performance = getStrategyPerformance(runs, strategy)
+  return performance.expectedReadyOutput * performance.readyPerAttempt
 }
 
 /**
@@ -138,7 +202,68 @@ export function orderStrategiesByEfficiency<T extends string>(
   runs: RotationHistoryRun[]
 ): T[] {
   return enabled
-    .map((strategy, index) => ({ strategy, index, efficiency: getStrategyEfficiency(runs, strategy) }))
-    .sort((a, b) => b.efficiency - a.efficiency || a.index - b.index)
+    .map((strategy, index) => ({
+      strategy,
+      index,
+      performance: getStrategyPerformance(runs, strategy),
+    }))
+    .sort((a, b) =>
+      b.performance.expectedReadyOutput - a.performance.expectedReadyOutput
+      || b.performance.readyPerAttempt - a.performance.readyPerAttempt
+      || a.performance.costPerAttempt - b.performance.costPerAttempt
+      || a.performance.averageLatencyMs - b.performance.averageLatencyMs
+      || a.index - b.index
+    )
     .map(({ strategy }) => strategy)
+}
+
+export type TimeBasedSourceDecision = {
+  shouldRun: boolean
+  explorationProbe: boolean
+  skipReason?: string
+}
+
+/** Low-volume branded search is retried on elapsed time, never suppressed forever. */
+export function getUnlinkedMentionDecision(
+  runs: RotationHistoryRun[],
+  now = new Date()
+): TimeBasedSourceDecision {
+  const completed = newestFirst(
+    runs.filter((run) => run.strategy === "unlinked_mention" && run.status === "completed")
+  ).slice(0, 3)
+  if (completed.length === 0) return { shouldRun: true, explorationProbe: false }
+
+  const demonstratedVolume = completed.some(
+    (run) => (metadataNumber(run.metadata, "candidates_gathered", "candidatesGathered") ?? 0) >= 5
+  )
+  if (demonstratedVolume) return { shouldRun: true, explorationProbe: false }
+
+  const latestStartedAt = completed[0]?.started_at
+  const probeDue = !latestStartedAt
+    || now.getTime() - new Date(latestStartedAt).getTime()
+      >= UNLINKED_MENTION_PROBE_COOLDOWN_DAYS * 24 * 60 * 60 * 1_000
+  return probeDue
+    ? { shouldRun: true, explorationProbe: true }
+    : {
+        shouldRun: false,
+        explorationProbe: false,
+        skipReason: "unlinked_mention_low_volume_probe_not_due",
+      }
+}
+
+export function getBrokenLinkCadenceDecision(
+  runs: RotationHistoryRun[],
+  now = new Date()
+): TimeBasedSourceDecision {
+  const latest = newestFirst(runs.filter((run) => run.strategy === "broken_link_building"))[0]
+  if (!latest?.started_at) return { shouldRun: true, explorationProbe: false }
+  const due = now.getTime() - new Date(latest.started_at).getTime()
+    >= BROKEN_LINK_CADENCE_DAYS * 24 * 60 * 60 * 1_000
+  return due
+    ? { shouldRun: true, explorationProbe: false }
+    : {
+        shouldRun: false,
+        explorationProbe: false,
+        skipReason: "broken_link_weekly_scan_not_due",
+      }
 }

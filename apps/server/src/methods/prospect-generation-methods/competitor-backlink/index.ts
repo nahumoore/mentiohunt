@@ -5,6 +5,7 @@ import { getBacklinkCompetitors } from "../../../helpers/data-for-seo/get-backli
 import { createLogger } from "../../../helpers/logger.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
+import { emptyStrategyFunnel, type StrategyResult } from "../shared/strategy-result.js"
 import { extractDomainFromUrl } from "../shared/url-filters.js"
 import { extractCompetitorDomain, isBlockedCompetitorDomain } from "./extract-backlinks.js"
 import type { FilterSettings } from "./filter-backlinks.js"
@@ -47,7 +48,7 @@ export async function discoverCompetitorBacklinks(
   } = {},
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void
-): Promise<{ prospectsCreated: number; totalCostUsd: number }> {
+): Promise<StrategyResult> {
   const maxCompetitors = limits.maxCompetitors ?? MAX_COMPETITORS_PER_RUN
   const maxProspects = limits.maxProspects ?? MAX_PROSPECTS_PER_RUN
   const fetchLimit = limits.fetchLimit
@@ -145,6 +146,7 @@ export async function discoverCompetitorBacklinks(
   const mozCursorsByDomain: Record<string, string | null> = {}
   const exhaustedCompetitorDomains: string[] = []
   const funnel = { extracted: 0, passedFilters: 0, scoredTotal: 0, kept: 0, toEnrich: 0, enrichedWithContact: 0 }
+  const commonFunnel = emptyStrategyFunnel()
   let intersectionCandidates = 0
   let transportFailures = competitorRefreshFailed ? 1 : 0
 
@@ -160,6 +162,7 @@ export async function discoverCompetitorBacklinks(
       const result = await processCompetitor(competitorDomain, product, settings, sender, emailSettings, enrichLimit, maxProspects, budget, onProspectCreated, fetchLimit, undefined, targetPages)
       totalProspectsCreated += result.prospectsCreated
       totalCostUsd += result.costUsd
+      transportFailures += result.transportFailures ?? 0
       mozCursorsByDomain[competitorDomain] = result.nextCursor
       if (result.nextCursor === null && result.funnel.extracted > 0) {
         exhaustedCompetitorDomains.push(competitorDomain)
@@ -170,6 +173,16 @@ export async function discoverCompetitorBacklinks(
       funnel.kept += result.funnel.kept
       funnel.toEnrich += result.funnel.toEnrich
       funnel.enrichedWithContact += result.funnel.enrichedWithContact
+      if (result.persistence) {
+        commonFunnel.prospectsInserted += result.persistence.prospectsInserted
+        commonFunnel.contactReady += result.persistence.contactReady
+        commonFunnel.emailNotFound += result.persistence.emailNotFound
+        commonFunnel.enrichmentFailures += result.persistence.enrichmentFailures
+        commonFunnel.persistenceFailures += result.persistence.persistenceFailures
+        commonFunnel.callbackFailures += result.persistence.callbackFailures
+        commonFunnel.duplicatesSkipped += result.persistence.duplicatesSkipped
+        commonFunnel.budgetSkipped += result.persistence.budgetSkipped
+      }
     }
 
     // Once direct competitor pages stop filling the shared daily candidate
@@ -214,12 +227,23 @@ export async function discoverCompetitorBacklinks(
             )
             totalProspectsCreated += result.prospectsCreated
             totalCostUsd += result.costUsd
+            transportFailures += result.transportFailures ?? 0
             funnel.extracted += result.funnel.extracted
             funnel.passedFilters += result.funnel.passedFilters
             funnel.scoredTotal += result.funnel.scoredTotal
             funnel.kept += result.funnel.kept
             funnel.toEnrich += result.funnel.toEnrich
             funnel.enrichedWithContact += result.funnel.enrichedWithContact
+            if (result.persistence) {
+              commonFunnel.prospectsInserted += result.persistence.prospectsInserted
+              commonFunnel.contactReady += result.persistence.contactReady
+              commonFunnel.emailNotFound += result.persistence.emailNotFound
+              commonFunnel.enrichmentFailures += result.persistence.enrichmentFailures
+              commonFunnel.persistenceFailures += result.persistence.persistenceFailures
+              commonFunnel.callbackFailures += result.persistence.callbackFailures
+              commonFunnel.duplicatesSkipped += result.persistence.duplicatesSkipped
+              commonFunnel.budgetSkipped += result.persistence.budgetSkipped
+            }
           }
         }
       } catch (error) {
@@ -241,6 +265,7 @@ export async function discoverCompetitorBacklinks(
       })
     }
   } catch (err) {
+    transportFailures += 1
     const msg = err instanceof Error ? err.message : String(err)
     log.error("discovery run failed", { productId: product.id, error: msg })
     if (runId) await failProspectRun(runId, msg)
@@ -255,5 +280,21 @@ export async function discoverCompetitorBacklinks(
     nextCursors: mozCursorsByDomain,
   })
 
-  return { prospectsCreated: totalProspectsCreated, totalCostUsd }
+  return {
+    prospectsCreated: totalProspectsCreated,
+    totalCostUsd,
+    funnel: {
+      ...commonFunnel,
+      candidatesGathered: funnel.extracted + intersectionCandidates,
+      candidatesFetched: funnel.passedFilters,
+      candidatesQualified: funnel.kept,
+      enrichmentAttempts: funnel.toEnrich,
+      prospectsInserted: totalProspectsCreated,
+      contactReady: funnel.enrichedWithContact,
+      transportFailures,
+      exhausted:
+        competitorsToProcess.length > 0
+        && exhaustedCompetitorDomains.length === competitorsToProcess.length,
+    },
+  }
 }

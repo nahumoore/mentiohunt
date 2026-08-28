@@ -25,6 +25,7 @@
     "p-limit": "^6.2.0",
     "p-retry": "^6.2.1",
     "resend": "^4.0.0",
+    "tldts": "^7.0.30",
     "tsx": "^4.19.0"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 import { createLogger } from "../../../helpers/logger.js"
 import { enrichContact } from "../competitor-backlink/enrich-contact.js"
 import { generateOutreachSequence } from "../shared/generate-outreach-sequence.js"
-import { EMPTY_ENRICHMENT, type EmailSettings, type EnrichedColumns } from "../shared/prospect-types.js"
+import type { EmailSettings, EnrichedColumns } from "../shared/prospect-types.js"
 import type { MatchedDeadLinkCandidate } from "./types.js"
 
 const log = createLogger("broken-link-building-enrichment")
@@ -73,6 +73,6 @@ export async function enrichBrokenLinkProspect(
     }
   } catch (err) {
     log.warn("prospect enrichment failed", { domain, error: String(err) })
-    return { ...EMPTY_ENRICHMENT, raw_metadata: { outreach_context: outreachContext } }
+    throw err
   }
 }

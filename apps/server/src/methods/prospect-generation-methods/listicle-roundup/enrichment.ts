@@ -2,7 +2,7 @@ import { createLogger } from "../../../helpers/logger.js"
 import { enrichContact } from "../competitor-backlink/enrich-contact.js"
 import { extractCompetitorDomain, isBlockedCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
 import { generateOutreachSequence } from "../shared/generate-outreach-sequence.js"
-import { EMPTY_ENRICHMENT, type EmailSettings, type EnrichedColumns } from "../shared/prospect-types.js"
+import type { EmailSettings, EnrichedColumns } from "../shared/prospect-types.js"
 import type { ListicleCandidate } from "./score-listicle-relevance.js"
 
 const log = createLogger("listicle-roundup-enrichment")
@@ -108,6 +108,6 @@ export async function enrichListicle(
     }
   } catch (err) {
     log.warn("listicle enrichment failed", { domain: item.domain, error: String(err) })
-    return { ...EMPTY_ENRICHMENT }
+    throw err
   }
 }

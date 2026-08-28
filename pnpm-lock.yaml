@@ -79,6 +79,9 @@ importers:
       resend:
         specifier: ^4.0.0
         version: 4.8.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      tldts:
+        specifier: ^7.0.30
+        version: 7.0.30
       tsx:
         specifier: ^4.19.0
         version: 4.21.0

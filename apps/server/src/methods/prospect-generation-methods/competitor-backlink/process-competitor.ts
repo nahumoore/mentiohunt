@@ -3,6 +3,7 @@ import type { LimitFunction } from "p-limit"
 import { LlmAllModelsFailedError } from "@workspace/openrouter/generate-text"
 import { createLogger } from "../../../helpers/logger.js"
 import { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
+import { persistAndEnrich, type PersistenceFunnel } from "../shared/persist-and-enrich.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
 import type { ResolvedSender } from "../shared/resolve-sender-name.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
@@ -51,6 +52,8 @@ export async function processCompetitor(
     toEnrich: number
     enrichedWithContact: number
   }
+  persistence?: PersistenceFunnel
+  transportFailures?: number
 }> {
   const mozCursor = prefetched ? null : await getLastMozCursor(product.id, competitorDomain)
 
@@ -211,43 +214,16 @@ export async function processCompetitor(
     )
     totalCost += siteRelevanceCost
 
-    // Claim budget synchronously, up front, so we only ever bare-insert
-    // prospects we're actually going to enrich — otherwise a budget-skipped
-    // row would sit in 'pending' forever and get deduped out of every future
-    // run (found_url already exists).
-    const toProcess = newItems.filter(() => {
-      if (budget && budget.remaining <= 0) return false
-      if (budget) budget.remaining -= 1
-      return true
-    })
-
-    if (toProcess.length < newItems.length) {
-      log.info("budget exhausted, skipping some prospects", {
-        competitorDomain,
-        skipped: newItems.length - toProcess.length,
-      })
-    }
-
-    if (toProcess.length === 0) {
-      return {
-        prospectsCreated: 0,
-        costUsd: totalCost,
-        nextCursor,
-        funnel: {
-          extracted: rawItems.length,
-          passedFilters: filtered.length,
-          scoredTotal: scored.length,
-          kept: passing.length,
-          toEnrich: 0,
-          enrichedWithContact: 0,
-        },
-      }
-    }
-
-    // Insert bare rows immediately so the UI shows discovered sites right
-    // away; enrichment (contact + outreach email) fills each row in after.
-    const bareRows = toProcess.map((item) => {
-      const domain = extractDomainFromUrl(item.urlFrom)
+    const persistence = await persistAndEnrich({
+      productId: product.id,
+      candidates: newItems.map((item) => ({
+        item,
+        foundUrl: item.urlFrom,
+        domain: extractDomainFromUrl(item.urlFrom),
+      })),
+      budget,
+      enrichLimit,
+      buildBareRow: ({ item, domain }) => {
       const sr = siteRelevanceResults.get(item.urlFrom)
       const targetPage = matchCompetitorTargetPage(item, targetPages)
       return {
@@ -262,69 +238,14 @@ export async function processCompetitor(
         site_relevance_score: sr?.score ?? null,
         enrichment_status: "pending" as const,
       }
+      },
+      enrich: ({ item, domain }) =>
+        enrichProspect(item, product, domain, sender, emailSettings),
+      onProspectCreated,
+      logContext: { strategy: "competitor_backlink", competitorDomain },
     })
-
-    const { data: insertedRows, error: insertError } = await supabaseAdmin
-      .from("backlink_prospects")
-      .upsert(bareRows, { onConflict: "product_id,found_url", ignoreDuplicates: true })
-      .select("id, found_url")
-
-    if (insertError) {
-      log.warn("bare prospect insert failed", { competitorDomain, error: insertError.message })
-    }
-
-    const idByUrl = new Map((insertedRows ?? []).map((r) => [r.found_url as string, r.id as string]))
-    const prospectsCreated = idByUrl.size
-
-    // Enrich each newly-inserted prospect, updating its row live as it completes.
-    let enrichedWithContact = 0
-    await Promise.allSettled(
-      toProcess
-        .filter((item) => idByUrl.has(item.urlFrom))
-        .map((item) =>
-          enrichLimit(async () => {
-            const id = idByUrl.get(item.urlFrom)!
-            const domain = extractDomainFromUrl(item.urlFrom)
-
-            await supabaseAdmin
-              .from("backlink_prospects")
-              .update({ enrichment_status: "enriching" as const })
-              .eq("id", id)
-
-            const enriched = await enrichProspect(item, product, domain, sender, emailSettings)
-            const { step2_body, step3_body, ...dbEnriched } = enriched
-            const ready = !!enriched.contact_email
-
-            const { error } = await supabaseAdmin
-              .from("backlink_prospects")
-              .update({
-                ...dbEnriched,
-                enrichment_status: ready ? ("ready" as const) : ("failed" as const),
-                status: ready ? ("new" as const) : ("email_not_found" as const),
-              })
-              .eq("id", id)
-
-            if (error) {
-              log.warn("prospect enrichment update failed", { competitorDomain, domain, error: error.message })
-              return
-            }
-
-            if (ready) {
-              enrichedWithContact += 1
-              onProspectCreated?.({
-                id,
-                contactName: enriched.contact_name,
-                emailSubject: enriched.email_subject,
-                emailBody: enriched.email_body,
-                step2Body: step2_body,
-                step3Body: step3_body,
-              })
-            } else {
-              log.info("no email found, marked email_not_found", { domain })
-            }
-          })
-        )
-    )
+    const prospectsCreated = persistence.prospectsInserted
+    const enrichedWithContact = persistence.contactReady
 
     log.info("rows upserted", { productId: product.id, competitorDomain, count: prospectsCreated })
 
@@ -337,9 +258,10 @@ export async function processCompetitor(
         passedFilters: filtered.length,
         scoredTotal: scored.length,
         kept: passing.length,
-        toEnrich: toProcess.length,
+        toEnrich: persistence.enrichmentAttempts,
         enrichedWithContact,
       },
+      persistence,
     }
   } catch (err) {
     // A total LLM outage isn't specific to this one competitor — every other
@@ -354,6 +276,7 @@ export async function processCompetitor(
       costUsd: 0,
       nextCursor: null,
       funnel: { extracted: 0, passedFilters: 0, scoredTotal: 0, kept: 0, toEnrich: 0, enrichedWithContact: 0 },
+      transportFailures: 1,
     }
   }
 }

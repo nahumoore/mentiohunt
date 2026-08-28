@@ -8,9 +8,11 @@ import { runApifyActor } from "../../../helpers/actors/run-apify-actor.js"
 import { createLogger } from "../../../helpers/logger.js"
 import type { FilterSettings } from "../competitor-backlink/filter-backlinks.js"
 import { fetchPageContent } from "../listicle-roundup/check-listicle-client.js"
+import { persistAndEnrich } from "../shared/persist-and-enrich.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
+import { emptyStrategyFunnel, type StrategyResult } from "../shared/strategy-result.js"
 import {
   claimDiscoveryCandidates,
   completeDiscoveryCandidates,
@@ -42,9 +44,7 @@ export async function discoverResourcePageInclusions(
   options: ResourcePageInclusionOptions = {},
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void
-): Promise<{
-  prospectsCreated: number
-  totalCostUsd: number
+): Promise<StrategyResult & {
   runInput: unknown
   dryRun: boolean
   candidatesFound: number
@@ -342,105 +342,56 @@ export async function discoverResourcePageInclusions(
     const { results: siteRelevanceResults, cost: siteRelevanceCost } = await scoreSiteRelevance(siteRelevanceInputs, product)
     totalCostUsd += siteRelevanceCost
 
-    const toProcess = qualified.filter(() => {
-      if (budget && budget.remaining <= 0) return false
-      if (budget) budget.remaining -= 1
-      return true
-    })
-
     if (dryRun) {
-      await completeProspectRun(runId, 0, totalCostUsd, { dry_run: true, qualified: toProcess.length })
+      await completeProspectRun(runId, 0, totalCostUsd, { dry_run: true, qualified: qualified.length })
       return { prospectsCreated: 0, totalCostUsd, runInput, dryRun, candidatesFound: gathered.length, candidatesScored: scored.length }
     }
 
-    if (toProcess.length === 0) {
+    if (qualified.length === 0) {
       await completeProspectRun(runId, 0, totalCostUsd, { qualified: qualified.length, budget_exhausted: true })
       return { prospectsCreated: 0, totalCostUsd, runInput, dryRun, candidatesFound: gathered.length, candidatesScored: scored.length }
     }
 
-    const bareRows = toProcess.map((item) => {
-      const sr = siteRelevanceResults.get(item.url)
-      const itemWithDr = item as ScoredResourceInclusionCandidate & { domainRating?: number | null }
-      return {
-        product_id: product.id,
-        product_page_id: item.targetPage.id,
-        domain: item.domain,
-        domain_rating: itemWithDr.domainRating ?? null,
-        found_url: item.url,
-        target_url: item.targetPage.url,
-        tier: "resource_page_inclusion" as const,
-        status: "new" as const,
-        site_relevance_score: sr?.score ?? null,
-        enrichment_status: "pending" as const,
-        raw_metadata: {
-          resource_page_inclusion: {
-            targetPageId: item.targetPage.id,
-            targetPageType: item.targetPage.page_type,
-            targetTitle: item.targetPage.title,
-            targetKeywords: item.targetPage.keywords,
-            query: item.query,
-            relevanceScore: item.relevanceScore,
-            relevanceReason: item.relevanceReason,
-          },
-        },
-      }
-    })
-
-    const { data: insertedRows, error: insertError } = await supabaseAdmin
-      .from("backlink_prospects")
-      .upsert(bareRows, { onConflict: "product_id,found_url", ignoreDuplicates: true })
-      .select("id, found_url")
-
-    if (insertError) throw new Error(`bare prospect insert failed: ${insertError.message}`)
-
-    const idByUrl = new Map((insertedRows ?? []).map((r) => [r.found_url as string, r.id as string]))
-    const prospectsCreated = idByUrl.size
     const sender = await resolveSenderName(product.user_id)
     const enrichLimit = pLimit(5)
-    let enrichedWithContact = 0
-
-    await Promise.allSettled(
-      toProcess
-        .filter((item) => idByUrl.has(item.url))
-        .map((item) =>
-          enrichLimit(async () => {
-            const id = idByUrl.get(item.url)!
-            await supabaseAdmin
-              .from("backlink_prospects")
-              .update({ enrichment_status: "enriching" as const })
-              .eq("id", id)
-
-            const enriched = await enrichResourceInclusion(item, product, sender, emailSettings)
-            const { step2_body, step3_body, ...dbEnriched } = enriched
-            const ready = !!enriched.contact_email
-            const { error } = await supabaseAdmin
-              .from("backlink_prospects")
-              .update({
-                ...dbEnriched,
-                enrichment_status: ready ? ("ready" as const) : ("failed" as const),
-                status: ready ? ("new" as const) : ("email_not_found" as const),
-              })
-              .eq("id", id)
-
-            if (error) {
-              log.warn("prospect enrichment update failed", { domain: item.domain, error: error.message })
-              return
-            }
-
-            if (ready) {
-              enrichedWithContact += 1
-              onProspectCreated?.({
-                id,
-                contactName: enriched.contact_name,
-                emailSubject: enriched.email_subject,
-                emailBody: enriched.email_body,
-                step2Body: step2_body,
-                step3Body: step3_body,
-              })
-            }
-          })
-        )
-    )
+    const persistence = await persistAndEnrich({
+      productId: product.id,
+      candidates: qualified.map((item) => ({ item, foundUrl: item.url, domain: item.domain })),
+      budget,
+      enrichLimit,
+      buildBareRow: ({ item, domain }) => {
+        const sr = siteRelevanceResults.get(item.url)
+        const itemWithDr = item as ScoredResourceInclusionCandidate & { domainRating?: number | null }
+        return {
+          product_id: product.id,
+          product_page_id: item.targetPage.id,
+          domain,
+          domain_rating: itemWithDr.domainRating ?? null,
+          found_url: item.url,
+          target_url: item.targetPage.url,
+          tier: "resource_page_inclusion" as const,
+          status: "new" as const,
+          site_relevance_score: sr?.score ?? null,
+          enrichment_status: "pending" as const,
+          raw_metadata: {
+            resource_page_inclusion: {
+              targetPageId: item.targetPage.id,
+              targetPageType: item.targetPage.page_type,
+              targetTitle: item.targetPage.title,
+              targetKeywords: item.targetPage.keywords,
+              query: item.query,
+              relevanceScore: item.relevanceScore,
+              relevanceReason: item.relevanceReason,
+            },
+          },
+        }
+      },
+      enrich: ({ item }) => enrichResourceInclusion(item, product, sender, emailSettings),
+      onProspectCreated,
+      logContext: { strategy: "resource_page_inclusion" },
+    })
+    const prospectsCreated = persistence.prospectsInserted
+    const enrichedWithContact = persistence.contactReady
 
     await completeProspectRun(runId, prospectsCreated, totalCostUsd, {
       candidates_gathered: gathered.length,
@@ -450,7 +401,29 @@ export async function discoverResourcePageInclusions(
       enriched_with_contact: enrichedWithContact,
     })
 
-    return { prospectsCreated, totalCostUsd, runInput, dryRun, candidatesFound: gathered.length, candidatesScored: scored.length }
+    return {
+      prospectsCreated,
+      totalCostUsd,
+      runInput,
+      dryRun,
+      candidatesFound: gathered.length,
+      candidatesScored: scored.length,
+      funnel: emptyStrategyFunnel({
+        candidatesGathered: gathered.length,
+        candidatesFetched: withContent.length,
+        candidatesQualified: qualified.length,
+        enrichmentAttempts: persistence.enrichmentAttempts,
+        prospectsInserted: persistence.prospectsInserted,
+        contactReady: persistence.contactReady,
+        emailNotFound: persistence.emailNotFound,
+        enrichmentFailures: persistence.enrichmentFailures,
+        persistenceFailures: persistence.persistenceFailures,
+        callbackFailures: persistence.callbackFailures,
+        duplicatesSkipped: persistence.duplicatesSkipped,
+        budgetSkipped: persistence.budgetSkipped,
+        exhausted: gathered.length < maxCandidates,
+      }),
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     log.error("discovery run failed", { productId: product.id, error: msg })

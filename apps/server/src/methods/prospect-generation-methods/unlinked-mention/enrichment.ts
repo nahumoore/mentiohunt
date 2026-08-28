@@ -1,7 +1,7 @@
 import { createLogger } from "../../../helpers/logger.js"
 import { resolveContactEmail } from "../competitor-backlink/enrich-contact.js"
 import { generateOutreachSequence } from "../shared/generate-outreach-sequence.js"
-import { EMPTY_ENRICHMENT, type EmailSettings, type EnrichedColumns } from "../shared/prospect-types.js"
+import type { EmailSettings, EnrichedColumns } from "../shared/prospect-types.js"
 import type { CheckMentionResult } from "./check-mention-client.js"
 import type { MentionCandidate } from "./score-mention-relevance.js"
 
@@ -83,6 +83,6 @@ export async function enrichMention(
     }
   } catch (err) {
     log.warn("mention enrichment failed", { domain: candidate.domain, error: String(err) })
-    return { ...EMPTY_ENRICHMENT }
+    throw err
   }
 }

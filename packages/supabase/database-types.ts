@@ -209,6 +209,7 @@ export type Database = {
       backlink_prospects_settings: {
         Row: {
           adaptive_discovery_enabled: boolean
+          daily_discovery_attempt_cap: number
           daily_discovery_candidate_cap: number
           daily_discovery_cost_cap_usd: number
           daily_discovery_target: number
@@ -225,6 +226,7 @@ export type Database = {
         }
         Insert: {
           adaptive_discovery_enabled?: boolean
+          daily_discovery_attempt_cap?: number
           daily_discovery_candidate_cap?: number
           daily_discovery_cost_cap_usd?: number
           daily_discovery_target?: number
@@ -241,6 +243,7 @@ export type Database = {
         }
         Update: {
           adaptive_discovery_enabled?: boolean
+          daily_discovery_attempt_cap?: number
           daily_discovery_candidate_cap?: number
           daily_discovery_cost_cap_usd?: number
           daily_discovery_target?: number
@@ -286,6 +289,7 @@ export type Database = {
           state: string
           target_page_id: string | null
           target_url: string | null
+          terminal_reason: string | null
           title: string
           url: string
         }
@@ -309,6 +313,7 @@ export type Database = {
           state?: string
           target_page_id?: string | null
           target_url?: string | null
+          terminal_reason?: string | null
           title?: string
           url: string
         }
@@ -332,6 +337,7 @@ export type Database = {
           state?: string
           target_page_id?: string | null
           target_url?: string | null
+          terminal_reason?: string | null
           title?: string
           url?: string
         }
@@ -348,6 +354,89 @@ export type Database = {
             columns: ["target_page_id"]
             isOneToOne: false
             referencedRelation: "product_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_discovery_summaries: {
+        Row: {
+          completed_at: string | null
+          configuration_reason: string | null
+          enrichment_attempts: number
+          id: string
+          inserted_not_ready_count: number
+          invocation_count: number
+          last_error: string | null
+          last_started_at: string
+          lock_token: string | null
+          locked_at: string | null
+          product_id: string
+          quota_date: string
+          ready_added: number
+          ready_count: number
+          ready_count_at_start: number
+          started_at: string
+          status: string
+          stop_reason: string | null
+          strategy_funnels: Json
+          target_count: number
+          total_cost_usd: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          configuration_reason?: string | null
+          enrichment_attempts?: number
+          id?: string
+          inserted_not_ready_count?: number
+          invocation_count?: number
+          last_error?: string | null
+          last_started_at?: string
+          lock_token?: string | null
+          locked_at?: string | null
+          product_id: string
+          quota_date: string
+          ready_added?: number
+          ready_count?: number
+          ready_count_at_start?: number
+          started_at?: string
+          status?: string
+          stop_reason?: string | null
+          strategy_funnels?: Json
+          target_count: number
+          total_cost_usd?: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          configuration_reason?: string | null
+          enrichment_attempts?: number
+          id?: string
+          inserted_not_ready_count?: number
+          invocation_count?: number
+          last_error?: string | null
+          last_started_at?: string
+          lock_token?: string | null
+          locked_at?: string | null
+          product_id?: string
+          quota_date?: string
+          ready_added?: number
+          ready_count?: number
+          ready_count_at_start?: number
+          started_at?: string
+          status?: string
+          stop_reason?: string | null
+          strategy_funnels?: Json
+          target_count?: number
+          total_cost_usd?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_discovery_summaries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -1536,6 +1625,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_discovery_candidates: {
+        Args: {
+          p_limit: number
+          p_max_attempts?: number
+          p_product_id: string
+          p_source: Database["public"]["Enums"]["prospect_tier"]
+          p_stale_after_seconds?: number
+        }
+        Returns: Json
+      }
+      claim_daily_discovery_execution: {
+        Args: {
+          p_product_id: string
+          p_quota_date: string
+          p_stale_after_seconds?: number
+          p_target_count: number
+        }
+        Returns: {
+          claimed: boolean
+          enrichment_attempts: number
+          execution_token: string | null
+          ready_count: number
+          summary_id: string
+          total_cost_usd: number
+        }[]
+      }
       claim_prospect_outreach_sequence: {
         Args: { p_sequence_id: string; p_spacing_seconds?: number }
         Returns: {
@@ -1566,9 +1681,48 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      complete_discovery_candidates: {
+        Args: { p_ids: string[] }
+        Returns: Json
+      }
       merge_discovery_status: {
         Args: { p_product_id: string; p_updates: Json }
         Returns: undefined
+      }
+      count_daily_send_ready_opportunities: {
+        Args: { p_product_id: string; p_quota_date: string }
+        Returns: number
+      }
+      finish_daily_discovery_execution: {
+        Args: {
+          p_configuration_reason?: string
+          p_cost_usd: number
+          p_enrichment_attempts: number
+          p_execution_token: string
+          p_inserted_not_ready_count: number
+          p_last_error?: string
+          p_ready_count: number
+          p_stop_reason: string
+          p_strategy_funnels: Json
+          p_summary_id: string
+        }
+        Returns: boolean
+      }
+      retry_discovery_candidates: {
+        Args: {
+          p_ids: string[]
+          p_max_attempts?: number
+          p_reason: string
+        }
+        Returns: Json
+      }
+      store_discovery_candidates: {
+        Args: {
+          p_candidates: Json
+          p_product_id: string
+          p_source: Database["public"]["Enums"]["prospect_tier"]
+        }
+        Returns: Json
       }
       stop_prospect_outreach: {
         Args: {

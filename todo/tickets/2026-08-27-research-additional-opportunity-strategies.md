@@ -1,6 +1,7 @@
 # Research and validate additional opportunity strategies
 
-- **Status:** Proposed — initial research complete, experiments not implemented
+- **Status:** Proposed — initial research complete; per-strategy implementation tickets now exist in
+  `todo/tickets/prospect-outreach-strategies/` (`01`–`05` + README). Experiments not implemented.
 - **Priority:** P0
 - **Scope:** Find, prototype, and validate renewable editorial opportunity sources that can close the
   gap between corrected existing discovery and `~25` send-ready opportunities per product/day.

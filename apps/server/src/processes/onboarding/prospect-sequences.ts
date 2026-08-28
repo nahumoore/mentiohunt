@@ -67,7 +67,7 @@ export async function createSequencesForProspect(
       prospectId: prospect.id,
       error: seqError.message,
     })
-    return
+    throw new Error(`Failed to insert prospect sequences: ${seqError.message}`)
   }
 
   const { error: updateError } = await supabaseAdmin
@@ -80,7 +80,7 @@ export async function createSequencesForProspect(
       prospectId: prospect.id,
       error: updateError.message,
     })
-    return
+    throw new Error(`Failed to assign prospect email account: ${updateError.message}`)
   }
 
   log.success("createSequencesForProspect done", { prospectId: prospect.id })

@@ -1,6 +1,7 @@
 # Fix daily opportunity delivery and accounting
 
-- **Status:** Proposed — researched, not implemented
+- **Status:** Implementation complete — Phases 1–4 are implemented and verified locally. The
+  accounting migration is live; the backlog migration, application deploy, and two-day canary remain.
 - **Priority:** P0
 - **Scope:** Correctness, scheduling, candidate allocation, backlog processing, and observability for
   the existing opportunity-discovery system.

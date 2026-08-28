@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import Stripe from "stripe"
 
 import { FREE_TRIAL_MAX_PAGES, getTierFromPriceId } from "@/consts/billing"
+import { DEFAULT_DISCOVERY_SETTINGS } from "@/lib/discovery-defaults"
 import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
 import { extractHostname, validateDomains } from "@/lib/onboarding/validate-domain"
 import { startDiscoveryJobs } from "@/lib/onboarding/start-discovery-jobs"
@@ -146,6 +147,7 @@ export async function GET(request: NextRequest) {
       const settingsPayload: TablesInsert<"backlink_prospects_settings"> = {
         product_id: newProductId,
         opportunity_types: DEFAULT_PROSPECT_TIERS,
+        ...DEFAULT_DISCOVERY_SETTINGS,
       }
 
       const { error: upsertSettingsError } = await supabase

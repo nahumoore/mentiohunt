@@ -17,7 +17,14 @@ import { crawlProductPages, type CrawlProductPagesResult } from "../methods/prod
 import { ALL_OPPORTUNITY_TYPES } from "../methods/prospect-generation-methods/shared/opportunity-types.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../methods/prospect-generation-methods/shared/prospect-types.js"
 import {
+  emptyStrategyFunnel,
+  type StrategyResult,
+} from "../methods/prospect-generation-methods/shared/strategy-result.js"
+import {
+  getBrokenLinkCadenceDecision,
   getStrategyCooldownRuns,
+  getStrategyPerformance,
+  getUnlinkedMentionDecision,
   isStrategyCoolingDown,
   orderStrategiesByEfficiency,
   orderStrategiesByStaleness,
@@ -25,6 +32,13 @@ import {
 } from "../methods/prospect-generation-methods/shared/strategy-rotation.js"
 import { assignSequences, createSequencesForProspect } from "../processes/onboarding/prospect-sequences.js"
 import { resolveEmailAccount } from "../processes/onboarding/resolve-email-account.js"
+import { claimDailyExecution, countDailySendReady, finishDailyExecution } from "./daily-discovery-accounting.js"
+import { DEFAULT_DAILY_DISCOVERY_SETTINGS, remainingDailyBudget } from "./daily-discovery-policy.js"
+import {
+  configurationReasonForSourceSkips,
+  DailyDiscoveryStopController,
+  type DailyDiscoveryStopReason,
+} from "./daily-discovery-stop-controller.js"
 
 const log = createLogger("daily-backlink-discovery")
 
@@ -55,7 +69,6 @@ export type DiscoveryProduct = {
   target_keywords: string[] | null
 }
 
-type DiscoveryResult = { prospectsCreated: number; totalCostUsd: number }
 type StrategyRunOptions = {
   adaptive: boolean
   budget?: { remaining: number }
@@ -72,7 +85,7 @@ type StrategyHandler = {
     emailSettings: EmailSettings,
     onProspectCreated?: (p: ProspectCreatedPayload) => void,
     options?: StrategyRunOptions
-  ) => Promise<DiscoveryResult>
+  ) => Promise<StrategyResult>
   sendAlert: (args: {
     to: string
     userId: string
@@ -115,7 +128,9 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         product,
         filterSettings,
         emailSettings,
-        options?.adaptive ? { maxCandidates: 50, maxProspects: options.budget?.remaining } : {},
+        options?.adaptive
+          ? { maxCandidates: 50, maxProspects: options.budget?.remaining }
+          : {},
         options?.budget,
         onProspectCreated
       ),
@@ -144,19 +159,15 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         .eq("is_target", true)
       return (count ?? 0) > 0
     },
-    discover: async (product, filterSettings, emailSettings, onProspectCreated, options) => {
-      const { prospectsCreated, totalCostUsd } = await discoverResourcePageInclusions(
+    discover: (product, filterSettings, emailSettings, onProspectCreated, options) =>
+      discoverResourcePageInclusions(
         product,
         filterSettings,
         emailSettings,
-        options?.adaptive
-          ? { maxCandidates: 50, maxProspects: options.budget?.remaining }
-          : {},
+        options?.adaptive ? { maxCandidates: 50, maxProspects: options.budget?.remaining } : {},
         options?.budget,
         onProspectCreated
-      )
-      return { prospectsCreated, totalCostUsd }
-    },
+      ),
     sendAlert: sendResourcePageInclusionAlertEmail,
   },
   broken_link_building: {
@@ -255,64 +266,114 @@ async function loadStrategyHistory(
   return (data ?? []) as RotationHistoryRun[]
 }
 
-function metadataNumber(metadata: unknown, key: string): number {
-  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) return 0
-  const value = (metadata as Record<string, unknown>)[key]
-  return typeof value === "number" && Number.isFinite(value) ? value : 0
+type AdaptiveStrategyQueueEntry = {
+  strategy: RotationStrategy
+  explorationProbe: boolean
 }
 
-function shouldExploreUnlinkedMentions(history: RotationHistoryRun[]): boolean {
-  const completed = history
-    .filter((run) => run.strategy === "unlinked_mention" && run.status === "completed")
-    .slice(0, 3)
-  if (completed.length === 0) return true
-  return completed.some((run) => metadataNumber(run.metadata, "candidates_gathered") >= 5)
+type StrategySkip = {
+  strategy: RotationStrategy
+  status: "skipped"
+  skipReason: string
 }
 
-function isBrokenLinkRunDue(history: RotationHistoryRun[], now = new Date()): boolean {
-  const latest = history.find((run) => run.strategy === "broken_link_building")
-  if (!latest?.started_at) return true
-  return now.getTime() - new Date(latest.started_at).getTime() >= 7 * 24 * 60 * 60 * 1_000
+type PersistedStrategyFunnel = Record<string, string | number | boolean | null>
+
+type AdaptiveStrategyQueue = {
+  entries: AdaptiveStrategyQueueEntry[]
+  skips: StrategySkip[]
+}
+
+async function getUnrunnableReason(
+  product: DiscoveryProduct,
+  strategy: RotationStrategy,
+  adaptive: boolean
+): Promise<string | null> {
+  if (await STRATEGY_HANDLERS[strategy].isRunnable(product, adaptive)) return null
+  if (strategy === "competitor_backlink") {
+    return "competitor_backlink_requires_product_name_or_valid_competitor"
+  }
+  if (strategy === "unlinked_mention") return "unlinked_mention_requires_product_name"
+  if (strategy === "listicle_roundup") return "listicle_roundup_requires_product_name"
+  if (strategy === "resource_page_inclusion") {
+    return "resource_page_inclusion_requires_crawled_target_page"
+  }
+
+  const hasUsableCompetitor = (product.competitors ?? []).some((competitor) => {
+    const domain = extractCompetitorDomain(competitor)
+    return Boolean(domain) && !isBlockedCompetitorDomain(domain)
+  })
+  return hasUsableCompetitor
+    ? "broken_link_requires_crawled_replacement_page"
+    : "broken_link_requires_valid_competitor"
 }
 
 async function buildAdaptiveStrategyQueue(
   product: DiscoveryProduct,
   enabled: RotationStrategy[],
   history: RotationHistoryRun[]
-): Promise<RotationStrategy[]> {
-  const orderedRemainder = orderStrategiesByEfficiency(
-    enabled.filter((strategy) => strategy !== "competitor_backlink"),
-    history
-  )
-  const preferred: RotationStrategy[] = enabled.includes("competitor_backlink")
-    ? ["competitor_backlink", ...orderedRemainder]
-    : orderedRemainder
-  const runnable: RotationStrategy[] = []
+): Promise<AdaptiveStrategyQueue> {
+  const preferred = orderStrategiesByEfficiency(enabled, history)
+  const entries: AdaptiveStrategyQueueEntry[] = []
+  const skips: StrategySkip[] = []
 
   for (const strategy of preferred) {
+    const unrunnableReason = await getUnrunnableReason(product, strategy, true)
+    if (unrunnableReason) {
+      log.info("adaptive source not runnable", { productId: product.id, strategy, reason: unrunnableReason })
+      skips.push({ strategy, status: "skipped", skipReason: unrunnableReason })
+      continue
+    }
+
+    let explorationProbe = false
+    if (strategy === "unlinked_mention") {
+      const decision = getUnlinkedMentionDecision(history)
+      if (!decision.shouldRun) {
+        log.info("adaptive source skipped: low-volume probe not due", { productId: product.id, strategy })
+        skips.push({ strategy, status: "skipped", skipReason: decision.skipReason! })
+        continue
+      }
+      explorationProbe = decision.explorationProbe
+    }
+    if (strategy === "broken_link_building") {
+      const decision = getBrokenLinkCadenceDecision(history)
+      if (!decision.shouldRun) {
+        log.info("adaptive source skipped: weekly scan not due", { productId: product.id, strategy })
+        skips.push({ strategy, status: "skipped", skipReason: decision.skipReason! })
+        continue
+      }
+    }
     if (isStrategyCoolingDown(history, strategy)) {
       log.info("adaptive source cooling down", { productId: product.id, strategy })
+      skips.push({ strategy, status: "skipped", skipReason: "source_zero_yield_cooldown" })
       continue
     }
-    if (strategy === "unlinked_mention" && !shouldExploreUnlinkedMentions(history)) {
-      log.info("adaptive source skipped: no demonstrated branded-search volume", {
-        productId: product.id,
-        strategy,
-      })
-      continue
-    }
-    if (strategy === "broken_link_building" && !isBrokenLinkRunDue(history)) {
-      log.info("adaptive source skipped: weekly scan not due", { productId: product.id, strategy })
-      continue
-    }
-    if (!(await STRATEGY_HANDLERS[strategy].isRunnable(product, true))) {
-      log.info("adaptive source not runnable", { productId: product.id, strategy })
-      continue
-    }
-    runnable.push(strategy)
+    entries.push({ strategy, explorationProbe })
   }
 
-  return runnable
+  return { entries, skips }
+}
+
+function commonFunnelFields(result: StrategyResult): PersistedStrategyFunnel {
+  const funnel = result.funnel ?? emptyStrategyFunnel({ exhausted: result.prospectsCreated === 0 })
+  return {
+    candidatesGathered: funnel.candidatesGathered,
+    candidatesFetched: funnel.candidatesFetched,
+    candidatesQualified: funnel.candidatesQualified,
+    enrichmentAttempts: funnel.enrichmentAttempts,
+    prospectsInserted: funnel.prospectsInserted,
+    contactReady: funnel.contactReady,
+    sequenceReady: funnel.sequenceReady ?? null,
+    emailNotFound: funnel.emailNotFound,
+    enrichmentFailures: funnel.enrichmentFailures,
+    persistenceFailures: funnel.persistenceFailures,
+    callbackFailures: funnel.callbackFailures,
+    transportFailures: funnel.transportFailures,
+    duplicatesSkipped: funnel.duplicatesSkipped,
+    budgetSkipped: funnel.budgetSkipped,
+    exhausted: funnel.exhausted,
+    cursorState: funnel.cursorState ?? null,
+  }
 }
 
 async function ensureProductReadiness(product: DiscoveryProduct): Promise<string[]> {
@@ -393,21 +454,27 @@ export async function runDiscoveryForProduct(
   totalCostUsd: number
   emailSent: boolean
   readinessReasons?: string[]
-  stopReason?: "target_reached" | "candidate_cap_reached" | "cost_cap_reached" | "sources_exhausted"
+  stopReason?:
+    | "target_reached"
+    | "attempt_cap_reached"
+    | "cost_cap_reached"
+    | "sources_exhausted"
+    | "configuration_error"
   skipped?: string
 }> {
-  const { data: settings } = await supabaseAdmin
+  const settingsFields =
+    "dr_min, dr_max, voice_tone, offering, opportunity_types, adaptive_discovery_enabled, daily_discovery_target, daily_discovery_candidate_cap, daily_discovery_attempt_cap, daily_discovery_cost_cap_usd" as const
+  let { data: settings, error: settingsError } = await supabaseAdmin
     .from("backlink_prospects_settings")
-    .select(
-      "dr_min, dr_max, voice_tone, offering, opportunity_types, adaptive_discovery_enabled, daily_discovery_target, daily_discovery_candidate_cap, daily_discovery_cost_cap_usd"
-    )
+    .select(settingsFields)
     .eq("product_id", product.id)
-    .single()
+    .maybeSingle()
 
-  const opportunityTypes = settings?.opportunity_types ?? ALL_OPPORTUNITY_TYPES
-  const enabled = ROTATION_STRATEGIES.filter((s) => opportunityTypes.includes(s))
-
-  if (enabled.length === 0) {
+  if (settingsError) {
+    log.error("failed to load discovery settings", {
+      productId: product.id,
+      error: settingsError.message,
+    })
     return {
       strategy: null,
       strategies: [],
@@ -415,22 +482,195 @@ export async function runDiscoveryForProduct(
       sendReadyCreated: 0,
       totalCostUsd: 0,
       emailSent: false,
+      skipped: "settings_query_failed",
+    }
+  }
+
+  if (!settings) {
+    const { data: insertedSettings, error: insertSettingsError } = await supabaseAdmin
+      .from("backlink_prospects_settings")
+      .insert({
+        product_id: product.id,
+        opportunity_types: ALL_OPPORTUNITY_TYPES,
+        adaptive_discovery_enabled: DEFAULT_DAILY_DISCOVERY_SETTINGS.adaptiveDiscoveryEnabled,
+        daily_discovery_target: DEFAULT_DAILY_DISCOVERY_SETTINGS.target,
+        daily_discovery_candidate_cap: DEFAULT_DAILY_DISCOVERY_SETTINGS.candidateCap,
+        daily_discovery_attempt_cap: DEFAULT_DAILY_DISCOVERY_SETTINGS.attemptCap,
+        daily_discovery_cost_cap_usd: DEFAULT_DAILY_DISCOVERY_SETTINGS.costCapUsd,
+      })
+      .select(settingsFields)
+      .single()
+
+    if (insertSettingsError || !insertedSettings) {
+      // A concurrent creator may have won the unique product_id insert. Reload
+      // without upserting so an existing user's choices are never overwritten.
+      const retry = await supabaseAdmin
+        .from("backlink_prospects_settings")
+        .select(settingsFields)
+        .eq("product_id", product.id)
+        .maybeSingle()
+      settings = retry.data
+      settingsError = retry.error
+    } else {
+      settings = insertedSettings
+    }
+
+    if (settingsError || !settings) {
+      log.error("failed to create missing discovery settings", {
+        productId: product.id,
+        error: settingsError?.message ?? insertSettingsError?.message,
+      })
+      return {
+        strategy: null,
+        strategies: [],
+        prospectsCreated: 0,
+        sendReadyCreated: 0,
+        totalCostUsd: 0,
+        emailSent: false,
+        skipped: "settings_creation_failed",
+      }
+    }
+  }
+
+  const opportunityTypes = settings?.opportunity_types ?? ALL_OPPORTUNITY_TYPES
+  const enabled = ROTATION_STRATEGIES.filter((s) => opportunityTypes.includes(s))
+
+  const adaptive = settings.adaptive_discovery_enabled
+  const dailyTarget = Math.max(1, settings.daily_discovery_target)
+  const attemptCap = Math.max(dailyTarget, settings.daily_discovery_attempt_cap)
+  const costCapUsd = Math.max(0.01, settings.daily_discovery_cost_cap_usd)
+  const claim = adaptive ? await claimDailyExecution(product.id, dailyTarget) : null
+
+  if (adaptive && !claim) {
+    return {
+      strategy: null,
+      strategies: [],
+      prospectsCreated: 0,
+      sendReadyCreated: 0,
+      totalCostUsd: 0,
+      emailSent: false,
+      skipped: "daily_execution_already_running",
+    }
+  }
+
+  const dailyBudget = claim
+    ? remainingDailyBudget(
+        dailyTarget,
+        attemptCap,
+        costCapUsd,
+        claim.readyCount,
+        claim.previousAttempts,
+        claim.previousCostUsd
+      )
+    : {
+        targetRemaining: dailyTarget,
+        attemptsRemaining: attemptCap,
+        costRemainingUsd: costCapUsd,
+      }
+
+  if (claim && dailyBudget.targetRemaining === 0) {
+    await finishDailyExecution(claim, {
+      readyCount: claim.readyCount,
+      enrichmentAttempts: 0,
+      insertedNotReadyCount: 0,
+      costUsd: 0,
+      strategyFunnels: [],
+      stopReason: "target_reached",
+    })
+    return {
+      strategy: null,
+      strategies: [],
+      prospectsCreated: 0,
+      sendReadyCreated: 0,
+      totalCostUsd: 0,
+      emailSent: false,
+      stopReason: "target_reached",
+      skipped: "daily_target_already_reached",
+    }
+  }
+
+  const carriedBudgetStopReason = claim
+    ? dailyBudget.attemptsRemaining === 0
+      ? ("attempt_cap_reached" as const)
+      : dailyBudget.costRemainingUsd <= 0
+        ? ("cost_cap_reached" as const)
+        : null
+    : null
+  if (claim && carriedBudgetStopReason) {
+    await finishDailyExecution(claim, {
+      readyCount: claim.readyCount,
+      enrichmentAttempts: 0,
+      insertedNotReadyCount: 0,
+      costUsd: 0,
+      strategyFunnels: [],
+      stopReason: carriedBudgetStopReason,
+    })
+    return {
+      strategy: null,
+      strategies: [],
+      prospectsCreated: 0,
+      sendReadyCreated: 0,
+      totalCostUsd: 0,
+      emailSent: false,
+      stopReason: carriedBudgetStopReason,
+      skipped: `daily_${carriedBudgetStopReason}`,
+    }
+  }
+
+  if (enabled.length === 0) {
+    if (claim) {
+      await finishDailyExecution(claim, {
+        readyCount: claim.readyCount,
+        enrichmentAttempts: 0,
+        insertedNotReadyCount: 0,
+        costUsd: 0,
+        strategyFunnels: [],
+        stopReason: "configuration_error",
+        configurationReason: "no_enabled_discovery_sources",
+      })
+    }
+    return {
+      strategy: null,
+      strategies: [],
+      prospectsCreated: 0,
+      sendReadyCreated: 0,
+      totalCostUsd: 0,
+      emailSent: false,
+      stopReason: "configuration_error",
       skipped: "no rotation strategies enabled",
     }
   }
 
-  const adaptive = settings?.adaptive_discovery_enabled === true
   // Runs for every product, not just adaptive ones — a non-adaptive product
   // with zero crawled target pages would otherwise never get an automatic
   // crawl retry, permanently blocking resource_page_inclusion and
   // broken_link_building from ever producing a run.
   const readinessReasons = await ensureProductReadiness(product)
   const history = adaptive ? await loadStrategyHistory(product.id, enabled) : []
-  const strategies = adaptive
+  const adaptiveQueue = adaptive
     ? await buildAdaptiveStrategyQueue(product, enabled, history)
-    : [await selectStrategyForRun(product, enabled)].filter((value): value is RotationStrategy => value !== null)
+    : { entries: [], skips: [] }
+  const strategyEntries: AdaptiveStrategyQueueEntry[] = adaptive
+    ? adaptiveQueue.entries
+    : [await selectStrategyForRun(product, enabled)]
+        .filter((value): value is RotationStrategy => value !== null)
+        .map((strategy) => ({ strategy, explorationProbe: false }))
+  const strategies = strategyEntries.map(({ strategy }) => strategy)
 
   if (strategies.length === 0) {
+    const configurationReason = configurationReasonForSourceSkips(enabled, adaptiveQueue.skips)
+    const emptyQueueStopReason = configurationReason ? "configuration_error" : "sources_exhausted"
+    if (claim) {
+      await finishDailyExecution(claim, {
+        readyCount: claim.readyCount,
+        enrichmentAttempts: 0,
+        insertedNotReadyCount: 0,
+        costUsd: 0,
+        strategyFunnels: adaptiveQueue.skips,
+        stopReason: emptyQueueStopReason,
+        configurationReason,
+      })
+    }
     return {
       strategy: null,
       strategies: [],
@@ -439,7 +679,8 @@ export async function runDiscoveryForProduct(
       totalCostUsd: 0,
       emailSent: false,
       readinessReasons,
-      skipped: "no runnable strategy (missing competitors / crawled pages)",
+      stopReason: emptyQueueStopReason,
+      skipped: configurationReason ?? "all discovery sources cooling down or not due",
     }
   }
 
@@ -453,17 +694,24 @@ export async function runDiscoveryForProduct(
     offering: settings?.offering ?? null,
   }
 
-  const dailyTarget = Math.max(1, settings?.daily_discovery_target ?? 10)
-  const candidateCap = Math.max(dailyTarget, settings?.daily_discovery_candidate_cap ?? 15)
-  const costCapUsd = Math.max(0.01, settings?.daily_discovery_cost_cap_usd ?? 0.7)
-  const budget = adaptive ? { remaining: candidateCap } : undefined
+  const stopController = adaptive
+    ? new DailyDiscoveryStopController(
+        dailyTarget,
+        claim?.readyCount ?? 0,
+        dailyBudget.attemptsRemaining,
+        dailyBudget.costRemainingUsd
+      )
+    : null
 
   log.info("discovery sources selected", {
     productId: product.id,
     adaptive,
     strategies,
     dailyTarget: adaptive ? dailyTarget : undefined,
-    candidateCap: adaptive ? candidateCap : undefined,
+    attemptCap: adaptive ? attemptCap : undefined,
+    readyToday: claim?.readyCount,
+    attemptsRemaining: adaptive ? dailyBudget.attemptsRemaining : undefined,
+    costRemainingUsd: adaptive ? dailyBudget.costRemainingUsd : undefined,
     costCapUsd: adaptive ? costCapUsd : undefined,
     readinessReasons,
   })
@@ -473,78 +721,193 @@ export async function runDiscoveryForProduct(
   // onboarding does (run-onboarding-jobs.ts) — otherwise the safety-net sweep below
   // can't see them and always falls back to the templated follow-up.
   const account = await resolveEmailAccount(product.user_id)
+  if (adaptive && claim && !account) {
+    await finishDailyExecution(claim, {
+      readyCount: claim.readyCount,
+      enrichmentAttempts: 0,
+      insertedNotReadyCount: 0,
+      costUsd: 0,
+      strategyFunnels: adaptiveQueue.skips,
+      stopReason: "configuration_error",
+      configurationReason: "no_sending_account",
+    })
+    return {
+      strategy: null,
+      strategies: [],
+      prospectsCreated: 0,
+      sendReadyCreated: 0,
+      totalCostUsd: 0,
+      emailSent: false,
+      readinessReasons,
+      stopReason: "configuration_error",
+      skipped: "no sending account available",
+    }
+  }
   const seqLimit = pLimit(3)
   let prospectsCreated = 0
   let sendReadyCreated = 0
+  let readyToday = claim?.readyCount ?? 0
   let totalCostUsd = 0
   let emailSent = false
   const ranStrategies: RotationStrategy[] = []
+  const strategyFunnels: PersistedStrategyFunnel[] = [...adaptiveQueue.skips]
+  let activeAllocation: ReturnType<DailyDiscoveryStopController["allocate"]> = null
 
-  for (const strategy of strategies) {
-    if (adaptive && sendReadyCreated >= dailyTarget) break
-    if (adaptive && budget && budget.remaining <= 0) break
-    if (adaptive && totalCostUsd >= costCapUsd) break
+  try {
+    for (const entry of strategyEntries) {
+      const { strategy } = entry
+      if (stopController?.shouldStop()) break
 
-    const seqPromises: Promise<void>[] = []
-    let sourceSendReady = 0
-    const onProspectCreated = (payload: ProspectCreatedPayload) => {
-      sourceSendReady += 1
-      sendReadyCreated += 1
-      if (account) seqPromises.push(seqLimit(() => createSequencesForProspect(payload, account)))
-    }
-
-    const result = await STRATEGY_HANDLERS[strategy].discover(
-      product,
-      filterSettings,
-      emailSettings,
-      onProspectCreated,
-      {
-        adaptive,
-        budget,
-        targetRemaining: Math.max(0, dailyTarget - sendReadyCreated),
-        shouldStop: () => sendReadyCreated >= dailyTarget,
-      }
-    )
-    await Promise.allSettled(seqPromises)
-    ranStrategies.push(strategy)
-    prospectsCreated += result.prospectsCreated
-    totalCostUsd += result.totalCostUsd
-    log.info("discovery source done", {
-      productId: product.id,
-      strategy,
-      sourceSendReady,
-      cumulativeSendReady: sendReadyCreated,
-      remainingCandidateBudget: budget?.remaining,
-      ...result,
-    })
-
-    if (result.prospectsCreated > 0 && profile?.email) {
-      await STRATEGY_HANDLERS[strategy].sendAlert({
-        to: profile.email,
-        userId: product.user_id,
-        userName: profile.name,
-        productName: product.product_name,
-        prospectsCreated: result.prospectsCreated,
+      const resourcePerformance = getStrategyPerformance(history, "resource_page_inclusion")
+      const higherYieldSourceRunnable = strategy === "resource_page_inclusion"
+        && strategyEntries.some((candidate) =>
+          candidate.strategy !== "resource_page_inclusion"
+          && getStrategyPerformance(history, candidate.strategy).readyPerAttempt
+            > resourcePerformance.readyPerAttempt
+        )
+      const allocation = stopController?.allocate(strategy, {
+        history,
+        explorationProbe: entry.explorationProbe,
+        higherYieldSourceRunnable,
       })
-      emailSent = true
-    } else if (result.prospectsCreated > 0) {
-      log.warn("no profile email, skipping alert", { productId: product.id, userId: product.user_id })
-    }
-  }
+      if (adaptive && !allocation) break
+      activeAllocation = allocation ?? null
+      const sourceBudget = allocation?.attemptBudget
 
-  if (prospectsCreated > 0) {
-    await assignSequences(product.user_id, product.id, account)
+      const seqPromises: Promise<void>[] = []
+      let sourceSendReady = 0
+      const onProspectCreated = (payload: ProspectCreatedPayload) => {
+        if (!account) return
+        seqPromises.push(
+          seqLimit(async () => {
+            await createSequencesForProspect(payload, account)
+            sourceSendReady += 1
+            readyToday += 1
+          })
+        )
+      }
+
+      const result = await STRATEGY_HANDLERS[strategy].discover(
+        product,
+        filterSettings,
+        emailSettings,
+        onProspectCreated,
+        {
+          adaptive,
+          budget: sourceBudget,
+          targetRemaining: stopController?.targetRemaining ?? dailyTarget,
+          shouldStop: () => stopController?.shouldStop() ?? false,
+        }
+      )
+      const sequenceResults = await Promise.allSettled(seqPromises)
+      const sequenceFailures = sequenceResults.filter((sequenceResult) => sequenceResult.status === "rejected").length
+      if (sequenceFailures > 0) {
+        log.warn("some discovered prospects did not become send-ready", {
+          productId: product.id,
+          strategy,
+          sequenceFailures,
+        })
+      }
+      if (claim) readyToday = await countDailySendReady(product.id, claim.quotaDate)
+      stopController?.reconcileReadyCount(readyToday)
+      const attemptsUsed = allocation ? stopController?.commit(allocation, result.totalCostUsd) ?? 0 : 0
+      activeAllocation = null
+      sendReadyCreated = Math.max(0, readyToday - (claim?.readyCount ?? 0))
+      ranStrategies.push(strategy)
+      prospectsCreated += result.prospectsCreated
+      totalCostUsd += result.totalCostUsd
+      strategyFunnels.push({
+        ...commonFunnelFields(result),
+        strategy,
+        prospectsCreated: result.prospectsCreated,
+        enrichmentAttempts: attemptsUsed,
+        sequenceReady: sourceSendReady,
+        sequenceFailures,
+        costUsd: result.totalCostUsd,
+        allocationLimit: allocation?.attemptLimit ?? 0,
+        estimatedReadyRate: allocation?.estimatedReadyRate ?? 0,
+        explorationProbe: allocation?.explorationProbe ? 1 : 0,
+      })
+      log.info("discovery source done", {
+        productId: product.id,
+        strategy,
+        sourceSendReady,
+        cumulativeSendReady: sendReadyCreated,
+        readyToday,
+        remainingAttemptBudget: stopController?.attemptsRemaining,
+        remainingCostBudgetUsd: stopController?.costRemainingUsd,
+        ...result,
+      })
+
+      if (result.prospectsCreated > 0 && profile?.email) {
+        await STRATEGY_HANDLERS[strategy].sendAlert({
+          to: profile.email,
+          userId: product.user_id,
+          userName: profile.name,
+          productName: product.product_name,
+          prospectsCreated: result.prospectsCreated,
+        })
+        emailSent = true
+      } else if (result.prospectsCreated > 0) {
+        log.warn("no profile email, skipping alert", {
+          productId: product.id,
+          userId: product.user_id,
+        })
+      }
+    }
+
+    if (prospectsCreated > 0) {
+      await assignSequences(product.user_id, product.id, account)
+      if (claim) {
+        readyToday = await countDailySendReady(product.id, claim.quotaDate)
+        stopController?.reconcileReadyCount(readyToday)
+        sendReadyCreated = Math.max(0, readyToday - claim.readyCount)
+      }
+    }
+  } catch (error) {
+    if (activeAllocation) {
+      stopController?.commit(activeAllocation, 0)
+      activeAllocation = null
+    }
+    if (claim) {
+      try {
+        readyToday = await countDailySendReady(product.id, claim.quotaDate)
+        const enrichmentAttempts = Math.max(0, dailyBudget.attemptsRemaining - (stopController?.attemptsRemaining ?? 0))
+        await finishDailyExecution(claim, {
+          readyCount: readyToday,
+          enrichmentAttempts,
+          insertedNotReadyCount: Math.max(0, prospectsCreated - Math.max(0, readyToday - claim.readyCount)),
+          costUsd: totalCostUsd,
+          strategyFunnels,
+          stopReason: "transport_failure",
+          lastError: String(error),
+        })
+      } catch (accountingError) {
+        log.error("failed to persist discovery failure accounting", {
+          productId: product.id,
+          error: String(accountingError),
+          discoveryError: String(error),
+        })
+      }
+    }
+    throw error
   }
 
   const stopReason = !adaptive
     ? undefined
-    : sendReadyCreated >= dailyTarget
-      ? "target_reached" as const
-      : budget && budget.remaining <= 0
-        ? "candidate_cap_reached" as const
-        : totalCostUsd >= costCapUsd
-          ? "cost_cap_reached" as const
-          : "sources_exhausted" as const
+    : stopController?.stopReason ?? ("sources_exhausted" as DailyDiscoveryStopReason)
+
+  if (claim && stopReason) {
+    const enrichmentAttempts = Math.max(0, dailyBudget.attemptsRemaining - (stopController?.attemptsRemaining ?? 0))
+    await finishDailyExecution(claim, {
+      readyCount: readyToday,
+      enrichmentAttempts,
+      insertedNotReadyCount: Math.max(0, prospectsCreated - sendReadyCreated),
+      costUsd: totalCostUsd,
+      strategyFunnels,
+      stopReason,
+    })
+  }
 
   log.info("product discovery done", {
     productId: product.id,
@@ -552,6 +915,7 @@ export async function runDiscoveryForProduct(
     strategies: ranStrategies,
     prospectsCreated,
     sendReadyCreated,
+    readyToday,
     totalCostUsd,
     stopReason,
   })

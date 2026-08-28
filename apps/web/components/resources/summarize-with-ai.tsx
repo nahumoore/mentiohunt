@@ -63,7 +63,7 @@ export function SummarizeWithAI({ url }: { url: string }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`https://www.google.com/s2/favicons?domain=${provider.domain}&sz=64`}
-                alt=""
+                alt={provider.name}
                 width={15}
                 height={15}
                 className="h-[15px] w-[15px] rounded-full"

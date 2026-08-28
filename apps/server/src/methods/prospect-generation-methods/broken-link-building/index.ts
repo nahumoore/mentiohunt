@@ -4,6 +4,7 @@ import { createLogger } from "../../../helpers/logger.js"
 import { extractCompetitorDomain, isBlockedCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
+import { emptyStrategyFunnel, type StrategyResult } from "../shared/strategy-result.js"
 import type { FilterSettings } from "./filter-dead-link-candidates.js"
 import { processCompetitor } from "./process-competitor.js"
 import { completeProspectRun, createProspectRun, failProspectRun, selectCompetitorsForRun } from "./prospect-run-tracking.js"
@@ -38,7 +39,7 @@ export async function discoverBrokenLinkBuilding(
   limits: { maxCompetitors?: number; maxProspects?: number; fetchLimit?: number } = {},
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void
-): Promise<{ prospectsCreated: number; totalCostUsd: number }> {
+): Promise<StrategyResult> {
   const maxCompetitors = limits.maxCompetitors ?? MAX_COMPETITORS_PER_RUN
   const maxProspects = limits.maxProspects ?? MAX_PROSPECTS_PER_RUN
   const fetchLimit = limits.fetchLimit
@@ -122,6 +123,8 @@ export async function discoverBrokenLinkBuilding(
     toEnrich: 0,
     enrichedWithContact: 0,
   }
+  const commonFunnel = emptyStrategyFunnel()
+  let transportFailures = 0
 
   try {
     for (const competitorDomain of competitorsToProcess) {
@@ -140,6 +143,7 @@ export async function discoverBrokenLinkBuilding(
       )
       totalProspectsCreated += result.prospectsCreated
       totalCostUsd += result.costUsd
+      transportFailures += result.transportFailures ?? 0
       cursorsByDomain[competitorDomain] = result.nextCursor
       funnel.extracted += result.funnel.extracted
       funnel.afterFilter += result.funnel.afterFilter
@@ -148,10 +152,19 @@ export async function discoverBrokenLinkBuilding(
       funnel.matched += result.funnel.matched
       funnel.toEnrich += result.funnel.toEnrich
       funnel.enrichedWithContact += result.funnel.enrichedWithContact
+      if (result.persistence) {
+        commonFunnel.emailNotFound += result.persistence.emailNotFound
+        commonFunnel.enrichmentFailures += result.persistence.enrichmentFailures
+        commonFunnel.persistenceFailures += result.persistence.persistenceFailures
+        commonFunnel.callbackFailures += result.persistence.callbackFailures
+        commonFunnel.duplicatesSkipped += result.persistence.duplicatesSkipped
+        commonFunnel.budgetSkipped += result.persistence.budgetSkipped
+      }
     }
 
     if (runId) await completeProspectRun(runId, totalProspectsCreated, totalCostUsd, cursorsByDomain, funnel)
   } catch (err) {
+    transportFailures += 1
     const msg = err instanceof Error ? err.message : String(err)
     log.error("discovery run failed", { productId: product.id, error: msg })
     if (runId) await failProspectRun(runId, msg)
@@ -166,5 +179,21 @@ export async function discoverBrokenLinkBuilding(
     nextCursors: cursorsByDomain,
   })
 
-  return { prospectsCreated: totalProspectsCreated, totalCostUsd }
+  return {
+    prospectsCreated: totalProspectsCreated,
+    totalCostUsd,
+    funnel: {
+      ...commonFunnel,
+      candidatesGathered: funnel.extracted,
+      candidatesFetched: funnel.confirmedLive,
+      candidatesQualified: funnel.matched,
+      enrichmentAttempts: funnel.toEnrich,
+      prospectsInserted: totalProspectsCreated,
+      contactReady: funnel.enrichedWithContact,
+      transportFailures,
+      exhausted:
+        competitorsToProcess.length > 0
+        && Object.values(cursorsByDomain).every((cursor) => cursor === null),
+    },
+  }
 }

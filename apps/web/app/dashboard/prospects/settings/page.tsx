@@ -360,6 +360,7 @@ export default function DiscoverySetupPage() {
       const payload = (await response.json().catch(() => null)) as {
         error?: string
         settings?: DiscoverySettings
+        configurationWarning?: string
       } | null
 
       if (!response.ok || !payload?.settings) {
@@ -376,7 +377,9 @@ export default function DiscoverySetupPage() {
         dr_max: payload.settings.drMax ?? -1,
         opportunity_types_count: payload.settings.opportunityTypes.length,
       })
-      setDiscoverySettingsMessage("Discovery settings saved.")
+      setDiscoverySettingsMessage(
+        payload.configurationWarning ?? "Discovery settings saved."
+      )
     } catch (error) {
       setDiscoverySettingsMessage(
         error instanceof Error

@@ -8,14 +8,14 @@ import { RelatedFreeTools } from "@/components/free-tools"
 import BlogStylings from "@/components/resources/blog-stylings"
 import { FREE_TOOL_NAMES } from "@/consts/free-tools"
 import { getPostBySlug } from "@/lib/mdx"
-import { supabaseServer } from "@/lib/supabase/server"
+import { supabasePublic } from "@/lib/supabase/public"
 
 import { StartupDirectoriesBrowser } from "./tool"
 
-async function getDirectories(): Promise<Tables<"directories">[]> {
-  const supabase = await supabaseServer()
+export const revalidate = 3600
 
-  const { data } = await supabase
+async function getDirectories(): Promise<Tables<"directories">[]> {
+  const { data } = await supabasePublic
     .from("directories")
     .select(
       "id, name, domain, submit_url, category, is_free, is_active, submit_url_ok, submit_url_verified_at, check_method, slug_pattern, domain_rating, backlinks, referring_domains, dofollow_backlinks, dofollow_referring_domains, seo_metrics_updated_at, created_at"

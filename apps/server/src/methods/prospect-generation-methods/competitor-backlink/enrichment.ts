@@ -1,7 +1,7 @@
 import { createLogger } from "../../../helpers/logger.js"
 import { competitorNamedInVisibleText } from "../shared/brand-mention.js"
 import { generateOutreachSequence } from "../shared/generate-outreach-sequence.js"
-import { EMPTY_ENRICHMENT, type EmailSettings, type EnrichedColumns } from "../shared/prospect-types.js"
+import type { EmailSettings, EnrichedColumns } from "../shared/prospect-types.js"
 import { enrichContact } from "./enrich-contact.js"
 import type { ScoredBacklinkItem } from "./score-backlink-relevance.js"
 
@@ -88,6 +88,6 @@ export async function enrichProspect(
     }
   } catch (err) {
     log.warn("prospect enrichment failed", { domain, error: String(err) })
-    return { ...EMPTY_ENRICHMENT }
+    throw err
   }
 }

@@ -8,7 +8,9 @@ import { runApifyActor } from "../../../helpers/actors/run-apify-actor.js"
 import { createLogger } from "../../../helpers/logger.js"
 import type { FilterSettings } from "../competitor-backlink/filter-backlinks.js"
 import { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
+import { persistAndEnrich } from "../shared/persist-and-enrich.js"
 import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
+import { emptyStrategyFunnel, type StrategyResult } from "../shared/strategy-result.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import {
@@ -39,7 +41,7 @@ export async function discoverListicleRoundups(
   limits: { maxCandidates?: number; maxProspects?: number } = {},
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void
-): Promise<{ prospectsCreated: number; totalCostUsd: number }> {
+): Promise<StrategyResult> {
   const maxCandidates = limits.maxCandidates ?? MAX_CANDIDATES_TO_FETCH
   const maxProspects = limits.maxProspects ?? MAX_PROSPECTS_PER_RUN
   const ownDomain = extractDomainFromUrl(product.website_url)
@@ -320,29 +322,17 @@ export async function discoverListicleRoundups(
     )
     totalCostUsd += siteRelevanceCost
 
-    // Claim budget synchronously, up front, so we only ever bare-insert
-    // prospects we're actually going to enrich — otherwise a budget-skipped
-    // row would sit in 'pending' forever and get deduped out of every future
-    // run (found_url already exists).
-    const toProcess = newItems.filter(() => {
-      if (budget && budget.remaining <= 0) return false
-      if (budget) budget.remaining -= 1
-      return true
-    })
-
-    if (toProcess.length === 0) {
-      if (runId)
-        await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: newItems.length, budget_exhausted: true })
-      return { prospectsCreated: 0, totalCostUsd }
-    }
-
-    // Insert bare rows immediately so the UI shows discovered sites right
-    // away; enrichment (contact + outreach email) fills each row in after.
-    const bareRows = toProcess.map((item) => {
+    const enrichLimit = pLimit(5)
+    const persistence = await persistAndEnrich({
+      productId: product.id,
+      candidates: newItems.map((item) => ({ item, foundUrl: item.url, domain: item.domain })),
+      budget,
+      enrichLimit,
+      buildBareRow: ({ item, domain }) => {
       const sr = siteRelevanceResults.get(item.url)
       return {
         product_id: product.id,
-        domain: item.domain,
+        domain,
         domain_rating: item.domainRating,
         found_url: item.url,
         target_url: product.website_url,
@@ -351,69 +341,13 @@ export async function discoverListicleRoundups(
         site_relevance_score: sr?.score ?? null,
         enrichment_status: "pending" as const,
       }
+      },
+      enrich: ({ item }) => enrichListicle(item, product, sender, emailSettings),
+      onProspectCreated,
+      logContext: { strategy: "listicle_roundup" },
     })
-
-    const { data: insertedRows, error: insertError } = await supabaseAdmin
-      .from("backlink_prospects")
-      .upsert(bareRows, { onConflict: "product_id,found_url", ignoreDuplicates: true })
-      .select("id, found_url")
-
-    if (insertError) {
-      log.warn("bare prospect insert failed", { productId: product.id, error: insertError.message })
-    }
-
-    const idByUrl = new Map((insertedRows ?? []).map((r) => [r.found_url as string, r.id as string]))
-    const prospectsCreated = idByUrl.size
-
-    // Enrich each newly-inserted prospect, updating its row live as it completes.
-    const enrichLimit = pLimit(5)
-    let enrichedWithContact = 0
-    await Promise.allSettled(
-      toProcess
-        .filter((item) => idByUrl.has(item.url))
-        .map((item) =>
-          enrichLimit(async () => {
-            const id = idByUrl.get(item.url)!
-
-            await supabaseAdmin
-              .from("backlink_prospects")
-              .update({ enrichment_status: "enriching" as const })
-              .eq("id", id)
-
-            const enriched = await enrichListicle(item, product, sender, emailSettings)
-            const { step2_body, step3_body, ...dbEnriched } = enriched
-            const ready = !!enriched.contact_email
-
-            const { error } = await supabaseAdmin
-              .from("backlink_prospects")
-              .update({
-                ...dbEnriched,
-                enrichment_status: ready ? ("ready" as const) : ("failed" as const),
-                status: ready ? ("new" as const) : ("email_not_found" as const),
-              })
-              .eq("id", id)
-
-            if (error) {
-              log.warn("prospect enrichment update failed", { domain: item.domain, error: error.message })
-              return
-            }
-
-            if (ready) {
-              enrichedWithContact += 1
-              onProspectCreated?.({
-                id,
-                contactName: enriched.contact_name,
-                emailSubject: enriched.email_subject,
-                emailBody: enriched.email_body,
-                step2Body: step2_body,
-                step3Body: step3_body,
-              })
-            } else {
-              log.info("no email found, marked email_not_found", { domain: item.domain })
-            }
-          })
-        )
-    )
+    const prospectsCreated = persistence.prospectsInserted
+    const enrichedWithContact = persistence.contactReady
 
     log.info("rows upserted", { productId: product.id, inserted: prospectsCreated })
 
@@ -423,11 +357,34 @@ export async function discoverListicleRoundups(
         qualified: newItems.length,
         enriched_with_contact: enrichedWithContact,
       })
-    return { prospectsCreated, totalCostUsd }
+    return {
+      prospectsCreated,
+      totalCostUsd,
+      funnel: emptyStrategyFunnel({
+        candidatesGathered: candidates.length,
+        candidatesFetched: withContent.length,
+        candidatesQualified: newItems.length,
+        enrichmentAttempts: persistence.enrichmentAttempts,
+        prospectsInserted: persistence.prospectsInserted,
+        contactReady: persistence.contactReady,
+        emailNotFound: persistence.emailNotFound,
+        enrichmentFailures: persistence.enrichmentFailures,
+        persistenceFailures: persistence.persistenceFailures,
+        callbackFailures: persistence.callbackFailures,
+        duplicatesSkipped: persistence.duplicatesSkipped,
+        budgetSkipped: persistence.budgetSkipped,
+        transportFailures: serpFailures,
+        exhausted: candidates.length < maxCandidates,
+      }),
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     log.error("discovery run failed", { productId: product.id, error: msg })
     if (runId) await failProspectRun(runId, msg)
-    return { prospectsCreated: 0, totalCostUsd }
+    return {
+      prospectsCreated: 0,
+      totalCostUsd,
+      funnel: emptyStrategyFunnel({ transportFailures: Math.max(1, serpFailures) }),
+    }
   }
 }

@@ -217,7 +217,7 @@ export default async function CaseStudyPage({ params }: Props) {
                       {meta.companyUrl && (
                         <Image
                           src={getFaviconUrl(meta.companyUrl)}
-                          alt=""
+                          alt={meta.company}
                           width={14}
                           height={14}
                           className="rounded-sm"

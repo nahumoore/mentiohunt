@@ -1,3 +1,4 @@
+import { DEFAULT_DISCOVERY_SETTINGS } from "@/lib/discovery-defaults"
 import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
 import { supabaseServer } from "@/lib/supabase/server"
 import type { TablesInsert } from "@workspace/supabase/database-types"
@@ -83,6 +84,7 @@ export async function PUT(request: Request) {
       signature_enabled: signatureEnabled,
       signature_text: signatureText.trim() || null,
       opportunity_types: DEFAULT_PROSPECT_TIERS,
+      ...DEFAULT_DISCOVERY_SETTINGS,
       updated_at: updatedAt,
     }
 

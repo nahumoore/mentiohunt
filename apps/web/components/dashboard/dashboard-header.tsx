@@ -130,14 +130,18 @@ export function DashboardHeader() {
   const pageConfig: PageConfig | null = isDashboardHome
     ? {
         title: `Welcome back${firstName ? `, ${firstName}` : ""}.`,
-        description: "Stay on top of your backlink outreach and steer what happens next.",
+        description:
+          "Stay on top of your backlink outreach and steer what happens next.",
         icon: IconLayoutDashboard,
       }
     : (PAGE_CONFIG[pathname] ?? null)
   const PageIcon = pageConfig?.icon ?? null
   const siteBadge =
     pageConfig?.showSiteBadge && product?.website_url
-      ? { name: product.product_name, favicon: getFaviconUrl(product.website_url) }
+      ? {
+          name: product.product_name,
+          favicon: getFaviconUrl(product.website_url),
+        }
       : null
 
   return (
@@ -179,7 +183,7 @@ export function DashboardHeader() {
       </div>
 
       {pageConfig && PageIcon && (
-        <div className="flex flex-col gap-3 px-4 pb-4 pt-0.5 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:pb-6">
+        <div className="flex flex-col gap-3 px-4 pt-0.5 pb-4 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:pb-6">
           <div>
             <h1 className="flex items-center gap-2.5 font-heading text-[1.75rem] font-bold tracking-tight text-foreground sm:text-[2rem]">
               <PageIcon className="size-8 shrink-0 text-foreground/80" />
@@ -211,7 +215,12 @@ export function DashboardHeader() {
           <div className="flex shrink-0 items-center gap-2">
             {pageConfig.action}
             {pageConfig.settingsHref && (
-              <Button asChild variant="ghost" size="default" className="sm:mt-1 shrink-0">
+              <Button
+                asChild
+                variant="ghost"
+                size="default"
+                className="shrink-0 sm:mt-1"
+              >
                 <Link href={pageConfig.settingsHref}>
                   <IconSettings className="size-4" />
                   <span className="hidden sm:inline">Settings</span>

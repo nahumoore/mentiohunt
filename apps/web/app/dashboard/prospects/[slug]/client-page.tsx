@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -14,12 +14,11 @@ import {
   IconCalendar,
   IconCheck,
   IconChevronRight,
-  IconCircleCheck,
   IconCircleX,
   IconClockPause,
   IconConfetti,
+  IconDots,
   IconExternalLink,
-  IconFileText,
   IconLoader2,
   IconMail,
   IconMailCheck,
@@ -41,6 +40,12 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Switch } from "@workspace/ui/components/switch"
 
@@ -48,10 +53,18 @@ import { captureEvent } from "@/lib/analytics"
 import { formatRelative } from "@/lib/format-date"
 import { PROSPECT_TIER_CONFIG } from "@/lib/opportunity-types"
 import { useActivationStore } from "@/stores/activation-store"
-import type { ProspectDetail, ProspectMessage, ProspectSequence } from "@/stores/prospect-store"
+import type {
+  ProspectDetail,
+  ProspectMessage,
+  ProspectSequence,
+} from "@/stores/prospect-store"
 import { useProspectStore } from "@/stores/prospect-store"
 import { usePagesStore } from "@/stores/pages-store"
-import { STATUS_CONFIG, formatDate, type ProspectStatus } from "@/app/dashboard/prospects/_data"
+import {
+  STATUS_CONFIG,
+  formatDate,
+  type ProspectStatus,
+} from "@/app/dashboard/prospects/_data"
 import { EmailSequenceNav } from "@/components/prospects/email-sequence-nav"
 import { SequenceStoppedNotice } from "@/components/prospects/sequence-stopped-notice"
 import { ReplyViaMailboxNotice } from "@/components/prospects/reply-via-mailbox-notice"
@@ -60,10 +73,19 @@ import { ManualCompletionForm } from "@/components/link-building/prospects/manua
 import { SignatureBlockPreview } from "@/components/link-building/sources/signature-block-preview"
 import { useOutreachSettingsStore } from "@/stores/outreach-settings-store"
 
-const PIPELINE_STEPS: ProspectStatus[] = ["new", "contacted", "negotiating", "won"]
+const PIPELINE_STEPS: ProspectStatus[] = [
+  "new",
+  "contacted",
+  "negotiating",
+  "won",
+]
 
 function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
-  if (status === "dismissed" || status === "email_not_found" || status === "bounced") {
+  if (
+    status === "dismissed" ||
+    status === "email_not_found" ||
+    status === "bounced"
+  ) {
     const cfg = STATUS_CONFIG[status]
     const Icon = cfg.icon
     return (
@@ -73,7 +95,7 @@ function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
           const Icon = cfg.icon
           return (
             <div key={s} className="flex shrink-0 items-center gap-1">
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground/20 whitespace-nowrap">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium whitespace-nowrap text-muted-foreground/20">
                 <Icon className="size-3" />
                 {cfg.label}
               </span>
@@ -83,7 +105,7 @@ function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
             </div>
           )
         })}
-        <span className="ml-2 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-muted-foreground bg-muted whitespace-nowrap">
+        <span className="ml-2 inline-flex shrink-0 items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium whitespace-nowrap text-muted-foreground">
           <Icon className="size-3.5" />
           {cfg.label}
         </span>
@@ -107,13 +129,17 @@ function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap transition-colors",
                 isActive
-                  ? "bg-primary/10 text-primary ring-1 ring-inset ring-primary/20"
+                  ? "bg-primary/10 text-primary ring-1 ring-primary/20 ring-inset"
                   : isPast
                     ? "text-primary/50"
                     : "text-muted-foreground/25"
               )}
             >
-              {isPast ? <IconCheck className="size-3" /> : <Icon className="size-3" />}
+              {isPast ? (
+                <IconCheck className="size-3" />
+              ) : (
+                <Icon className="size-3" />
+              )}
               {cfg.label}
             </span>
             {index < PIPELINE_STEPS.length - 1 && (
@@ -131,7 +157,13 @@ function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
   )
 }
 
-function WonBadge({ domain, domainRating }: { domain: string | null; domainRating: number | null }) {
+function WonBadge({
+  domain,
+  domainRating,
+}: {
+  domain: string | null
+  domainRating: number | null
+}) {
   return (
     <div className="flex flex-col items-center py-14">
       <div className="relative flex w-full max-w-lg flex-col items-center overflow-hidden rounded-3xl border border-green-500/20 bg-gradient-to-b from-green-500/10 via-background to-background px-12 py-16 text-center shadow-sm">
@@ -149,7 +181,9 @@ function WonBadge({ domain, domainRating }: { domain: string | null; domainRatin
           {domain ?? "This prospect"} said yes
         </p>
         {domainRating !== null && (
-          <p className="mt-1.5 text-sm text-muted-foreground">DR {domainRating} backlink earned</p>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            DR {domainRating} backlink earned
+          </p>
         )}
       </div>
 
@@ -185,11 +219,15 @@ function nullishString(v: string | null | undefined): string | null {
   return v
 }
 
-function parseSocialLinks(raw: Json | null | undefined): Record<string, string> {
+function parseSocialLinks(
+  raw: Json | null | undefined
+): Record<string, string> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {}
   return Object.fromEntries(
     Object.entries(raw as Record<string, Json>)
-      .filter(([, v]) => typeof v === "string" && nullishString(v as string) !== null)
+      .filter(
+        ([, v]) => typeof v === "string" && nullishString(v as string) !== null
+      )
       .map(([k, v]) => [k, v as string])
   )
 }
@@ -202,11 +240,18 @@ function parseRawMetadataBio(raw: Json | null | undefined): string | null {
 
 /** Surfaces why the AI picked this page for a user-submitted article, so the
  * user can judge the auto-pick before the first email sends 45–180 min later. */
-function parseUserSubmittedFitReason(raw: Json | null | undefined): string | null {
+function parseUserSubmittedFitReason(
+  raw: Json | null | undefined
+): string | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
   const obj = raw as Record<string, Json>
   const userSubmitted = obj.user_submitted
-  if (!userSubmitted || typeof userSubmitted !== "object" || Array.isArray(userSubmitted)) return null
+  if (
+    !userSubmitted ||
+    typeof userSubmitted !== "object" ||
+    Array.isArray(userSubmitted)
+  )
+    return null
   const reason = (userSubmitted as Record<string, Json>).fitReason
   return typeof reason === "string" ? nullishString(reason) : null
 }
@@ -253,20 +298,23 @@ function ScoreTile({
   barColor: string
 }) {
   return (
-    <div className="rounded-md bg-muted/40 px-3 py-2">
-      <p className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-0.5 font-mono text-lg font-bold leading-none tabular-nums text-foreground">
+    <div className="rounded-xl border border-border bg-card px-4 py-4 shadow-sm">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="mt-1 font-mono text-3xl leading-none font-bold text-foreground tabular-nums">
         {value ?? "—"}
       </p>
-      <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted">
+      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div
-          className={cn("h-full rounded-full", value != null ? barColor : "bg-muted")}
+          className={cn(
+            "h-full rounded-full",
+            value != null ? barColor : "bg-muted"
+          )}
           style={{ width: `${value != null ? Math.min(value, 100) : 0}%` }}
         />
       </div>
-      <p className="mt-1 text-[9px] leading-tight text-muted-foreground/70">{hint}</p>
+      <p className="mt-2 text-[10px] leading-tight text-muted-foreground/70">
+        {hint}
+      </p>
     </div>
   )
 }
@@ -279,38 +327,39 @@ function ConversationView({
   messages,
   isPublicMailbox,
   ownEmailAccounts,
-  statusLoading,
-  onMarkWon,
-  onDismiss,
 }: {
   prospect: ProspectDetail
   sequences: ProspectSequence[]
   messages: ProspectMessage[]
   isPublicMailbox: boolean
   ownEmailAccounts: OwnEmailAccount[]
-  statusLoading: "contacted" | "won" | "dismissed" | "pausing" | null
-  onMarkWon: () => void
-  onDismiss: () => void
 }) {
   const subject = prospect.email_subject ?? "Collaboration opportunity"
   const sentSteps = sequences.filter((s) => s.status === "sent")
   const storedOutboundSequenceIds = new Set(
-    messages.filter((message) => message.direction === "outbound").map((message) => message.sequence_id)
+    messages
+      .filter((message) => message.direction === "outbound")
+      .map((message) => message.sequence_id)
   )
   const threadItems = [
-    ...sentSteps.filter((seq) => !storedOutboundSequenceIds.has(seq.id)).map((seq) => ({
-      id: seq.id,
-      direction: "outbound" as const,
-      date: seq.sent_at ?? seq.scheduled_at,
-      body: seq.body ?? "",
-      classification: null as string | null,
-      classificationReason: null as string | null,
-      fromName: null as string | null,
-      fromEmail: null as string | null,
-    })),
+    ...sentSteps
+      .filter((seq) => !storedOutboundSequenceIds.has(seq.id))
+      .map((seq) => ({
+        id: seq.id,
+        direction: "outbound" as const,
+        date: seq.sent_at ?? seq.scheduled_at,
+        body: seq.body ?? "",
+        classification: null as string | null,
+        classificationReason: null as string | null,
+        fromName: null as string | null,
+        fromEmail: null as string | null,
+      })),
     ...messages.map((message) => ({
       id: message.id,
-      direction: message.direction === "outbound" ? ("outbound" as const) : ("inbound" as const),
+      direction:
+        message.direction === "outbound"
+          ? ("outbound" as const)
+          : ("inbound" as const),
       date: message.received_at,
       body: message.text_body ?? "",
       classification: message.classification,
@@ -319,74 +368,60 @@ function ConversationView({
       fromEmail: message.from_email,
     })),
   ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  const lastInboundId = [...threadItems]
+    .reverse()
+    .find((item) => item.direction === "inbound")?.id
+  const defaultExpandedId = lastInboundId ?? threadItems.at(-1)?.id ?? null
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(
+    defaultExpandedId
+  )
+
   // Reply to whoever last actually wrote in — they often answer from a
   // different personal address than the one outreach was originally sent to.
-  const lastInboundEmail = [...threadItems].reverse().find((item) => item.direction === "inbound")?.fromEmail
+  const lastInboundEmail = [...threadItems]
+    .reverse()
+    .find((item) => item.direction === "inbound")?.fromEmail
   const replyToEmail = lastInboundEmail ?? prospect.contact_email
   const ownEmails = new Set(ownEmailAccounts.map((a) => a.email.toLowerCase()))
-  const bottomRef = useRef<HTMLDivElement>(null)
-
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [])
+    setExpandedItemId(defaultExpandedId)
+  }, [defaultExpandedId, prospect.id])
 
   return (
     <div className="flex flex-col">
-      {/* Thread subject */}
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <IconMail className="size-3.5 shrink-0 text-muted-foreground/50" />
-          <p className="text-[11px] font-semibold text-muted-foreground/60 truncate">
-            Re: {subject}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            disabled={statusLoading !== null}
-            onClick={onDismiss}
-            className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-40"
-          >
-            {statusLoading === "dismissed" ? (
-              <IconLoader2 className="size-3.5 animate-spin" />
-            ) : (
-              <IconCircleX className="size-3.5" />
-            )}
-            Mark as dismissed
-          </button>
-          <button
-            type="button"
-            disabled={statusLoading !== null}
-            onClick={onMarkWon}
-            className="inline-flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-600/90 transition-colors disabled:opacity-40"
-          >
-            {statusLoading === "won" ? (
-              <IconLoader2 className="size-3.5 animate-spin" />
-            ) : (
-              <IconCircleCheck className="size-3.5" />
-            )}
-            Mark as won
-          </button>
-        </div>
+      <div className="mb-5">
+        <h2 className="text-base font-semibold text-foreground">
+          Conversation
+        </h2>
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <IconMail className="size-3.5 shrink-0 text-muted-foreground/60" />
+          Re: {subject}
+        </p>
       </div>
 
-      {prospect.outreach_stopped_reason && (
-        <SequenceStoppedNotice
-          className="mb-4"
-          reason={prospect.outreach_stopped_reason}
-          stoppedAt={prospect.outreach_stopped_at}
-        />
-      )}
+      {prospect.outreach_stopped_reason &&
+        prospect.outreach_stopped_reason !== "reply" && (
+          <SequenceStoppedNotice
+            className="mb-5"
+            reason={prospect.outreach_stopped_reason}
+            stoppedAt={prospect.outreach_stopped_at}
+          />
+        )}
 
       {/* Thread messages */}
-      <div className="space-y-4 mb-6">
+      <div className="mb-6 space-y-3">
         {threadItems.length === 0 ? (
-          <p className="text-sm text-muted-foreground/60 italic">No conversation yet.</p>
+          <p className="text-sm text-muted-foreground/60 italic">
+            No conversation yet.
+          </p>
         ) : (
           threadItems.map((item) => {
             const isOutbound = item.direction === "outbound"
             const isBounce = item.classification === "bounce"
-            const isOwnAccount = isOutbound && !!item.fromEmail && ownEmails.has(item.fromEmail.toLowerCase())
+            const isOwnAccount =
+              isOutbound &&
+              !!item.fromEmail &&
+              ownEmails.has(item.fromEmail.toLowerCase())
             const outboundTitle = isOwnAccount
               ? `You${item.fromEmail ? ` (${item.fromEmail})` : ""}`
               : "You (via Mentiohunt)"
@@ -396,17 +431,20 @@ function ConversationView({
                 ? "Reply"
                 : item.classification === "auto_reply"
                   ? "Auto reply"
-                : item.classification === "unsubscribe"
+                  : item.classification === "unsubscribe"
                     ? "Stop request"
                     : item.classification === "negative_reply"
                       ? "Declined"
-                    : item.classification === "wrong_person"
-                      ? "Wrong person"
-                      : item.classification === "challenge"
-                        ? "Challenge"
-                        : item.classification === "bounce"
-                          ? "Bounce"
-                          : "Needs review"
+                      : item.classification === "wrong_person"
+                        ? "Wrong person"
+                        : item.classification === "challenge"
+                          ? "Challenge"
+                          : item.classification === "bounce"
+                            ? "Bounce"
+                            : "Needs review"
+
+            const isExpanded = expandedItemId === item.id
+            const snippet = item.body.replace(/\s+/g, " ").trim()
 
             return (
               <div key={item.id} className="flex gap-3">
@@ -420,53 +458,122 @@ function ConversationView({
                         : "bg-muted text-foreground ring-border"
                   )}
                 >
-                  {isOutbound ? "Y" : (item.fromName?.[0] ?? prospect.contact_name?.[0] ?? "P")}
+                  {isOutbound
+                    ? "Y"
+                    : (item.fromName?.[0] ?? prospect.contact_name?.[0] ?? "P")}
                 </div>
-                <div
-                  className={cn(
-                    "flex-1 min-w-0 rounded-xl border border-l-2 border-border bg-card px-4 py-3 transition-all",
-                    isOutbound ? "border-l-primary" : isBounce ? "border-l-destructive" : "border-l-muted-foreground/30"
-                  )}
-                >
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className={cn("text-[11px] font-semibold", isOutbound ? "text-primary" : "text-foreground")}>
-                        {isOutbound ? outboundTitle : item.fromName || item.fromEmail || prospect.contact_name || "Prospect"}
-                      </span>
+                {isExpanded ? (
+                  <div
+                    className={cn(
+                      "min-w-0 flex-1 rounded-xl border border-l-2 border-border bg-card px-4 py-3 transition-all",
+                      isOutbound
+                        ? "border-l-primary"
+                        : isBounce
+                          ? "border-l-destructive"
+                          : "border-l-muted-foreground/30"
+                    )}
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span
+                          className={cn(
+                            "truncate text-[11px] font-semibold",
+                            isOutbound ? "text-primary" : "text-foreground"
+                          )}
+                        >
+                          {isOutbound
+                            ? outboundTitle
+                            : item.fromName ||
+                              item.fromEmail ||
+                              prospect.contact_name ||
+                              "Prospect"}
+                        </span>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase",
+                            isOutbound
+                              ? "bg-emerald-500/10 text-emerald-600"
+                              : isBounce
+                                ? "bg-destructive/10 text-destructive"
+                                : "bg-muted text-muted-foreground"
+                          )}
+                        >
+                          {isBounce ? (
+                            <IconMailOff className="size-2.5" />
+                          ) : isOutbound ? (
+                            <IconMailCheck className="size-2.5" />
+                          ) : (
+                            <IconMessage2 className="size-2.5" />
+                          )}
+                          {label}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/40">
+                          {formatRelative(new Date(item.date))}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                      {item.body ||
+                        item.classificationReason ||
+                        "No message body captured."}
+                    </p>
+                    {item.classificationReason && !isOutbound && (
+                      <p className="mt-2 text-[10px] text-muted-foreground/60">
+                        Classified as {label.toLowerCase()}:{" "}
+                        {item.classificationReason}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setExpandedItemId(item.id)}
+                    className={cn(
+                      "flex min-w-0 flex-1 items-center justify-between gap-4 rounded-xl border border-l-2 border-border bg-card px-4 py-3 text-left transition-colors hover:bg-muted/30",
+                      isOutbound
+                        ? "border-l-primary"
+                        : isBounce
+                          ? "border-l-destructive"
+                          : "border-l-muted-foreground/30"
+                    )}
+                  >
+                    <div className="min-w-0 flex-1">
                       <span
                         className={cn(
-                          "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider",
-                          isOutbound
-                            ? "bg-emerald-500/10 text-emerald-600"
-                            : isBounce
-                              ? "bg-destructive/10 text-destructive"
-                              : "bg-muted text-muted-foreground"
+                          "block truncate text-[11px] font-semibold",
+                          isOutbound ? "text-primary" : "text-foreground"
                         )}
                       >
-                        {isBounce ? <IconMailOff className="size-2.5" /> : isOutbound ? <IconMailCheck className="size-2.5" /> : <IconMessage2 className="size-2.5" />}
-                        {label}
+                        {isOutbound
+                          ? outboundTitle
+                          : item.fromName ||
+                            item.fromEmail ||
+                            prospect.contact_name ||
+                            "Prospect"}
                       </span>
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                        {snippet ||
+                          item.classificationReason ||
+                          "No message body captured."}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
                       <span className="text-[10px] text-muted-foreground/40">
                         {formatRelative(new Date(item.date))}
                       </span>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Expand
+                      </span>
+                      <IconChevronRight className="size-3.5 text-muted-foreground/60" />
                     </div>
-                  </div>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                    {item.body || item.classificationReason || "No message body captured."}
-                  </p>
-                  {item.classificationReason && !isOutbound && (
-                    <p className="mt-2 text-[10px] text-muted-foreground/60">
-                      Classified as {label.toLowerCase()}: {item.classificationReason}
-                    </p>
-                  )}
-                </div>
+                  </button>
+                )}
               </div>
             )
           })
         )}
-        <div ref={bottomRef} />
       </div>
 
       {isPublicMailbox ? (
@@ -502,8 +609,12 @@ export function ProspectClientPage({
 }) {
   const router = useRouter()
   const upsertProspectDetail = useProspectStore((s) => s.upsertProspectDetail)
-  const storedProspect = useProspectStore((s) => s.prospectDetailsById[prospect.id])
-  const updateProspectStatuses = useProspectStore((s) => s.updateProspectStatuses)
+  const storedProspect = useProspectStore(
+    (s) => s.prospectDetailsById[prospect.id]
+  )
+  const updateProspectStatuses = useProspectStore(
+    (s) => s.updateProspectStatuses
+  )
   const completeActivationStep = useActivationStore((s) => s.complete)
   const activationHydrated = useActivationStore((s) => s.hasHydrated)
   const pages = usePagesStore((s) => s.pages)
@@ -518,12 +629,16 @@ export function ProspectClientPage({
     current.target_url && current.target_url !== sourcePage?.url
   )
 
-  const [statusLoading, setStatusLoading] = useState<"contacted" | "won" | "dismissed" | "pausing" | null>(null)
+  const [statusLoading, setStatusLoading] = useState<
+    "contacted" | "won" | "dismissed" | "pausing" | null
+  >(null)
   const [pauseModalOpen, setPauseModalOpen] = useState(false)
   const [activeEmailIdx, setActiveEmailIdx] = useState(() => {
     const now = Date.now()
     const pending = sequences.findIndex((seq) => {
-      const date = new Date(seq.sent_at ?? seq.scheduled_at ?? prospect.created_at)
+      const date = new Date(
+        seq.sent_at ?? seq.scheduled_at ?? prospect.created_at
+      )
       return seq.status !== "sent" && date.getTime() >= now
     })
     return pending === -1 ? 0 : pending
@@ -532,7 +647,10 @@ export function ProspectClientPage({
 
   useEffect(() => {
     upsertProspectDetail(prospect)
-    captureEvent("opportunity_viewed", { prospect_id: prospect.id, tier: prospect.tier })
+    captureEvent("opportunity_viewed", {
+      prospect_id: prospect.id,
+      tier: prospect.tier,
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prospect.id])
 
@@ -545,7 +663,10 @@ export function ProspectClientPage({
 
   const socialLinks = parseSocialLinks(current.contact_social_links)
   const bio = parseRawMetadataBio(current.raw_metadata)
-  const fitReason = current.tier === "user_submitted" ? parseUserSubmittedFitReason(current.raw_metadata) : null
+  const fitReason =
+    current.tier === "user_submitted"
+      ? parseUserSubmittedFitReason(current.raw_metadata)
+      : null
   const contactName = nullishString(current.contact_name)
   const contactEmail = nullishString(current.contact_email)
   const tierCfg = PROSPECT_TIER_CONFIG[current.tier]
@@ -556,8 +677,12 @@ export function ProspectClientPage({
   const favicon = getFaviconUrl(current.domain)
   const dr = current.domain_rating
   const fitScore = current.site_relevance_score
+  const hasInboundMessage = messages.some(
+    (message) => message.direction !== "outbound"
+  )
   const isEnrichingContact =
-    current.enrichment_status === "pending" || current.enrichment_status === "enriching"
+    current.enrichment_status === "pending" ||
+    current.enrichment_status === "enriching"
 
   function stepLabel(step: number): string {
     if (step === 1) return "Initial outreach"
@@ -591,10 +716,16 @@ export function ProspectClientPage({
 
   const subjectSourceEmail =
     sameThread && activeEmailIdx > 0 ? emailSequence[0] : activeEmailUnsafe
-  const [subjectDraft, setSubjectDraft] = useState(subjectSourceEmail?.subject ?? "")
+  const [subjectDraft, setSubjectDraft] = useState(
+    subjectSourceEmail?.subject ?? ""
+  )
   const [bodyDraft, setBodyDraft] = useState(activeEmailUnsafe?.body ?? "")
-  const [subjectSaveState, setSubjectSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle")
-  const [bodySaveState, setBodySaveState] = useState<"idle" | "saving" | "saved" | "error">("idle")
+  const [subjectSaveState, setSubjectSaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle")
+  const [bodySaveState, setBodySaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle")
 
   useEffect(() => {
     setSubjectDraft(subjectSourceEmail?.subject ?? "")
@@ -614,11 +745,14 @@ export function ProspectClientPage({
     if (value === originalValue) return
     setSaveState("saving")
     try {
-      const res = await fetch(`/api/link-building/prospect-sequences/${sequenceId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [field]: value }),
-      })
+      const res = await fetch(
+        `/api/link-building/prospect-sequences/${sequenceId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ [field]: value }),
+        }
+      )
       if (res.ok) {
         setSaveState("saved")
         router.refresh()
@@ -631,18 +765,26 @@ export function ProspectClientPage({
   }
 
   function saveIndicator(state: "idle" | "saving" | "saved" | "error") {
-    if (state === "saving") return <span className="text-[10px] text-muted-foreground">Saving…</span>
-    if (state === "saved") return <span className="text-[10px] text-emerald-600">Saved</span>
-    if (state === "error") return <span className="text-[10px] text-destructive">Failed to save</span>
+    if (state === "saving")
+      return <span className="text-[10px] text-muted-foreground">Saving…</span>
+    if (state === "saved")
+      return <span className="text-[10px] text-emerald-600">Saved</span>
+    if (state === "error")
+      return (
+        <span className="text-[10px] text-destructive">Failed to save</span>
+      )
     return null
   }
 
   async function handlePause() {
     setStatusLoading("pausing")
     try {
-      const res = await fetch(`/api/link-building/opportunities/${current.id}/pause`, {
-        method: "POST",
-      })
+      const res = await fetch(
+        `/api/link-building/opportunities/${current.id}/pause`,
+        {
+          method: "POST",
+        }
+      )
       if (res.ok) {
         updateProspectStatuses([current.id], "dismissed")
         setPauseModalOpen(false)
@@ -656,11 +798,14 @@ export function ProspectClientPage({
   async function handleStatusUpdate(status: "contacted" | "won" | "dismissed") {
     setStatusLoading(status)
     try {
-      const res = await fetch(`/api/link-building/opportunities/${current.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      })
+      const res = await fetch(
+        `/api/link-building/opportunities/${current.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        }
+      )
       if (res.ok) {
         updateProspectStatuses([current.id], status)
         router.push("/dashboard/prospects")
@@ -675,267 +820,104 @@ export function ProspectClientPage({
       className="-mx-4 -mt-4 -mb-4 flex flex-col sm:-mx-6 sm:-mt-6 sm:-mb-6"
       style={{ height: "calc(100svh - 3.5rem)" }}
     >
-      {/* Pipeline status header */}
-      <div className="flex shrink-0 items-center gap-4 border-b bg-background px-4 py-3 sm:px-8">
-        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
-          Status
-        </span>
-        <DetailStatusPipeline status={displayStatus} />
-      </div>
-
-      {/* Two-panel layout */}
-      <div className="flex flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
-        {/* ─── Left sidebar ─── */}
-        <aside className="w-full shrink-0 border-b bg-background px-4 py-5 lg:w-[320px] lg:overflow-y-auto lg:border-r lg:border-b-0 lg:px-5 lg:py-6">
-          {/* Site identity */}
-          <div className="flex items-start gap-2.5 mb-4">
-            <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white border border-border">
+      {/* Prospect identity and actions */}
+      <div className="shrink-0 border-b bg-background px-4 py-5 sm:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white">
               {favicon ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={favicon} alt="" width={20} height={20} className="size-5" />
+                <img
+                  src={favicon}
+                  alt=""
+                  width={20}
+                  height={20}
+                  className="size-5"
+                />
               ) : (
                 <div className="size-5 rounded-sm bg-muted" />
               )}
             </div>
             <div className="min-w-0">
-              <h2 className="font-heading text-base font-bold tracking-tight leading-tight break-all">
+              <h1 className="font-heading text-2xl leading-tight font-bold tracking-tight break-all">
                 {current.domain}
-              </h2>
-              {current.found_url && (
-                <a
-                  href={current.found_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary mt-0.5 transition-colors"
-                >
-                  Found article <IconExternalLink className="size-3" />
-                </a>
-              )}
+              </h1>
             </div>
+            {statusCfg && StatusIcon && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
+                  statusCfg.color
+                )}
+              >
+                <StatusIcon className="size-3.5" />
+                {statusCfg.label}
+              </span>
+            )}
           </div>
-
-          {/* Score tiles */}
-          <div className="grid grid-cols-2 gap-2 mb-5">
-            <ScoreTile
-              label="Domain Rating"
-              hint="Backlink authority of this site"
-              value={dr ?? null}
-              barColor={dr != null ? drBarColor(dr) : "bg-muted"}
-            />
-            <ScoreTile
-              label="Site Fit"
-              hint="Topical match with your product"
-              value={fitScore ?? null}
-              barColor={fitScore != null ? fitBarColor(fitScore) : "bg-muted"}
-            />
-          </div>
-
-          {/* Contact section */}
-          <section className="mb-4">
-            <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground mb-1.5">
-              Contact
-            </p>
-            {isEnrichingContact ? (
-              <div className="flex items-start gap-2.5">
-                <Skeleton className="size-9 shrink-0 rounded-xl" />
-                <div className="min-w-0 flex-1 space-y-1.5 pt-0.5">
-                  <Skeleton className="h-3.5 w-24 rounded" />
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/60">
-                    <IconLoader2 className="size-3 shrink-0 animate-spin" />
-                    {current.enrichment_status === "enriching" ? "Finding contact…" : "Queued…"}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-start gap-2.5">
-                {contactName ? (
-                  <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white border border-border">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={avatarUrl} alt="" width={36} height={36} className="size-9" />
-                  </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {displayStatus !== "won" && displayStatus !== "dismissed" && (
+              <button
+                type="button"
+                disabled={statusLoading !== null}
+                onClick={() => handleStatusUpdate("won")}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-600 transition-colors hover:bg-emerald-500/5 disabled:opacity-40"
+              >
+                {statusLoading === "won" ? (
+                  <IconLoader2 className="size-4 animate-spin" />
                 ) : (
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted border border-border">
-                    <IconQuestionMark className="size-4 text-muted-foreground" />
-                  </div>
+                  <IconTrophy className="size-4" />
                 )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground">
-                    {contactName ?? "Unknown contact"}
-                  </p>
-                  {contactEmail ? (
-                    <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-emerald-600">
-                      <IconMailCheck className="size-3 shrink-0" />
-                      <span className="truncate">{contactEmail}</span>
-                    </span>
-                  ) : (
-                    <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground/60">
-                      <IconMailOff className="size-3 shrink-0" />
-                      No email found
-                    </span>
-                  )}
-                </div>
-              </div>
+                Mark as won
+              </button>
             )}
-            {Object.keys(socialLinks).length > 0 && (
-              <div className="flex items-center gap-2 mt-2">
-                {socialLinks.twitter && (
-                  <a
-                    href={socialLinks.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="More prospect actions"
+                  className="inline-flex size-11 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <IconDots className="size-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                {displayStatus !== "dismissed" && (
+                  <DropdownMenuItem
+                    disabled={statusLoading !== null}
+                    onSelect={() => handleStatusUpdate("dismissed")}
                   >
-                    <IconBrandTwitter className="size-3.5" />
-                  </a>
+                    <IconCircleX className="size-4" />
+                    Mark as dismissed
+                  </DropdownMenuItem>
                 )}
-                {socialLinks.linkedin && (
-                  <a
-                    href={socialLinks.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <IconBrandLinkedin className="size-3.5" />
-                  </a>
-                )}
-                {socialLinks.youtube && (
-                  <a
-                    href={socialLinks.youtube}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <IconBrandYoutube className="size-3.5" />
-                  </a>
-                )}
-                {socialLinks.facebook && (
-                  <a
-                    href={socialLinks.facebook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <IconBrandFacebook className="size-3.5" />
-                  </a>
-                )}
-                {socialLinks.instagram && (
-                  <a
-                    href={socialLinks.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <IconBrandInstagram className="size-3.5" />
-                  </a>
-                )}
-              </div>
-            )}
-          </section>
-
-          {/* Bio / about */}
-          {bio && (
-            <section className="mb-4">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <IconSparkles className="size-3 text-muted-foreground" />
-                <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
-                  About
-                </p>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">{bio}</p>
-            </section>
-          )}
-
-          {/* Links section */}
-          {(current.found_url || showTargetUrl || sourcePage) && (
-            <section className="mb-4 space-y-2.5">
-              <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
-                Links
-              </p>
-              {sourcePage && (
-                <div>
-                  <div className="mb-0.5 flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wide">
-                    <IconFileText className="size-3" />
-                    <span>Found using your page</span>
-                  </div>
-                  <a
-                    href={sourcePage.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary hover:underline break-all leading-relaxed"
-                  >
-                    {sourcePage.title || getUrlDisplay(sourcePage.url)}
-                  </a>
-                </div>
-              )}
-              {showTargetUrl && current.target_url && (
-                <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
-                    {current.tier === "competitor_backlink"
-                      ? "Links to competitor"
-                      : current.tier === "resource_page_inclusion"
-                        ? "Suggested target page"
-                        : current.tier === "user_submitted"
-                          ? "Page we're pitching"
-                          : "Target"}
-                  </p>
-                  <a
-                    href={current.target_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary hover:underline break-all leading-relaxed"
-                  >
-                    {getHostname(current.target_url)}
-                  </a>
-                  {fitReason && (
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      {fitReason}
-                    </p>
+                {displayStatus !== "dismissed" &&
+                  displayStatus !== "won" &&
+                  emailSequence.length > 0 && (
+                    <DropdownMenuItem
+                      disabled={statusLoading !== null}
+                      onSelect={() => setPauseModalOpen(true)}
+                    >
+                      <IconPlayerPause className="size-4" />
+                      Pause sequence
+                    </DropdownMenuItem>
                   )}
-                </div>
-              )}
-              {current.found_url && (
-                <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
-                    Found on
-                  </p>
-                  <a
-                    href={current.found_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:text-primary break-all leading-relaxed transition-colors"
-                  >
-                    {getUrlDisplay(current.found_url)}
-                  </a>
-                </div>
-              )}
-            </section>
-          )}
-
-          {/* Discovered date */}
-          <div className="flex items-center gap-1.5 mb-3">
-            <IconCalendar className="size-3 shrink-0 text-muted-foreground" />
-            <p className="text-[11px] text-muted-foreground">
-              Discovered {formatDate(current.discovered_at)}
-            </p>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+        </div>
+        <div className="mt-5 flex items-center gap-4 overflow-x-auto">
+          <span className="shrink-0 text-xs font-semibold text-muted-foreground">
+            Status
+          </span>
+          <DetailStatusPipeline status={displayStatus} />
+        </div>
+      </div>
 
-          {/* Tier badge */}
-          {tierCfg && TierIcon && (
-            <span
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium",
-                tierCfg.color
-              )}
-            >
-              <TierIcon className="size-3" />
-              {tierCfg.label}
-            </span>
-          )}
-        </aside>
-
-        {/* ─── Main panel ─── */}
-        <div className="flex-1 px-4 py-5 sm:px-8 sm:py-6 lg:overflow-y-auto">
-
+      {/* Two-panel layout */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:overflow-hidden">
+        {/* ─── Conversation panel ─── */}
+        <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 lg:order-1 lg:overflow-y-auto">
           {isNegotiating ? (
             /* ── Conversation view ── */
             <ConversationView
@@ -944,14 +926,12 @@ export function ProspectClientPage({
               messages={messages}
               isPublicMailbox={isPublicMailbox}
               ownEmailAccounts={ownEmailAccounts}
-              statusLoading={statusLoading}
-              onMarkWon={() => handleStatusUpdate("won")}
-              onDismiss={() => handleStatusUpdate("dismissed")}
             />
           ) : displayStatus === "won" ? (
             /* ── Won badge ── */
             <WonBadge domain={current.domain} domainRating={dr} />
-          ) : current.status === "email_not_found" && emailSequence.length === 0 ? (
+          ) : current.status === "email_not_found" &&
+            emailSequence.length === 0 ? (
             /* ── Manual completion form ── */
             <ManualCompletionForm
               prospectId={current.id}
@@ -968,16 +948,22 @@ export function ProspectClientPage({
             /* ── Bounced notice ── */
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <IconMailX className="size-8 text-red-500/60" />
-              <p className="mt-3 text-sm font-medium text-foreground">Email bounced</p>
+              <p className="mt-3 text-sm font-medium text-foreground">
+                Email bounced
+              </p>
               <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-                The message couldn&apos;t be delivered because the address was undeliverable. Outreach for this prospect has stopped.
+                The message couldn&apos;t be delivered because the address was
+                undeliverable. Outreach for this prospect has stopped.
               </p>
             </div>
           ) : emailSequence.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-sm font-medium text-foreground">No outreach sequence yet</p>
+              <p className="text-sm font-medium text-foreground">
+                No outreach sequence yet
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Connect an email account to activate automated outreach for this prospect.
+                Connect an email account to activate automated outreach for this
+                prospect.
               </p>
             </div>
           ) : (
@@ -997,38 +983,49 @@ export function ProspectClientPage({
                 onSelect={setActiveEmailIdx}
               />
 
-              {isFreeUser && isPublicMailbox && emailSequence.some((e) => e.status === "scheduled") && (
-                <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-(--color-blaze-orange)/25 bg-(--color-blaze-orange)/5 px-3.5 py-2.5">
-                  <IconClockPause className="size-4 shrink-0 text-(--color-blaze-orange)" />
-                  <p className="text-[11px] leading-relaxed text-muted-foreground">
-                    Free plan mailboxes send fewer emails per day than paid plans, so this can be
-                    delayed.{" "}
-                    <a
-                      href="/dashboard/settings?tab=billing"
-                      className="font-medium text-foreground underline underline-offset-2 hover:opacity-70 transition-opacity"
-                    >
-                      Upgrade
-                    </a>{" "}
-                    for faster, more reliable sends.
-                  </p>
-                </div>
-              )}
+              {isFreeUser &&
+                isPublicMailbox &&
+                emailSequence.some((e) => e.status === "scheduled") && (
+                  <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-(--color-blaze-orange)/25 bg-(--color-blaze-orange)/5 px-3.5 py-2.5">
+                    <IconClockPause className="size-4 shrink-0 text-(--color-blaze-orange)" />
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                      Free plan mailboxes send fewer emails per day than paid
+                      plans, so this can be delayed.{" "}
+                      <a
+                        href="/dashboard/settings?tab=billing"
+                        className="font-medium text-foreground underline underline-offset-2 transition-opacity hover:opacity-70"
+                      >
+                        Upgrade
+                      </a>{" "}
+                      for faster, more reliable sends.
+                    </p>
+                  </div>
+                )}
 
               {/* Email draft label */}
-              <p className="mb-3 text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+              <p className="mb-3 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                 {activeEmail.label}
               </p>
 
               {/* Subject row */}
               <div className="mb-1 flex items-center justify-between">
-                <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+                <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                   Subject
                 </p>
                 <div className="flex items-center gap-2">
                   {saveIndicator(subjectSaveState)}
                   {activeEmailIdx > 0 && (
-                    <label className={cn("flex items-center gap-2", isFreeUser ? "cursor-not-allowed opacity-40" : "cursor-pointer")}>
-                      <span className="text-[10px] text-muted-foreground">Reply on same thread</span>
+                    <label
+                      className={cn(
+                        "flex items-center gap-2",
+                        isFreeUser
+                          ? "cursor-not-allowed opacity-40"
+                          : "cursor-pointer"
+                      )}
+                    >
+                      <span className="text-[10px] text-muted-foreground">
+                        Reply on same thread
+                      </span>
                       <Switch
                         checked={sameThread}
                         onCheckedChange={isFreeUser ? undefined : setSameThread}
@@ -1058,9 +1055,9 @@ export function ProspectClientPage({
                     }
                     placeholder="Email subject…"
                     className={cn(
-                      "w-full rounded-lg border border-border/50 bg-white shadow-sm px-4 py-2.5 text-sm font-semibold text-foreground transition",
+                      "w-full rounded-lg border border-border/50 bg-white px-4 py-2.5 text-sm font-semibold text-foreground shadow-sm transition",
                       activeEmail.status === "sent" || isFreeUser
-                        ? "cursor-default select-text text-muted-foreground"
+                        ? "cursor-default text-muted-foreground select-text"
                         : "focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none"
                     )}
                   />
@@ -1076,7 +1073,7 @@ export function ProspectClientPage({
 
               {/* Body */}
               <div className="mb-1 flex items-center justify-between">
-                <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+                <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                   Message
                 </p>
                 {!isFreeUser && saveIndicator(bodySaveState)}
@@ -1090,15 +1087,20 @@ export function ProspectClientPage({
                       defaultValue={activeEmail.body}
                       key={`body-${activeEmailIdx}`}
                       placeholder="Email body…"
-                      className="w-full rounded-none border-0 bg-white shadow-sm px-4 py-3 text-sm text-muted-foreground leading-relaxed resize-none font-sans cursor-default select-text"
+                      className="w-full cursor-default resize-none rounded-none border-0 bg-white px-4 py-3 font-sans text-sm leading-relaxed text-muted-foreground shadow-sm select-text"
                     />
                     <div className="border-t bg-muted/40 px-4 py-3">
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        Sent in our behalf, via our shared email accounts — editing is disabled on the free trial.{" "}
-                        <a href="/pricing" className="font-medium text-foreground underline underline-offset-2 hover:opacity-70 transition-opacity">
+                      <p className="text-[11px] leading-relaxed text-muted-foreground">
+                        Sent in our behalf, via our shared email accounts —
+                        editing is disabled on the free trial.{" "}
+                        <a
+                          href="/pricing"
+                          className="font-medium text-foreground underline underline-offset-2 transition-opacity hover:opacity-70"
+                        >
                           Upgrade your plan
                         </a>{" "}
-                        to connect your own email and take full control of outreach.
+                        to connect your own email and take full control of
+                        outreach.
                       </p>
                     </div>
                   </div>
@@ -1119,36 +1121,26 @@ export function ProspectClientPage({
                     }
                     placeholder="Email body…"
                     className={cn(
-                      "w-full rounded-lg border border-border/50 bg-white shadow-sm px-4 py-3 text-sm text-foreground leading-relaxed resize-none transition font-sans",
+                      "w-full resize-none rounded-lg border border-border/50 bg-white px-4 py-3 font-sans text-sm leading-relaxed text-foreground shadow-sm transition",
                       activeEmail.status === "sent"
-                        ? "cursor-default select-text text-muted-foreground"
+                        ? "cursor-default text-muted-foreground select-text"
                         : "focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none"
                     )}
                   />
                 )}
               </div>
 
-              {outreachSettings?.signatureEnabled && outreachSettings.signatureText.trim() && (
-                <div className="mb-5 rounded-lg border border-dashed border-border/60 bg-muted/20 px-4 py-3">
-                  <p className="mb-2 text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
-                    Signature — added automatically when sent
-                  </p>
-                  <SignatureBlockPreview text={outreachSettings.signatureText} />
-                </div>
-              )}
-
-              {/* Status actions */}
-              {displayStatus !== "dismissed" && (
-                <button
-                  type="button"
-                  disabled={statusLoading !== null}
-                  onClick={() => setPauseModalOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-md border border-destructive/40 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors disabled:opacity-40"
-                >
-                  <IconPlayerPause className="size-4" />
-                  Pause sequence
-                </button>
-              )}
+              {outreachSettings?.signatureEnabled &&
+                outreachSettings.signatureText.trim() && (
+                  <div className="mb-5 rounded-lg border border-dashed border-border/60 bg-muted/20 px-4 py-3">
+                    <p className="mb-2 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                      Signature — added automatically when sent
+                    </p>
+                    <SignatureBlockPreview
+                      text={outreachSettings.signatureText}
+                    />
+                  </div>
+                )}
             </>
           )}
 
@@ -1161,14 +1153,19 @@ export function ProspectClientPage({
                 <div className="flex flex-col gap-1">
                   <DialogTitle>Pause sequence</DialogTitle>
                   <DialogDescription>
-                    The outreach sequence for <span className="font-medium text-foreground">{current.domain}</span> will be paused. No further emails will be sent until you resume it.
+                    The outreach sequence for{" "}
+                    <span className="font-medium text-foreground">
+                      {current.domain}
+                    </span>{" "}
+                    will be paused. No further emails will be sent until you
+                    resume it.
                   </DialogDescription>
                 </div>
                 <div className="flex justify-end gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => setPauseModalOpen(false)}
-                    className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     Cancel
                   </button>
@@ -1176,7 +1173,7 @@ export function ProspectClientPage({
                     type="button"
                     disabled={statusLoading === "pausing"}
                     onClick={handlePause}
-                    className="inline-flex items-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-semibold text-white hover:bg-destructive/90 transition-colors disabled:opacity-40"
+                    className="inline-flex items-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-destructive/90 disabled:opacity-40"
                   >
                     <IconPlayerPause className="size-4" />
                     {statusLoading === "pausing" ? "Pausing…" : "Pause"}
@@ -1185,7 +1182,270 @@ export function ProspectClientPage({
               </div>
             </DialogContent>
           </Dialog>
-        </div>
+        </main>
+
+        {/* ─── Opportunity details panel ─── */}
+        <aside className="w-full max-w-full min-w-0 overflow-hidden border-t bg-background px-4 py-6 sm:px-8 lg:order-2 lg:border-t-0 lg:border-l lg:px-6">
+          <h2 className="text-base font-semibold text-foreground">
+            Opportunity details
+          </h2>
+
+          <div className="mt-5 flex items-center gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white">
+              {favicon ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={favicon}
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="size-7"
+                />
+              ) : (
+                <div className="size-7 rounded-md bg-muted" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {current.domain}
+              </p>
+              {tierCfg && TierIcon && (
+                <span
+                  className={cn(
+                    "mt-1 inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-medium",
+                    tierCfg.color
+                  )}
+                >
+                  <TierIcon className="size-3" />
+                  {tierCfg.label}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <ScoreTile
+              label="Domain rating"
+              hint="Backlink authority"
+              value={dr ?? null}
+              barColor={dr != null ? drBarColor(dr) : "bg-muted"}
+            />
+            <ScoreTile
+              label="Site fit"
+              hint="Topical match"
+              value={fitScore ?? null}
+              barColor={fitScore != null ? fitBarColor(fitScore) : "bg-muted"}
+            />
+          </div>
+
+          {(sourcePage || showTargetUrl || current.found_url) && (
+            <section className="mt-5 rounded-xl border border-border bg-card px-4 py-4 shadow-sm">
+              {sourcePage && (
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Source article
+                  </p>
+                  <p className="mt-1 text-sm leading-snug font-semibold text-foreground">
+                    {sourcePage.title || getUrlDisplay(sourcePage.url)}
+                  </p>
+                  <a
+                    href={sourcePage.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-(--color-blaze-orange) hover:underline"
+                  >
+                    View article <IconExternalLink className="size-3" />
+                  </a>
+                </div>
+              )}
+              {showTargetUrl && current.target_url && (
+                <div
+                  className={cn(
+                    sourcePage && "mt-4 border-t border-border pt-4"
+                  )}
+                >
+                  <p className="text-sm text-muted-foreground">
+                    {current.tier === "competitor_backlink"
+                      ? "Links to competitor"
+                      : current.tier === "resource_page_inclusion"
+                        ? "Suggested target page"
+                        : current.tier === "user_submitted"
+                          ? "Page we're pitching"
+                          : "Target"}
+                  </p>
+                  <a
+                    href={current.target_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-(--color-blaze-orange) hover:underline"
+                  >
+                    {getHostname(current.target_url)}{" "}
+                    <IconExternalLink className="size-3" />
+                  </a>
+                  {fitReason && (
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {fitReason}
+                    </p>
+                  )}
+                </div>
+              )}
+              {current.found_url && (
+                <div
+                  className={cn(
+                    (sourcePage || showTargetUrl) &&
+                      "mt-4 border-t border-border pt-4"
+                  )}
+                >
+                  <p className="text-sm text-muted-foreground">Found on</p>
+                  <a
+                    href={current.found_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex items-center gap-1 text-xs break-all text-muted-foreground hover:text-primary"
+                  >
+                    {getUrlDisplay(current.found_url)}{" "}
+                    <IconExternalLink className="size-3 shrink-0" />
+                  </a>
+                </div>
+              )}
+            </section>
+          )}
+
+          <section className="mt-5 border-b border-border pb-5">
+            <p className="text-sm font-medium text-muted-foreground">
+              Contact found
+            </p>
+            <div className="mt-3 flex items-start gap-3">
+              {isEnrichingContact ? (
+                <>
+                  <Skeleton className="size-10 shrink-0 rounded-xl" />
+                  <div className="min-w-0 flex-1 space-y-1.5 pt-0.5">
+                    <Skeleton className="h-3.5 w-24 rounded" />
+                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/60">
+                      <IconLoader2 className="size-3 animate-spin" />
+                      {current.enrichment_status === "enriching"
+                        ? "Finding contact…"
+                        : "Queued…"}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {contactName ? (
+                    <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={avatarUrl}
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="size-10"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted">
+                      <IconQuestionMark className="size-4 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {contactName ?? "Unknown contact"}
+                    </p>
+                    {contactEmail ? (
+                      <span className="mt-1 inline-flex max-w-full items-center gap-1 text-xs text-emerald-600">
+                        <IconMailCheck className="size-3 shrink-0" />
+                        <span className="truncate">{contactEmail}</span>
+                      </span>
+                    ) : (
+                      <span className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground/60">
+                        <IconMailOff className="size-3" />
+                        No email found
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+            {Object.keys(socialLinks).length > 0 && (
+              <div className="mt-3 flex items-center gap-3">
+                {socialLinks.twitter && (
+                  <a
+                    href={socialLinks.twitter}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <IconBrandTwitter className="size-4" />
+                  </a>
+                )}
+                {socialLinks.linkedin && (
+                  <a
+                    href={socialLinks.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <IconBrandLinkedin className="size-4" />
+                  </a>
+                )}
+                {socialLinks.youtube && (
+                  <a
+                    href={socialLinks.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <IconBrandYoutube className="size-4" />
+                  </a>
+                )}
+                {socialLinks.facebook && (
+                  <a
+                    href={socialLinks.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <IconBrandFacebook className="size-4" />
+                  </a>
+                )}
+                {socialLinks.instagram && (
+                  <a
+                    href={socialLinks.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <IconBrandInstagram className="size-4" />
+                  </a>
+                )}
+              </div>
+            )}
+            {hasInboundMessage && (
+              <p className="mt-3 text-xs text-muted-foreground/70 italic">
+                Reply received from {contactName ?? "this contact"}
+              </p>
+            )}
+          </section>
+
+          {bio && (
+            <section className="border-b border-border py-5">
+              <div className="flex items-center gap-1.5">
+                <IconSparkles className="size-3.5 text-muted-foreground" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  About
+                </p>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                {bio}
+              </p>
+            </section>
+          )}
+
+          <div className="mt-5 flex items-center gap-2 border-t border-border pt-5 text-xs text-muted-foreground">
+            <IconCalendar className="size-4 shrink-0" />
+            <span>Discovered {formatDate(current.discovered_at)}</span>
+          </div>
+        </aside>
       </div>
     </div>
   )

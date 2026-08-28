@@ -1,5 +1,4 @@
 import { IconTrendingUp } from "@tabler/icons-react"
-import Link from "next/link"
 
 import { STATUS_CONFIG, type ProspectStatus } from "@/app/dashboard/prospects/_data"
 import { cn } from "@workspace/ui/lib/utils"
@@ -17,22 +16,11 @@ const FUNNEL_ORDER: ProspectStatus[] = [
 function getContext(status: ProspectStatus, metrics: OverviewMetrics) {
   switch (status) {
     case "new": {
-      const undeliverableCount = metrics.bouncedCount + metrics.emailNotFoundCount
       return metrics.discoveredThisWeekCount > 0 ? (
-        <div className="flex flex-col gap-0.5">
-          <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
-            <IconTrendingUp className="size-3.5" stroke={2.5} />
-            {metrics.discoveredThisWeekCount} this week
-          </span>
-          {undeliverableCount > 0 && (
-            <Link
-              href="/dashboard/prospects?stage=all"
-              className="text-xs font-medium text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground"
-            >
-              {undeliverableCount} couldn&apos;t be reached
-            </Link>
-          )}
-        </div>
+        <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
+          <IconTrendingUp className="size-3.5" stroke={2.5} />
+          {metrics.discoveredThisWeekCount} this week
+        </span>
       ) : (
         <span className="text-xs font-medium text-muted-foreground">
           no new this week

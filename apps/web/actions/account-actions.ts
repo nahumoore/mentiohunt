@@ -4,6 +4,8 @@ import { supabaseServer } from "@/lib/supabase/server"
 import {
   pauseAllOutreachForUser,
   resumeAllOutreachForUser,
+  holdAllOutreachForApprovalForUser,
+  resumeAllOutreachFromApprovalForUser,
 } from "@/lib/outreach/account-sequences"
 
 /** Pauses everything: cancels every pending outreach send across the
@@ -87,6 +89,61 @@ export async function deactivateAccount() {
   if (error) return { error: error.message }
 
   return { deactivated_at: deactivatedAt }
+}
+
+/** Switches the account into manual-approval mode: discovery and drafting
+ * keep running exactly as before, but nothing sends until the user approves
+ * it themselves. Distinct from stopAllOutreach — that halts everything,
+ * this only removes the auto-send step. */
+export async function enableManualApproval() {
+  const supabase = await supabaseServer()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return { error: "Not authenticated" }
+
+  try {
+    const heldCount = await holdAllOutreachForApprovalForUser(user.id)
+
+    const manualApprovalAt = new Date().toISOString()
+    const { error } = await supabase
+      .from("profiles")
+      .update({ manual_approval_at: manualApprovalAt })
+      .eq("id", user.id)
+
+    if (error) return { error: error.message }
+
+    return { heldCount, manual_approval_at: manualApprovalAt }
+  } catch {
+    return { error: "Failed to switch to manual approval." }
+  }
+}
+
+/** Reverses enableManualApproval: clears manual_approval_at so the sender
+ * auto-sends again, then reschedules any drafts still awaiting approval
+ * with a staggered schedule (not all at once). */
+export async function disableManualApproval() {
+  const supabase = await supabaseServer()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return { error: "Not authenticated" }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ manual_approval_at: null })
+    .eq("id", user.id)
+
+  if (error) return { error: error.message }
+
+  try {
+    const resumedCount = await resumeAllOutreachFromApprovalForUser(user.id)
+    return { manual_approval_at: null, resumedCount }
+  } catch {
+    return { error: "Switched to auto-send, but resuming the held drafts failed. Contact support." }
+  }
 }
 
 /**

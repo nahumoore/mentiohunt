@@ -107,9 +107,14 @@ export async function scoreBacklinkRelevance(
   const batches = chunk(items, BATCH_SIZE)
   const limit = pLimit(5)
 
-  const batchResults = await Promise.all(
+  const settlements = await Promise.allSettled(
     batches.map((batch) => limit(() => scoreBatch(batch, product)))
   )
+  const batchResults = settlements.map((s) => {
+    if (s.status === "fulfilled") return s.value
+    log.warn("batch failed after full model-chain outage, skipping batch", { error: String(s.reason) })
+    return { results: [], cost: 0 }
+  })
 
   const results = batchResults.flatMap((r) => r.results)
   const totalCost = batchResults.reduce((sum, r) => sum + r.cost, 0)
@@ -160,13 +165,18 @@ async function scoreBatch(
         responseFormat: RESPONSE_FORMAT,
       })
 
-      const parsed = parseLlmJson<{ results: { id: string; score: number; reason: string; pageType: string }[] }>(text)
+      type ScoreEntry = { id: string; score: number; reason: string; pageType: string }
+      const parsed = parseLlmJson<{ results: ScoreEntry[] } | ScoreEntry[]>(text)
+      // Some models return a bare array instead of the requested {results:[...]}
+      // wrapper despite strict:true — accept both shapes rather than dropping
+      // the whole batch on a technicality.
+      const results = Array.isArray(parsed) ? parsed : parsed?.results
 
-      if (!Array.isArray(parsed?.results)) {
+      if (!Array.isArray(results)) {
         throw new Error(`unexpected response shape: ${Object.keys(parsed ?? {}).join(",")}`)
       }
 
-      const scoreById = new Map(parsed.results.map((r) => [r.id, r]))
+      const scoreById = new Map(results.map((r) => [r.id, r]))
 
       const scored: ScoredBacklinkItem[] = items
         .map((item) => {
@@ -184,7 +194,7 @@ async function scoreBatch(
       if (scored.length < items.length) {
         log.warn("id mismatch: some items unscored", {
           sentIds: items.map((i) => i.urlFrom),
-          returnedIds: parsed.results.map((r) => r.id),
+          returnedIds: results.map((r) => r.id),
           missingIds: items.filter((i) => !scoreById.has(i.urlFrom)).map((i) => i.urlFrom),
           rawResponse: text,
         })

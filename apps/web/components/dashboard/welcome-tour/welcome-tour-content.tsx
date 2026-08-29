@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 
 import { captureEvent } from "@/lib/analytics"
 import { Button } from "@workspace/ui/components/button"
+import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DialogClose, DialogDescription, DialogTitle } from "@workspace/ui/components/dialog"
 
 import { TOUR_STEPS } from "./steps"
@@ -23,18 +24,41 @@ import { TOUR_STEPS } from "./steps"
 export function WelcomeTourContent({
   onDone,
   onStepChange,
+  onConsent,
 }: {
   onDone?: () => void
   /** Fired whenever the current step changes, so a host can gate closing until the last step. */
   onStepChange?: (isLast: boolean) => void
+  /** Fired once the consent step is resolved, either way. */
+  onConsent?: (mode: "auto" | "manual") => void
 } = {}) {
   const [index, setIndex] = useState(0)
   const [direction, setDirection] = useState<1 | -1>(1)
+  const [agreedToAutoSend, setAgreedToAutoSend] = useState(false)
+  const [declinedAutoSend, setDeclinedAutoSend] = useState(false)
   const prefersReducedMotion = useReducedMotion()
 
   const step = TOUR_STEPS[index]!
   const isFirst = index === 0
   const isLast = index === TOUR_STEPS.length - 1
+  const consentResolved = agreedToAutoSend || declinedAutoSend
+  const isBlockedByConsent = !!step.consent && !consentResolved
+
+  function chooseAutoSend() {
+    // Only notify the host when this actually reverts an earlier decline —
+    // the account is already in auto-send by default, so a straight-to-agree
+    // click needs no DB write.
+    if (declinedAutoSend) onConsent?.("auto")
+    setAgreedToAutoSend(true)
+    setDeclinedAutoSend(false)
+    captureEvent("walkthrough_autosend_consent", { choice: "auto" })
+  }
+
+  function declineAutoSend() {
+    setDeclinedAutoSend(true)
+    onConsent?.("manual")
+    captureEvent("walkthrough_autosend_consent", { choice: "manual" })
+  }
 
   useEffect(() => {
     captureEvent("walkthrough_step_viewed", { step: step.id, index })
@@ -44,6 +68,7 @@ export function WelcomeTourContent({
 
   const goTo = (nextIndex: number) => {
     if (nextIndex < 0 || nextIndex >= TOUR_STEPS.length) return
+    if (nextIndex > index && isBlockedByConsent) return
     setDirection(nextIndex > index ? 1 : -1)
     setIndex(nextIndex)
   }
@@ -102,6 +127,43 @@ export function WelcomeTourContent({
             </p>
 
             <div className="mt-6">{step.mock}</div>
+
+            {step.consent && (
+              <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-3.5">
+                <label className="group flex cursor-pointer items-start gap-2.5">
+                  <Checkbox
+                    checked={agreedToAutoSend}
+                    onCheckedChange={(checked) => {
+                      if (checked === true) chooseAutoSend()
+                      else setAgreedToAutoSend(false)
+                    }}
+                    className="mt-0.5"
+                  />
+                  <span className="text-xs leading-5 text-foreground">
+                    {step.consent.checkboxLabel}
+                  </span>
+                </label>
+
+                {!agreedToAutoSend && (
+                  <div className="flex flex-col items-start gap-1">
+                    {declinedAutoSend && (
+                      <p className="text-xs text-muted-foreground">
+                        Got it — you&apos;ll review each email before it sends.
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={declinedAutoSend ? chooseAutoSend : declineAutoSend}
+                      className="self-start text-xs font-medium text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
+                    >
+                      {declinedAutoSend
+                        ? "Switch back to auto-send"
+                        : step.consent.declineLabel}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -126,10 +188,11 @@ export function WelcomeTourContent({
               aria-label={`Go to ${s.eyebrow}`}
               aria-current={i === index}
               onClick={() => goTo(i)}
+              disabled={i > index && isBlockedByConsent}
               className={
                 i === index
                   ? "h-1.5 w-5 rounded-full bg-(--color-blaze-orange) transition-all duration-150"
-                  : "size-1.5 rounded-full bg-border transition-all duration-150 hover:bg-muted-foreground/40"
+                  : "size-1.5 rounded-full bg-border transition-all duration-150 hover:bg-muted-foreground/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-border"
               }
             />
           ))}
@@ -137,12 +200,19 @@ export function WelcomeTourContent({
 
         {isLast ? (
           onDone ? (
-            <Button onClick={onDone} className="rounded-full px-6 font-medium">
+            <Button
+              onClick={onDone}
+              disabled={isBlockedByConsent}
+              className="rounded-full px-6 font-medium"
+            >
               Start exploring
             </Button>
           ) : (
             <DialogClose asChild>
-              <Button className="rounded-full px-6 font-medium">
+              <Button
+                disabled={isBlockedByConsent}
+                className="rounded-full px-6 font-medium"
+              >
                 Start exploring
               </Button>
             </DialogClose>
@@ -150,6 +220,7 @@ export function WelcomeTourContent({
         ) : (
           <Button
             onClick={() => goTo(index + 1)}
+            disabled={isBlockedByConsent}
             className="gap-2 rounded-full px-6 font-medium"
           >
             Next

@@ -1,28 +1,21 @@
 import {
-  IconAlertTriangle,
   IconCircleCheck,
   IconFiles,
-  IconInfoCircle,
   IconLinkOff,
   IconMailBolt,
   IconMailCheck,
   IconRadar2,
   IconSend,
   IconSparkles,
+  IconTarget,
 } from "@tabler/icons-react"
 import Image from "next/image"
-import Link from "next/link"
 import type { ElementType, ReactNode } from "react"
 
 import { getContactAvatarUrl } from "@/consts/contact-avatar"
 import { useOutreachState } from "@/hooks/use-outreach-state"
 
-export type TourStepId =
-  | "welcome"
-  | "prospects"
-  | "pages"
-  | "email"
-  | "tracker"
+export type TourStepId = "welcome" | "prospects" | "pages" | "email" | "tracker"
 
 export type TourStep = {
   id: TourStepId
@@ -32,6 +25,15 @@ export type TourStep = {
   body: string
   /** Small non-interactive UI mock illustrating the feature. */
   mock: ReactNode
+  /**
+   * When set, this step requires an explicit choice before Next unlocks —
+   * used for the one step that gets real consent to auto-send under the
+   * user's name, rather than a click-through disclosure.
+   */
+  consent?: {
+    checkboxLabel: string
+    declineLabel: string
+  }
 }
 
 /**
@@ -132,12 +134,15 @@ function ProspectsMock() {
       <div className="mt-4 border-t border-border pt-4">
         <div className="relative grid grid-cols-3">
           <div className="absolute inset-x-[16.6667%] top-1/2 h-px -translate-y-1/2 bg-border" />
-          <div className="absolute left-[16.6667%] top-1/2 h-px w-1/3 -translate-y-1/2 bg-(--color-blaze-orange)/50" />
+          <div className="absolute top-1/2 left-[16.6667%] h-px w-1/3 -translate-y-1/2 bg-(--color-blaze-orange)/50" />
           {PROSPECT_SEQUENCE.map((step) => {
             const isSent = step.status === "sent"
 
             return (
-              <div key={step.label} className="relative z-10 flex justify-center">
+              <div
+                key={step.label}
+                className="relative z-10 flex justify-center"
+              >
                 <span
                   className={
                     isSent
@@ -145,7 +150,9 @@ function ProspectsMock() {
                       : "size-3.5 shrink-0 rounded-full border-[1.5px] border-border bg-card"
                   }
                 >
-                  {isSent && <IconCircleCheck className="size-3.5 text-white" />}
+                  {isSent && (
+                    <IconCircleCheck className="size-3.5 text-white" />
+                  )}
                 </span>
               </div>
             )
@@ -179,40 +186,67 @@ function ProspectsMock() {
   )
 }
 
-/** Pages: two rows matching pages-client's article list shape. */
+const PAGES_MOCK_KEYWORDS = [
+  "backlink outreach software",
+  "seo for founders",
+  "b2b saas link building",
+]
+
+/**
+ * Pages & Keywords: a compact keyword chip row (matching keyword-priority-list's
+ * plain-text-in-pill treatment) above two rows matching pages-client's article
+ * list shape — showing both inputs that drive matching, not just pages.
+ */
 function PagesMock() {
   const rows = [
     { url: "/blog/link-building-guide", matches: 18 },
     { url: "/free-tools/backlink-checker", matches: 24 },
-    { url: "/blog/seo-outreach-templates", matches: 9 },
   ]
 
   return (
-    <div className="space-y-2">
-      {rows.map((row) => (
-        <div
-          key={row.url}
-          className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm"
-        >
-          <div className="flex min-w-0 items-center gap-2.5">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-blaze-orange)/8 text-(--color-blaze-orange)">
-              <IconFiles className="size-4" />
-            </span>
-            <p className="truncate text-sm font-medium text-foreground">
-              {row.url}
-            </p>
-          </div>
-          <span className="shrink-0 rounded-full bg-muted px-2 py-1 text-[11px] font-semibold text-muted-foreground">
-            {row.matches} matches
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-1.5">
+        {PAGES_MOCK_KEYWORDS.map((keyword) => (
+          <span
+            key={keyword}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-foreground shadow-sm"
+          >
+            <IconTarget className="size-3 shrink-0 text-(--color-blaze-orange)" />
+            {keyword}
           </span>
-        </div>
-      ))}
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        {rows.map((row) => (
+          <div
+            key={row.url}
+            className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm"
+          >
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-blaze-orange)/8 text-(--color-blaze-orange)">
+                <IconFiles className="size-4" />
+              </span>
+              <p className="truncate text-sm font-medium text-foreground">
+                {row.url}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-muted px-2 py-1 text-[11px] font-semibold text-muted-foreground">
+              {row.matches} matches
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
 const READ_INBOX_ROWS = [
-  { sender: "Notion", snippet: "Your weekly digest is ready", when: "Yesterday" },
+  {
+    sender: "Notion",
+    snippet: "Your weekly digest is ready",
+    when: "Yesterday",
+  },
   { sender: "Linear", snippet: "3 issues assigned to you", when: "2d ago" },
 ]
 
@@ -282,9 +316,7 @@ function EmailMock() {
                 {row.sender[0]}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-foreground">
-                  {row.sender}
-                </p>
+                <p className="truncate text-sm text-foreground">{row.sender}</p>
                 <p className="truncate text-xs text-muted-foreground">
                   {row.snippet}
                 </p>
@@ -295,48 +327,6 @@ function EmailMock() {
             </div>
           ))}
         </div>
-      </div>
-
-      <div
-        className={
-          outreachState === "live"
-            ? "inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-600"
-            : outreachState === "mailbox_paused"
-              ? "inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground"
-              : "inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-600"
-        }
-      >
-        {outreachState === "live" && (
-          <>
-            <IconCircleCheck className="size-3.5 shrink-0" />
-            Outreach is live — emails are already going out automatically.
-          </>
-        )}
-        {outreachState === "account_paused" && (
-          <>
-            <IconAlertTriangle className="size-3.5 shrink-0" />
-            You paused outreach — resume it anytime from Settings.
-          </>
-        )}
-        {outreachState === "mailbox_paused" && (
-          <>
-            <IconInfoCircle className="size-3.5 shrink-0" />
-            You can connect your account in the Email Accounts page.
-          </>
-        )}
-        {outreachState === "pool_paused" && (
-          <>
-            <IconAlertTriangle className="size-3.5 shrink-0" />
-            Today&apos;s shared pool limit is reached — sending resumes
-            automatically tomorrow.{" "}
-            <Link
-              href="/dashboard/settings?tab=billing"
-              className="underline underline-offset-2 hover:text-amber-700"
-            >
-              Upgrade to send sooner
-            </Link>
-          </>
-        )}
       </div>
     </div>
   )
@@ -419,15 +409,15 @@ export const TOUR_STEPS: TourStep[] = [
     eyebrow: "Prospects",
     Icon: IconSparkles,
     headline: "Prospects find themselves",
-    body: "Every day we scan the web for sites where your content fits, find the founder or owner's contact, and send a personalized email automatically — no approval step on your end, but you can pause the campaign if needed.",
+    body: "Every day we scan the web for sites where your content fits and find the founder or owner's contact. By default the personalized email we write then sends automatically — you'll choose that on the next step, and can change it anytime.",
     mock: <ProspectsMock />,
   },
   {
     id: "pages",
-    eyebrow: "Pages",
+    eyebrow: "Pages & Keywords",
     Icon: IconFiles,
-    headline: "Your pages drive the matching",
-    body: "We're already tracking the pages you added and auto-fetch them daily to catch any changes. Add more anytime — the more pages you connect, the more opportunities we can match.",
+    headline: "We use your pages and keywords to find opportunities",
+    body: "We use your target keywords and pages to find opportunities that build more authority for them, checked daily.",
     mock: <PagesMock />,
   },
   {
@@ -435,8 +425,13 @@ export const TOUR_STEPS: TourStep[] = [
     eyebrow: "Email Accounts",
     Icon: IconMailBolt,
     headline: "We'll alert you when they reply",
-    body: "Outreach sends automatically until a prospect replies. The moment they do, we alert you — and you continue the conversation yourself, from your own connected email account.",
+    body: "By default, outreach emails are signed with your name and sent automatically until a prospect replies. The moment they do, we alert you — and you continue the conversation yourself.",
     mock: <EmailMock />,
+    consent: {
+      checkboxLabel:
+        "I'm okay with Mentiohunt sending these emails automatically, signed with my name.",
+      declineLabel: "I'd rather review each email before it sends",
+    },
   },
   {
     id: "tracker",

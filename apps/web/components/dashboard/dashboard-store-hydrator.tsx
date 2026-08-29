@@ -40,6 +40,7 @@ type DashboardStoreHydratorProps = {
   hasActiveEmailAccount: boolean | null
   hasOwnOutreachMailbox: boolean | null
   poolDelayedCount: number
+  awaitingApprovalCount: number
   sentAt: string[]
   trackedLinks: TrackedLinkListItem[]
   notifications: NotificationListItem[]
@@ -60,6 +61,7 @@ export function DashboardStoreHydrator({
   hasActiveEmailAccount,
   hasOwnOutreachMailbox,
   poolDelayedCount,
+  awaitingApprovalCount,
   sentAt,
   trackedLinks,
   notifications,
@@ -92,6 +94,7 @@ export function DashboardStoreHydrator({
     )
     prospectStore.setHasCompletedRun(hasCompletedProspectRun)
     prospectStore.setPoolDelayedCount(poolDelayedCount)
+    prospectStore.setAwaitingApprovalCount(awaitingApprovalCount)
     useDirectoryStore.getState().setDirectories(directories)
     useDiscoverySettingsStore.getState().setSettings(discoverySettings)
     useOutreachSettingsStore.getState().setSettings(outreachSettings)
@@ -103,7 +106,7 @@ export function DashboardStoreHydrator({
     useLinkTrackerStore.getState().setLinks(trackedLinks)
     useNotificationStore.getState().setNotifications(notifications)
     useNotificationStore.getState().setPlatformUpdates(platformUpdates)
-  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, hasOwnOutreachMailbox, poolDelayedCount, sentAt, trackedLinks, notifications, platformUpdates])
+  }, [profile, product, prospects, hasCompletedProspectRun, directories, discoverySettings, outreachSettings, backlinkNetworkMembership, pages, hasActiveEmailAccount, hasOwnOutreachMailbox, poolDelayedCount, awaitingApprovalCount, sentAt, trackedLinks, notifications, platformUpdates])
 
   return (
     <>

@@ -1,6 +1,6 @@
 "use client"
 
-import { IconChartBar, IconLayoutGrid, IconMail, IconUsers } from "@tabler/icons-react"
+import { IconChartBar, IconLayoutGrid, IconMail, IconSend, IconUsers } from "@tabler/icons-react"
 import {
   Tabs,
   TabsContent,
@@ -17,6 +17,7 @@ import {
   markDrMaxWarningSeen,
 } from "@/components/link-building/sources/dr-max-warning-dialog"
 import { OutreachSettingsSection } from "@/components/link-building/sources/outreach-settings-section"
+import { SendingModeSection } from "@/components/link-building/sources/sending-mode-section"
 import { SeoMetricsSection } from "@/components/link-building/sources/seo-metrics-section"
 import { SettingsSaveFooter } from "@/components/link-building/sources/settings-save-footer"
 import { UnsavedChangesDialog } from "@/components/link-building/sources/unsaved-changes-dialog"
@@ -48,14 +49,20 @@ const DEFAULT_OUTREACH_SETTINGS: OutreachSettings = {
   signatureText: "",
 }
 
-type SettingsTab = "backlink-types" | "competitors" | "seo-metrics" | "outreach"
+type SettingsTab =
+  | "backlink-types"
+  | "competitors"
+  | "seo-metrics"
+  | "outreach"
+  | "sending"
 
 function isSettingsTab(value: string): value is SettingsTab {
   return (
     value === "backlink-types" ||
     value === "competitors" ||
     value === "seo-metrics" ||
-    value === "outreach"
+    value === "outreach" ||
+    value === "sending"
   )
 }
 
@@ -423,6 +430,10 @@ export default function DiscoverySetupPage() {
               <IconMail className="size-4" />
               <span>Outreach</span>
             </TabsTrigger>
+            <TabsTrigger value="sending">
+              <IconSend className="size-4" />
+              <span>Sending</span>
+            </TabsTrigger>
           </TabsList>
           </div>
 
@@ -475,6 +486,10 @@ export default function DiscoverySetupPage() {
                 />
               }
             />
+          </TabsContent>
+
+          <TabsContent value="sending">
+            <SendingModeSection />
           </TabsContent>
         </Tabs>
       </div>

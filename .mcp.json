@@ -5,7 +5,7 @@
       "url": "https://mcp.supabase.com/mcp?project_ref=eagakiaavexoykhvvkwc&read_only=true"
     },
     "gscServer": {
-      "command": "../mcp-gsc/.venv/bin/python",
+      "command": "../mcp-gsc/.venv/Scripts/python.exe",
       "args": ["../mcp-gsc/gsc_server.py"],
       "env": {
         "GSC_OAUTH_CLIENT_SECRETS_FILE": "../mcp-gsc/client_secrets.json"

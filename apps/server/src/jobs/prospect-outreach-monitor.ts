@@ -7,6 +7,7 @@ import { classifyInboundEmail, extractMessageIds, normalizeEmail, normalizeMessa
 import { CONTACT_ENRICHABLE_CLASSIFICATIONS, enrichContactFromReply } from "../helpers/outreach/enrich-contact-from-reply.js"
 import { stopProspectSequence } from "../helpers/outreach/stop-prospect-sequence.js"
 import { sendReplyAlertEmail } from "../helpers/emails/send-reply-alert.js"
+import { sendStuckSweepAlertEmail } from "../helpers/emails/send-stuck-sweep-alert.js"
 import { createNotification } from "../helpers/notifications/create-notification.js"
 import { createLogger } from "../helpers/logger.js"
 import { loadProspectIdsForUser } from "./prospect-outreach-sender.js"
@@ -867,6 +868,13 @@ async function processAccount(account: EmailAccount): Promise<void> {
 }
 
 const STUCK_SUBMISSION_MINUTES = 30
+const STUCK_SWEEP_RETRY_DELAYS_MS = [2_000, 5_000]
+
+// Module-level so it's shared across every 5-minute tick — without this, a
+// sustained outage (e.g. the Supabase "JWT issued at future" clock-skew seen
+// in 2026-08) would fire an identical alert email every single tick.
+const STUCK_SWEEP_ALERT_COOLDOWN_MS = 30 * 60 * 1000
+let lastStuckSweepAlertAt = 0
 
 /**
  * The submit-url pipeline (routes/prospect-submitted-url.ts) has no queue —
@@ -876,28 +884,51 @@ const STUCK_SUBMISSION_MINUTES = 30
  * sweep (piggybacking on the outreach monitor's existing 5-minute cron tick)
  * finds those and marks them failed so the user lands on the existing
  * manual-completion escape hatch instead of waiting indefinitely.
+ *
+ * Retries on failure (transient auth/network blips, e.g. Supabase's
+ * occasional "JWT issued at future" clock-skew rejection, clear within
+ * seconds) and alerts once retries are exhausted, since a silently broken
+ * sweep otherwise leaves stuck users with no recovery and no signal to
+ * anyone that the safety net itself is down.
  */
 async function sweepStuckUserSubmittedProspects(): Promise<void> {
   const staleBefore = new Date(Date.now() - STUCK_SUBMISSION_MINUTES * 60 * 1000).toISOString()
 
-  const { data: stuck, error } = await supabaseAdmin
-    .from("backlink_prospects")
-    .update({
-      enrichment_status: "failed",
-      status: "email_not_found",
-    })
-    .eq("tier", "user_submitted")
-    .eq("enrichment_status", "enriching")
-    .lt("discovered_at", staleBefore)
-    .select("id")
+  let lastErrorMessage = ""
 
-  if (error) {
-    log.warn("failed to sweep stuck user-submitted prospects", { error: error.message })
-    return
+  for (let attempt = 0; attempt <= STUCK_SWEEP_RETRY_DELAYS_MS.length; attempt++) {
+    const { data: stuck, error } = await supabaseAdmin
+      .from("backlink_prospects")
+      .update({
+        enrichment_status: "failed",
+        status: "email_not_found",
+      })
+      .eq("tier", "user_submitted")
+      .eq("enrichment_status", "enriching")
+      .lt("discovered_at", staleBefore)
+      .select("id")
+
+    if (!error) {
+      if (stuck?.length) {
+        log.info("swept stuck user-submitted prospects", { count: stuck.length, ids: stuck.map((p) => p.id) })
+      }
+      return
+    }
+
+    lastErrorMessage = error.message
+    if (attempt < STUCK_SWEEP_RETRY_DELAYS_MS.length) {
+      const delay = STUCK_SWEEP_RETRY_DELAYS_MS[attempt]!
+      log.warn("failed to sweep stuck user-submitted prospects, retrying", { attempt: attempt + 1, delay_ms: delay, error: lastErrorMessage })
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
   }
 
-  if (stuck?.length) {
-    log.info("swept stuck user-submitted prospects", { count: stuck.length, ids: stuck.map((p) => p.id) })
+  log.error("failed to sweep stuck user-submitted prospects after retries", { error: lastErrorMessage })
+
+  const now = Date.now()
+  if (now - lastStuckSweepAlertAt >= STUCK_SWEEP_ALERT_COOLDOWN_MS) {
+    lastStuckSweepAlertAt = now
+    void sendStuckSweepAlertEmail(lastErrorMessage)
   }
 }
 

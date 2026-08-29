@@ -17,6 +17,7 @@ export type DashboardProfile = Pick<
   | "walkthrough_seen_at"
   | "deactivated_at"
   | "outreach_paused_at"
+  | "manual_approval_at"
 >
 
 type ProfileStore = {

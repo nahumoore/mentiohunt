@@ -32,6 +32,7 @@ export async function createSequencesForProspect(
   const senderFirstName = account.name?.split(" ")[0] ?? ""
 
   const { step2Body, step3Body } = buildFollowupBodies(firstName, senderFirstName)
+  const initialStatus = account.manualApproval ? "awaiting_approval" : "pending"
 
   const { error: seqError } = await supabaseAdmin
     .from("prospect_sequences")
@@ -43,6 +44,7 @@ export async function createSequencesForProspect(
         subject: prospect.emailSubject,
         body: prospect.emailBody,
         scheduled_at: schedule.step1.toISOString(),
+        status: initialStatus,
       },
       {
         prospect_id: prospect.id,
@@ -51,6 +53,7 @@ export async function createSequencesForProspect(
         subject: reSubject,
         body: prospect.step2Body ?? step2Body,
         scheduled_at: schedule.step2.toISOString(),
+        status: initialStatus,
       },
       {
         prospect_id: prospect.id,
@@ -59,6 +62,7 @@ export async function createSequencesForProspect(
         subject: reSubject,
         body: prospect.step3Body ?? step3Body,
         scheduled_at: schedule.step3.toISOString(),
+        status: initialStatus,
       },
     ])
 
@@ -117,6 +121,7 @@ export async function assignSequences(
   log.info("assignSequences START", { productId, count: prospects.length, accountId: account.id })
 
   const senderFirstName = account.name?.split(" ")[0] ?? ""
+  const initialStatus = account.manualApproval ? "awaiting_approval" : "pending"
 
   const sequences = prospects.flatMap((p) => {
     const schedule = buildProspectSequenceSchedule()
@@ -132,6 +137,7 @@ export async function assignSequences(
         subject: p.email_subject,
         body: p.email_body,
         scheduled_at: schedule.step1.toISOString(),
+        status: initialStatus,
       },
       {
         prospect_id: p.id,
@@ -140,6 +146,7 @@ export async function assignSequences(
         subject: reSubject,
         body: step2Body,
         scheduled_at: schedule.step2.toISOString(),
+        status: initialStatus,
       },
       {
         prospect_id: p.id,
@@ -148,6 +155,7 @@ export async function assignSequences(
         subject: reSubject,
         body: step3Body,
         scheduled_at: schedule.step3.toISOString(),
+        status: initialStatus,
       },
     ]
   })

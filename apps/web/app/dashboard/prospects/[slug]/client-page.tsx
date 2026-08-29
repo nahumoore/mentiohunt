@@ -11,7 +11,6 @@ import {
   IconBrandLinkedin,
   IconBrandTwitter,
   IconBrandYoutube,
-  IconCalendar,
   IconCheck,
   IconChevronRight,
   IconCircleX,
@@ -62,7 +61,6 @@ import { useProspectStore } from "@/stores/prospect-store"
 import { usePagesStore } from "@/stores/pages-store"
 import {
   STATUS_CONFIG,
-  formatDate,
   type ProspectStatus,
 } from "@/app/dashboard/prospects/_data"
 import { EmailSequenceNav } from "@/components/prospects/email-sequence-nav"
@@ -286,7 +284,7 @@ function fitBarColor(score: number): string {
   return "bg-red-400"
 }
 
-function ScoreTile({
+function ScoreRow({
   label,
   hint,
   value,
@@ -298,23 +296,27 @@ function ScoreTile({
   barColor: string
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-4 shadow-sm">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="mt-1 font-mono text-3xl leading-none font-bold text-foreground tabular-nums">
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 shadow-sm">
+      <p
+        className="font-mono text-lg leading-none font-bold text-foreground tabular-nums"
+        title={hint}
+      >
         {value ?? "—"}
       </p>
-      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn(
-            "h-full rounded-full",
-            value != null ? barColor : "bg-muted"
-          )}
-          style={{ width: `${value != null ? Math.min(value, 100) : 0}%` }}
-        />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-medium text-muted-foreground">
+          {label}
+        </p>
+        <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className={cn(
+              "h-full rounded-full",
+              value != null ? barColor : "bg-muted"
+            )}
+            style={{ width: `${value != null ? Math.min(value, 100) : 0}%` }}
+          />
+        </div>
       </div>
-      <p className="mt-2 text-[10px] leading-tight text-muted-foreground/70">
-        {hint}
-      </p>
     </div>
   )
 }
@@ -632,6 +634,7 @@ export function ProspectClientPage({
   const [statusLoading, setStatusLoading] = useState<
     "contacted" | "won" | "dismissed" | "pausing" | null
   >(null)
+  const [isApprovingSend, setIsApprovingSend] = useState(false)
   const [pauseModalOpen, setPauseModalOpen] = useState(false)
   const [activeEmailIdx, setActiveEmailIdx] = useState(() => {
     const now = Date.now()
@@ -703,7 +706,9 @@ export function ProspectClientPage({
           ? ("sent" as const)
           : seq.status === "trial_expired"
             ? ("trial_expired" as const)
-            : ("scheduled" as const),
+            : seq.status === "awaiting_approval"
+              ? ("awaiting_approval" as const)
+              : ("scheduled" as const),
       date,
     }
   })
@@ -774,6 +779,21 @@ export function ProspectClientPage({
         <span className="text-[10px] text-destructive">Failed to save</span>
       )
     return null
+  }
+
+  async function handleApproveSend() {
+    setIsApprovingSend(true)
+    try {
+      const res = await fetch(
+        `/api/link-building/opportunities/${current.id}/approve-send`,
+        { method: "POST" }
+      )
+      if (res.ok) {
+        router.refresh()
+      }
+    } finally {
+      setIsApprovingSend(false)
+    }
   }
 
   async function handlePause() {
@@ -983,6 +1003,23 @@ export function ProspectClientPage({
                 onSelect={setActiveEmailIdx}
               />
 
+              {activeEmail.status === "awaiting_approval" && (
+                <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3.5 py-2.5">
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    You're reviewing each email before it sends — this draft
+                    is ready and waiting on you.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleApproveSend}
+                    disabled={isApprovingSend}
+                    className="shrink-0 rounded-full bg-amber-600 px-3.5 py-1.5 text-[11px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                  >
+                    {isApprovingSend ? "Sending…" : "Send now"}
+                  </button>
+                </div>
+              )}
+
               {isFreeUser &&
                 isPublicMailbox &&
                 emailSequence.some((e) => e.status === "scheduled") && (
@@ -1185,52 +1222,32 @@ export function ProspectClientPage({
         </main>
 
         {/* ─── Opportunity details panel ─── */}
-        <aside className="w-full max-w-full min-w-0 overflow-hidden border-t bg-background px-4 py-6 sm:px-8 lg:order-2 lg:border-t-0 lg:border-l lg:px-6">
-          <h2 className="text-base font-semibold text-foreground">
-            Opportunity details
-          </h2>
-
-          <div className="mt-5 flex items-center gap-3">
-            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white">
-              {favicon ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={favicon}
-                  alt=""
-                  width={28}
-                  height={28}
-                  className="size-7"
-                />
-              ) : (
-                <div className="size-7 rounded-md bg-muted" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">
-                {current.domain}
-              </p>
-              {tierCfg && TierIcon && (
-                <span
-                  className={cn(
-                    "mt-1 inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-medium",
-                    tierCfg.color
-                  )}
-                >
-                  <TierIcon className="size-3" />
-                  {tierCfg.label}
-                </span>
-              )}
-            </div>
+        <aside className="w-full max-w-full min-w-0 overflow-x-hidden border-t bg-background px-4 py-6 sm:px-8 lg:order-2 lg:border-t-0 lg:border-l lg:overflow-y-auto lg:px-6">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-base font-semibold text-foreground">
+              Opportunity details
+            </h2>
+            {tierCfg && TierIcon && (
+              <span
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-medium",
+                  tierCfg.color
+                )}
+              >
+                <TierIcon className="size-3" />
+                {tierCfg.label}
+              </span>
+            )}
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <ScoreTile
+          <div className="mt-4 flex flex-col gap-2">
+            <ScoreRow
               label="Domain rating"
               hint="Backlink authority"
               value={dr ?? null}
               barColor={dr != null ? drBarColor(dr) : "bg-muted"}
             />
-            <ScoreTile
+            <ScoreRow
               label="Site fit"
               hint="Topical match"
               value={fitScore ?? null}
@@ -1239,7 +1256,7 @@ export function ProspectClientPage({
           </div>
 
           {(sourcePage || showTargetUrl || current.found_url) && (
-            <section className="mt-5 rounded-xl border border-border bg-card px-4 py-4 shadow-sm">
+            <section className="mt-4 rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
               {sourcePage && (
                 <div>
                   <p className="text-sm text-muted-foreground">
@@ -1311,7 +1328,7 @@ export function ProspectClientPage({
             </section>
           )}
 
-          <section className="mt-5 border-b border-border pb-5">
+          <section className="mt-4 border-b border-border pb-4">
             <p className="text-sm font-medium text-muted-foreground">
               Contact found
             </p>
@@ -1428,23 +1445,18 @@ export function ProspectClientPage({
           </section>
 
           {bio && (
-            <section className="border-b border-border py-5">
+            <section className="py-4">
               <div className="flex items-center gap-1.5">
                 <IconSparkles className="size-3.5 text-muted-foreground" />
                 <p className="text-sm font-medium text-muted-foreground">
                   About
                 </p>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              <p className="mt-2 line-clamp-4 text-xs leading-relaxed text-muted-foreground">
                 {bio}
               </p>
             </section>
           )}
-
-          <div className="mt-5 flex items-center gap-2 border-t border-border pt-5 text-xs text-muted-foreground">
-            <IconCalendar className="size-4 shrink-0" />
-            <span>Discovered {formatDate(current.discovered_at)}</span>
-          </div>
         </aside>
       </div>
     </div>

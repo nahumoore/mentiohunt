@@ -71,10 +71,13 @@ type ProspectStore = {
   hasCompletedRun: boolean
   /** Pending sequences recently deferred because the shared email pool was at capacity. */
   poolDelayedCount: number
+  /** Drafted sequences held for the user's review because manual-approval mode is on. */
+  awaitingApprovalCount: number
   prospectDetailsById: Record<string, ProspectDetail>
   setProspects: (prospects: ProspectListItem[]) => void
   setHasCompletedRun: (hasCompletedRun: boolean) => void
   setPoolDelayedCount: (poolDelayedCount: number) => void
+  setAwaitingApprovalCount: (awaitingApprovalCount: number) => void
   updateProspectStatuses: (
     prospectIds: string[],
     status: BacklinkProspect["status"]
@@ -109,10 +112,12 @@ export const useProspectStore = create<ProspectStore>()((set) => ({
   hydrated: false,
   hasCompletedRun: false,
   poolDelayedCount: 0,
+  awaitingApprovalCount: 0,
   prospectDetailsById: {},
   setProspects: (prospects) => set({ hydrated: true, prospects }),
   setHasCompletedRun: (hasCompletedRun) => set({ hasCompletedRun }),
   setPoolDelayedCount: (poolDelayedCount) => set({ poolDelayedCount }),
+  setAwaitingApprovalCount: (awaitingApprovalCount) => set({ awaitingApprovalCount }),
   updateProspectStatuses: (prospectIds, status) =>
     set((state) => {
       const idSet = new Set(prospectIds)

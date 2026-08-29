@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
+import { disableManualApproval, enableManualApproval } from "@/actions/account-actions"
 import { markWalkthroughSeen } from "@/actions/update-profile"
 import { WelcomeTourContent } from "@/components/dashboard/welcome-tour/welcome-tour-content"
 import { captureEvent } from "@/lib/analytics"
@@ -26,6 +27,7 @@ let hasClosedThisSession = false
  */
 export function FirstLoginWalkthrough() {
   const profile = useProfileStore((state) => state.profile)
+  const setProfile = useProfileStore((state) => state.setProfile)
   const markSeenLocally = useProfileStore(
     (state) => state.markWalkthroughSeenLocally
   )
@@ -33,11 +35,9 @@ export function FirstLoginWalkthrough() {
   const hasLoggedRef = useRef(false)
   const canCloseRef = useRef(false)
 
-  const isOpen =
-    !closed &&
-    !hasClosedThisSession &&
-    profile !== null &&
-    profile.walkthrough_seen_at === null
+  // TEMP: walkthrough_seen_at gate disabled for local preview — restore
+  // `profile.walkthrough_seen_at === null` before shipping.
+  const isOpen = !closed && !hasClosedThisSession && profile !== null
 
   useEffect(() => {
     if (!isOpen || hasLoggedRef.current) return
@@ -79,6 +79,29 @@ export function FirstLoginWalkthrough() {
           onDone={close}
           onStepChange={(isLast) => {
             canCloseRef.current = isLast
+          }}
+          onConsent={(mode) => {
+            if (mode === "manual") {
+              captureEvent("walkthrough_manual_approval_selected")
+              void enableManualApproval().then((result) => {
+                if (result.error || !profile) return
+                setProfile({
+                  ...profile,
+                  manual_approval_at: result.manual_approval_at ?? new Date().toISOString(),
+                })
+              })
+              return
+            }
+
+            // Reverses a manual-approval choice made earlier on this same
+            // step — the tour lets a user switch back and forth before
+            // moving on, so this must actually undo the DB write, not just
+            // update local UI state.
+            captureEvent("walkthrough_autosend_confirmed")
+            void disableManualApproval().then((result) => {
+              if (result.error || !profile) return
+              setProfile({ ...profile, manual_approval_at: null })
+            })
           }}
         />
       </DialogContent>

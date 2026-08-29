@@ -66,8 +66,9 @@ export function HowItWorksContent({ onDone }: { onDone?: () => void } = {}) {
         <>
           <DialogTitle>How prospects and outreach work</DialogTitle>
           <DialogDescription>
-            Mentiohunt runs outreach for you — there&apos;s no separate
-            approval step.
+            {outreachState === "manual_approval"
+              ? "Mentiohunt finds prospects and writes the emails — you approve each one before it sends."
+              : "Mentiohunt runs outreach for you — there's no separate approval step."}
           </DialogDescription>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -101,6 +102,20 @@ export function HowItWorksContent({ onDone }: { onDone?: () => void } = {}) {
                 <IconCircleCheck className="size-3.5 shrink-0" />
                 Outreach is live — emails are already going out
                 automatically.
+              </>
+            )}
+            {outreachState === "manual_approval" && (
+              <>
+                <IconAlertTriangle className="size-3.5 shrink-0" />
+                You&apos;re reviewing each email before it sends. Switch back
+                to auto-send anytime in{" "}
+                <Link
+                  href="/dashboard/prospects/settings?tab=sending"
+                  className="underline underline-offset-2 hover:text-amber-700"
+                >
+                  Settings
+                </Link>
+                .
               </>
             )}
             {outreachState === "account_paused" && (

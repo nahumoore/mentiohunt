@@ -132,7 +132,7 @@ export default async function DashboardLayout({
       supabase
         .from("profiles")
         .select(
-          "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at, email_settings, walkthrough_seen_at, deactivated_at, outreach_paused_at"
+          "id, email, name, onboarding_completed, tier, active_trial, billing_period_end_at, email_settings, walkthrough_seen_at, deactivated_at, outreach_paused_at, manual_approval_at"
         )
         .eq("id", user.id)
         .maybeSingle(),
@@ -222,6 +222,7 @@ export default async function DashboardLayout({
   // only checks a mailbox is connected, not that it's opted into sending.
   let hasOwnOutreachMailbox = false
   let poolDelayedCount = 0
+  let awaitingApprovalCount = 0
   let sentAt: string[] = []
   let trackedLinks: TrackedLinkListItem[] = []
 
@@ -242,6 +243,7 @@ export default async function DashboardLayout({
       pagesResult,
       emailAccountResult,
       poolDelayedResult,
+      awaitingApprovalResult,
       sentSequencesResult,
       trackedLinksResult,
       lastInteractionResult,
@@ -307,6 +309,16 @@ export default async function DashboardLayout({
             .eq("status", "pending")
             .gte("last_deferred_at", twentyFourHoursAgo)
         : Promise.resolve(null),
+      // Drafts held because manual-approval mode is on — surfaced as a
+      // header count so they don't just pile up unseen.
+      supabase
+        .from("prospect_sequences")
+        .select("id, backlink_prospects!inner(product_id)", {
+          count: "exact",
+          head: true,
+        })
+        .eq("backlink_prospects.product_id", product.id)
+        .eq("status", "awaiting_approval"),
       supabase
         .from("prospect_sequences")
         .select("sent_at, backlink_prospects!inner(product_id)")
@@ -341,6 +353,7 @@ export default async function DashboardLayout({
       (row) => row.send_automated_outreach
     )
     poolDelayedCount = poolDelayedResult?.count ?? 0
+    awaitingApprovalCount = awaitingApprovalResult?.count ?? 0
 
     if (sentSequencesResult.error) {
       console.error(
@@ -508,6 +521,7 @@ export default async function DashboardLayout({
       hasActiveEmailAccount={hasActiveEmailAccount}
       hasOwnOutreachMailbox={hasOwnOutreachMailbox}
       poolDelayedCount={poolDelayedCount}
+      awaitingApprovalCount={awaitingApprovalCount}
       sentAt={sentAt}
       trackedLinks={trackedLinks}
       notifications={notifications}

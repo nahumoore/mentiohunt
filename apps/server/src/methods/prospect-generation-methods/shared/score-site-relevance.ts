@@ -109,14 +109,19 @@ async function scoreBatch(
         responseFormat: RESPONSE_FORMAT,
       })
 
-      const parsed = JSON.parse(text) as { results: { id: string; score: number }[] }
+      type ScoreEntry = { id: string; score: number }
+      const parsed = JSON.parse(text) as { results: ScoreEntry[] } | ScoreEntry[]
+      // Some models return a bare array instead of the requested {results:[...]}
+      // wrapper despite strict:true — accept both shapes rather than dropping
+      // the whole batch on a technicality.
+      const scoreEntries = Array.isArray(parsed) ? parsed : parsed?.results
 
-      if (!Array.isArray(parsed?.results)) {
+      if (!Array.isArray(scoreEntries)) {
         throw new Error(`unexpected response shape: ${Object.keys(parsed ?? {}).join(",")}`)
       }
 
       const results = new Map(
-        parsed.results.map((r) => [r.id, { score: Math.round(r.score) }])
+        scoreEntries.map((r) => [r.id, { score: Math.round(r.score) }])
       )
 
       log.info("batch scored", { model: modelUsed, items: results.size })
@@ -142,9 +147,14 @@ export async function scoreSiteRelevance(
   const batches = chunk(items, BATCH_SIZE)
   const limit = pLimit(5)
 
-  const batchOutcomes = await Promise.all(
+  const settlements = await Promise.allSettled(
     batches.map((batch) => limit(() => scoreBatch(batch, product)))
   )
+  const batchOutcomes = settlements.map((s) => {
+    if (s.status === "fulfilled") return s.value
+    log.warn("batch failed after full model-chain outage, skipping batch", { error: String(s.reason) })
+    return { results: new Map<string, { score: number }>(), cost: 0 }
+  })
 
   const results = new Map<string, { score: number }>()
   let totalCost = 0

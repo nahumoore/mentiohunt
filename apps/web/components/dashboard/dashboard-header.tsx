@@ -18,6 +18,7 @@ import { HowItWorksDialog } from "@/components/link-building/prospects/how-it-wo
 import { SubmitUrlDialog } from "@/components/link-building/prospects/submit-url-dialog"
 import { AddTrackedLinksDialog } from "@/components/link-tracker/add-tracked-links-dialog"
 import { NotificationBell } from "@/components/dashboard/notification-bell"
+import { SendingModeFlag } from "@/components/dashboard/sending-mode-flag"
 import { useEmailAccountStore } from "@/stores/email-account-store"
 import { useProductStore } from "@/stores/product-store"
 import { useProfileStore } from "@/stores/profile-store"
@@ -179,6 +180,7 @@ export function DashboardHeader() {
             )
           })}
         </nav>
+        <SendingModeFlag />
         <NotificationBell />
       </div>
 

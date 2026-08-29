@@ -169,6 +169,7 @@ async function loadContext(sequence: ProspectSequence): Promise<{
   previousMessageId: string | null
   ownerEligible: boolean
   outreachPaused: boolean
+  manualApproval: boolean
 } | null> {
   const { data: prospect, error: prospectError } = await supabaseAdmin
     .from("backlink_prospects")
@@ -216,13 +217,14 @@ async function loadContext(sequence: ProspectSequence): Promise<{
 
   const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("name, email, tier, active_trial, outreach_paused_at")
+    .select("name, email, tier, active_trial, outreach_paused_at, manual_approval_at")
     .eq("id", product.user_id)
     .maybeSingle()
 
   const senderName = profile?.name?.trim() || profile?.email?.split("@")[0] || null
   const ownerEligible = profile !== undefined && profile !== null && (profile.tier !== "free" || profile.active_trial)
   const outreachPaused = profile?.outreach_paused_at !== null && profile?.outreach_paused_at !== undefined
+  const manualApproval = profile?.manual_approval_at !== null && profile?.manual_approval_at !== undefined
   let previousMessageId: string | null = null
   if (sequence.step > 1) {
     const { data: previous } = await supabaseAdmin
@@ -237,7 +239,7 @@ async function loadContext(sequence: ProspectSequence): Promise<{
     previousMessageId = previous?.message_id ?? null
   }
 
-  return { prospect, product, account, senderName, signature, previousMessageId, ownerEligible, outreachPaused }
+  return { prospect, product, account, senderName, signature, previousMessageId, ownerEligible, outreachPaused, manualApproval }
 }
 
 async function isSuppressed(email: string): Promise<boolean> {
@@ -336,6 +338,17 @@ async function repauseSequence(sequence: ClaimedSequence): Promise<void> {
     .eq("id", sequence.id)
 }
 
+/** Account is in manual-approval mode: hold the drafted email for the owner
+ * to send themselves instead of auto-sending it. Unlike repauseSequence,
+ * this is expected to be resolved by the owner clicking "Send" (which flips
+ * the row back to "pending"), not by a bulk resume sweep. */
+async function holdSequenceForApproval(sequence: ClaimedSequence): Promise<void> {
+  await supabaseAdmin
+    .from("prospect_sequences")
+    .update({ status: "awaiting_approval", locked_at: null, last_error: null })
+    .eq("id", sequence.id)
+}
+
 async function processSequence(sequence: ProspectSequence): Promise<boolean> {
   const claimed = await claimSequence(sequence)
   if (!claimed) {
@@ -353,6 +366,11 @@ async function processSequence(sequence: ProspectSequence): Promise<boolean> {
     const recipientEmail = context.prospect.contact_email ? normalizeEmail(context.prospect.contact_email) : null
     if (!recipientEmail || !claimed.subject?.trim() || !claimed.body?.trim()) {
       await skipSequence(claimed, "Missing recipient, subject, or body.", recipientEmail)
+      return false
+    }
+
+    if (context.manualApproval) {
+      await holdSequenceForApproval(claimed)
       return false
     }
 

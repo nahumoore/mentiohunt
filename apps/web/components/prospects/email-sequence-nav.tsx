@@ -5,6 +5,7 @@ import {
   IconClockHour4,
   IconClockPause,
   IconMailCheck,
+  IconUserCheck,
 } from "@tabler/icons-react"
 import { isPast } from "date-fns"
 import { cn } from "@workspace/ui/lib/utils"
@@ -14,7 +15,7 @@ import { formatRelative } from "@/lib/format-date"
 export type SequenceStep = {
   number: number
   label: string
-  status: "sent" | "scheduled" | "trial_expired"
+  status: "sent" | "scheduled" | "trial_expired" | "awaiting_approval"
   date: Date
 }
 
@@ -30,13 +31,15 @@ export function EmailSequenceNav({ steps, activeIdx, onSelect }: NavProps) {
       {steps.map((step, idx) => {
         const isSent = step.status === "sent"
         const isTrialExpired = step.status === "trial_expired"
+        const isAwaitingApproval = step.status === "awaiting_approval"
         const isActive = idx === activeIdx
         const isPastStep = idx < activeIdx
         const isLast = idx === steps.length - 1
         // Step 2/3 dates are set when the sequence is first created, so a
         // slow-to-send earlier step can leave this one's date in the past
         // while it's still just waiting in the queue, not overdue/broken.
-        const isQueued = !isSent && !isTrialExpired && isPast(step.date)
+        const isQueued =
+          !isSent && !isTrialExpired && !isAwaitingApproval && isPast(step.date)
 
         return (
           <div key={step.number} className="flex flex-1 items-start">
@@ -108,6 +111,11 @@ export function EmailSequenceNav({ steps, activeIdx, onSelect }: NavProps) {
                       <IconClockPause className="size-3" />
                       Paused
                     </span>
+                  ) : isAwaitingApproval ? (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-600">
+                      <IconUserCheck className="size-3" />
+                      Needs your send
+                    </span>
                   ) : (
                     <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground/40">
                       <IconClockHour4 className="size-3" />
@@ -116,7 +124,13 @@ export function EmailSequenceNav({ steps, activeIdx, onSelect }: NavProps) {
                   )}
                   <span className="text-[10px] text-muted-foreground/25">·</span>
                   <span className="text-[10px] text-muted-foreground/35">
-                    {isTrialExpired ? "Trial expired" : isQueued ? "Sending shortly" : formatRelative(step.date)}
+                    {isTrialExpired
+                      ? "Trial expired"
+                      : isAwaitingApproval
+                        ? "Waiting on you"
+                        : isQueued
+                          ? "Sending shortly"
+                          : formatRelative(step.date)}
                   </span>
                 </div>
               </div>

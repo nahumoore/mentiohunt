@@ -1,6 +1,13 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 
-export type ResolvedEmailAccount = { id: string; name: string | null; isPublic: boolean }
+export type ResolvedEmailAccount = {
+  id: string
+  name: string | null
+  isPublic: boolean
+  /** Owner has manual-approval mode on — sequences should be created as
+   * "awaiting_approval" instead of "pending" so nothing auto-sends. */
+  manualApproval: boolean
+}
 
 type CandidateAccount = { id: string; daily_send_cap: number }
 
@@ -58,7 +65,10 @@ async function pickLeastLoadedAccount(candidates: CandidateAccount[]): Promise<s
   return (selected ?? firstCandidate).id
 }
 
-async function resolvePublicPoolAccount(profileName: string | null): Promise<ResolvedEmailAccount | null> {
+async function resolvePublicPoolAccount(
+  profileName: string | null,
+  manualApproval: boolean
+): Promise<ResolvedEmailAccount | null> {
   const { data: publicAccounts } = await supabaseAdmin
     .from("email_accounts")
     .select("id, daily_send_cap")
@@ -68,7 +78,7 @@ async function resolvePublicPoolAccount(profileName: string | null): Promise<Res
   if (!publicAccounts?.length) return null
 
   const selectedId = await pickLeastLoadedAccount(publicAccounts)
-  return selectedId ? { id: selectedId, name: profileName, isPublic: true } : null
+  return selectedId ? { id: selectedId, name: profileName, isPublic: true, manualApproval } : null
 }
 
 /**
@@ -89,11 +99,12 @@ export async function resolveEmailAccount(
 ): Promise<ResolvedEmailAccount | null> {
   const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("tier, name")
+    .select("tier, name, manual_approval_at")
     .eq("id", userId)
     .single()
 
   const isPaid = profile?.tier === "pro" || profile?.tier === "agency"
+  const manualApproval = profile?.manual_approval_at !== null && profile?.manual_approval_at !== undefined
 
   if (isPaid) {
     const { data: optedInAccounts } = await supabaseAdmin
@@ -106,9 +117,9 @@ export async function resolveEmailAccount(
 
     if (optedInAccounts?.length) {
       const selectedId = await pickLeastLoadedAccount(optedInAccounts)
-      if (selectedId) return { id: selectedId, name: profile?.name ?? null, isPublic: false }
+      if (selectedId) return { id: selectedId, name: profile?.name ?? null, isPublic: false, manualApproval }
     }
   }
 
-  return resolvePublicPoolAccount(profile?.name ?? null)
+  return resolvePublicPoolAccount(profile?.name ?? null, manualApproval)
 }

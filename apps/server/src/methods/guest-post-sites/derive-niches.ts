@@ -70,12 +70,16 @@ export async function deriveNiches(
         responseFormat: RESPONSE_FORMAT,
       })
 
-      const parsed = JSON.parse(text) as { niches?: unknown }
-      if (!Array.isArray(parsed?.niches)) {
+      const parsed = JSON.parse(text) as { niches?: unknown } | unknown[]
+      // Some models return a bare array instead of the requested {niches:[...]}
+      // wrapper despite strict:true — accept both shapes rather than falling
+      // back to the product name on a technicality.
+      const niches = Array.isArray(parsed) ? parsed : parsed?.niches
+      if (!Array.isArray(niches)) {
         throw new Error(`unexpected response shape: ${Object.keys(parsed ?? {}).join(",")}`)
       }
 
-      const cleaned = parsed.niches
+      const cleaned = niches
         .filter((n): n is string => typeof n === "string" && n.trim().length > 0)
         .map((n) => n.trim())
         .slice(0, DEFAULT_LIMITS.maxNiches)

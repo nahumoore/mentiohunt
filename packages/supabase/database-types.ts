@@ -1029,6 +1029,7 @@ export type Database = {
           email: string
           email_settings: Json | null
           id: string
+          manual_approval_at: string | null
           name: string | null
           onboarding_completed: boolean
           outreach_paused_at: string | null
@@ -1049,6 +1050,7 @@ export type Database = {
           email: string
           email_settings?: Json | null
           id: string
+          manual_approval_at?: string | null
           name?: string | null
           onboarding_completed?: boolean
           outreach_paused_at?: string | null
@@ -1069,6 +1071,7 @@ export type Database = {
           email?: string
           email_settings?: Json | null
           id?: string
+          manual_approval_at?: string | null
           name?: string | null
           onboarding_completed?: boolean
           outreach_paused_at?: string | null
@@ -1768,6 +1771,7 @@ export type Database = {
         | "bounced"
         | "trial_expired"
         | "account_paused"
+        | "awaiting_approval"
       prospect_status:
         | "new"
         | "contacted"
@@ -1961,6 +1965,7 @@ export const Constants = {
         "bounced",
         "trial_expired",
         "account_paused",
+        "awaiting_approval",
       ],
       prospect_status: [
         "new",

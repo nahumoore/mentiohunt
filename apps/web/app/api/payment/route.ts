@@ -150,7 +150,12 @@ export async function POST(req: NextRequest) {
           .select("id")
           .maybeSingle()
 
-        if (updated) {
+        // Canceling schedules the subscription to end at period close — Stripe fires
+        // this same "updated" event for that, with status still "active" and the tier
+        // unchanged. Only notify when something the customer needs to know about
+        // actually changed; the cancellation itself is announced separately by the
+        // "deleted" event once the period ends.
+        if (updated && !subscription.cancel_at_period_end) {
           await notifyBillingChange({
             userId: updated.id,
             type: "subscription_updated",

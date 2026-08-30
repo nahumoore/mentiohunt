@@ -35,9 +35,11 @@ export function FirstLoginWalkthrough() {
   const hasLoggedRef = useRef(false)
   const canCloseRef = useRef(false)
 
-  // TEMP: walkthrough_seen_at gate disabled for local preview — restore
-  // `profile.walkthrough_seen_at === null` before shipping.
-  const isOpen = !closed && !hasClosedThisSession && profile !== null
+  const isOpen =
+    !closed &&
+    !hasClosedThisSession &&
+    profile !== null &&
+    profile.walkthrough_seen_at === null
 
   useEffect(() => {
     if (!isOpen || hasLoggedRef.current) return

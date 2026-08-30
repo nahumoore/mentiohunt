@@ -10,7 +10,7 @@ export async function getLastMozCursor(
   competitorDomain: string
 ): Promise<string | null> {
   const { data } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("metadata")
     .eq("product_id", productId)
     .eq("strategy", "competitor_backlink")
@@ -29,7 +29,7 @@ export async function getLastCompetitorRefresh(
   productId: string
 ): Promise<{ refreshedAt: string; domains: string[] } | null> {
   const { data } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("metadata")
     .eq("product_id", productId)
     .eq("strategy", "competitor_backlink")
@@ -56,7 +56,7 @@ export async function selectCompetitorsForRun(
   maxCompetitors: number
 ): Promise<string[]> {
   const { data: recentRuns } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("input, completed_at, metadata")
     .eq("product_id", productId)
     .eq("strategy", "competitor_backlink")
@@ -98,7 +98,7 @@ export async function selectCompetitorsForRun(
 
 export async function createProspectRun(productId: string, competitorDomains: string[]): Promise<string | null> {
   const { data, error } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .insert({
       product_id: productId,
       strategy: "competitor_backlink",
@@ -131,7 +131,7 @@ export async function completeProspectRun(
     ...extraMetadata,
   }
   await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .update({
       status: "completed",
       completed_at: new Date().toISOString(),
@@ -144,7 +144,7 @@ export async function completeProspectRun(
 
 export async function failProspectRun(runId: string, error: string): Promise<void> {
   await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .update({ status: "failed", completed_at: new Date().toISOString(), error, metadata: withFailedRunHealth() })
     .eq("id", runId)
 }

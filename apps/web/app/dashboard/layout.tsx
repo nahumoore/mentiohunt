@@ -329,7 +329,7 @@ export default async function DashboardLayout({
       // limit matches TRACKED_LINKS_MAX_PER_PRODUCT — the cap makes a full
       // fetch safe, no pagination needed for the list view.
       supabase
-        .from("tracked_links" as string)
+        .from("tracked_links")
         .select(
           "id, product_id, source_url, source_domain, expected_target_url, label, origin, status, issue_since, observed_href, observed_anchor_text, observed_rel, observed_http_status, last_checked_at, next_check_at, created_at"
         )

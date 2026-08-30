@@ -40,7 +40,7 @@ export async function checkTrackedLink(
   const diff = detectChanges({ link, product, result })
 
   const { error: updateError } = await supabaseAdmin
-    .from("tracked_links" as string)
+    .from("tracked_links")
     .update({
       status: diff.nextStatus,
       issue_since: diff.issueSince,
@@ -70,7 +70,7 @@ export async function checkTrackedLink(
 
   if (diff.events.length > 0) {
     const nowIso = new Date().toISOString()
-    const { error: eventsError } = await supabaseAdmin.from("tracked_link_events" as string).insert(
+    const { error: eventsError } = await supabaseAdmin.from("tracked_link_events").insert(
       diff.events.map((event) => ({
         tracked_link_id: link.id,
         product_id: link.product_id,
@@ -106,7 +106,7 @@ export async function checkTrackedLinkById(
   options: { forceDynamic?: boolean } = {}
 ): Promise<CheckTrackedLinkResult | null> {
   const { data: link, error: linkError } = await supabaseAdmin
-    .from("tracked_links" as string)
+    .from("tracked_links")
     .select("*")
     .eq("id", trackedLinkId)
     .single()

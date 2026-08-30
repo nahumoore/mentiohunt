@@ -7,7 +7,7 @@ const log = createLogger("resource-page-inclusion-run-history")
 
 export async function loadRunHistory(productId: string): Promise<RunHistory> {
   const { data, error } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("input, started_at, completed_at")
     .eq("product_id", productId)
     .eq("strategy", "resource_page_inclusion")

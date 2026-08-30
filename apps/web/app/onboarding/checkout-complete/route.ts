@@ -92,9 +92,6 @@ export async function GET(request: NextRequest) {
         }
       : {}),
     ...(pendingData?.userName ? { name: pendingData.userName } : {}),
-    ...(pendingData?.companySize ? { company_size: pendingData.companySize } : {}),
-    ...(pendingData?.role ? { role: pendingData.role } : {}),
-    ...(pendingData?.referralSource ? { referral_source: pendingData.referralSource } : {}),
   }
 
   const { error: updateProfileError } = await supabase
@@ -188,8 +185,8 @@ export async function GET(request: NextRequest) {
     // Setup cookie was missing or the DB write above failed — payment is
     // already confirmed (profile is updated above), so don't send a paying
     // customer back through checkout again. Fall back to an existing
-    // product if one's already there, otherwise just land them on the
-    // dashboard; there's nothing left to run discovery against.
+    // product if one's already there, otherwise just move them along;
+    // there's nothing left to run discovery against.
     const { data: existingProduct } = await supabase
       .from("products")
       .select("id")
@@ -202,7 +199,7 @@ export async function GET(request: NextRequest) {
 
   if (!productId) {
     console.error("No product available to start discovery for user:", user.id)
-    redirect("/dashboard/prospects?trial_started=1")
+    redirect("/onboarding/welcome")
   }
 
   await startDiscoveryJobs({
@@ -215,7 +212,7 @@ export async function GET(request: NextRequest) {
     console.error("Failed to reach the onboarding server:", error)
   })
 
-  redirect("/dashboard/prospects?trial_started=1")
+  redirect("/onboarding/welcome")
 }
 
 export const dynamic = "force-dynamic"

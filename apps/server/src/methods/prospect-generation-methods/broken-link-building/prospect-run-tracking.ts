@@ -13,7 +13,7 @@ const log = createLogger("broken-link-building-prospect-run")
  */
 export async function getLastCursor(productId: string, competitorDomain: string): Promise<string | null> {
   const { data } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("metadata")
     .eq("product_id", productId)
     .eq("strategy", "broken_link_building")
@@ -34,7 +34,7 @@ export async function selectCompetitorsForRun(
   maxCompetitors: number
 ): Promise<string[]> {
   const { data: recentRuns } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("input, completed_at")
     .eq("product_id", productId)
     .eq("strategy", "broken_link_building")
@@ -61,7 +61,7 @@ export async function selectCompetitorsForRun(
 
 export async function createProspectRun(productId: string, competitorDomains: string[]): Promise<string | null> {
   const { data, error } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .insert({
       product_id: productId,
       strategy: "broken_link_building",
@@ -92,7 +92,7 @@ export async function completeProspectRun(
     ...extraMetadata,
   }
   await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .update({
       status: "completed",
       completed_at: new Date().toISOString(),
@@ -105,7 +105,7 @@ export async function completeProspectRun(
 
 export async function failProspectRun(runId: string, error: string): Promise<void> {
   await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .update({ status: "failed", completed_at: new Date().toISOString(), error, metadata: withFailedRunHealth() })
     .eq("id", runId)
 }

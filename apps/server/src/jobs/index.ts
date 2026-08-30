@@ -1,6 +1,7 @@
 import cron from "node-cron"
 import { runDailyBacklinkDiscovery } from "./daily-backlink-discovery.js"
 import { runDailyLinkTracker } from "./daily-link-tracker.js"
+import { runDataRetentionCleanup } from "./data-retention-cleanup.js"
 import { deactivateExpiredFreeTrials } from "./deactivate-expired-free-trials.js"
 import { runFeedbackEmailSequence } from "./feedback-email-sequence.js"
 import { sendTrackedLinkDigests } from "./link-tracker-digest.js"
@@ -110,4 +111,16 @@ export function registerJobs(): void {
     }
   })
   console.log("[cron] Scheduled: scraper pool health monitor (every 2 minutes)")
+
+  // 04:15 UTC — the one clear gap between the 03:30 link tracker sweep and
+  // the 07:03 backlink discovery / 08:15 trial-deactivation runs. See
+  // todo/tickets/2026-08-26-outreach-events-route-logs-retention.md.
+  cron.schedule("15 4 * * *", async () => {
+    try {
+      await runDataRetentionCleanup()
+    } catch (err) {
+      console.error("[cron] Error running data retention cleanup:", err)
+    }
+  })
+  console.log("[cron] Scheduled: data retention cleanup, outreach_events + route_execution_logs (04:15 UTC)")
 }

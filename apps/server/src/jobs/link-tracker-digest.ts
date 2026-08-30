@@ -39,7 +39,7 @@ export async function sendTrackedLinkDigests(): Promise<void> {
   log.info("starting")
 
   const { data: events, error: eventsError } = await supabaseAdmin
-    .from("tracked_link_events" as string)
+    .from("tracked_link_events")
     .select("id, tracked_link_id, product_id, change_type, previous, current")
     .is("notified_at", null)
     .order("detected_at", { ascending: true })
@@ -58,7 +58,7 @@ export async function sendTrackedLinkDigests(): Promise<void> {
 
   const trackedLinkIds = [...new Set(rawEvents.map((e) => e.tracked_link_id))]
   const { data: links, error: linksError } = await supabaseAdmin
-    .from("tracked_links" as string)
+    .from("tracked_links")
     .select("id, source_url, label")
     .in("id", trackedLinkIds)
 
@@ -122,7 +122,7 @@ export async function sendTrackedLinkDigests(): Promise<void> {
 
     const userProductIds = [...new Set(userEvents.map((e) => e.product_id))]
     const { data: statusRows, error: statusError } = await supabaseAdmin
-      .from("tracked_links" as string)
+      .from("tracked_links")
       .select("status")
       .in("product_id", userProductIds)
 
@@ -164,7 +164,7 @@ export async function sendTrackedLinkDigests(): Promise<void> {
 
     const eventIds = userEvents.map((e) => e.id)
     const { error: stampError } = await supabaseAdmin
-      .from("tracked_link_events" as string)
+      .from("tracked_link_events")
       .update({ notified_at: new Date().toISOString() })
       .in("id", eventIds)
 

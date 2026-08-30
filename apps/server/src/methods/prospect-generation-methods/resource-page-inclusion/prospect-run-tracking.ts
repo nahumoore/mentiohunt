@@ -8,7 +8,7 @@ export async function createProspectRun(productId: string, input: unknown, dryRu
   if (dryRun) return null
 
   const { data, error } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .insert({
       product_id: productId,
       strategy: "resource_page_inclusion",
@@ -34,7 +34,7 @@ export async function completeProspectRun(
 ): Promise<void> {
   if (!runId) return
   await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .update({
       status: "completed",
       completed_at: new Date().toISOString(),
@@ -48,7 +48,7 @@ export async function completeProspectRun(
 export async function failProspectRun(runId: string | null, error: string): Promise<void> {
   if (!runId) return
   await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .update({ status: "failed", completed_at: new Date().toISOString(), error, metadata: withFailedRunHealth() })
     .eq("id", runId)
 }

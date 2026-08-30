@@ -214,7 +214,7 @@ async function selectStrategyForRun(
   enabled: RotationStrategy[]
 ): Promise<RotationStrategy | null> {
   const { data: runs, error } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("strategy, started_at, status, prospects_created, metadata, error")
     .eq("product_id", product.id)
     .in("strategy", enabled)
@@ -251,7 +251,7 @@ async function loadStrategyHistory(
   enabled: RotationStrategy[]
 ): Promise<RotationHistoryRun[]> {
   const { data, error } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("strategy, started_at, status, prospects_created, cost_usd, metadata, error")
     .eq("product_id", productId)
     .in("strategy", enabled)

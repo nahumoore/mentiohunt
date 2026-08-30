@@ -35,16 +35,16 @@ export const useOnboardingStore = create<OnboardingStore>()(
     }),
     {
       name: "mentions-onboarding-progress",
-      // v4: added the optional paywall as an 8th step (index 7). No
-      // OnboardingData shape change, so migrate just carries state forward.
-      // Existing accounts clamp a stale paywall index back to Launch.
-      version: 4,
+      // v5: removed the company/role/referral-source step (was index 1) —
+      // that question now lives on its own page after checkout, see
+      // app/onboarding/welcome. Steps at index >= 2 shift down by one.
+      version: 5,
       partialize: (state) => ({
         currentStep: state.currentStep,
         isCompleted: state.isCompleted,
         data: state.data,
       }),
-      migrate: (persisted) => {
+      migrate: (persisted, version) => {
         const state = persisted as {
           currentStep?: number
           isCompleted?: boolean
@@ -53,6 +53,9 @@ export const useOnboardingStore = create<OnboardingStore>()(
         const rest = { ...(state.data ?? {}) }
         delete rest.resourceMode
         delete rest.resourceUrls
+        delete rest.companySize
+        delete rest.role
+        delete rest.referralSource
 
         // The keyword cap dropped from 10 to 5 (array order is now
         // priority). Truncate instead of wiping, so anyone mid-onboarding
@@ -61,8 +64,11 @@ export const useOnboardingStore = create<OnboardingStore>()(
           ? (rest.targetKeywords as string[]).slice(0, MAX_TARGET_KEYWORDS)
           : []
 
+        const oldStep = state.currentStep ?? 0
+        const currentStep = version < 5 && oldStep >= 2 ? oldStep - 1 : oldStep
+
         return {
-          currentStep: state.currentStep ?? 0,
+          currentStep,
           isCompleted: state.isCompleted ?? false,
           data: {
             ...INITIAL_ONBOARDING_DATA,

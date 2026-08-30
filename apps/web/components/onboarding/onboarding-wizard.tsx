@@ -6,7 +6,6 @@ import { useOnboardingStore } from "@/stores/onboarding-store"
 import {
   IconArrowLeft,
   IconArrowRight,
-  IconBuilding,
   IconFiles,
   IconLoader2,
   IconPackage,
@@ -21,7 +20,6 @@ import { useEffect, useState } from "react"
 
 import { stripeBuyPlanRedirect } from "@/actions/stripe-buy-plan-redirect"
 import { OnboardingShell } from "@/components/onboarding/onboarding-shell"
-import { StepCompany } from "@/components/onboarding/step-company"
 import { StepKeywords } from "@/components/onboarding/step-keywords"
 import { StepCompetitors } from "@/components/onboarding/step-competitors"
 import { StepImportantPages } from "@/components/onboarding/step-important-pages"
@@ -33,7 +31,6 @@ import {
   INITIAL_ONBOARDING_DATA,
   ONBOARDING_STEPS,
   competitorsStepSchema,
-  companyStepSchema,
   keywordsStepSchema,
   normalizeKeyword,
   normalizeCompetitorUrl,
@@ -331,15 +328,6 @@ export function OnboardingWizard({
     const nextErrors: OnboardingFieldErrors = {}
 
     if (step === 1) {
-      const companyResult = companyStepSchema.safeParse(normalizedData)
-      if (!companyResult.success) {
-        const issue = companyResult.error.issues[0]
-        const field = issue?.path[0] as OnboardingField | undefined
-        if (field && issue) nextErrors[field] = issue.message
-      }
-    }
-
-    if (step === 2) {
       const productResult = productDescriptionStepSchema.safeParse(normalizedData)
       if (!productResult.success) {
         const issue = productResult.error.issues[0]
@@ -348,7 +336,7 @@ export function OnboardingWizard({
       }
     }
 
-    if (step === 3) {
+    if (step === 2) {
       const competitorsResult = competitorsStepSchema.safeParse(normalizedData)
       if (!competitorsResult.success) {
         const issue = competitorsResult.error.issues[0]
@@ -357,7 +345,7 @@ export function OnboardingWizard({
       }
     }
 
-    if (step === 4) {
+    if (step === 3) {
       const keywordsResult = keywordsStepSchema.safeParse(normalizedData)
       if (!keywordsResult.success) {
         const issue = keywordsResult.error.issues[0]
@@ -366,7 +354,7 @@ export function OnboardingWizard({
       }
     }
 
-    if (step === 5) {
+    if (step === 4) {
       const message = validateImportantPages(normalizedData)
       if (message) nextErrors.importantPages = message
     }
@@ -383,17 +371,11 @@ export function OnboardingWizard({
 
   const nextStep = () => {
     if (!validateStep(currentStep)) return
-    const stepNames = ["url", "company", "product", "competitors", "keywords", "pages"] as const
+    const stepNames = ["url", "product", "competitors", "keywords", "pages"] as const
     captureEvent("onboarding_step_completed", {
       step: stepNames[currentStep] ?? String(currentStep),
       step_index: currentStep,
     })
-    if (currentStep === 1) {
-      captureEvent("onboarding_company_submitted", {
-        company_size: safeData.companySize,
-        role: safeData.role,
-      })
-    }
     setCurrentStep(Math.min(currentStep + 1, maxStepIndex))
     setSubmitMessage("")
   }
@@ -418,7 +400,7 @@ export function OnboardingWizard({
       const firstIssue = result.error.issues[0]
       const field = firstIssue?.path[0] as OnboardingField | undefined
       if (field && firstIssue) setFieldErrors({ [field]: firstIssue.message })
-      setCurrentStep(2)
+      setCurrentStep(1)
       setSubmitMessage("Review the highlighted setup before launching.")
       return
     }
@@ -470,7 +452,7 @@ export function OnboardingWizard({
   // shows there directly, with no "Launch"/review step in between.
   const isPaywallStep = currentStep === lastStepIndex + 1
 
-  const stepIcons = [null, IconBuilding, IconPackage, IconSwords, IconSearch, IconFiles]
+  const stepIcons = [null, IconPackage, IconSwords, IconSearch, IconFiles]
   const StepIcon = stepIcons[currentStep] ?? null
 
   return (
@@ -518,13 +500,6 @@ export function OnboardingWizard({
 
           <div className="mt-8 space-y-6">
             {currentStep === 1 && (
-              <StepCompany
-                data={safeData}
-                errors={fieldErrors}
-                updateField={updateField}
-              />
-            )}
-            {currentStep === 2 && (
               <StepProduct
                 data={safeData}
                 errors={fieldErrors}
@@ -532,7 +507,7 @@ export function OnboardingWizard({
                 updateField={updateField}
               />
             )}
-            {currentStep === 3 && (
+            {currentStep === 2 && (
               <StepCompetitors
                 data={safeData}
                 errors={fieldErrors}
@@ -540,7 +515,7 @@ export function OnboardingWizard({
                 updateField={updateField}
               />
             )}
-            {currentStep === 4 && (
+            {currentStep === 3 && (
               <StepKeywords
                 data={safeData}
                 errors={fieldErrors}
@@ -548,7 +523,7 @@ export function OnboardingWizard({
                 updateField={updateField}
               />
             )}
-            {currentStep === 5 && (
+            {currentStep === 4 && (
               <StepImportantPages
                 data={safeData}
                 errors={fieldErrors}

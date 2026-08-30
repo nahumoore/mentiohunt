@@ -9,11 +9,6 @@ export const ONBOARDING_STEPS = [
       "Enter your URL and we'll help you discover opportunities for your product.",
   },
   {
-    title: "Tell us about your company",
-    description:
-      "This helps us tailor your opportunities and reply suggestions.",
-  },
-  {
     title: "Your product",
     description:
       "Review your product name and description. Edit anything that looks off.",
@@ -35,28 +30,39 @@ export const ONBOARDING_STEPS = [
   },
 ] as const
 
-export const COMPANY_SIZES = [
-  "1-10",
-  "11-50",
-  "51-200",
-  "201-1000",
-  "1000+",
+/**
+ * Post-checkout "how did you find us" options. `id` is the stable value the
+ * form and the schema pass around; `label` is what we store on the profile so
+ * the column stays readable next to the older free-text rows. `domain` renders
+ * a real favicon — options without one fall back to a Tabler icon in the form.
+ */
+export const REFERRAL_SOURCE_OPTIONS = [
+  { id: "google", label: "Google Search", domain: "google.com" },
+  { id: "chatgpt", label: "ChatGPT", domain: "chatgpt.com" },
+  { id: "x", label: "X / Twitter", domain: "x.com" },
+  { id: "reddit", label: "Reddit", domain: "reddit.com" },
+  { id: "linkedin", label: "LinkedIn", domain: "linkedin.com" },
+  { id: "youtube", label: "YouTube", domain: "youtube.com" },
+  { id: "product_hunt", label: "Product Hunt", domain: "producthunt.com" },
+  { id: "indie_hackers", label: "Indie Hackers", domain: "indiehackers.com" },
+  { id: "hacker_news", label: "Hacker News", domain: "news.ycombinator.com" },
+  { id: "newsletter", label: "A newsletter", domain: null },
+  { id: "podcast", label: "A podcast", domain: null },
+  { id: "friend", label: "A friend told me", domain: null },
+  { id: "blog", label: "A blog post", domain: null },
+  { id: "other", label: "Somewhere else", domain: null },
 ] as const
-export const USER_ROLES = [
-  "Founder",
-  "Marketing",
-  "Growth",
-  "Engineering",
-  "Other",
-] as const
-export const REFERRAL_SOURCES = [
-  "X/Twitter",
-  "Google Search",
-  "Reddit",
-  "Referral",
-  "LinkedIn",
-  "Other",
-] as const
+
+export type ReferralSourceId = (typeof REFERRAL_SOURCE_OPTIONS)[number]["id"]
+
+// z.enum needs a non-empty tuple, which .map() can't produce on its own.
+export const REFERRAL_SOURCES = REFERRAL_SOURCE_OPTIONS.map(
+  (option) => option.id
+) as unknown as [ReferralSourceId, ...ReferralSourceId[]]
+
+export const REFERRAL_SOURCE_LABELS = Object.fromEntries(
+  REFERRAL_SOURCE_OPTIONS.map((option) => [option.id, option.label])
+) as Record<ReferralSourceId, string>
 
 export const OPPORTUNITY_TYPE_IDS = [
   "competitor_backlinks",
@@ -103,9 +109,6 @@ export type OnboardingData = {
   importantPages: string[]
   autoDiscoverPages: boolean
   userName: string
-  companySize: string
-  role: string
-  referralSource: string
 }
 
 export type OnboardingField = keyof OnboardingData
@@ -124,9 +127,6 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   importantPages: [],
   autoDiscoverPages: true,
   userName: "",
-  companySize: "",
-  role: "",
-  referralSource: "",
 }
 
 const URL_PROTOCOL_PATTERN = /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//
@@ -282,10 +282,11 @@ export const userNameStepSchema = z.object({
   userName: z.string().trim().max(80).optional().default(""),
 })
 
-export const companyStepSchema = z.object({
-  companySize: z.string().trim().min(1, "Select your company size."),
-  role: z.string().trim().min(1, "Select your role."),
-  referralSource: z.string().trim().optional().default(""),
+// Asked on its own page after checkout (see app/onboarding/welcome), not
+// during the wizard — see referral-source-form.tsx.
+export const referralSourceSchema = z.object({
+  referralSource: z.enum(REFERRAL_SOURCES),
+  referralDetail: z.string().trim().max(140).optional().default(""),
 })
 
 const keywordSchema = z
@@ -388,5 +389,4 @@ export const onboardingSchema = websiteUrlStepSchema
   .merge(opportunityTypesStepSchema)
   .merge(keywordsStepSchema)
   .merge(userNameStepSchema)
-  .merge(companyStepSchema)
   .merge(importantPagesStepSchema)

@@ -231,19 +231,19 @@ All events fire via `captureEvent()` in `apps/web/lib/analytics.ts`, which forwa
 **Source:** `components/onboarding/onboarding-wizard.tsx`  
 | Prop | Type | Description |
 |------|------|-------------|
-| `step` | `"url" \| "company" \| "product" \| "competitors" \| "audience" \| "launch"` | Step name |
+| `step` | `"url" \| "product" \| "competitors" \| "keywords" \| "pages"` | Step name |
 | `step_index` | `number` | 0-based step index |
 
 ---
 
-### `onboarding_company_submitted`
+### `referral_source_submitted`
 
-**Source:** `components/onboarding/onboarding-wizard.tsx`  
-Fires alongside `onboarding_step_completed` when completing step 1 (company).  
+**Source:** `components/onboarding/referral-source-form.tsx`  
+Fires on `/onboarding/welcome`, the dedicated post-checkout page that replaced the old company/role/referral-source wizard step.  
 | Prop | Type | Description |
 |------|------|-------------|
-| `company_size` | `string` | Selected company size |
-| `role` | `string` | User's role |
+| `source` | `string` | Selected referral source |
+| `has_detail` | `boolean` | Whether the optional free-text detail was filled in |
 
 ---
 

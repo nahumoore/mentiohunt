@@ -18,6 +18,7 @@ import {
   IconConfetti,
   IconDots,
   IconExternalLink,
+  IconFlag,
   IconLoader2,
   IconMail,
   IconMailCheck,
@@ -68,6 +69,7 @@ import { SequenceStoppedNotice } from "@/components/prospects/sequence-stopped-n
 import { ReplyViaMailboxNotice } from "@/components/prospects/reply-via-mailbox-notice"
 import { ReplyComposer } from "@/components/prospects/reply-composer"
 import { ManualCompletionForm } from "@/components/link-building/prospects/manual-completion-form"
+import { OpportunityReportIssueDialog } from "@/components/link-building/prospects/prospect-report-issue-dialog"
 import { SignatureBlockPreview } from "@/components/link-building/sources/signature-block-preview"
 import { useOutreachSettingsStore } from "@/stores/outreach-settings-store"
 
@@ -636,6 +638,7 @@ export function ProspectClientPage({
   >(null)
   const [isApprovingSend, setIsApprovingSend] = useState(false)
   const [pauseModalOpen, setPauseModalOpen] = useState(false)
+  const [reportIssueOpen, setReportIssueOpen] = useState(false)
   const [activeEmailIdx, setActiveEmailIdx] = useState(() => {
     const now = Date.now()
     const pending = sequences.findIndex((seq) => {
@@ -922,6 +925,10 @@ export function ProspectClientPage({
                       Pause sequence
                     </DropdownMenuItem>
                   )}
+                <DropdownMenuItem onSelect={() => setReportIssueOpen(true)}>
+                  <IconFlag className="size-4" />
+                  Report issue
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -1180,6 +1187,13 @@ export function ProspectClientPage({
                 )}
             </>
           )}
+
+          <OpportunityReportIssueDialog
+            prospectId={current.id}
+            domain={current.domain}
+            open={reportIssueOpen}
+            onOpenChange={setReportIssueOpen}
+          />
 
           <Dialog open={pauseModalOpen} onOpenChange={setPauseModalOpen}>
             <DialogContent>

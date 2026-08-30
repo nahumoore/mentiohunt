@@ -22,7 +22,7 @@ export async function selectQueriesForRun(
   if (poolSize === 0) return []
 
   const { count } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("id", { count: "exact", head: true })
     .eq("product_id", productId)
     .eq("strategy", "unlinked_mention")
@@ -36,7 +36,7 @@ export async function selectQueriesForRun(
 /** Date (YYYY-MM-DD) of the most recent completed run, for the `after:` freshness query. */
 export async function getLastCompletedRunDate(productId: string): Promise<string | null> {
   const { data } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("completed_at")
     .eq("product_id", productId)
     .eq("strategy", "unlinked_mention")
@@ -55,7 +55,7 @@ export async function createProspectRun(
   queries: string[]
 ): Promise<string | null> {
   const { data, error } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .insert({
       product_id: productId,
       strategy: "unlinked_mention",
@@ -79,7 +79,7 @@ export async function completeProspectRun(
   metadata?: Record<string, unknown>
 ): Promise<void> {
   await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .update({
       status: "completed",
       completed_at: new Date().toISOString(),
@@ -92,7 +92,7 @@ export async function completeProspectRun(
 
 export async function failProspectRun(runId: string, error: string): Promise<void> {
   await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .update({ status: "failed", completed_at: new Date().toISOString(), error, metadata: withFailedRunHealth() })
     .eq("id", runId)
 }

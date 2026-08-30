@@ -26,6 +26,7 @@ export const EVENTS = {
   ONBOARDING_AI_GENERATED: "onboarding_ai_generated",
   ONBOARDING_COMPLETED: "onboarding_completed",
   ONBOARDING_FAILED: "onboarding_failed",
+  REFERRAL_SOURCE_SUBMITTED: "referral_source_submitted",
 
   // Activation — how a new user gets from "signed up" to "understands this"
   WALKTHROUGH_SHOWN: "walkthrough_shown",

@@ -133,7 +133,7 @@ export async function POST(request: Request) {
   let candidates = validated.filter((row): row is ValidatedRow => row !== null)
 
   const { count: existingCount } = await supabase
-    .from("tracked_links" as string)
+    .from("tracked_links")
     .select("id", { count: "exact", head: true })
     .eq("product_id", product.id)
 
@@ -151,7 +151,7 @@ export async function POST(request: Request) {
   }
 
   const { data: inserted, error: insertError } = await supabase
-    .from("tracked_links" as string)
+    .from("tracked_links")
     .upsert(
       candidates.map((row) => ({
         product_id: product.id,

@@ -17,7 +17,7 @@ export async function selectQueriesForRun(
   weightByQuery: Map<string, number> = new Map()
 ): Promise<string[]> {
   const { data: recentRuns } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .select("input, completed_at")
     .eq("product_id", productId)
     .eq("strategy", "listicle_roundup")
@@ -48,7 +48,7 @@ export async function selectQueriesForRun(
 
 export async function createProspectRun(productId: string, queries: string[]): Promise<string | null> {
   const { data, error } = await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .insert({
       product_id: productId,
       strategy: "listicle_roundup",
@@ -72,7 +72,7 @@ export async function completeProspectRun(
   metadata?: Record<string, unknown>
 ): Promise<void> {
   await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .update({
       status: "completed",
       completed_at: new Date().toISOString(),
@@ -85,7 +85,7 @@ export async function completeProspectRun(
 
 export async function failProspectRun(runId: string, error: string): Promise<void> {
   await supabaseAdmin
-    .from("backlink_prospect_runs" as string)
+    .from("backlink_prospect_runs")
     .update({ status: "failed", completed_at: new Date().toISOString(), error, metadata: withFailedRunHealth() })
     .eq("id", runId)
 }

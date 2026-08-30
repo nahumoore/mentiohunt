@@ -268,96 +268,6 @@ export type Database = {
           },
         ]
       }
-      discovery_candidates: {
-        Row: {
-          attempt_count: number
-          candidate_key: string
-          claimed_at: string | null
-          discovered_at: string
-          domain: string
-          id: string
-          last_error: string | null
-          last_seen_at: string
-          metadata: Json
-          next_attempt_at: string | null
-          priority_score: number
-          processed_at: string | null
-          product_id: string
-          query: string | null
-          snippet: string
-          source: Database["public"]["Enums"]["prospect_tier"]
-          state: string
-          target_page_id: string | null
-          target_url: string | null
-          terminal_reason: string | null
-          title: string
-          url: string
-        }
-        Insert: {
-          attempt_count?: number
-          candidate_key: string
-          claimed_at?: string | null
-          discovered_at?: string
-          domain: string
-          id?: string
-          last_error?: string | null
-          last_seen_at?: string
-          metadata?: Json
-          next_attempt_at?: string | null
-          priority_score?: number
-          processed_at?: string | null
-          product_id: string
-          query?: string | null
-          snippet?: string
-          source: Database["public"]["Enums"]["prospect_tier"]
-          state?: string
-          target_page_id?: string | null
-          target_url?: string | null
-          terminal_reason?: string | null
-          title?: string
-          url: string
-        }
-        Update: {
-          attempt_count?: number
-          candidate_key?: string
-          claimed_at?: string | null
-          discovered_at?: string
-          domain?: string
-          id?: string
-          last_error?: string | null
-          last_seen_at?: string
-          metadata?: Json
-          next_attempt_at?: string | null
-          priority_score?: number
-          processed_at?: string | null
-          product_id?: string
-          query?: string | null
-          snippet?: string
-          source?: Database["public"]["Enums"]["prospect_tier"]
-          state?: string
-          target_page_id?: string | null
-          target_url?: string | null
-          terminal_reason?: string | null
-          title?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "discovery_candidates_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "discovery_candidates_target_page_id_fkey"
-            columns: ["target_page_id"]
-            isOneToOne: false
-            referencedRelation: "product_pages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       daily_discovery_summaries: {
         Row: {
           completed_at: string | null
@@ -503,6 +413,96 @@ export type Database = {
           submit_url_verified_at?: string | null
         }
         Relationships: []
+      }
+      discovery_candidates: {
+        Row: {
+          attempt_count: number
+          candidate_key: string
+          claimed_at: string | null
+          discovered_at: string
+          domain: string
+          id: string
+          last_error: string | null
+          last_seen_at: string
+          metadata: Json
+          next_attempt_at: string | null
+          priority_score: number
+          processed_at: string | null
+          product_id: string
+          query: string | null
+          snippet: string
+          source: Database["public"]["Enums"]["prospect_tier"]
+          state: string
+          target_page_id: string | null
+          target_url: string | null
+          terminal_reason: string | null
+          title: string
+          url: string
+        }
+        Insert: {
+          attempt_count?: number
+          candidate_key: string
+          claimed_at?: string | null
+          discovered_at?: string
+          domain: string
+          id?: string
+          last_error?: string | null
+          last_seen_at?: string
+          metadata?: Json
+          next_attempt_at?: string | null
+          priority_score?: number
+          processed_at?: string | null
+          product_id: string
+          query?: string | null
+          snippet?: string
+          source: Database["public"]["Enums"]["prospect_tier"]
+          state?: string
+          target_page_id?: string | null
+          target_url?: string | null
+          terminal_reason?: string | null
+          title?: string
+          url: string
+        }
+        Update: {
+          attempt_count?: number
+          candidate_key?: string
+          claimed_at?: string | null
+          discovered_at?: string
+          domain?: string
+          id?: string
+          last_error?: string | null
+          last_seen_at?: string
+          metadata?: Json
+          next_attempt_at?: string | null
+          priority_score?: number
+          processed_at?: string | null
+          product_id?: string
+          query?: string | null
+          snippet?: string
+          source?: Database["public"]["Enums"]["prospect_tier"]
+          state?: string
+          target_page_id?: string | null
+          target_url?: string | null
+          terminal_reason?: string | null
+          title?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_candidates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_candidates_target_page_id_fkey"
+            columns: ["target_page_id"]
+            isOneToOne: false
+            referencedRelation: "product_pages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_account_mailbox_syncs: {
         Row: {
@@ -1023,7 +1023,6 @@ export type Database = {
           active_trial: boolean
           billing_period_end_at: string
           billing_period_start_at: string
-          company_size: string | null
           created_at: string
           deactivated_at: string | null
           email: string
@@ -1034,7 +1033,6 @@ export type Database = {
           onboarding_completed: boolean
           outreach_paused_at: string | null
           referral_source: string | null
-          role: string | null
           stripe_customer_id: string | null
           tier: Database["public"]["Enums"]["billing_tier"]
           updated_at: string
@@ -1044,7 +1042,6 @@ export type Database = {
           active_trial?: boolean
           billing_period_end_at: string
           billing_period_start_at: string
-          company_size?: string | null
           created_at?: string
           deactivated_at?: string | null
           email: string
@@ -1055,7 +1052,6 @@ export type Database = {
           onboarding_completed?: boolean
           outreach_paused_at?: string | null
           referral_source?: string | null
-          role?: string | null
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string
@@ -1065,7 +1061,6 @@ export type Database = {
           active_trial?: boolean
           billing_period_end_at?: string
           billing_period_start_at?: string
-          company_size?: string | null
           created_at?: string
           deactivated_at?: string | null
           email?: string
@@ -1076,7 +1071,6 @@ export type Database = {
           onboarding_completed?: boolean
           outreach_paused_at?: string | null
           referral_source?: string | null
-          role?: string | null
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
           updated_at?: string
@@ -1628,16 +1622,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      claim_discovery_candidates: {
-        Args: {
-          p_limit: number
-          p_max_attempts?: number
-          p_product_id: string
-          p_source: Database["public"]["Enums"]["prospect_tier"]
-          p_stale_after_seconds?: number
-        }
-        Returns: Json
-      }
       claim_daily_discovery_execution: {
         Args: {
           p_product_id: string
@@ -1648,11 +1632,21 @@ export type Database = {
         Returns: {
           claimed: boolean
           enrichment_attempts: number
-          execution_token: string | null
+          execution_token: string
           ready_count: number
           summary_id: string
           total_cost_usd: number
         }[]
+      }
+      claim_discovery_candidates: {
+        Args: {
+          p_limit: number
+          p_max_attempts?: number
+          p_product_id: string
+          p_source: Database["public"]["Enums"]["prospect_tier"]
+          p_stale_after_seconds?: number
+        }
+        Returns: Json
       }
       claim_prospect_outreach_sequence: {
         Args: { p_sequence_id: string; p_spacing_seconds?: number }
@@ -1688,10 +1682,6 @@ export type Database = {
         Args: { p_ids: string[] }
         Returns: Json
       }
-      merge_discovery_status: {
-        Args: { p_product_id: string; p_updates: Json }
-        Returns: undefined
-      }
       count_daily_send_ready_opportunities: {
         Args: { p_product_id: string; p_quota_date: string }
         Returns: number
@@ -1711,20 +1701,12 @@ export type Database = {
         }
         Returns: boolean
       }
-      retry_discovery_candidates: {
-        Args: {
-          p_ids: string[]
-          p_max_attempts?: number
-          p_reason: string
-        }
-        Returns: Json
+      merge_discovery_status: {
+        Args: { p_product_id: string; p_updates: Json }
+        Returns: undefined
       }
-      store_discovery_candidates: {
-        Args: {
-          p_candidates: Json
-          p_product_id: string
-          p_source: Database["public"]["Enums"]["prospect_tier"]
-        }
+      retry_discovery_candidates: {
+        Args: { p_ids: string[]; p_max_attempts?: number; p_reason: string }
         Returns: Json
       }
       stop_prospect_outreach: {
@@ -1740,6 +1722,14 @@ export type Database = {
           p_suppress?: boolean
         }
         Returns: undefined
+      }
+      store_discovery_candidates: {
+        Args: {
+          p_candidates: Json
+          p_product_id: string
+          p_source: Database["public"]["Enums"]["prospect_tier"]
+        }
+        Returns: Json
       }
     }
     Enums: {

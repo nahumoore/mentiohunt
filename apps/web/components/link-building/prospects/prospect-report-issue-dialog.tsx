@@ -2,7 +2,6 @@
 
 import {
   IconCircleCheck,
-  IconFlag,
   IconLoader2,
   IconSend,
 } from "@tabler/icons-react"
@@ -15,19 +14,21 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-  DialogTrigger,
 } from "@workspace/ui/components/dialog"
 
 type OpportunityReportIssueDialogProps = {
   prospectId: string
   domain: string | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 export function OpportunityReportIssueDialog({
   prospectId,
   domain,
+  open,
+  onOpenChange,
 }: OpportunityReportIssueDialogProps) {
-  const [open, setOpen] = useState(false)
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -71,7 +72,7 @@ export function OpportunityReportIssueDialog({
   }
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen)
+    onOpenChange(nextOpen)
 
     if (nextOpen) {
       captureEvent("opportunity_issue_report_opened", {
@@ -90,16 +91,6 @@ export function OpportunityReportIssueDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <IconFlag className="size-4" />
-          Report issue
-        </Button>
-      </DialogTrigger>
       <DialogContent>
         <DialogTitle>Report an issue</DialogTitle>
         <DialogDescription>
@@ -113,7 +104,11 @@ export function OpportunityReportIssueDialog({
             <p className="text-sm text-muted-foreground">
               Thanks. We&apos;ll review this opportunity and debug the pipeline.
             </p>
-            <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+            >
               Close
             </Button>
           </div>
@@ -127,7 +122,11 @@ export function OpportunityReportIssueDialog({
             />
             {error && <p className="text-xs text-destructive">{error}</p>}
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button

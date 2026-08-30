@@ -35,7 +35,7 @@ export async function runDailyLinkTracker(options?: {
   log.info("starting", { mode, productId: options?.productId, skipEligibilityCheck: !!options?.skipEligibilityCheck })
 
   let query = supabaseAdmin
-    .from("tracked_links" as string)
+    .from("tracked_links")
     .select("*")
     .lte("next_check_at", new Date().toISOString())
     .order("next_check_at", { ascending: true })

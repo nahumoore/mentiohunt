@@ -92,7 +92,7 @@ export async function POST(request: Request) {
   }
 
   const { count: trackedCount } = await supabase
-    .from("tracked_links" as string)
+    .from("tracked_links")
     .select("id", { count: "exact", head: true })
     .eq("product_id", product.id)
 
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
   }
 
   const { data: existing } = await supabase
-    .from("tracked_links" as string)
+    .from("tracked_links")
     .select("id")
     .eq("product_id", product.id)
     .eq("source_url", sourceUrl)
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
   }
 
   const { data: inserted, error: insertError } = await supabase
-    .from("tracked_links" as string)
+    .from("tracked_links")
     .insert({
       product_id: product.id,
       source_url: sourceUrl,
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
   if (insertError || !inserted) {
     if (insertError?.code === "23505") {
       const { data: raced } = await supabase
-        .from("tracked_links" as string)
+        .from("tracked_links")
         .select("id")
         .eq("product_id", product.id)
         .eq("source_url", sourceUrl)
@@ -186,7 +186,7 @@ export async function DELETE(request: Request) {
   }
 
   const { error: deleteError } = await supabase
-    .from("tracked_links" as string)
+    .from("tracked_links")
     .delete()
     .eq("id", id)
     .eq("product_id", product.id)

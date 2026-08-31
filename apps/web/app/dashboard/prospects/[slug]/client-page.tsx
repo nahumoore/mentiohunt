@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -32,6 +32,7 @@ import {
   IconTrophy,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
+import { Confetti, type ConfettiRef } from "@workspace/ui/components/confetti"
 import type { Json } from "@workspace/supabase/database-types"
 
 import {
@@ -164,8 +165,30 @@ function WonBadge({
   domain: string | null
   domainRating: number | null
 }) {
+  const confettiRef = useRef<ConfettiRef>(null)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void confettiRef.current?.fire({
+        particleCount: 150,
+        spread: 78,
+        startVelocity: 32,
+        scalar: 0.95,
+        origin: { y: 0.5 },
+        colors: ["#22c55e", "#4ade80", "#fbbf24", "#ff8a00", "#ffffff"],
+      })
+    }, 80)
+    return () => window.clearTimeout(timer)
+  }, [])
+
   return (
     <div className="flex flex-col items-center py-14">
+      <Confetti
+        ref={confettiRef}
+        manualstart
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-[60] size-full"
+      />
       <div className="relative flex w-full max-w-lg flex-col items-center overflow-hidden rounded-3xl border border-green-500/20 bg-gradient-to-b from-green-500/10 via-background to-background px-12 py-16 text-center shadow-sm">
         <IconConfetti className="absolute -top-4 -left-4 size-20 rotate-[-12deg] text-green-500/20" />
         <IconConfetti className="absolute -right-4 -bottom-4 size-20 rotate-[15deg] text-green-500/20" />
@@ -831,7 +854,11 @@ export function ProspectClientPage({
       )
       if (res.ok) {
         updateProspectStatuses([current.id], status)
-        router.push("/dashboard/prospects")
+        if (status === "won") {
+          router.refresh()
+        } else {
+          router.push("/dashboard/prospects")
+        }
       }
     } finally {
       setStatusLoading(null)

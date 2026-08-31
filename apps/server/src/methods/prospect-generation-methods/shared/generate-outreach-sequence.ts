@@ -267,13 +267,13 @@ Email 3, final outreach:
   try {
     return await withLlmRetries(log, async () => {
       log.info("llm request", {
-        model: OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5,
+        model: OPENROUTER_MODELS.OPENAI_GPT_5_6_LUNA,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
         systemInstructions,
         input: "Draft the outreach subject line and all 3 emails.",
       })
       const { text, cost, modelUsed } = await generateTextWithUsage({
-        model: OPENROUTER_MODELS.ANTHROPIC_CLAUDE_HAIKU_4_5,
+        model: OPENROUTER_MODELS.OPENAI_GPT_5_6_LUNA,
         fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
         systemInstructions,
         input: "Draft the outreach subject line and all 3 emails.",

@@ -201,8 +201,23 @@ _INFRA_FAILURE = object()
 # Every concurrent caller hits this identically until the session is replaced,
 # so it's a distinct sentinel from a plain fetch error: the caller should
 # restart the shared session (once, not once per caller) and retry.
+# Two message shapes seen for the same underlying failure (the browser
+# *process* itself is gone, not just one page) — "context or browser has been
+# closed" is Playwright's own error after that; "unable to perform operation"
+# (on a closed pipe transport) is asyncio's, surfacing when a call races the
+# process dying underneath it.
 _CONTEXT_DEAD = object()
-_CONTEXT_DEAD_SIGNATURE = "context or browser has been closed"
+_CONTEXT_DEAD_SIGNATURES = ("context or browser has been closed", "unable to perform operation")
+
+# A single page's render process crashed ("Target crashed") — Playwright
+# scopes this to that one page, not the shared browser/context (scrapling's
+# _page_generator closes and evicts just the crashed page from its pool; see
+# venv scrapling/engines/_browsers/_base.py:370-404). Cheaper than a full
+# _CONTEXT_DEAD restart, which would tear down the shared context — and any
+# other concurrent stealthy fetch on it (_STEALTHY_CONCURRENCY=3) — over a
+# failure that only killed one tab. Retry once with a fresh page instead,
+# same shape as the nav-race retry below.
+_PAGE_CRASH_SIGNATURE = "target crashed"
 
 # Playwright's Page.content() raced an in-flight client-side navigation
 # (redirect-heavy publishers — Wiley DOI resolver, ScienceDirect, UNECE —
@@ -699,14 +714,16 @@ class FetchOutcome:
 
 
 async def _stealthy_attempt_detailed(url: str, host: str, proxy: dict[str, str] | None) -> "FetchOutcome | object":
-    """One stealthy (Camoufox) fetch, retried once after a short settle wait
-    if content-read races an in-flight navigation (_NAV_RACE_SIGNATURE).
-    Returns a FetchOutcome, or the _INFRA_FAILURE / _CONTEXT_DEAD sentinels
-    (unchanged from before this refactor) when a proxy is unreachable or the
-    shared browser context died — both signal the caller to retry rather than
-    give up on this URL."""
+    """One stealthy (Camoufox) fetch, retried once (shared budget) after a
+    short settle wait if content-read races an in-flight navigation
+    (_NAV_RACE_SIGNATURE), or immediately with a fresh page if this page's
+    render process crashed (_PAGE_CRASH_SIGNATURE — scoped to this page, the
+    shared context is unaffected). Returns a FetchOutcome, or the
+    _INFRA_FAILURE / _CONTEXT_DEAD sentinels (unchanged from before this
+    refactor) when a proxy is unreachable or the shared browser context
+    died — both signal the caller to retry rather than give up on this URL."""
     via = "proxy" if proxy else "direct"
-    for nav_race_attempt in range(2):
+    for attempt in range(2):
         try:
             # Only pass proxy= when set, so the no-proxy path stays byte-identical
             # to the original direct call.
@@ -742,15 +759,22 @@ async def _stealthy_attempt_detailed(url: str, host: str, proxy: dict[str, str] 
             return FetchOutcome(page=page, outcome="ok", status_code=stealthy_status, final_url=stealthy_url)
         except Exception as e:
             msg = str(e)
-            if _CONTEXT_DEAD_SIGNATURE in msg.lower():
+            lower_msg = msg.lower()
+            if any(sig in lower_msg for sig in _CONTEXT_DEAD_SIGNATURES):
                 log.error(f"stealthy ({via}): shared browser context dead {url}: {e}")
                 log.info(f"fetch_outcome=context_dead via={via} host={host} url={url}")
                 return _CONTEXT_DEAD
-            if proxy and any(sig.lower() in msg.lower() for sig in _PROXY_INFRA_SIGNATURES):
+            if proxy and any(sig.lower() in lower_msg for sig in _PROXY_INFRA_SIGNATURES):
                 log.warning(f"stealthy ({via}): proxy infra error {url}: {e}")
                 log.info(f"fetch_outcome=proxy_infra_failure host={host} url={url}")
                 return _INFRA_FAILURE
-            if nav_race_attempt == 0 and _NAV_RACE_SIGNATURE in msg.lower():
+            if attempt == 0 and _PAGE_CRASH_SIGNATURE in lower_msg:
+                log.warning(
+                    f"stealthy ({via}): page render process crashed {url}, "
+                    f"retrying once with a fresh page: {e}"
+                )
+                continue
+            if attempt == 0 and _NAV_RACE_SIGNATURE in lower_msg:
                 log.warning(
                     f"stealthy ({via}): content read raced navigation {url}, "
                     f"retrying once after {_NAV_RACE_SETTLE_S}s settle wait: {e}"

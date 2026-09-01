@@ -45,7 +45,7 @@ export async function PATCH(
 
   const { data: prospect, error: fetchError } = await supabase
     .from("backlink_prospects")
-    .select("id, product_id")
+    .select("id, product_id, status")
     .eq("id", id)
     .maybeSingle()
 
@@ -71,7 +71,12 @@ export async function PATCH(
 
   const updatePayload =
     parsed.data.status !== undefined
-      ? { status: parsed.data.status }
+      ? {
+          status: parsed.data.status,
+          ...(parsed.data.status === "won" && prospect.status !== "won"
+            ? { won_at: new Date().toISOString() }
+            : {}),
+        }
       : { email_subject: parsed.data.email_subject, email_body: parsed.data.email_body }
 
   const { error: updateError } = await supabase

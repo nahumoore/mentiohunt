@@ -4,6 +4,7 @@ import type { ProspectDetail, ProspectMessage, ProspectSequence } from "@/stores
 import { notFound, redirect } from "next/navigation"
 
 import { ProspectClientPage } from "./client-page"
+import { getWonStats } from "./_won-stats"
 
 /** Mirrors resolveEmailAccount's notion of "an account is available" (own
  * connected mailbox for paid tiers, else the shared public account) so the
@@ -53,7 +54,7 @@ export default async function ProspectPage({
   const { data: prospect, error } = await supabase
     .from("backlink_prospects")
     .select(
-      "id, product_id, product_page_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, email_subject, email_body, created_at, found_url, contact_social_links, raw_metadata, domain_rating, site_relevance_score, outreach_stopped_at, outreach_stopped_reason, email_account_id"
+      "id, product_id, product_page_id, domain, target_url, tier, status, enrichment_status, discovered_at, contact_email, contact_name, email_subject, email_body, created_at, found_url, contact_social_links, raw_metadata, domain_rating, site_relevance_score, outreach_stopped_at, outreach_stopped_reason, email_account_id, won_at"
     )
     .eq("id", slug)
     .maybeSingle()
@@ -144,6 +145,9 @@ export default async function ProspectPage({
   const hasEmailAccount =
     prospect.status === "email_not_found" ? await checkHasEmailAccount(user.id, isPaid) : true
 
+  const wonStats =
+    prospect.status === "won" ? await getWonStats(supabase, user.id, prospect.id) : null
+
   return (
     <ProspectClientPage
       prospect={{ ...(prospect as ProspectDetail), source_page: sourcePage }}
@@ -154,6 +158,7 @@ export default async function ProspectPage({
       hasEmailAccount={hasEmailAccount}
       isPublicMailbox={isPublicMailbox}
       ownEmailAccounts={ownAccounts ?? []}
+      wonStats={wonStats}
     />
   )
 }

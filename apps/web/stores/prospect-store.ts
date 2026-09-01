@@ -63,6 +63,7 @@ export type ProspectDetail = ProspectListItem &
     | "domain_rating"
     | "outreach_stopped_at"
     | "outreach_stopped_reason"
+    | "won_at"
   >
 
 type ProspectStore = {
@@ -185,6 +186,7 @@ export const useProspectStore = create<ProspectStore>()((set) => ({
         raw_metadata: row.raw_metadata,
         outreach_stopped_at: row.outreach_stopped_at,
         outreach_stopped_reason: row.outreach_stopped_reason,
+        won_at: row.won_at,
         source_page:
           existingDetail?.product_page_id === row.product_page_id
             ? existingDetail.source_page

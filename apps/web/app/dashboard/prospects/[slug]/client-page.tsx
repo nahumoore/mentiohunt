@@ -10,13 +10,15 @@ import {
   IconBrandInstagram,
   IconBrandLinkedin,
   IconBrandTwitter,
+  IconBrandX,
   IconBrandYoutube,
   IconCheck,
   IconChevronRight,
   IconCircleX,
   IconClockPause,
-  IconConfetti,
+  IconCopy,
   IconDots,
+  IconDownload,
   IconExternalLink,
   IconFlag,
   IconLoader2,
@@ -34,6 +36,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import { Confetti, type ConfettiRef } from "@workspace/ui/components/confetti"
 import type { Json } from "@workspace/supabase/database-types"
+import { toast } from "sonner"
 
 import {
   Dialog,
@@ -62,9 +65,16 @@ import type {
 import { useProspectStore } from "@/stores/prospect-store"
 import { usePagesStore } from "@/stores/pages-store"
 import {
+  formatDate,
   STATUS_CONFIG,
   type ProspectStatus,
 } from "@/app/dashboard/prospects/_data"
+import type { WonStats } from "./_won-stats"
+import {
+  copyWonCardPng,
+  downloadWonCardPng,
+  type WonCardMeta,
+} from "./_win-card-export"
 import { EmailSequenceNav } from "@/components/prospects/email-sequence-nav"
 import { SequenceStoppedNotice } from "@/components/prospects/sequence-stopped-notice"
 import { ReplyViaMailboxNotice } from "@/components/prospects/reply-via-mailbox-notice"
@@ -161,11 +171,16 @@ function DetailStatusPipeline({ status }: { status: ProspectStatus }) {
 function WonBadge({
   domain,
   domainRating,
+  wonAt,
+  wonStats,
 }: {
   domain: string | null
   domainRating: number | null
+  wonAt: string | null
+  wonStats: WonStats
 }) {
   const confettiRef = useRef<ConfettiRef>(null)
+  const [copyState, setCopyState] = useState<"idle" | "copied">("idle")
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -175,11 +190,48 @@ function WonBadge({
         startVelocity: 32,
         scalar: 0.95,
         origin: { y: 0.5 },
-        colors: ["#22c55e", "#4ade80", "#fbbf24", "#ff8a00", "#ffffff"],
+        colors: ["#ff5a1f", "#ff8a5a", "#2dbe60", "#f4c84a", "#ffffff"],
       })
     }, 80)
     return () => window.clearTimeout(timer)
   }, [])
+
+  const isFirst = wonStats.ordinal <= 1
+  const cardMeta: WonCardMeta = {
+    domain: domain ?? "This prospect",
+    domainRating,
+    ordinal: wonStats.ordinal,
+    totalWonCount: wonStats.totalWonCount,
+    totalDrEarned: wonStats.totalDrEarned,
+    dateLabel: wonAt ? formatDate(wonAt) : null,
+  }
+
+  async function handleCopyImage() {
+    try {
+      await copyWonCardPng(cardMeta)
+      setCopyState("copied")
+      toast.success("Card image copied — paste it anywhere")
+      window.setTimeout(() => setCopyState("idle"), 1800)
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not copy the card image"
+      )
+    }
+  }
+
+  async function handleDownloadImage() {
+    try {
+      await downloadWonCardPng(cardMeta)
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not download the card image"
+      )
+    }
+  }
+
+  const postText = domainRating !== null
+    ? `Just landed a backlink from ${cardMeta.domain} (DR ${domainRating}).`
+    : `Just landed a backlink from ${cardMeta.domain}.`
 
   return (
     <div className="flex flex-col items-center py-14">
@@ -189,30 +241,72 @@ function WonBadge({
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-[60] size-full"
       />
-      <div className="relative flex w-full max-w-lg flex-col items-center overflow-hidden rounded-3xl border border-green-500/20 bg-gradient-to-b from-green-500/10 via-background to-background px-12 py-16 text-center shadow-sm">
-        <IconConfetti className="absolute -top-4 -left-4 size-20 rotate-[-12deg] text-green-500/20" />
-        <IconConfetti className="absolute -right-4 -bottom-4 size-20 rotate-[15deg] text-green-500/20" />
-
-        <span className="inline-flex items-center justify-center rounded-full bg-green-500/15 p-5">
-          <IconTrophy className="size-11 text-green-600" />
+      <div className="flex flex-col items-center text-center">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.08em] text-green-600 uppercase dark:text-brand-success">
+          <span className="block size-1.5 rounded-full bg-green-600 dark:bg-brand-success" />
+          {isFirst ? "Your first backlink" : "Backlink won"}
         </span>
 
-        <p className="mt-6 text-xs font-semibold tracking-wider text-green-600 uppercase">
-          Backlink won
+        <p className="mt-2 text-[6.5rem] leading-none font-semibold tracking-tight text-primary">
+          #{wonStats.ordinal}
         </p>
-        <p className="mt-2 text-2xl font-semibold text-foreground">
-          {domain ?? "This prospect"} said yes
+
+        <p className="mt-5 text-2xl font-semibold tracking-tight text-foreground">
+          {cardMeta.domain}
         </p>
-        {domainRating !== null && (
+        {(domainRating !== null || wonAt) && (
           <p className="mt-1.5 text-sm text-muted-foreground">
-            DR {domainRating} backlink earned
+            {[domainRating !== null ? `DR ${domainRating}` : null, wonAt ? formatDate(wonAt) : null]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
         )}
+
+        {!isFirst && (
+          <>
+            <span className="mt-6 block h-px w-44 bg-border" />
+            <p className="mt-6 text-[13px] text-muted-foreground">
+              {wonStats.totalDrEarned} DR earned across {wonStats.totalWonCount} links
+            </p>
+          </>
+        )}
+
+        <div className="mt-7 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleCopyImage}
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-4xl bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+          >
+            {copyState === "copied" ? (
+              <IconCheck className="size-4" />
+            ) : (
+              <IconCopy className="size-4" />
+            )}
+            Copy image
+          </button>
+          <a
+            href={`https://x.com/intent/tweet?text=${encodeURIComponent(postText)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Post on X"
+            className="inline-flex size-9 items-center justify-center rounded-4xl border border-border bg-background text-foreground transition-colors hover:bg-muted"
+          >
+            <IconBrandX className="size-4" />
+          </a>
+          <button
+            type="button"
+            onClick={handleDownloadImage}
+            aria-label="Download image"
+            className="inline-flex size-9 items-center justify-center rounded-4xl border border-border bg-background text-foreground transition-colors hover:bg-muted"
+          >
+            <IconDownload className="size-4" />
+          </button>
+        </div>
       </div>
 
       <Link
         href="/dashboard/link-tracker"
-        className="mt-6 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+        className="mt-7 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
       >
         <IconRadar2 className="size-3.5" />
         Track this backlink so you know if it ever goes down
@@ -624,6 +718,7 @@ export function ProspectClientPage({
   hasEmailAccount,
   isPublicMailbox,
   ownEmailAccounts,
+  wonStats,
 }: {
   prospect: ProspectDetail
   product: ProspectProduct
@@ -633,6 +728,7 @@ export function ProspectClientPage({
   hasEmailAccount: boolean
   isPublicMailbox: boolean
   ownEmailAccounts: OwnEmailAccount[]
+  wonStats: WonStats | null
 }) {
   const router = useRouter()
   const upsertProspectDetail = useProspectStore((s) => s.upsertProspectDetail)
@@ -982,8 +1078,17 @@ export function ProspectClientPage({
               ownEmailAccounts={ownEmailAccounts}
             />
           ) : displayStatus === "won" ? (
-            /* ── Won badge ── */
-            <WonBadge domain={current.domain} domainRating={dr} />
+            /* ── Won badge ──
+             * wonStats comes from the server and reflects the just-refreshed
+             * page; right after clicking "Mark as won" the store flips
+             * displayStatus before that refresh lands, so fall back to a
+             * single-win placeholder for that brief gap. */
+            <WonBadge
+              domain={current.domain}
+              domainRating={dr}
+              wonAt={current.won_at}
+              wonStats={wonStats ?? { ordinal: 1, totalWonCount: 1, totalDrEarned: dr ?? 0 }}
+            />
           ) : current.status === "email_not_found" &&
             emailSequence.length === 0 ? (
             /* ── Manual completion form ── */

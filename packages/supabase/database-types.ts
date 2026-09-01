@@ -133,6 +133,7 @@ export type Database = {
           status: Database["public"]["Enums"]["prospect_status"]
           target_url: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
+          won_at: string | null
         }
         Insert: {
           contact_email?: string | null
@@ -157,6 +158,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
           tier: Database["public"]["Enums"]["prospect_tier"]
+          won_at?: string | null
         }
         Update: {
           contact_email?: string | null
@@ -181,6 +183,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["prospect_status"]
           target_url?: string | null
           tier?: Database["public"]["Enums"]["prospect_tier"]
+          won_at?: string | null
         }
         Relationships: [
           {

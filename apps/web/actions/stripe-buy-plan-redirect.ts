@@ -2,12 +2,12 @@
 
 import Stripe from "stripe"
 import { redirect } from "next/navigation"
+import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
-import { onboardingSchema, type OnboardingData } from "@/consts/onboarding"
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import { supabaseServer } from "@/lib/supabase/server"
-import { setPendingOnboardingData } from "@/lib/onboarding/pending-cookie"
+import { captureServerEvent } from "@/lib/server-analytics"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
@@ -15,20 +15,16 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 export async function stripeBuyPlanRedirect({
   plan,
   context = "dashboard",
-  onboardingData,
+  onboardingProductId,
 }: {
   plan: "pro" | "agency"
-  /** "onboarding" gets a card-required trial and routes back into the wizard
-   *  to finish setup; "dashboard" keeps today's immediate-charge behavior for
+  /** "onboarding" gets a card-required trial for a completed preview;
+   *  "dashboard" keeps today's immediate-charge behavior for
    *  /pricing and the settings billing tab's legacy no-Stripe-customer
    *  cohort (see actions/stripe-switch-plan.ts for everyone else). */
   context?: "onboarding" | "dashboard"
-  /** Only meaningful for context "onboarding". Nothing is written to the DB
-   *  yet at this point — the wizard's setup data is stashed in a short-lived
-   *  cookie and only persisted once /onboarding/checkout-complete confirms
-   *  the payment actually went through. Keeps the "Start trial" click down
-   *  to an auth check + one Stripe API call instead of a full save first. */
-  onboardingData?: OnboardingData
+  /** Existing persisted preview product to promote after checkout. */
+  onboardingProductId?: string
 }) {
   const supabase = await supabaseServer()
   const {
@@ -38,10 +34,19 @@ export async function stripeBuyPlanRedirect({
   if (!user) redirect("/signin")
 
   const planConfig = PLANS.find((p) => p.key === plan)
-  if (!planConfig) redirect(context === "onboarding" ? "/onboarding" : "/dashboard/settings?tab=billing")
+  if (!planConfig)
+    redirect(
+      context === "onboarding"
+        ? "/onboarding"
+        : "/dashboard/settings?tab=billing"
+    )
 
   const isOnboarding = context === "onboarding"
-  const cancelUrl = isOnboarding ? `${appUrl}/onboarding` : `${appUrl}/dashboard/settings?tab=billing`
+  const cancelUrl = isOnboarding
+    ? `${appUrl}/onboarding/preview`
+    : `${appUrl}/dashboard/settings?tab=billing`
+
+  if (isOnboarding && !onboardingProductId) redirect("/onboarding/preview")
 
   let sessionUrl: string | null = null
 
@@ -58,15 +63,24 @@ export async function stripeBuyPlanRedirect({
 
       eligibleForTrial = !profile?.stripe_customer_id
 
-      // Re-validate here — this action is a public server endpoint, and
-      // onboardingData's type is only a compile-time guarantee for callers,
-      // not a runtime one. checkout-complete already treats a missing cookie
-      // as "nothing to persist", so an invalid payload just falls back to it.
-      const parsedOnboardingData = onboardingData
-        ? onboardingSchema.safeParse(onboardingData)
-        : null
-      if (parsedOnboardingData?.success) {
-        await setPendingOnboardingData(parsedOnboardingData.data)
+      if (onboardingProductId) {
+        const { data: preview } = await supabaseAdmin
+          .from("onboarding_previews")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("product_id", onboardingProductId)
+          .in("status", ["ready", "partial"])
+          .maybeSingle()
+        if (!preview) redirect("/onboarding/preview")
+        await supabaseAdmin
+          .from("onboarding_previews")
+          .update({ checkout_started_at: new Date().toISOString() })
+          .eq("id", preview.id)
+        void captureServerEvent("onboarding_trial_cta_clicked", user.id, {
+          plan,
+          product_id: onboardingProductId,
+          preview_id: preview.id,
+        })
       }
     }
 
@@ -78,7 +92,10 @@ export async function stripeBuyPlanRedirect({
       metadata: {
         supabase_user_id: user.id,
         ...(isOnboarding
-          ? { onboarding_auto_discover: onboardingData?.autoDiscoverPages ? "1" : "0" }
+          ? {
+              onboarding_product_id: onboardingProductId ?? "",
+              onboarding_auto_discover: "1",
+            }
           : {}),
       },
       ...(eligibleForTrial && {
@@ -98,7 +115,14 @@ export async function stripeBuyPlanRedirect({
       cancel_url: cancelUrl,
     })
     sessionUrl = session.url
+    void captureServerEvent("checkout_session_created", user.id, {
+      plan,
+      context,
+      card_required: true,
+      product_id: onboardingProductId,
+    })
   } catch (err) {
+    if (isRedirectError(err)) throw err
     console.error("Stripe checkout error:", err)
   }
 

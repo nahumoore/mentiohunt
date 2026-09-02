@@ -22,7 +22,7 @@ export function TrustedByMarquee() {
     <div aria-labelledby="trusted-by-title" className="relative z-10 mb-10 sm:mb-12">
       <h2
         id="trusted-by-title"
-        className="text-center font-heading text-xs font-semibold text-muted-foreground uppercase sm:text-sm"
+        className="text-center font-[family-name:var(--font-figtree),var(--font-sans)] text-xs font-semibold text-muted-foreground uppercase sm:text-sm"
       >
         Sites already growing with Mentiohunt
       </h2>

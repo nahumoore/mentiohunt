@@ -52,13 +52,15 @@ export function AppSidebar({
   const productHostname = getProductHostname(activeProduct?.website_url)
   const isTrialProfileLoading = profile === null
   const isFreeTrial = isOnTrial(profile)
-  const trialDaysRemaining = profile
+  const trialDaysRemaining = profile?.billing_period_end_at
     ? getTrialDaysRemaining(profile.billing_period_end_at)
     : null
   const trialTimeLabel =
-    trialDaysRemaining === 0
-      ? "Trial ends today"
-      : `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} left`
+    trialDaysRemaining === null
+      ? "Trial active"
+      : trialDaysRemaining === 0
+        ? "Trial ends today"
+        : `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} left`
 
   return (
     <Sidebar
@@ -69,14 +71,14 @@ export function AppSidebar({
       <SidebarHeader className="border-b p-0">
         <Link
           href="/"
-          className="flex h-16 items-center gap-2.5 px-5 transition-opacity duration-150 hover:opacity-75 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          className="flex h-16 items-center gap-2.5 px-5 transition-opacity duration-150 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2 hover:opacity-75 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none"
           aria-label="Go to Mentiohunt home"
         >
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <IconBrandMentiohunt className="size-5" />
           </div>
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="font-heading text-base font-bold leading-5 tracking-tight text-sidebar-foreground">
+            <p className="font-heading text-base leading-5 font-bold tracking-tight text-sidebar-foreground">
               Mentiohunt
             </p>
             {productHostname ? (
@@ -108,7 +110,7 @@ export function AppSidebar({
         ) : isFreeTrial ? (
           <Link
             href="/dashboard/settings?tab=billing"
-            className="group/trial mx-1 flex items-center gap-2.5 rounded-xl border border-blaze-orange/20 bg-blaze-orange/5 p-2.5 transition-colors hover:border-blaze-orange/35 hover:bg-blaze-orange/8 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
+            className="group/trial mx-1 flex items-center gap-2.5 rounded-xl border border-blaze-orange/20 bg-blaze-orange/5 p-2.5 transition-colors group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 hover:border-blaze-orange/35 hover:bg-blaze-orange/8 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none"
             aria-label={`Trial: ${trialTimeLabel}. Manage in billing.`}
           >
             <span className="flex size-6 shrink-0 items-center justify-center text-blaze-orange">

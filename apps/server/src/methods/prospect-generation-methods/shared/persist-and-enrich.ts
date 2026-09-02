@@ -37,6 +37,9 @@ export type PersistAndEnrichOptions<T> = {
   productId: string
   candidates: PersistenceCandidate<T>[]
   budget?: { remaining: number }
+  /** Optional cross-strategy cap used by preview runs. Candidates beyond the
+   * cap are persisted for review but contact enrichment is deferred. */
+  enrichmentBudget?: { remaining: number }
   enrichLimit: LimitFunction
   buildBareRow: (candidate: PersistenceCandidate<T>) => BareProspectRow
   enrich: (candidate: PersistenceCandidate<T>) => Promise<EnrichedColumns>
@@ -84,7 +87,10 @@ export async function persistAndEnrich<T>(
   if (candidateDomains.length > 0) {
     existingQuery = existingQuery.or(
       candidateDomains
-        .flatMap((domain) => [`domain.eq.${domain}`, `domain.ilike.*.${domain}`])
+        .flatMap((domain) => [
+          `domain.eq.${domain}`,
+          `domain.ilike.*.${domain}`,
+        ])
         .join(",")
     )
   }
@@ -100,13 +106,15 @@ export async function persistAndEnrich<T>(
       .map((row) => row.domain)
       .filter((domain): domain is string => typeof domain === "string")
   )
-  const unique = selectUniqueProspectDomains(options.candidates, existingDomains)
+  const unique = selectUniqueProspectDomains(
+    options.candidates,
+    existingDomains
+  )
   funnel.duplicatesSkipped = unique.duplicatesSkipped
 
   // This mutation is deliberately synchronous and happens before the insert.
   const budgetClaim = claimPersistenceBudget(unique.selected, options.budget)
   funnel.budgetSkipped = budgetClaim.budgetSkipped
-  funnel.enrichmentAttempts = budgetClaim.claimed.length
   if (budgetClaim.claimed.length === 0) return funnel
 
   const bareRows = budgetClaim.claimed.map((candidate) => ({
@@ -117,7 +125,10 @@ export async function persistAndEnrich<T>(
   }))
   const { data: insertedRows, error: insertError } = await supabaseAdmin
     .from("backlink_prospects")
-    .upsert(bareRows, { onConflict: "product_id,found_url", ignoreDuplicates: true })
+    .upsert(bareRows, {
+      onConflict: "product_id,found_url",
+      ignoreDuplicates: true,
+    })
     .select("id, found_url")
 
   if (insertError) {
@@ -131,14 +142,31 @@ export async function persistAndEnrich<T>(
   )
   funnel.prospectsInserted = idByUrl.size
 
+  const insertedCandidates = budgetClaim.claimed.filter((candidate) =>
+    idByUrl.has(candidate.foundUrl)
+  )
+  const enrichmentCount = options.enrichmentBudget
+    ? Math.min(
+        insertedCandidates.length,
+        Math.max(0, options.enrichmentBudget.remaining)
+      )
+    : insertedCandidates.length
+  if (options.enrichmentBudget)
+    options.enrichmentBudget.remaining -= enrichmentCount
+  const candidatesToEnrich = insertedCandidates.slice(0, enrichmentCount)
+  funnel.enrichmentAttempts = candidatesToEnrich.length
+
   await Promise.all(
-    budgetClaim.claimed
+    candidatesToEnrich
       // An ignored conflict is not a newly inserted row and must never be enriched.
-      .filter((candidate) => idByUrl.has(candidate.foundUrl))
       .map((candidate) =>
         options.enrichLimit(async () => {
           const id = idByUrl.get(candidate.foundUrl)!
-          const context = { ...options.logContext, domain: candidate.domain, prospectId: id }
+          const context = {
+            ...options.logContext,
+            domain: candidate.domain,
+            prospectId: id,
+          }
           const { error: stateError } = await supabaseAdmin
             .from("backlink_prospects")
             .update({ enrichment_status: "enriching" as const })
@@ -146,7 +174,10 @@ export async function persistAndEnrich<T>(
 
           if (stateError) {
             funnel.persistenceFailures += 1
-            log.warn("failed to mark prospect enriching", { ...context, error: stateError.message })
+            log.warn("failed to mark prospect enriching", {
+              ...context,
+              error: stateError.message,
+            })
             return
           }
 
@@ -155,27 +186,37 @@ export async function persistAndEnrich<T>(
             enriched = await options.enrich(candidate)
           } catch (error) {
             funnel.enrichmentFailures += 1
-            const message = error instanceof Error ? error.message : String(error)
+            const message =
+              error instanceof Error ? error.message : String(error)
             const { error: failureStateError } = await supabaseAdmin
               .from("backlink_prospects")
               .update({ enrichment_status: "failed" as const })
               .eq("id", id)
             if (failureStateError) funnel.persistenceFailures += 1
-            log.warn("prospect enrichment failed", { ...context, error: message })
+            log.warn("prospect enrichment failed", {
+              ...context,
+              error: message,
+            })
             return
           }
 
           const { step2_body, step3_body, ...dbEnriched } = enriched
           const hasEmail = Boolean(enriched.contact_email)
           const contactReady = Boolean(
-            enriched.contact_email && enriched.email_subject && enriched.email_body
+            enriched.contact_email &&
+            enriched.email_subject &&
+            enriched.email_body
           )
           const { error: updateError } = await supabaseAdmin
             .from("backlink_prospects")
             .update({
               ...dbEnriched,
-              enrichment_status: contactReady ? ("ready" as const) : ("failed" as const),
-              status: hasEmail ? ("new" as const) : ("email_not_found" as const),
+              enrichment_status: contactReady
+                ? ("ready" as const)
+                : ("failed" as const),
+              status: hasEmail
+                ? ("new" as const)
+                : ("email_not_found" as const),
             })
             .eq("id", id)
 
@@ -212,12 +253,19 @@ export async function persistAndEnrich<T>(
             })
           } catch (error) {
             funnel.callbackFailures += 1
-            log.warn("prospect callback failed", { ...context, error: String(error) })
+            log.warn("prospect callback failed", {
+              ...context,
+              error: String(error),
+            })
           }
         })
       )
   )
 
-  log.info("persistence digest", { ...options.logContext, productId: options.productId, ...funnel })
+  log.info("persistence digest", {
+    ...options.logContext,
+    productId: options.productId,
+    ...funnel,
+  })
   return funnel
 }

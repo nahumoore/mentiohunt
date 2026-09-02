@@ -11,7 +11,11 @@ import Link from "next/link"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { useEffect, useTransition, useState } from "react"
 import type { BillingTier, Plan } from "@/consts/billing"
-import { PLANS, WARMUP_FEATURE_INFO, WARMUP_FEATURE_LABEL } from "@/consts/billing"
+import {
+  PLANS,
+  WARMUP_FEATURE_INFO,
+  WARMUP_FEATURE_LABEL,
+} from "@/consts/billing"
 import { captureEvent } from "@/lib/analytics"
 import { stripeBuyPlanRedirect } from "@/actions/stripe-buy-plan-redirect"
 import {
@@ -26,7 +30,7 @@ type PlanStatus = "current" | "upgrade" | "buy" | "unauthenticated"
 function getPlanStatus(
   plan: Plan,
   userTier: BillingTier | null,
-  isLoggedIn: boolean,
+  isLoggedIn: boolean
 ): PlanStatus {
   if (!isLoggedIn) return "unauthenticated"
   if (!userTier || userTier === "free") return "buy"
@@ -51,7 +55,7 @@ export function PricingClientPage({
         <div className="mx-auto max-w-2xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-xs font-bold text-[var(--color-blaze-orange)] uppercase">
             <IconSparkles className="h-3.5 w-3.5" />
-            7-day free trial
+            Preview first, then 7 days free
           </span>
           <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl lg:text-[56px]">
             Start with the plan that gets your{" "}
@@ -61,9 +65,8 @@ export function PricingClientPage({
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
             Two simple plans for backlink outreach autopilot. We discover
-            opportunities and run outreach automatically through the first
-            reply — you monitor the queue and cancel anything that isn&apos;t a
-            fit.
+            opportunities and run outreach automatically through the first reply
+            — you monitor the queue and cancel anything that isn&apos;t a fit.
           </p>
         </div>
 
@@ -154,6 +157,12 @@ export function PricingClientPage({
             )
           })}
         </div>
+        <p className="mx-auto mt-6 max-w-3xl text-center text-xs leading-5 text-muted-foreground">
+          No card required to see your personalized opportunities. A card is
+          required only when you choose to start automated outreach. $0 today;
+          after the 7-day trial, the selected plan renews at the monthly price
+          shown unless cancelled from Billing.
+        </p>
       </div>
     </div>
   )
@@ -189,7 +198,7 @@ function PlanCta({
         href="/signup"
         className={`${baseClass} ${featured ? featuredClass : defaultClass}`}
       >
-        Start free trial
+        See my opportunities
         <IconArrowRight className="ml-2 h-4 w-4 transition duration-200 group-hover:translate-x-1" />
       </Link>
     )
@@ -208,7 +217,8 @@ function PlanCta({
     })
   }
 
-  const label = status === "upgrade" ? `Upgrade to ${plan.name}` : `Get ${plan.name}`
+  const label =
+    status === "upgrade" ? `Upgrade to ${plan.name}` : `Get ${plan.name}`
 
   return (
     <div className="space-y-2">
@@ -227,9 +237,7 @@ function PlanCta({
           </>
         )}
       </button>
-      {error && (
-        <p className="text-center text-xs text-destructive">{error}</p>
-      )}
+      {error && <p className="text-center text-xs text-destructive">{error}</p>}
     </div>
   )
 }

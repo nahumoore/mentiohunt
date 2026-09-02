@@ -119,11 +119,13 @@ export function OnboardingVisual() {
               />
             ))}
             <span className="ml-1 text-sm font-bold text-foreground">4.8</span>
-            <span className="text-sm font-medium text-muted-foreground">/5</span>
+            <span className="text-sm font-medium text-muted-foreground">
+              /5
+            </span>
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Trusted by{" "}
-            <span className="font-semibold text-foreground">700+ founders</span>
+            <span className="font-semibold text-foreground">100+ founders</span>
           </p>
         </div>
       </div>

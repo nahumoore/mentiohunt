@@ -2,7 +2,7 @@ import { GoogleAnalytics } from "@next/third-parties/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Figtree, Inter } from "next/font/google"
 import Script from "next/script"
 import { Toaster } from "sonner"
 
@@ -26,6 +26,16 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
 })
 
+/**
+ * Display face for landing headlines (DESIGN.md). Exposed as a CSS variable
+ * only — nothing inherits it unless it opts in.
+ */
+const figtree = Figtree({
+  subsets: ["latin"],
+  variable: "--font-figtree",
+  weight: ["500", "600", "700", "800"],
+})
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,7 +45,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", inter.variable, "font-sans")}
+      className={cn(
+        "antialiased",
+        inter.variable,
+        figtree.variable,
+        "font-sans"
+      )}
     >
       <body className="overflow-x-hidden">
         <PostHogProvider>{children}</PostHogProvider>

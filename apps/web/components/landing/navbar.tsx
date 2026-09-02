@@ -6,9 +6,9 @@ import { IconBrandMentiohunt } from "../custom-icons/brand-mentiohunt"
 
 const navigation = [
   { href: "/#how-it-works", label: "How it Works" },
-  { href: "/#target-personas", label: "For Who" },
+  { href: "/#case-study", label: "Results" },
   { href: "/#pricing", label: "Pricing" },
-  { href: "/#about", label: "About" },
+  { href: "/about", label: "About" },
 ]
 
 export function Navbar({ overlay = false }: { overlay?: boolean }) {
@@ -24,7 +24,7 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
           <div className="flex min-w-0 items-center gap-8">
             <Link href="/" className="flex shrink-0 items-center gap-2.5">
               <IconBrandMentiohunt className="h-7 w-7 rotate-12 text-primary drop-shadow-[0_4px_12px_rgba(255,96,0,0.24)]" />
-              <span className="font-heading text-lg font-semibold tracking-tight">
+              <span className="font-[family-name:var(--font-figtree),var(--font-sans)] text-lg font-semibold tracking-tight">
                 <span className="text-foreground">Mentio</span>
                 <span className="text-blaze-orange">hunt</span>
               </span>
@@ -57,10 +57,9 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
               size="lg"
               className="rounded-full px-6 shadow-sm shadow-primary/20"
             >
-              <Link href="/signup">Find my first backlink</Link>
+              <Link href="/signup">Find opportunities</Link>
             </Button>
           </div>
-
         </div>
       </div>
     </header>

@@ -6,6 +6,9 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 export const runtime = "nodejs"
+// The generation call can run ~30s; the platform default (10-15s) was silently
+// killing the request before the model replied.
+export const maxDuration = 60
 
 const keywordsSchema = z.object({
   keywords: z.array(z.string().min(2)).min(MIN_TARGET_KEYWORDS).max(MAX_TARGET_KEYWORDS),
@@ -29,10 +32,13 @@ const RESPONSE_SCHEMA = {
 
 const GENERATE_OPTIONS: Pick<
   Parameters<typeof generateText>[0],
-  "model" | "fallbackModels" | "timeoutMs" | "responseFormat"
+  "model" | "fallbackModels" | "reasoningEnabled" | "timeoutMs" | "responseFormat"
 > = {
   model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
-  fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+  fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.OPENAI_GPT_5_6_LUNA],
+  // Keyword extraction is simple enough that the model's reasoning phase adds
+  // ~15s for no quality gain, so switch it off.
+  reasoningEnabled: false,
   timeoutMs: 30_000,
   responseFormat: {
     type: "json_schema",

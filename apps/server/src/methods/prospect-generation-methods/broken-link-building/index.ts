@@ -1,13 +1,27 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
 import { createLogger } from "../../../helpers/logger.js"
-import { extractCompetitorDomain, isBlockedCompetitorDomain } from "../competitor-backlink/extract-backlinks.js"
-import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
+import {
+  extractCompetitorDomain,
+  isBlockedCompetitorDomain,
+} from "../competitor-backlink/extract-backlinks.js"
+import type {
+  EmailSettings,
+  ProspectCreatedPayload,
+} from "../shared/prospect-types.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
-import { emptyStrategyFunnel, type StrategyResult } from "../shared/strategy-result.js"
+import {
+  emptyStrategyFunnel,
+  type StrategyResult,
+} from "../shared/strategy-result.js"
 import type { FilterSettings } from "./filter-dead-link-candidates.js"
 import { processCompetitor } from "./process-competitor.js"
-import { completeProspectRun, createProspectRun, failProspectRun, selectCompetitorsForRun } from "./prospect-run-tracking.js"
+import {
+  completeProspectRun,
+  createProspectRun,
+  failProspectRun,
+  selectCompetitorsForRun,
+} from "./prospect-run-tracking.js"
 import type { ReplacementPageCandidate } from "./types.js"
 
 const log = createLogger("discover-broken-link-building")
@@ -23,7 +37,10 @@ const REPLACEMENT_PAGE_LIMIT = 30
 // other candidate.
 const ELIGIBLE_PAGE_TYPES = ["article", "resource", "free_tool", "manual"]
 
-export type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
+export type {
+  EmailSettings,
+  ProspectCreatedPayload,
+} from "../shared/prospect-types.js"
 
 export async function discoverBrokenLinkBuilding(
   product: {
@@ -36,20 +53,35 @@ export async function discoverBrokenLinkBuilding(
   },
   settings: FilterSettings,
   emailSettings: EmailSettings = {},
-  limits: { maxCompetitors?: number; maxProspects?: number; fetchLimit?: number } = {},
+  limits: {
+    maxCompetitors?: number
+    maxProspects?: number
+    fetchLimit?: number
+  } = {},
   budget?: { remaining: number },
-  onProspectCreated?: (p: ProspectCreatedPayload) => void
+  onProspectCreated?: (p: ProspectCreatedPayload) => void,
+  enrichmentBudget?: { remaining: number }
 ): Promise<StrategyResult> {
   const maxCompetitors = limits.maxCompetitors ?? MAX_COMPETITORS_PER_RUN
   const maxProspects = limits.maxProspects ?? MAX_PROSPECTS_PER_RUN
   const fetchLimit = limits.fetchLimit
 
-  log.info("discovery started", { productId: product.id, competitors: product.competitors.length })
+  log.info("discovery started", {
+    productId: product.id,
+    competitors: product.competitors.length,
+  })
 
   if (product.competitors.length === 0) {
     log.info("no competitors set, skipping", { productId: product.id })
     const runId = await createProspectRun(product.id, [])
-    if (runId) await completeProspectRun(runId, 0, 0, {}, { skip_reason: "no_competitors_set" })
+    if (runId)
+      await completeProspectRun(
+        runId,
+        0,
+        0,
+        {},
+        { skip_reason: "no_competitors_set" }
+      )
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
@@ -64,26 +96,47 @@ export async function discoverBrokenLinkBuilding(
     .limit(REPLACEMENT_PAGE_LIMIT)
 
   if (pagesError) {
-    log.error("failed to load replacement pages", { productId: product.id, error: pagesError.message })
+    log.error("failed to load replacement pages", {
+      productId: product.id,
+      error: pagesError.message,
+    })
     const runId = await createProspectRun(product.id, [])
-    if (runId) await completeProspectRun(runId, 0, 0, {}, { skip_reason: "pages_query_error" })
+    if (runId)
+      await completeProspectRun(
+        runId,
+        0,
+        0,
+        {},
+        { skip_reason: "pages_query_error" }
+      )
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
-  const replacementPages: ReplacementPageCandidate[] = (rawPages ?? []).map((p) => ({
-    id: p.id,
-    url: p.url,
-    title: p.title,
-    description: p.description,
-    page_type: p.page_type,
-    priority: p.priority,
-    keywords: p.keywords ?? [],
-  }))
+  const replacementPages: ReplacementPageCandidate[] = (rawPages ?? []).map(
+    (p) => ({
+      id: p.id,
+      url: p.url,
+      title: p.title,
+      description: p.description,
+      page_type: p.page_type,
+      priority: p.priority,
+      keywords: p.keywords ?? [],
+    })
+  )
 
   if (replacementPages.length === 0) {
-    log.info("no crawled replacement pages, skipping", { productId: product.id })
+    log.info("no crawled replacement pages, skipping", {
+      productId: product.id,
+    })
     const runId = await createProspectRun(product.id, [])
-    if (runId) await completeProspectRun(runId, 0, 0, {}, { skip_reason: "no_crawled_replacement_pages" })
+    if (runId)
+      await completeProspectRun(
+        runId,
+        0,
+        0,
+        {},
+        { skip_reason: "no_crawled_replacement_pages" }
+      )
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
@@ -96,10 +149,21 @@ export async function discoverBrokenLinkBuilding(
   if (allDomains.length === 0) {
     log.info("no valid competitors set, skipping", { productId: product.id })
     const runId = await createProspectRun(product.id, [])
-    if (runId) await completeProspectRun(runId, 0, 0, {}, { skip_reason: "no_valid_competitors" })
+    if (runId)
+      await completeProspectRun(
+        runId,
+        0,
+        0,
+        {},
+        { skip_reason: "no_valid_competitors" }
+      )
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
-  const competitorsToProcess = await selectCompetitorsForRun(product.id, allDomains, maxCompetitors)
+  const competitorsToProcess = await selectCompetitorsForRun(
+    product.id,
+    allDomains,
+    maxCompetitors
+  )
   const enrichLimit = pLimit(5)
 
   log.info("competitors selected", {
@@ -139,7 +203,8 @@ export async function discoverBrokenLinkBuilding(
         maxProspects,
         budget,
         onProspectCreated,
-        fetchLimit
+        fetchLimit,
+        enrichmentBudget
       )
       totalProspectsCreated += result.prospectsCreated
       totalCostUsd += result.costUsd
@@ -155,14 +220,22 @@ export async function discoverBrokenLinkBuilding(
       if (result.persistence) {
         commonFunnel.emailNotFound += result.persistence.emailNotFound
         commonFunnel.enrichmentFailures += result.persistence.enrichmentFailures
-        commonFunnel.persistenceFailures += result.persistence.persistenceFailures
+        commonFunnel.persistenceFailures +=
+          result.persistence.persistenceFailures
         commonFunnel.callbackFailures += result.persistence.callbackFailures
         commonFunnel.duplicatesSkipped += result.persistence.duplicatesSkipped
         commonFunnel.budgetSkipped += result.persistence.budgetSkipped
       }
     }
 
-    if (runId) await completeProspectRun(runId, totalProspectsCreated, totalCostUsd, cursorsByDomain, funnel)
+    if (runId)
+      await completeProspectRun(
+        runId,
+        totalProspectsCreated,
+        totalCostUsd,
+        cursorsByDomain,
+        funnel
+      )
   } catch (err) {
     transportFailures += 1
     const msg = err instanceof Error ? err.message : String(err)
@@ -192,8 +265,8 @@ export async function discoverBrokenLinkBuilding(
       contactReady: funnel.enrichedWithContact,
       transportFailures,
       exhausted:
-        competitorsToProcess.length > 0
-        && Object.values(cursorsByDomain).every((cursor) => cursor === null),
+        competitorsToProcess.length > 0 &&
+        Object.values(cursorsByDomain).every((cursor) => cursor === null),
     },
   }
 }

@@ -9,21 +9,18 @@ import {
   IconFiles,
   IconLoader2,
   IconPackage,
-  IconRocket,
   IconSearch,
   IconSwords,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
-import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-import { stripeBuyPlanRedirect } from "@/actions/stripe-buy-plan-redirect"
+import { requestOnboardingPreview } from "@/actions/request-onboarding-preview"
 import { OnboardingShell } from "@/components/onboarding/onboarding-shell"
 import { StepKeywords } from "@/components/onboarding/step-keywords"
 import { StepCompetitors } from "@/components/onboarding/step-competitors"
 import { StepImportantPages } from "@/components/onboarding/step-important-pages"
-import { StepPaywall } from "@/components/onboarding/step-paywall"
 import { StepProduct } from "@/components/onboarding/step-product"
 import { StepUrl } from "@/components/onboarding/step-url"
 import {
@@ -67,7 +64,10 @@ function normalizeSubmissionData(data: OnboardingData): OnboardingData {
     websiteUrl: normalizeUrl(data.websiteUrl),
     productName: data.productName.trim(),
     productDescription: data.productDescription.trim(),
-    competitors: data.competitors.map((competitor) => normalizeCompetitorUrl(competitor) || normalizeUrl(competitor)),
+    competitors: data.competitors.map(
+      (competitor) =>
+        normalizeCompetitorUrl(competitor) || normalizeUrl(competitor)
+    ),
     targetKeywords: data.targetKeywords.map(normalizeKeyword).filter(Boolean),
     importantPages: data.importantPages.map(normalizeUrl),
   }
@@ -81,13 +81,8 @@ export function OnboardingWizard({
   emailConfirmed?: boolean
 }) {
   const router = useRouter()
-  const {
-    hasHydrated,
-    currentStep,
-    data,
-    setCurrentStep,
-    updateData,
-  } = useOnboardingStore()
+  const { hasHydrated, currentStep, data, setCurrentStep, updateData } =
+    useOnboardingStore()
 
   useEffect(() => {
     if (emailConfirmed) {
@@ -105,18 +100,19 @@ export function OnboardingWizard({
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isFetchingSite, setIsFetchingSite] = useState(false)
-  const [loadingFields, setLoadingFields] = useState<Set<LoadingField>>(new Set())
+  const [loadingFields, setLoadingFields] = useState<Set<LoadingField>>(
+    new Set()
+  )
 
   const safeData = normalizeOnboardingData(data)
-  // lastStepIndex is the last *counted* setup step (drives the "Step X / Y"
-  // label and progress bar). The trial-start/paywall screen is one more,
-  // un-numbered step past it — maxStepIndex accounts for that.
   const lastStepIndex = ONBOARDING_STEPS.length - 1
-  const maxStepIndex = lastStepIndex + 1
+  // Older persisted wizard state may still point at the removed sixth screen.
+  // Render the final setup step immediately while syncing storage back to it.
+  const activeStep = Math.min(currentStep, lastStepIndex)
 
   useEffect(() => {
-    if (currentStep > maxStepIndex) setCurrentStep(maxStepIndex)
-  }, [currentStep, maxStepIndex, setCurrentStep])
+    if (currentStep > lastStepIndex) setCurrentStep(lastStepIndex)
+  }, [currentStep, lastStepIndex, setCurrentStep])
 
   const clearFieldError = (field: OnboardingField) => {
     setFieldErrors((current) => {
@@ -162,7 +158,12 @@ export function OnboardingWizard({
       const res = await fetch("/api/onboarding/generate/competitors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ site, websiteUrl, productName, productDescription }),
+        body: JSON.stringify({
+          site,
+          websiteUrl,
+          productName,
+          productDescription,
+        }),
       })
       const json = (await res.json().catch(() => null)) as {
         competitors?: string[]
@@ -199,7 +200,12 @@ export function OnboardingWizard({
       const res = await fetch("/api/onboarding/generate/keywords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ site, websiteUrl, productName, productDescription }),
+        body: JSON.stringify({
+          site,
+          websiteUrl,
+          productName,
+          productDescription,
+        }),
       })
       const json = (await res.json().catch(() => null)) as {
         keywords?: string[]
@@ -226,7 +232,10 @@ export function OnboardingWizard({
     }
   }
 
-  const generateProduct = async (site: FetchedSiteDetails, websiteUrl: string) => {
+  const generateProduct = async (
+    site: FetchedSiteDetails,
+    websiteUrl: string
+  ) => {
     let productName = ""
     let productDescription = ""
     try {
@@ -244,7 +253,8 @@ export function OnboardingWizard({
       if (!res.ok || !json?.productName || !json.productDescription) {
         markGenerationFailure(
           "productName",
-          json?.error ?? "We couldn't draft your product details. Add them manually."
+          json?.error ??
+            "We couldn't draft your product details. Add them manually."
         )
         return
       }
@@ -260,7 +270,12 @@ export function OnboardingWizard({
       )
     } finally {
       clearLoadingFields("productName", "productDescription")
-      void generateCompetitors(site, websiteUrl, productName, productDescription)
+      void generateCompetitors(
+        site,
+        websiteUrl,
+        productName,
+        productDescription
+      )
       void generateKeywords(site, websiteUrl, productName, productDescription)
     }
   }
@@ -295,7 +310,8 @@ export function OnboardingWizard({
       if (!res.ok) {
         setIsFetchingSite(false)
         setFieldErrors({
-          websiteUrl: (json as { error?: string }).error ?? "Failed to reach your site.",
+          websiteUrl:
+            (json as { error?: string }).error ?? "Failed to reach your site.",
         })
         return
       }
@@ -328,7 +344,8 @@ export function OnboardingWizard({
     const nextErrors: OnboardingFieldErrors = {}
 
     if (step === 1) {
-      const productResult = productDescriptionStepSchema.safeParse(normalizedData)
+      const productResult =
+        productDescriptionStepSchema.safeParse(normalizedData)
       if (!productResult.success) {
         const issue = productResult.error.issues[0]
         const field = issue?.path[0] as OnboardingField | undefined
@@ -370,28 +387,31 @@ export function OnboardingWizard({
   }
 
   const nextStep = () => {
-    if (!validateStep(currentStep)) return
-    const stepNames = ["url", "product", "competitors", "keywords", "pages"] as const
+    if (!validateStep(activeStep)) return
+    const stepNames = [
+      "url",
+      "product",
+      "competitors",
+      "keywords",
+      "pages",
+    ] as const
     captureEvent("onboarding_step_completed", {
-      step: stepNames[currentStep] ?? String(currentStep),
-      step_index: currentStep,
+      step: stepNames[activeStep] ?? String(activeStep),
+      step_index: activeStep,
     })
-    setCurrentStep(Math.min(currentStep + 1, maxStepIndex))
+    setCurrentStep(Math.min(activeStep + 1, lastStepIndex))
     setSubmitMessage("")
   }
 
   const prevStep = () => {
-    setCurrentStep(Math.max(currentStep - 1, 0))
+    setCurrentStep(Math.max(activeStep - 1, 0))
     setSubmitMessage("")
     setFieldErrors({})
   }
 
-  // Persists setup (no card required yet), then immediately hands off to
-  // Stripe Checkout — a card is always required to finish onboarding, so
-  // there's no direct-complete path. Discovery/outreach only start once
-  // checkout succeeds, via app/onboarding/checkout-complete/route.ts.
-  const handleStartTrial = async () => {
+  const handleRequestPreview = async () => {
     if (isSubmitting) return
+    if (!validateStep(activeStep)) return
 
     const normalizedData = normalizeSubmissionData(safeData)
     const result = onboardingSchema.safeParse(normalizedData)
@@ -401,7 +421,9 @@ export function OnboardingWizard({
       const field = firstIssue?.path[0] as OnboardingField | undefined
       if (field && firstIssue) setFieldErrors({ [field]: firstIssue.message })
       setCurrentStep(1)
-      setSubmitMessage("Review the highlighted setup before launching.")
+      setSubmitMessage(
+        "Review the highlighted setup before requesting your preview."
+      )
       return
     }
 
@@ -415,17 +437,21 @@ export function OnboardingWizard({
     })
 
     try {
-      // Nothing is persisted here — the setup data rides through Stripe
-      // Checkout in a cookie and is only saved once checkout-complete
-      // confirms payment. Keeps this click to a single fast redirect.
-      await stripeBuyPlanRedirect({
-        plan: "pro",
-        context: "onboarding",
-        onboardingData: result.data,
+      const preview = await requestOnboardingPreview(result.data)
+      if (!preview.ok) {
+        setSubmitMessage(preview.message)
+        setIsSubmitting(false)
+        return
+      }
+      captureEvent("onboarding_step_completed", {
+        step: "pages",
+        step_index: activeStep,
       })
-    } catch (err) {
-      if (isRedirectError(err)) throw err
-      setSubmitMessage("Something went wrong starting checkout. Please try again.")
+      router.push("/onboarding/preview")
+    } catch {
+      setSubmitMessage(
+        "Something went wrong requesting your preview. Please try again."
+      )
       setIsSubmitting(false)
     }
   }
@@ -447,19 +473,16 @@ export function OnboardingWizard({
     )
   }
 
-  const isUrlStep = currentStep === 0
-  // One extra, un-numbered screen past the counted setup steps — pricing
-  // shows there directly, with no "Launch"/review step in between.
-  const isPaywallStep = currentStep === lastStepIndex + 1
+  const isUrlStep = activeStep === 0
+  const isFinalStep = activeStep === lastStepIndex
 
   const stepIcons = [null, IconPackage, IconSwords, IconSearch, IconFiles]
-  const StepIcon = stepIcons[currentStep] ?? null
+  const StepIcon = stepIcons[activeStep] ?? null
 
   return (
     <OnboardingShell
-      stepIndex={currentStep}
+      stepIndex={activeStep}
       lastStepIndex={lastStepIndex}
-      finalStepLabel={isPaywallStep ? "One last step" : undefined}
       isSigningOut={isSigningOut}
       onSignOut={() => void handleSignOut()}
     >
@@ -477,29 +500,21 @@ export function OnboardingWizard({
       ) : (
         <div>
           <div className="flex items-center gap-3 pt-2">
-            {isPaywallStep ? (
+            {StepIcon && (
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <IconRocket className="h-5 w-5" strokeWidth={1.75} />
+                <StepIcon className="h-5 w-5" strokeWidth={1.75} />
               </div>
-            ) : (
-              StepIcon && (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <StepIcon className="h-5 w-5" strokeWidth={1.75} />
-                </div>
-              )
             )}
             <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              {isPaywallStep ? "Start finding backlinks on autopilot" : ONBOARDING_STEPS[currentStep]!.title}
+              {ONBOARDING_STEPS[activeStep]!.title}
             </h2>
           </div>
           <p className="mt-2 text-base leading-7 text-muted-foreground">
-            {isPaywallStep
-              ? "We'll start discovering opportunities and sending outreach the moment your trial begins. You just monitor the queue and cancel anything that isn't a fit."
-              : ONBOARDING_STEPS[currentStep]!.description}
+            {ONBOARDING_STEPS[activeStep]!.description}
           </p>
 
           <div className="mt-8 space-y-6">
-            {currentStep === 1 && (
+            {activeStep === 1 && (
               <StepProduct
                 data={safeData}
                 errors={fieldErrors}
@@ -507,7 +522,7 @@ export function OnboardingWizard({
                 updateField={updateField}
               />
             )}
-            {currentStep === 2 && (
+            {activeStep === 2 && (
               <StepCompetitors
                 data={safeData}
                 errors={fieldErrors}
@@ -515,7 +530,7 @@ export function OnboardingWizard({
                 updateField={updateField}
               />
             )}
-            {currentStep === 3 && (
+            {activeStep === 3 && (
               <StepKeywords
                 data={safeData}
                 errors={fieldErrors}
@@ -523,14 +538,13 @@ export function OnboardingWizard({
                 updateField={updateField}
               />
             )}
-            {currentStep === 4 && (
+            {activeStep === 4 && (
               <StepImportantPages
                 data={safeData}
                 errors={fieldErrors}
                 updateField={updateField}
               />
             )}
-            {isPaywallStep && <StepPaywall />}
           </div>
 
           {submitMessage && (
@@ -549,20 +563,23 @@ export function OnboardingWizard({
               Back
             </button>
 
-            {isPaywallStep ? (
+            {isFinalStep ? (
               <Button
-                onClick={() => void handleStartTrial()}
+                onClick={() => void handleRequestPreview()}
                 disabled={isSubmitting}
                 className="gap-2 rounded-full px-8 font-medium text-white"
-                style={{ background: "linear-gradient(135deg, var(--blaze-orange), var(--amber-flame))" }}
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--blaze-orange), var(--amber-flame))",
+                }}
               >
                 {isSubmitting ? (
                   <>
                     <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
-                    Redirecting...
+                    Saving setup...
                   </>
                 ) : (
-                  "Start your 7-day free trial"
+                  "Find my opportunities"
                 )}
               </Button>
             ) : (

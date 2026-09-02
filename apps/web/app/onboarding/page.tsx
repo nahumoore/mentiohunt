@@ -3,7 +3,8 @@ import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard"
 
 export const metadata: Metadata = {
   title: "Onboarding",
-  description: "Set up your product and target pages to start discovering backlink opportunities.",
+  description:
+    "Set up your product and target pages to start discovering backlink opportunities.",
   robots: { index: false, follow: false },
 }
 import { supabaseServer } from "@workspace/supabase/server"
@@ -23,9 +24,20 @@ export default async function OnboardingPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name")
+    .select("name, onboarding_completed")
     .eq("id", userData.user.id)
     .single()
+
+  if (profile?.onboarding_completed) redirect("/dashboard")
+
+  const { data: preview } = await supabase
+    .from("onboarding_previews")
+    .select("id")
+    .eq("user_id", userData.user.id)
+    .limit(1)
+    .maybeSingle()
+
+  if (preview) redirect("/onboarding/preview")
 
   const params = await searchParams
   const emailConfirmed = params.confirmed === "email"

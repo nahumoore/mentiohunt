@@ -26,6 +26,9 @@ export const EVENTS = {
   ONBOARDING_AI_GENERATED: "onboarding_ai_generated",
   ONBOARDING_COMPLETED: "onboarding_completed",
   ONBOARDING_FAILED: "onboarding_failed",
+  ONBOARDING_PREVIEW_REQUESTED: "onboarding_preview_requested",
+  ONBOARDING_PREVIEW_VIEWED: "onboarding_preview_viewed",
+  ONBOARDING_TRIAL_CTA_CLICKED: "onboarding_trial_cta_clicked",
   REFERRAL_SOURCE_SUBMITTED: "referral_source_submitted",
 
   // Activation — how a new user gets from "signed up" to "understands this"

@@ -1,12 +1,8 @@
 import {
-  AIMentionsOpportunities,
   BigTestimonial,
-  BurnedByAgencies,
   Comparisons,
-  BrandMentionSources,
   Faq,
   Footer,
-  FounderIntro,
   Hero,
   HowItWorks,
   LandingPageTracker,
@@ -14,33 +10,33 @@ import {
   OrganizationSchema,
   Pricing,
   SoftwareApplicationSchema,
-  TargetPersonas,
   Testimonials,
+  TrustedByMarquee,
   WhyMentiohunt,
 } from "@/components/landing"
 import type { Metadata } from "next"
 import { LANDING_FAQS } from "@/consts/faq"
 
 export const metadata: Metadata = {
-  title: "Mentiohunt – Automated Link Building Tool for Founders",
+  title: "Mentiohunt – AI Link-Building Agent & Outreach Software",
   description:
-    "The automated link building tool that turns article URLs into a backlink opportunity queue — fit scoring, contacts, and outreach drafts ready to send.",
+    "AI link-building agent and automated outreach software that finds natural backlink opportunities, contacts the right people, and follows up until they reply.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Mentiohunt – Automated Link Building Tool for Founders",
+    title: "Mentiohunt – AI Link-Building Agent & Outreach Software",
     description:
-      "The automated link building tool that turns article URLs into a backlink opportunity queue — fit scoring, contacts, and outreach drafts ready to send.",
+      "AI link-building agent and automated outreach software that finds natural backlink opportunities, contacts the right people, and follows up until they reply.",
     url: "https://mentiohunt.com",
     siteName: "Mentiohunt",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mentiohunt – Automated Link Building Tool for Founders",
+    title: "Mentiohunt – AI Link-Building Agent & Outreach Software",
     description:
-      "The automated link building tool that turns article URLs into a backlink opportunity queue — fit scoring, contacts, and outreach drafts ready to send.",
+      "AI link-building agent and automated outreach software that finds natural backlink opportunities, contacts the right people, and follows up until they reply.",
   },
 }
 
@@ -66,19 +62,17 @@ export default function Page() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <main className="min-h-screen bg-background text-foreground">
-        <Navbar />
+        <Navbar overlay />
         <Hero />
-        <BrandMentionSources />
-        <AIMentionsOpportunities />
         <BigTestimonial />
-        <WhyMentiohunt />
+        <div className="container mx-auto px-4 pb-10 sm:px-6 sm:pb-12 lg:px-8">
+          <TrustedByMarquee />
+        </div>
         <HowItWorks />
+        <WhyMentiohunt />
         <Comparisons />
-        <BurnedByAgencies />
-        <TargetPersonas />
-        <Pricing />
         <Testimonials />
-        <FounderIntro />
+        <Pricing />
         <Faq />
         <Footer />
       </main>

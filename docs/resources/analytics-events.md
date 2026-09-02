@@ -247,12 +247,24 @@ Fires on `/onboarding/welcome`, the dedicated post-checkout page that replaced t
 
 ---
 
-### `onboarding_completed`
+### Preview and checkout lifecycle
 
-**Source:** `components/onboarding/onboarding-wizard.tsx`  
-| Prop | Type | Description |
-|------|------|-------------|
-| `competitors_count` | `number` | Number of competitors submitted |
+Critical transitions are captured server-side so redirects and closed tabs do not lose them.
+
+| Event                              | Source                | Key props                                           |
+| ---------------------------------- | --------------------- | --------------------------------------------------- |
+| `onboarding_preview_requested`     | Backend preview route | `preview_id`, `product_id`                          |
+| `onboarding_preview_started`       | Preview worker        | `preview_id`, `product_id`                          |
+| `onboarding_preview_ready`         | Preview worker        | `result_count`, `duration_ms`, `cost_usd`, `status` |
+| `onboarding_preview_failed`        | Backend preview route | `reason`, `preview_id`, `product_id`                |
+| `onboarding_preview_email_sent`    | Preview worker        | `result_count`, `status`                            |
+| `onboarding_preview_email_clicked` | Preview page          | `preview_id`, `product_id`                          |
+| `onboarding_preview_viewed`        | Preview page          | `result_count`, `status`                            |
+| `onboarding_trial_cta_clicked`     | Preview CTA           | `plan`, `product_id`                                |
+| `checkout_session_created`         | Stripe server action  | `plan`, `context`, `card_required`                  |
+| `checkout_completed`               | Checkout finalizer    | `plan`, `trial_days`                                |
+| `checkout_expired`                 | Stripe webhook        | `plan`, `context`, `product_id`                     |
+| `trial_started`                    | Checkout finalizer    | `plan`, `trial_days`                                |
 
 ---
 

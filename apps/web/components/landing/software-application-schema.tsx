@@ -8,7 +8,7 @@ const softwareApplicationSchema = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description:
-    "Mentiohunt automates backlink prospecting and outreach for B2B SaaS founders — you take over once a prospect replies. Turns article URLs into a scored opportunity queue with contact details and outreach drafts.",
+    "Mentiohunt is an AI link-building agent and automated outreach tool. It finds natural backlink opportunities for submitted articles, qualifies each fit, finds contacts, sends outreach, and follows up until a prospect replies.",
   offers: {
     "@type": "Offer",
     price: PLANS[0]!.price,

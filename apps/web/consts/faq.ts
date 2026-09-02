@@ -7,7 +7,7 @@ export const LANDING_FAQS: FaqItem[] = [
   {
     question: "What is Mentiohunt?",
     answer:
-      "Mentiohunt is a backlink outreach autopilot for founder-led B2B SaaS teams. It runs prospect discovery and outreach automatically, up to a prospect's first reply — then you take the conversation over yourself. You monitor the opportunity queue and cancel anything that isn't a fit.",
+      "Mentiohunt is an AI link-building agent and automated outreach software for founder-led B2B SaaS teams. It researches natural backlink opportunities, qualifies each fit, finds the right contact, sends personalized outreach, and follows up through a prospect's first reply. Then you take the conversation over yourself.",
   },
   {
     question: "How does it work?",
@@ -72,7 +72,7 @@ export const LANDING_FAQS: FaqItem[] = [
   {
     question: "What happens when my 7-day free trial ends?",
     answer:
-      "Discovery and outreach pause and dashboard access locks until you upgrade — no card is taken at signup, so you're never charged automatically. Nothing is deleted: your opportunity queue, contacts, drafts, and any replies received are all saved and waiting when you come back.",
+      "No card is required to see your personalized opportunities. A card is required only when you choose to start automated outreach. That starts a 7-day trial at $0 today; after seven days the Pro subscription renews automatically at $49/month unless you cancel from Billing before the trial ends. If you cancel, discovery and outreach pause, while your saved queue and replies remain available.",
   },
   {
     question: "If a prospect replies after my trial ends, do I lose the reply?",

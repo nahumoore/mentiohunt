@@ -11,8 +11,14 @@ import { fetchPageContent } from "../listicle-roundup/check-listicle-client.js"
 import { persistAndEnrich } from "../shared/persist-and-enrich.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
-import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
-import { emptyStrategyFunnel, type StrategyResult } from "../shared/strategy-result.js"
+import type {
+  EmailSettings,
+  ProspectCreatedPayload,
+} from "../shared/prospect-types.js"
+import {
+  emptyStrategyFunnel,
+  type StrategyResult,
+} from "../shared/strategy-result.js"
 import {
   claimDiscoveryCandidates,
   completeDiscoveryCandidates,
@@ -22,7 +28,11 @@ import {
 import { extractDomainFromUrl, isNoiseDomain } from "../shared/url-filters.js"
 import { enrichDomainRatings, enrichResourceInclusion } from "./enrichment.js"
 import { limitNumber, normalizeUrl, queryKey } from "./helpers.js"
-import { completeProspectRun, createProspectRun, failProspectRun } from "./prospect-run-tracking.js"
+import {
+  completeProspectRun,
+  createProspectRun,
+  failProspectRun,
+} from "./prospect-run-tracking.js"
 import { buildQueryPlan, selectPagesForRun } from "./query-planning.js"
 import { loadRunHistory } from "./run-history.js"
 import {
@@ -31,7 +41,12 @@ import {
   type ScoredResourceInclusionCandidate,
   type TargetPageForInclusion,
 } from "./score-resource-page-inclusion.js"
-import { DEFAULT_LIMITS, DEFAULT_QUERY_TEMPLATES, type Product, type ResourcePageInclusionOptions } from "./types.js"
+import {
+  DEFAULT_LIMITS,
+  DEFAULT_QUERY_TEMPLATES,
+  type Product,
+  type ResourcePageInclusionOptions,
+} from "./types.js"
 
 const log = createLogger("discover-resource-page-inclusions")
 
@@ -43,29 +58,50 @@ export async function discoverResourcePageInclusions(
   emailSettings: EmailSettings = {},
   options: ResourcePageInclusionOptions = {},
   budget?: { remaining: number },
-  onProspectCreated?: (p: ProspectCreatedPayload) => void
-): Promise<StrategyResult & {
-  runInput: unknown
-  dryRun: boolean
-  candidatesFound: number
-  candidatesScored: number
-}> {
+  onProspectCreated?: (p: ProspectCreatedPayload) => void,
+  enrichmentBudget?: { remaining: number }
+): Promise<
+  StrategyResult & {
+    runInput: unknown
+    dryRun: boolean
+    candidatesFound: number
+    candidatesScored: number
+  }
+> {
   const ownDomain = extractDomainFromUrl(product.website_url)
   const maxPages = limitNumber(options.maxPages, DEFAULT_LIMITS.maxPages)
-  const maxQueriesPerPage = limitNumber(options.maxQueriesPerPage, DEFAULT_LIMITS.maxQueriesPerPage)
-  const maxCandidates = limitNumber(options.maxCandidates, DEFAULT_LIMITS.maxCandidates)
-  const maxProspects = limitNumber(options.maxProspects, DEFAULT_LIMITS.maxProspects)
-  const maxPriority = limitNumber(options.maxPriority, DEFAULT_LIMITS.maxPriority)
-  const scoringThreshold = limitNumber(options.scoringThreshold, DEFAULT_LIMITS.scoringThreshold)
+  const maxQueriesPerPage = limitNumber(
+    options.maxQueriesPerPage,
+    DEFAULT_LIMITS.maxQueriesPerPage
+  )
+  const maxCandidates = limitNumber(
+    options.maxCandidates,
+    DEFAULT_LIMITS.maxCandidates
+  )
+  const maxProspects = limitNumber(
+    options.maxProspects,
+    DEFAULT_LIMITS.maxProspects
+  )
+  const maxPriority = limitNumber(
+    options.maxPriority,
+    DEFAULT_LIMITS.maxPriority
+  )
+  const scoringThreshold = limitNumber(
+    options.scoringThreshold,
+    DEFAULT_LIMITS.scoringThreshold
+  )
   const country = options.country?.trim() || DEFAULT_LIMITS.country
-  const serpResultsPerQuery = options.serpResultsPerQuery ?? DEFAULT_LIMITS.serpResultsPerQuery
+  const serpResultsPerQuery =
+    options.serpResultsPerQuery ?? DEFAULT_LIMITS.serpResultsPerQuery
   // Page type is no longer a hard filter by default — keyword relevance
   // (is_target, set by crawlProductPages's top-N selection) is a strictly
   // better "is this a plausible link target" signal than page type, which
   // was only ever a proxy for it. pageTypes stays available as an explicit
   // override for callers that want it (e.g. the free tool).
   const pageTypes = options.pageTypes?.length ? options.pageTypes : null
-  const queryTemplates = options.queryTemplates?.length ? options.queryTemplates : DEFAULT_QUERY_TEMPLATES
+  const queryTemplates = options.queryTemplates?.length
+    ? options.queryTemplates
+    : DEFAULT_QUERY_TEMPLATES
   const dryRun = options.dryRun === true
 
   log.info("discovery started", { productId: product.id, ownDomain, dryRun })
@@ -78,7 +114,9 @@ export async function discoverResourcePageInclusions(
 
   let pagesQuery = supabaseAdmin
     .from("product_pages")
-    .select("id, url, title, description, page_type, priority, keywords, matched_keywords")
+    .select(
+      "id, url, title, description, page_type, priority, keywords, matched_keywords"
+    )
     .eq("product_id", product.id)
     .eq("crawl_status", "crawled")
     .eq("is_target", true)
@@ -90,7 +128,8 @@ export async function discoverResourcePageInclusions(
   if (options.pageIds?.length) pagesQuery = pagesQuery.in("id", options.pageIds)
 
   const { data: rawPages, error: pagesError } = await pagesQuery
-  if (pagesError) throw new Error(`Could not load product pages: ${pagesError.message}`)
+  if (pagesError)
+    throw new Error(`Could not load product pages: ${pagesError.message}`)
 
   const eligiblePages: TargetPageForInclusion[] = (rawPages ?? []).map((p) => ({
     id: p.id,
@@ -103,7 +142,12 @@ export async function discoverResourcePageInclusions(
     matched_keywords: p.matched_keywords ?? [],
   }))
 
-  const pages = selectPagesForRun(eligiblePages, maxPages, runHistory.lastRunByPageId, explicitPageIds)
+  const pages = selectPagesForRun(
+    eligiblePages,
+    maxPages,
+    runHistory.lastRunByPageId,
+    explicitPageIds
+  )
 
   const queryPlan = buildQueryPlan(
     pages,
@@ -129,9 +173,23 @@ export async function discoverResourcePageInclusions(
     page_types: pageTypes,
     max_priority: maxPriority,
     query_templates: queryTemplates,
-    queries: queryPlan.map((q) => ({ query: q.query, target_page_id: q.targetPage.id, target_url: q.targetPage.url })),
-    limits: { maxPages, maxQueriesPerPage, maxCandidates, maxProspects, serpResultsPerQuery },
-    filters: { dr_min: settings.dr_min, dr_max: settings.dr_max, own_domain: ownDomain },
+    queries: queryPlan.map((q) => ({
+      query: q.query,
+      target_page_id: q.targetPage.id,
+      target_url: q.targetPage.url,
+    })),
+    limits: {
+      maxPages,
+      maxQueriesPerPage,
+      maxCandidates,
+      maxProspects,
+      serpResultsPerQuery,
+    },
+    filters: {
+      dr_min: settings.dr_min,
+      dr_max: settings.dr_max,
+      own_domain: ownDomain,
+    },
     scoring_threshold: scoringThreshold,
     country,
     run_history: {
@@ -146,7 +204,10 @@ export async function discoverResourcePageInclusions(
       selected_queries_with_last_run: queryPlan.map((q) => ({
         query: q.query,
         target_page_id: q.targetPage.id,
-        last_run_at: runHistory.lastRunByQueryKey.get(queryKey(q.targetPage.id, q.query)) ?? null,
+        last_run_at:
+          runHistory.lastRunByQueryKey.get(
+            queryKey(q.targetPage.id, q.query)
+          ) ?? null,
       })),
     },
     dry_run: dryRun,
@@ -157,8 +218,17 @@ export async function discoverResourcePageInclusions(
 
   try {
     if (pages.length === 0 || queryPlan.length === 0) {
-      await completeProspectRun(runId, 0, totalCostUsd, { reason: "no_eligible_pages_or_queries" })
-      return { prospectsCreated: 0, totalCostUsd, runInput, dryRun, candidatesFound: 0, candidatesScored: 0 }
+      await completeProspectRun(runId, 0, totalCostUsd, {
+        reason: "no_eligible_pages_or_queries",
+      })
+      return {
+        prospectsCreated: 0,
+        totalCostUsd,
+        runInput,
+        dryRun,
+        candidatesFound: 0,
+        candidatesScored: 0,
+      }
     }
 
     const serpLimit = pLimit(3)
@@ -168,12 +238,21 @@ export async function discoverResourcePageInclusions(
           try {
             const serp = await runApifyActor<GoogleSerpItem[]>(
               SCRAPERLINK_GOOGLE_SERP,
-              { keyword: plan.query, limit: serpResultsPerQuery, country, include_merged: false },
+              {
+                keyword: plan.query,
+                limit: serpResultsPerQuery,
+                country,
+                include_merged: false,
+              },
               90
             )
             return { plan, results: serp.flatMap((item) => item.results ?? []) }
           } catch (err) {
-            log.warn("SERP query failed", { productId: product.id, query: plan.query, error: String(err) })
+            log.warn("SERP query failed", {
+              productId: product.id,
+              query: plan.query,
+              error: String(err),
+            })
             return { plan, results: [] }
           }
         })
@@ -204,8 +283,17 @@ export async function discoverResourcePageInclusions(
 
     const gathered = [...candidatePairs.values()]
     if (gathered.length === 0) {
-      await completeProspectRun(runId, 0, totalCostUsd, { candidates_gathered: 0 })
-      return { prospectsCreated: 0, totalCostUsd, runInput, dryRun, candidatesFound: 0, candidatesScored: 0 }
+      await completeProspectRun(runId, 0, totalCostUsd, {
+        candidates_gathered: 0,
+      })
+      return {
+        prospectsCreated: 0,
+        totalCostUsd,
+        runInput,
+        dryRun,
+        candidatesFound: 0,
+        candidatesScored: 0,
+      }
     }
 
     const { data: existingProspects } = await supabaseAdmin
@@ -214,9 +302,15 @@ export async function discoverResourcePageInclusions(
       .eq("product_id", product.id)
       .in("domain", [...new Set(gathered.map((c) => c.domain))])
 
-    const existingUrls = new Set((existingProspects ?? []).map((r) => r.found_url))
-    const existingDomains = new Set((existingProspects ?? []).map((r) => r.domain))
-    const freshCandidates = gathered.filter((c) => !existingUrls.has(c.url) && !existingDomains.has(c.domain))
+    const existingUrls = new Set(
+      (existingProspects ?? []).map((r) => r.found_url)
+    )
+    const existingDomains = new Set(
+      (existingProspects ?? []).map((r) => r.domain)
+    )
+    const freshCandidates = gathered.filter(
+      (c) => !existingUrls.has(c.url) && !existingDomains.has(c.domain)
+    )
     await storeDiscoveryCandidates(
       product.id,
       "resource_page_inclusion",
@@ -233,25 +327,38 @@ export async function discoverResourcePageInclusions(
         metadata: { targetPage: candidate.targetPage },
       }))
     )
-    const claimed = await claimDiscoveryCandidates(product.id, "resource_page_inclusion", maxCandidates)
-    type ResourceBacklogCandidate = ResourceInclusionCandidate & { backlogId: string | null }
-    const candidates: ResourceBacklogCandidate[] = claimed.length > 0
-      ? claimed.flatMap((candidate) => {
-          const targetPage = candidate.metadata?.targetPage as TargetPageForInclusion | undefined
-          if (!targetPage) return []
-          return [{
-            id: candidate.candidateKey,
-            url: candidate.url,
-            domain: candidate.domain,
-            title: candidate.title ?? "",
-            snippet: candidate.snippet ?? "",
-            text: "",
-            query: candidate.query ?? "",
-            targetPage,
-            backlogId: candidate.id,
-          }]
-        })
-      : freshCandidates.slice(0, maxCandidates).map((candidate) => ({ ...candidate, backlogId: null }))
+    const claimed = await claimDiscoveryCandidates(
+      product.id,
+      "resource_page_inclusion",
+      maxCandidates
+    )
+    type ResourceBacklogCandidate = ResourceInclusionCandidate & {
+      backlogId: string | null
+    }
+    const candidates: ResourceBacklogCandidate[] =
+      claimed.length > 0
+        ? claimed.flatMap((candidate) => {
+            const targetPage = candidate.metadata?.targetPage as
+              | TargetPageForInclusion
+              | undefined
+            if (!targetPage) return []
+            return [
+              {
+                id: candidate.candidateKey,
+                url: candidate.url,
+                domain: candidate.domain,
+                title: candidate.title ?? "",
+                snippet: candidate.snippet ?? "",
+                text: "",
+                query: candidate.query ?? "",
+                targetPage,
+                backlogId: candidate.id,
+              },
+            ]
+          })
+        : freshCandidates
+            .slice(0, maxCandidates)
+            .map((candidate) => ({ ...candidate, backlogId: null }))
 
     log.info("candidates gathered", {
       productId: product.id,
@@ -263,8 +370,18 @@ export async function discoverResourcePageInclusions(
     })
 
     if (candidates.length === 0) {
-      await completeProspectRun(runId, 0, totalCostUsd, { candidates_gathered: gathered.length, already_stored: gathered.length })
-      return { prospectsCreated: 0, totalCostUsd, runInput, dryRun, candidatesFound: gathered.length, candidatesScored: 0 }
+      await completeProspectRun(runId, 0, totalCostUsd, {
+        candidates_gathered: gathered.length,
+        already_stored: gathered.length,
+      })
+      return {
+        prospectsCreated: 0,
+        totalCostUsd,
+        runInput,
+        dryRun,
+        candidatesFound: gathered.length,
+        candidatesScored: 0,
+      }
     }
 
     const fetchLimit = pLimit(5)
@@ -272,26 +389,51 @@ export async function discoverResourcePageInclusions(
       candidates.map((candidate) =>
         fetchLimit(async () => {
           const content = await fetchPageContent(candidate.url)
-          return content ? { ...candidate, title: content.title || candidate.title, text: content.text } : null
+          return content
+            ? {
+                ...candidate,
+                title: content.title || candidate.title,
+                text: content.text,
+              }
+            : null
         })
       )
     )
-    const withContent = fetched.filter((c): c is ResourceBacklogCandidate => c !== null)
+    const withContent = fetched.filter(
+      (c): c is ResourceBacklogCandidate => c !== null
+    )
     const failedBacklogIds = candidates
-      .filter((candidate, index) => fetched[index] === null && candidate.backlogId)
+      .filter(
+        (candidate, index) => fetched[index] === null && candidate.backlogId
+      )
       .map((candidate) => candidate.backlogId as string)
     await retryDiscoveryCandidates(failedBacklogIds, "page_fetch_failed")
 
     if (withContent.length === 0) {
-      await completeProspectRun(runId, 0, totalCostUsd, { candidates_gathered: gathered.length, fetched: 0 })
-      return { prospectsCreated: 0, totalCostUsd, runInput, dryRun, candidatesFound: gathered.length, candidatesScored: 0 }
+      await completeProspectRun(runId, 0, totalCostUsd, {
+        candidates_gathered: gathered.length,
+        fetched: 0,
+      })
+      return {
+        prospectsCreated: 0,
+        totalCostUsd,
+        runInput,
+        dryRun,
+        candidatesFound: gathered.length,
+        candidatesScored: 0,
+      }
     }
 
-    const { results: scored, totalCost: scoringCost } = await scoreResourcePageInclusion(withContent, product)
+    const { results: scored, totalCost: scoringCost } =
+      await scoreResourcePageInclusion(withContent, product)
     totalCostUsd += scoringCost
     await completeDiscoveryCandidates(
       withContent
-        .map((candidate) => (candidate as ResourceInclusionCandidate & { backlogId?: string }).backlogId)
+        .map(
+          (candidate) =>
+            (candidate as ResourceInclusionCandidate & { backlogId?: string })
+              .backlogId
+        )
         .filter((id): id is string => Boolean(id))
     )
 
@@ -300,7 +442,8 @@ export async function discoverResourcePageInclusions(
       if (item.relevanceScore < scoringThreshold) continue
       if (!item.isCuratedResourcePage || item.alreadyLinksToTarget) continue
       const current = bestByDomain.get(item.domain)
-      if (!current || item.relevanceScore > current.relevanceScore) bestByDomain.set(item.domain, item)
+      if (!current || item.relevanceScore > current.relevanceScore)
+        bestByDomain.set(item.domain, item)
     }
 
     let qualified = [...bestByDomain.values()]
@@ -308,13 +451,26 @@ export async function discoverResourcePageInclusions(
       .slice(0, maxProspects)
 
     if (qualified.length === 0) {
-      await completeProspectRun(runId, 0, totalCostUsd, { candidates_gathered: gathered.length, scored: scored.length, qualified: 0 })
-      return { prospectsCreated: 0, totalCostUsd, runInput, dryRun, candidatesFound: gathered.length, candidatesScored: scored.length }
+      await completeProspectRun(runId, 0, totalCostUsd, {
+        candidates_gathered: gathered.length,
+        scored: scored.length,
+        qualified: 0,
+      })
+      return {
+        prospectsCreated: 0,
+        totalCostUsd,
+        runInput,
+        dryRun,
+        candidatesFound: gathered.length,
+        candidatesScored: scored.length,
+      }
     }
 
     if (settings.dr_min > 0 || settings.dr_max !== null) {
       const beforeCount = qualified.length
-      const drByDomain = await enrichDomainRatings([...new Set(qualified.map((q) => q.domain))])
+      const drByDomain = await enrichDomainRatings([
+        ...new Set(qualified.map((q) => q.domain)),
+      ])
       qualified = qualified
         .map((q) => ({ ...q, domainRating: drByDomain.get(q.domain) ?? null }))
         .filter((q) => {
@@ -339,29 +495,57 @@ export async function discoverResourcePageInclusions(
       title: item.title || "",
       snippet: item.relevanceReason || item.snippet || "",
     }))
-    const { results: siteRelevanceResults, cost: siteRelevanceCost } = await scoreSiteRelevance(siteRelevanceInputs, product)
+    const { results: siteRelevanceResults, cost: siteRelevanceCost } =
+      await scoreSiteRelevance(siteRelevanceInputs, product)
     totalCostUsd += siteRelevanceCost
 
     if (dryRun) {
-      await completeProspectRun(runId, 0, totalCostUsd, { dry_run: true, qualified: qualified.length })
-      return { prospectsCreated: 0, totalCostUsd, runInput, dryRun, candidatesFound: gathered.length, candidatesScored: scored.length }
+      await completeProspectRun(runId, 0, totalCostUsd, {
+        dry_run: true,
+        qualified: qualified.length,
+      })
+      return {
+        prospectsCreated: 0,
+        totalCostUsd,
+        runInput,
+        dryRun,
+        candidatesFound: gathered.length,
+        candidatesScored: scored.length,
+      }
     }
 
     if (qualified.length === 0) {
-      await completeProspectRun(runId, 0, totalCostUsd, { qualified: qualified.length, budget_exhausted: true })
-      return { prospectsCreated: 0, totalCostUsd, runInput, dryRun, candidatesFound: gathered.length, candidatesScored: scored.length }
+      await completeProspectRun(runId, 0, totalCostUsd, {
+        qualified: qualified.length,
+        budget_exhausted: true,
+      })
+      return {
+        prospectsCreated: 0,
+        totalCostUsd,
+        runInput,
+        dryRun,
+        candidatesFound: gathered.length,
+        candidatesScored: scored.length,
+      }
     }
 
     const sender = await resolveSenderName(product.user_id)
     const enrichLimit = pLimit(5)
     const persistence = await persistAndEnrich({
       productId: product.id,
-      candidates: qualified.map((item) => ({ item, foundUrl: item.url, domain: item.domain })),
+      candidates: qualified.map((item) => ({
+        item,
+        foundUrl: item.url,
+        domain: item.domain,
+      })),
       budget,
+      enrichmentBudget,
       enrichLimit,
       buildBareRow: ({ item, domain }) => {
         const sr = siteRelevanceResults.get(item.url)
-        const itemWithDr = item as ScoredResourceInclusionCandidate & { domainRating?: number | null }
+        const itemWithDr = item as ScoredResourceInclusionCandidate & {
+          domainRating?: number | null
+        }
         return {
           product_id: product.id,
           product_page_id: item.targetPage.id,
@@ -374,6 +558,16 @@ export async function discoverResourcePageInclusions(
           site_relevance_score: sr?.score ?? null,
           enrichment_status: "pending" as const,
           raw_metadata: {
+            outreach_context: {
+              opportunityType: "resource_page_inclusion",
+              title: item.title,
+              foundUrl: item.url,
+              targetUrl: item.targetPage.url,
+              targetTitle: item.targetPage.title ?? "",
+              targetDescription: item.targetPage.description,
+              targetPageType: item.targetPage.page_type,
+              reason: item.relevanceReason,
+            },
             resource_page_inclusion: {
               targetPageId: item.targetPage.id,
               targetPageType: item.targetPage.page_type,
@@ -386,7 +580,8 @@ export async function discoverResourcePageInclusions(
           },
         }
       },
-      enrich: ({ item }) => enrichResourceInclusion(item, product, sender, emailSettings),
+      enrich: ({ item }) =>
+        enrichResourceInclusion(item, product, sender, emailSettings),
       onProspectCreated,
       logContext: { strategy: "resource_page_inclusion" },
     })

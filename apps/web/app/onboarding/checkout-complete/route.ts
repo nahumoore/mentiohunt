@@ -2,19 +2,35 @@ import { NextRequest } from "next/server"
 import { redirect } from "next/navigation"
 import Stripe from "stripe"
 
-import { FREE_TRIAL_MAX_PAGES, getTierFromPriceId } from "@/consts/billing"
+import {
+  FREE_TRIAL_DAYS,
+  FREE_TRIAL_MAX_PAGES,
+  getTierFromPriceId,
+} from "@/consts/billing"
 import { DEFAULT_DISCOVERY_SETTINGS } from "@/lib/discovery-defaults"
 import { DEFAULT_PROSPECT_TIERS } from "@/lib/opportunity-types"
-import { extractHostname, validateDomains } from "@/lib/onboarding/validate-domain"
+import {
+  extractHostname,
+  validateDomains,
+} from "@/lib/onboarding/validate-domain"
 import { startDiscoveryJobs } from "@/lib/onboarding/start-discovery-jobs"
-import { clearPendingOnboardingData, readPendingOnboardingData } from "@/lib/onboarding/pending-cookie"
+import { activatePreviewProduct } from "@/lib/onboarding/activate-preview-product"
+import {
+  clearPendingOnboardingData,
+  readPendingOnboardingData,
+} from "@/lib/onboarding/pending-cookie"
 import { supabaseServer } from "@/lib/supabase/server"
-import type { TablesInsert, TablesUpdate } from "@workspace/supabase/database-types"
+import { captureServerEvent } from "@/lib/server-analytics"
+import type {
+  TablesInsert,
+  TablesUpdate,
+} from "@workspace/supabase/database-types"
 
 export const runtime = "nodejs"
 
 function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not set")
+  if (!process.env.STRIPE_SECRET_KEY)
+    throw new Error("STRIPE_SECRET_KEY not set")
   return new Stripe(process.env.STRIPE_SECRET_KEY)
 }
 
@@ -26,10 +42,8 @@ function toDateString(unixTimestamp: number): string {
  * Closes the loop on the onboarding paywall's Stripe Checkout synchronously —
  * this runs before the webhook (app/api/payment/route.ts) reliably lands, so
  * the user isn't stuck staring at a redirect while waiting on it. Writes the
- * same profile fields the webhook writes, then persists the onboarding setup
- * (stashed in a cookie by actions/stripe-buy-plan-redirect.ts before checkout
- * — nothing is saved to the DB until payment is actually confirmed here) and
- * kicks off the discovery jobs.
+ * same profile fields the webhook writes, promotes the already-persisted
+ * preview product, and kicks off the activated discovery jobs.
  */
 export async function GET(request: NextRequest) {
   const supabase = await supabaseServer()
@@ -60,7 +74,10 @@ export async function GET(request: NextRequest) {
   }
 
   const subscription = session.subscription as Stripe.Subscription | null
-  if (!subscription || (subscription.status !== "trialing" && subscription.status !== "active")) {
+  if (
+    !subscription ||
+    (subscription.status !== "trialing" && subscription.status !== "active")
+  ) {
     redirect("/onboarding")
   }
 
@@ -72,7 +89,7 @@ export async function GET(request: NextRequest) {
 
   // Refresh/back-button safe — already ran once for this account.
   if (profile?.onboarding_completed) {
-    redirect("/dashboard/prospects")
+    redirect("/onboarding/welcome")
   }
 
   const item = subscription.items.data[0]
@@ -94,19 +111,48 @@ export async function GET(request: NextRequest) {
     ...(pendingData?.userName ? { name: pendingData.userName } : {}),
   }
 
-  const { error: updateProfileError } = await supabase
+  const { data: finalizedProfile, error: updateProfileError } = await supabase
     .from("profiles")
     .update(profileUpdate)
     .eq("id", user.id)
+    .eq("onboarding_completed", false)
+    .select("id")
+    .maybeSingle()
 
   if (updateProfileError) {
     console.error("Error finalizing onboarding checkout:", updateProfileError)
     redirect("/onboarding")
   }
 
+  // The Stripe webhook may have won the atomic finalization race and already
+  // queued activated discovery for this product.
+  if (!finalizedProfile) redirect("/onboarding/welcome")
+
+  void captureServerEvent("checkout_completed", user.id, {
+    plan: tier,
+    trial_days: subscription.status === "trialing" ? FREE_TRIAL_DAYS : 0,
+  })
+  if (subscription.status === "trialing") {
+    void captureServerEvent("trial_started", user.id, {
+      plan: tier,
+      trial_days: FREE_TRIAL_DAYS,
+    })
+  }
+
   let productId: string | null = null
 
-  if (pendingData) {
+  const previewProductId = session.metadata?.onboarding_product_id?.trim()
+  if (previewProductId) {
+    const { data: previewProduct } = await supabase
+      .from("products")
+      .select("id")
+      .eq("id", previewProductId)
+      .eq("user_id", user.id)
+      .maybeSingle()
+    productId = previewProduct?.id ?? null
+  }
+
+  if (!productId && pendingData) {
     // Domain checks that used to block the wizard before checkout now just
     // filter quietly — payment already went through, so a bad competitor
     // domain shouldn't strand a paying customer outside their own dashboard.
@@ -136,7 +182,10 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (insertProductError || !createdProduct) {
-      console.error("Error creating onboarding product after checkout:", insertProductError)
+      console.error(
+        "Error creating onboarding product after checkout:",
+        insertProductError
+      )
     } else {
       const newProductId = createdProduct.id
       productId = newProductId
@@ -152,12 +201,15 @@ export async function GET(request: NextRequest) {
         .upsert(settingsPayload, { onConflict: "product_id" })
 
       if (upsertSettingsError) {
-        console.error("Error saving onboarding settings after checkout:", upsertSettingsError)
+        console.error(
+          "Error saving onboarding settings after checkout:",
+          upsertSettingsError
+        )
       }
 
       if (pendingData.importantPages.length > 0) {
-        const pagesPayload: TablesInsert<"product_pages">[] = pendingData.importantPages.map(
-          (url, index) => ({
+        const pagesPayload: TablesInsert<"product_pages">[] =
+          pendingData.importantPages.map((url, index) => ({
             product_id: newProductId,
             url,
             page_type: "manual",
@@ -165,15 +217,17 @@ export async function GET(request: NextRequest) {
             is_manual: true,
             is_target: true,
             crawl_status: "pending",
-          })
-        )
+          }))
 
         const { error: upsertPagesError } = await supabase
           .from("product_pages")
           .upsert(pagesPayload, { onConflict: "product_id,url" })
 
         if (upsertPagesError) {
-          console.error("Error saving onboarding important pages after checkout:", upsertPagesError)
+          console.error(
+            "Error saving onboarding important pages after checkout:",
+            upsertPagesError
+          )
         }
       }
     }
@@ -202,15 +256,29 @@ export async function GET(request: NextRequest) {
     redirect("/onboarding/welcome")
   }
 
-  await startDiscoveryJobs({
-    userId: user.id,
-    productId,
-    crawlLimit: FREE_TRIAL_MAX_PAGES,
-    autoDiscoverPages:
-      pendingData?.autoDiscoverPages ?? session.metadata?.onboarding_auto_discover === "1",
-  }).catch((error) => {
-    console.error("Failed to reach the onboarding server:", error)
-  })
+  const autoDiscoverPages =
+    pendingData?.autoDiscoverPages ??
+    session.metadata?.onboarding_auto_discover === "1"
+
+  if (previewProductId) {
+    await activatePreviewProduct({
+      userId: user.id,
+      productId,
+      crawlLimit: FREE_TRIAL_MAX_PAGES,
+      autoDiscoverPages,
+    }).catch((error) => {
+      console.error("Failed to activate preview product:", error)
+    })
+  } else {
+    await startDiscoveryJobs({
+      userId: user.id,
+      productId,
+      crawlLimit: FREE_TRIAL_MAX_PAGES,
+      autoDiscoverPages,
+    }).catch((error) => {
+      console.error("Failed to reach the onboarding server:", error)
+    })
+  }
 
   redirect("/onboarding/welcome")
 }

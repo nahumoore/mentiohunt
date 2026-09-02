@@ -20,7 +20,7 @@ export function Faq() {
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />
           <h2
             id="faq-title"
-            className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]"
+            className="mt-5 font-[family-name:var(--font-figtree),var(--font-sans)] text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]"
           >
             Common questions
           </h2>
@@ -38,7 +38,7 @@ export function Faq() {
             >
               <span
                 aria-hidden="true"
-                className="font-heading text-sm font-bold tabular-nums text-blaze-orange/40 transition-colors duration-200 group-hover:text-(--color-blaze-orange)"
+                className="font-[family-name:var(--font-figtree),var(--font-sans)] text-sm font-bold tabular-nums text-blaze-orange/40 transition-colors duration-200 group-hover:text-(--color-blaze-orange)"
               >
                 {String(index + 1).padStart(2, "0")}
               </span>

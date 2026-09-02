@@ -862,6 +862,94 @@ export type Database = {
           },
         ]
       }
+      onboarding_previews: {
+        Row: {
+          activation_requested_at: string | null
+          checkout_started_at: string | null
+          completed_at: string | null
+          cost_usd: number
+          failure_reason: string | null
+          id: string
+          product_id: string
+          requested_at: string
+          result_count: number
+          result_ids: string[]
+          results_email_clicked_at: string | null
+          results_email_sent_at: string | null
+          sample_prospect_id: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          viewed_at: string | null
+          website_domain: string
+        }
+        Insert: {
+          activation_requested_at?: string | null
+          checkout_started_at?: string | null
+          completed_at?: string | null
+          cost_usd?: number
+          failure_reason?: string | null
+          id?: string
+          product_id: string
+          requested_at?: string
+          result_count?: number
+          result_ids?: string[]
+          results_email_clicked_at?: string | null
+          results_email_sent_at?: string | null
+          sample_prospect_id?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          viewed_at?: string | null
+          website_domain: string
+        }
+        Update: {
+          activation_requested_at?: string | null
+          checkout_started_at?: string | null
+          completed_at?: string | null
+          cost_usd?: number
+          failure_reason?: string | null
+          id?: string
+          product_id?: string
+          requested_at?: string
+          result_count?: number
+          result_ids?: string[]
+          results_email_clicked_at?: string | null
+          results_email_sent_at?: string | null
+          sample_prospect_id?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          viewed_at?: string | null
+          website_domain?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_previews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_previews_sample_prospect_id_fkey"
+            columns: ["sample_prospect_id"]
+            isOneToOne: false
+            referencedRelation: "backlink_prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_previews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       outreach_events: {
         Row: {
           created_at: string
@@ -1024,8 +1112,8 @@ export type Database = {
       profiles: {
         Row: {
           active_trial: boolean
-          billing_period_end_at: string
-          billing_period_start_at: string
+          billing_period_end_at: string | null
+          billing_period_start_at: string | null
           created_at: string
           deactivated_at: string | null
           email: string
@@ -1038,13 +1126,14 @@ export type Database = {
           referral_source: string | null
           stripe_customer_id: string | null
           tier: Database["public"]["Enums"]["billing_tier"]
+          trial_ending_reminder_sent_at: string | null
           updated_at: string
           walkthrough_seen_at: string | null
         }
         Insert: {
           active_trial?: boolean
-          billing_period_end_at: string
-          billing_period_start_at: string
+          billing_period_end_at?: string | null
+          billing_period_start_at?: string | null
           created_at?: string
           deactivated_at?: string | null
           email: string
@@ -1057,6 +1146,7 @@ export type Database = {
           referral_source?: string | null
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
+          trial_ending_reminder_sent_at?: string | null
           updated_at?: string
           walkthrough_seen_at?: string | null
         }
@@ -1076,6 +1166,7 @@ export type Database = {
           referral_source?: string | null
           stripe_customer_id?: string | null
           tier?: Database["public"]["Enums"]["billing_tier"]
+          trial_ending_reminder_sent_at?: string | null
           updated_at?: string
           walkthrough_seen_at?: string | null
         }

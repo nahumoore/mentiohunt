@@ -1,10 +1,8 @@
 ## Project
 
-Mentiohunt automates backlink prospecting and outreach for founder-led B2B SaaS teams — through the first reply. After that, the founder takes over the relationship personally.
+Mentiohunt automates backlink prospecting and outreach for founder-led B2B SaaS teams, up to a prospect's first reply — after which the founder takes over the relationship personally.
 
-**Core offer:** user provides sitemap or article URLs. System auto-fetches daily, finds websites where each article fits well, surfaces contact details for the site owner/founder, generates a ready-to-send email draft, and runs outreach automatically through a prospect's first reply. Outreach sequences are auto-scheduled on discovery — the customer's role is to monitor and cancel opportunities that aren't a fit, not to approve each one before it sends. Once a prospect replies, automation stops and the customer continues the conversation personally from their own connected mailbox — not from Mentiohunt's shared sending pool.
-
-> More brand info at `@.claude/skills/copywriting`
+> For product, positioning, pricing, ICP, and messaging details needed for marketing or copywriting tasks, see `@docs/mentiohunt`.
 
 ## General Knowledge/Rules
 

@@ -87,6 +87,14 @@ export type GenerateTextOptions = {
   input: string
   systemInstructions?: string
   thinkingBudget?: number
+  /**
+   * Set false to tell reasoning models (e.g. deepseek-v4-pro) to skip the
+   * thinking phase entirely. For simple extraction/classification prompts this
+   * cuts latency dramatically — deepseek-v4-pro drops from ~17s to ~2s — with no
+   * meaningful quality loss. Only wired into the structured (responseFormat)
+   * path. Leave undefined to keep the model's default reasoning behaviour.
+   */
+  reasoningEnabled?: boolean
   timeoutMs?: number
   responseFormat?: {
     type: "json_schema"
@@ -132,8 +140,16 @@ async function callModel(
   messages: Array<{ role: "system" | "user"; content: string }>,
   responseFormat: Required<Pick<GenerateTextOptions, "responseFormat">>["responseFormat"],
   thinkingBudget: number | undefined,
+  reasoningEnabled: boolean | undefined,
   timeoutMs: number
 ): Promise<{ text: string; cost: number } & GenerateTextUsageMeta> {
+  const reasoningParam =
+    reasoningEnabled === false
+      ? { enabled: false }
+      : thinkingBudget
+        ? { max_tokens: thinkingBudget }
+        : undefined
+
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -145,7 +161,7 @@ async function callModel(
       model: modelId,
       messages,
       response_format: responseFormat,
-      ...(thinkingBudget ? { reasoning: { max_tokens: thinkingBudget } } : {}),
+      ...(reasoningParam ? { reasoning: reasoningParam } : {}),
       provider: { require_parameters: true },
       stream: false,
     }),
@@ -197,10 +213,14 @@ async function generateStructuredText({
   input,
   systemInstructions,
   thinkingBudget,
+  reasoningEnabled,
   timeoutMs = 60_000,
   responseFormat,
 }: Required<Pick<GenerateTextOptions, "model" | "input" | "responseFormat">> &
-  Pick<GenerateTextOptions, "fallbackModels" | "systemInstructions" | "thinkingBudget" | "timeoutMs">): Promise<
+  Pick<
+    GenerateTextOptions,
+    "fallbackModels" | "systemInstructions" | "thinkingBudget" | "reasoningEnabled" | "timeoutMs"
+  >): Promise<
   { text: string; cost: number } & GenerateTextUsageMeta & GenerateTextModelMeta
 > {
   const messages = [
@@ -218,7 +238,7 @@ async function generateStructuredText({
     const isFallback = i > 0
     try {
       const result = await limiterFor(modelId)(() =>
-        callModel(modelId, messages, responseFormat, thinkingBudget, timeoutMs)
+        callModel(modelId, messages, responseFormat, thinkingBudget, reasoningEnabled, timeoutMs)
       )
       if (isFallback) {
         console.warn(`[openrouter] fallback model succeeded: ${modelId} (primary: ${modelsToTry[0]})`)
@@ -243,6 +263,7 @@ export async function generateText({
   input,
   systemInstructions,
   thinkingBudget,
+  reasoningEnabled,
   timeoutMs,
   responseFormat,
 }: GenerateTextOptions): Promise<{ text: string } & GenerateTextModelMeta> {
@@ -253,6 +274,7 @@ export async function generateText({
       input,
       systemInstructions,
       thinkingBudget,
+      reasoningEnabled,
       timeoutMs,
       responseFormat,
     })
@@ -279,6 +301,7 @@ export async function generateTextWithUsage({
   input,
   systemInstructions,
   thinkingBudget,
+  reasoningEnabled,
   timeoutMs,
   responseFormat,
 }: GenerateTextOptions): Promise<
@@ -291,6 +314,7 @@ export async function generateTextWithUsage({
       input,
       systemInstructions,
       thinkingBudget,
+      reasoningEnabled,
       timeoutMs,
       responseFormat,
     })

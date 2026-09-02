@@ -9,8 +9,14 @@ import { createLogger } from "../../../helpers/logger.js"
 import type { FilterSettings } from "../competitor-backlink/filter-backlinks.js"
 import { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
 import { persistAndEnrich } from "../shared/persist-and-enrich.js"
-import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
-import { emptyStrategyFunnel, type StrategyResult } from "../shared/strategy-result.js"
+import type {
+  EmailSettings,
+  ProspectCreatedPayload,
+} from "../shared/prospect-types.js"
+import {
+  emptyStrategyFunnel,
+  type StrategyResult,
+} from "../shared/strategy-result.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import {
@@ -22,8 +28,17 @@ import {
 import { extractDomainFromUrl, isNoiseDomain } from "../shared/url-filters.js"
 import { buildListicleQueries } from "./build-listicle-queries.js"
 import { fetchPageContent } from "./check-listicle-client.js"
-import { enrichListicle, type Product, type QualifiedListicle } from "./enrichment.js"
-import { completeProspectRun, createProspectRun, failProspectRun, selectQueriesForRun } from "./prospect-run-tracking.js"
+import {
+  enrichListicle,
+  type Product,
+  type QualifiedListicle,
+} from "./enrichment.js"
+import {
+  completeProspectRun,
+  createProspectRun,
+  failProspectRun,
+  selectQueriesForRun,
+} from "./prospect-run-tracking.js"
 import { scoreListicleRelevance } from "./score-listicle-relevance.js"
 
 const log = createLogger("discover-listicle-roundups")
@@ -40,19 +55,29 @@ export async function discoverListicleRoundups(
   emailSettings: EmailSettings = {},
   limits: { maxCandidates?: number; maxProspects?: number } = {},
   budget?: { remaining: number },
-  onProspectCreated?: (p: ProspectCreatedPayload) => void
+  onProspectCreated?: (p: ProspectCreatedPayload) => void,
+  enrichmentBudget?: { remaining: number }
 ): Promise<StrategyResult> {
   const maxCandidates = limits.maxCandidates ?? MAX_CANDIDATES_TO_FETCH
   const maxProspects = limits.maxProspects ?? MAX_PROSPECTS_PER_RUN
   const ownDomain = extractDomainFromUrl(product.website_url)
   const productName = product.product_name?.trim() ?? ""
 
-  log.info("discovery started", { productId: product.id, ownDomain, productName })
+  log.info("discovery started", {
+    productId: product.id,
+    ownDomain,
+    productName,
+  })
 
   if (!ownDomain || !productName) {
-    log.info("missing domain or product name, skipping", { productId: product.id })
+    log.info("missing domain or product name, skipping", {
+      productId: product.id,
+    })
     const runId = await createProspectRun(product.id, [])
-    if (runId) await completeProspectRun(runId, 0, 0, { skip_reason: "missing_domain_or_name" })
+    if (runId)
+      await completeProspectRun(runId, 0, 0, {
+        skip_reason: "missing_domain_or_name",
+      })
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
@@ -62,17 +87,29 @@ export async function discoverListicleRoundups(
   let totalCostUsd = 0
   let serpFailures = 0
 
-  const { queries: queryPool, cost: queryBuildCost, weightByQuery } = await buildListicleQueries(product)
+  const {
+    queries: queryPool,
+    cost: queryBuildCost,
+    weightByQuery,
+  } = await buildListicleQueries(product)
   totalCostUsd += queryBuildCost
 
   if (queryPool.length === 0) {
     log.info("no queries built, skipping", { productId: product.id })
     const runId = await createProspectRun(product.id, [])
-    if (runId) await completeProspectRun(runId, 0, totalCostUsd, { skip_reason: "no_queries_built" })
+    if (runId)
+      await completeProspectRun(runId, 0, totalCostUsd, {
+        skip_reason: "no_queries_built",
+      })
     return { prospectsCreated: 0, totalCostUsd }
   }
 
-  const queries = await selectQueriesForRun(product.id, queryPool, MAX_QUERIES_PER_RUN, weightByQuery)
+  const queries = await selectQueriesForRun(
+    product.id,
+    queryPool,
+    MAX_QUERIES_PER_RUN,
+    weightByQuery
+  )
 
   log.info("queries selected for run", {
     productId: product.id,
@@ -91,21 +128,41 @@ export async function discoverListicleRoundups(
           try {
             return await runApifyActor<GoogleSerpItem[]>(
               SCRAPERLINK_GOOGLE_SERP,
-              { keyword, limit: SERP_RESULTS_PER_QUERY, country: "US", include_merged: false },
+              {
+                keyword,
+                limit: SERP_RESULTS_PER_QUERY,
+                country: "US",
+                include_merged: false,
+              },
               90
             )
           } catch (err) {
             serpFailures += 1
-            log.warn("SERP query failed", { productId: product.id, keyword, error: String(err) })
+            log.warn("SERP query failed", {
+              productId: product.id,
+              keyword,
+              error: String(err),
+            })
             return []
           }
         })
       )
     )
-    const serpResults = serpBatches.flatMap((batch) => batch.flatMap((item) => item.results ?? []))
+    const serpResults = serpBatches.flatMap((batch) =>
+      batch.flatMap((item) => item.results ?? [])
+    )
 
     // 2. Dedup by URL, drop own domain + noise/aggregator domains.
-    const byUrl = new Map<string, { url: string; domain: string; title: string; snippet: string; appearances: number }>()
+    const byUrl = new Map<
+      string,
+      {
+        url: string
+        domain: string
+        title: string
+        snippet: string
+        appearances: number
+      }
+    >()
     for (const r of serpResults) {
       if (!r.url) continue
       const domain = extractDomainFromUrl(r.url)
@@ -149,15 +206,20 @@ export async function discoverListicleRoundups(
       .eq("product_id", product.id)
       .in("domain", [...new Set([...byUrl.values()].map((c) => c.domain))])
 
-    const existingUrls = new Set((existingProspects ?? []).map((r) => r.found_url))
-    const existingDomains = new Set((existingProspects ?? []).map((r) => r.domain))
+    const existingUrls = new Set(
+      (existingProspects ?? []).map((r) => r.found_url)
+    )
+    const existingDomains = new Set(
+      (existingProspects ?? []).map((r) => r.domain)
+    )
     const freshDomains = new Set<string>()
     const freshCandidates = [...byUrl.values()].filter((candidate) => {
       if (
-        existingUrls.has(candidate.url)
-        || existingDomains.has(candidate.domain)
-        || freshDomains.has(candidate.domain)
-      ) return false
+        existingUrls.has(candidate.url) ||
+        existingDomains.has(candidate.domain) ||
+        freshDomains.has(candidate.domain)
+      )
+        return false
       freshDomains.add(candidate.domain)
       return true
     })
@@ -167,20 +229,28 @@ export async function discoverListicleRoundups(
       freshCandidates.map((candidate, index) => ({
         candidateKey: candidate.url.replace(/\/$/, ""),
         ...candidate,
-        priorityScore: candidate.appearances * 100 + freshCandidates.length - index,
+        priorityScore:
+          candidate.appearances * 100 + freshCandidates.length - index,
         metadata: { query_appearances: candidate.appearances },
       }))
     )
-    const claimed = await claimDiscoveryCandidates(product.id, "listicle_roundup", maxCandidates)
-    const candidates = claimed.length > 0
-      ? claimed.map((candidate) => ({
-          url: candidate.url,
-          domain: candidate.domain,
-          title: candidate.title ?? "",
-          snippet: candidate.snippet ?? "",
-          backlogId: candidate.id,
-        }))
-      : freshCandidates.slice(0, maxCandidates).map((candidate) => ({ ...candidate, backlogId: null }))
+    const claimed = await claimDiscoveryCandidates(
+      product.id,
+      "listicle_roundup",
+      maxCandidates
+    )
+    const candidates =
+      claimed.length > 0
+        ? claimed.map((candidate) => ({
+            url: candidate.url,
+            domain: candidate.domain,
+            title: candidate.title ?? "",
+            snippet: candidate.snippet ?? "",
+            backlogId: candidate.id,
+          }))
+        : freshCandidates
+            .slice(0, maxCandidates)
+            .map((candidate) => ({ ...candidate, backlogId: null }))
 
     log.info("candidates gathered", {
       productId: product.id,
@@ -195,7 +265,11 @@ export async function discoverListicleRoundups(
     funnel.serp_failures = serpFailures
 
     if (candidates.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          ...funnel,
+          qualified: 0,
+        })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -218,8 +292,12 @@ export async function discoverListicleRoundups(
     )
 
     const withContent = fetched.filter(
-      (f): f is { candidate: (typeof candidates)[number]; content: NonNullable<(typeof f)["content"]> } =>
-        f.content !== null
+      (
+        f
+      ): f is {
+        candidate: (typeof candidates)[number]
+        content: NonNullable<(typeof f)["content"]>
+      } => f.content !== null
     )
     const failedBacklogIds = fetched
       .filter((item) => item.content === null && item.candidate.backlogId)
@@ -235,25 +313,34 @@ export async function discoverListicleRoundups(
     funnel.fetch_outcomes = outcomeCounts
 
     if (withContent.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          ...funnel,
+          qualified: 0,
+        })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
     // 4. Relevance scoring — genuine listicle in-category, product not yet listed.
-    const { results: scored, totalCost: scoringCost } = await scoreListicleRelevance(
-      withContent.map((f) => ({
-        url: f.candidate.url,
-        title: f.content.title || f.candidate.title,
-        text: f.content.text,
-      })),
-      product
-    )
+    const { results: scored, totalCost: scoringCost } =
+      await scoreListicleRelevance(
+        withContent.map((f) => ({
+          url: f.candidate.url,
+          title: f.content.title || f.candidate.title,
+          text: f.content.text,
+        })),
+        product
+      )
     await completeDiscoveryCandidates(
-      withContent.map((item) => item.candidate.backlogId).filter((id): id is string => Boolean(id))
+      withContent
+        .map((item) => item.candidate.backlogId)
+        .filter((id): id is string => Boolean(id))
     )
     totalCostUsd += scoringCost
 
-    const contentByUrl = new Map(withContent.map((f) => [f.candidate.url, f.candidate]))
+    const contentByUrl = new Map(
+      withContent.map((f) => [f.candidate.url, f.candidate])
+    )
     let qualified: QualifiedListicle[] = scored
       .filter((s) => s.relevanceScore >= MIN_RELEVANCE_SCORE)
       .map((s) => {
@@ -275,13 +362,19 @@ export async function discoverListicleRoundups(
     funnel.after_scoring = qualified.length
 
     if (qualified.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          ...funnel,
+          qualified: 0,
+        })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
     // 5. Domain rating — only when the user has set a DR floor.
     if (settings.dr_min > 0) {
-      const drByDomain = await enrichDomainRatings([...new Set(qualified.map((q) => q.domain))])
+      const drByDomain = await enrichDomainRatings([
+        ...new Set(qualified.map((q) => q.domain)),
+      ])
       qualified = qualified
         .map((q) => ({ ...q, domainRating: drByDomain.get(q.domain) ?? null }))
         .filter((q) => {
@@ -291,12 +384,20 @@ export async function discoverListicleRoundups(
           if (settings.dr_max !== null && dr > settings.dr_max) return false
           return true
         })
-      log.info("dr filter applied", { productId: product.id, dr_min: settings.dr_min, kept: qualified.length })
+      log.info("dr filter applied", {
+        productId: product.id,
+        dr_min: settings.dr_min,
+        kept: qualified.length,
+      })
       funnel.after_dr = qualified.length
     }
 
     if (qualified.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          ...funnel,
+          qualified: 0,
+        })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -305,7 +406,11 @@ export async function discoverListicleRoundups(
     const newItems = qualified
 
     if (newItems.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          ...funnel,
+          qualified: 0,
+        })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -316,40 +421,57 @@ export async function discoverListicleRoundups(
       title: item.title || "",
       snippet: item.relevanceReason || "",
     }))
-    const { results: siteRelevanceResults, cost: siteRelevanceCost } = await scoreSiteRelevance(
-      siteRelevanceInputs,
-      product
-    )
+    const { results: siteRelevanceResults, cost: siteRelevanceCost } =
+      await scoreSiteRelevance(siteRelevanceInputs, product)
     totalCostUsd += siteRelevanceCost
 
     const enrichLimit = pLimit(5)
     const persistence = await persistAndEnrich({
       productId: product.id,
-      candidates: newItems.map((item) => ({ item, foundUrl: item.url, domain: item.domain })),
+      candidates: newItems.map((item) => ({
+        item,
+        foundUrl: item.url,
+        domain: item.domain,
+      })),
       budget,
+      enrichmentBudget,
       enrichLimit,
       buildBareRow: ({ item, domain }) => {
-      const sr = siteRelevanceResults.get(item.url)
-      return {
-        product_id: product.id,
-        domain,
-        domain_rating: item.domainRating,
-        found_url: item.url,
-        target_url: product.website_url,
-        tier: "listicle_roundup" as const,
-        status: "new" as const,
-        site_relevance_score: sr?.score ?? null,
-        enrichment_status: "pending" as const,
-      }
+        const sr = siteRelevanceResults.get(item.url)
+        return {
+          product_id: product.id,
+          domain,
+          domain_rating: item.domainRating,
+          found_url: item.url,
+          target_url: product.website_url,
+          tier: "listicle_roundup" as const,
+          status: "new" as const,
+          site_relevance_score: sr?.score ?? null,
+          enrichment_status: "pending" as const,
+          raw_metadata: {
+            outreach_context: {
+              opportunityType: "listicle_roundup",
+              title: item.title,
+              anchor: "",
+              pageType: "roundup",
+              competitorDomain: item.topCompetitor ?? "similar tools",
+              competitorNamedInText: true,
+            },
+          },
+        }
       },
-      enrich: ({ item }) => enrichListicle(item, product, sender, emailSettings),
+      enrich: ({ item }) =>
+        enrichListicle(item, product, sender, emailSettings),
       onProspectCreated,
       logContext: { strategy: "listicle_roundup" },
     })
     const prospectsCreated = persistence.prospectsInserted
     const enrichedWithContact = persistence.contactReady
 
-    log.info("rows upserted", { productId: product.id, inserted: prospectsCreated })
+    log.info("rows upserted", {
+      productId: product.id,
+      inserted: prospectsCreated,
+    })
 
     if (runId)
       await completeProspectRun(runId, prospectsCreated, totalCostUsd, {
@@ -384,7 +506,9 @@ export async function discoverListicleRoundups(
     return {
       prospectsCreated: 0,
       totalCostUsd,
-      funnel: emptyStrategyFunnel({ transportFailures: Math.max(1, serpFailures) }),
+      funnel: emptyStrategyFunnel({
+        transportFailures: Math.max(1, serpFailures),
+      }),
     }
   }
 }

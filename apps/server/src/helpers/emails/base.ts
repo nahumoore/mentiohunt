@@ -65,6 +65,7 @@ export async function sendMentiohuntEmail({
   previewText,
   footerReason,
   unsubscribeUrl,
+  idempotencyKey,
 }: {
   to: string
   subject: string
@@ -72,6 +73,7 @@ export async function sendMentiohuntEmail({
   previewText?: string
   footerReason?: string
   unsubscribeUrl?: string
+  idempotencyKey?: string
 }): Promise<boolean> {
   try {
     const resend = getResend()
@@ -83,18 +85,21 @@ export async function sendMentiohuntEmail({
       unsubscribeUrl,
     })
 
-    await resend.emails.send({
-      from: ALERTS_FROM,
-      to,
-      subject: email.subject,
-      html: email.html,
-      headers: unsubscribeUrl
-        ? {
-            "List-Unsubscribe": `<${unsubscribeUrl}>`,
-            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-          }
-        : undefined,
-    })
+    await resend.emails.send(
+      {
+        from: ALERTS_FROM,
+        to,
+        subject: email.subject,
+        html: email.html,
+        headers: unsubscribeUrl
+          ? {
+              "List-Unsubscribe": `<${unsubscribeUrl}>`,
+              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+            }
+          : undefined,
+      },
+      idempotencyKey ? { idempotencyKey } : undefined
+    )
     return true
   } catch (err) {
     log.warn("failed to send email", { error: String(err), to, subject })

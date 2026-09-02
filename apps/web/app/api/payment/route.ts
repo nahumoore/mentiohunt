@@ -3,16 +3,24 @@ import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 
 import { supabaseAdmin } from "@workspace/supabase/admin"
-import { getTierFromPriceId } from "@/consts/billing"
+import {
+  FREE_TRIAL_DAYS,
+  FREE_TRIAL_MAX_PAGES,
+  getTierFromPriceId,
+} from "@/consts/billing"
 import type { BillingTier } from "@/consts/billing"
+import { activatePreviewProduct } from "@/lib/onboarding/activate-preview-product"
+import { captureServerEvent } from "@/lib/server-analytics"
 
 function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not set")
+  if (!process.env.STRIPE_SECRET_KEY)
+    throw new Error("STRIPE_SECRET_KEY not set")
   return new Stripe(process.env.STRIPE_SECRET_KEY)
 }
 
 function getWebhookSecret() {
-  if (!process.env.STRIPE_WEBHOOK_SECRET) throw new Error("STRIPE_WEBHOOK_SECRET not set")
+  if (!process.env.STRIPE_WEBHOOK_SECRET)
+    throw new Error("STRIPE_WEBHOOK_SECRET not set")
   return process.env.STRIPE_WEBHOOK_SECRET
 }
 
@@ -24,7 +32,11 @@ const SERVER_URL = process.env.SERVER_URL ?? "http://localhost:3001"
 
 async function notifyBillingChange(payload: {
   userId: string
-  type: "subscription_created" | "subscription_updated" | "subscription_deleted" | "payment_failed"
+  type:
+    | "subscription_created"
+    | "subscription_updated"
+    | "subscription_deleted"
+    | "payment_failed"
   tier: BillingTier
 }) {
   try {
@@ -69,6 +81,84 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session
+        const userId = session.metadata?.supabase_user_id
+        const productId = session.metadata?.onboarding_product_id
+        if (!userId || !productId || !session.subscription) break
+
+        const subscription =
+          typeof session.subscription === "string"
+            ? await stripe.subscriptions.retrieve(session.subscription)
+            : session.subscription
+        const item = subscription.items.data[0]
+        if (!item) break
+        const tier = getTierFromPriceId(item.price?.id ?? "")
+        if (!tier) break
+
+        const { data: product } = await supabaseAdmin
+          .from("products")
+          .select("id")
+          .eq("id", productId)
+          .eq("user_id", userId)
+          .maybeSingle()
+        if (!product) break
+
+        const { data: finalized } = await supabaseAdmin
+          .from("profiles")
+          .update({
+            tier,
+            active_trial: subscription.status === "trialing",
+            stripe_customer_id: subscription.customer as string,
+            onboarding_completed: true,
+            billing_period_start_at: toDateString(item.current_period_start),
+            billing_period_end_at: toDateString(item.current_period_end),
+          })
+          .eq("id", userId)
+          .eq("onboarding_completed", false)
+          .select("id")
+          .maybeSingle()
+
+        await activatePreviewProduct({
+          userId,
+          productId,
+          crawlLimit: FREE_TRIAL_MAX_PAGES,
+          autoDiscoverPages: session.metadata?.onboarding_auto_discover === "1",
+        })
+
+        if (finalized) {
+          void captureServerEvent("checkout_completed", userId, {
+            plan: tier,
+            trial_days:
+              subscription.status === "trialing" ? FREE_TRIAL_DAYS : 0,
+            product_id: productId,
+          })
+          if (subscription.status === "trialing") {
+            void captureServerEvent("trial_started", userId, {
+              plan: tier,
+              trial_days: FREE_TRIAL_DAYS,
+              product_id: productId,
+            })
+          }
+        }
+        break
+      }
+
+      case "checkout.session.expired": {
+        const session = event.data.object as Stripe.Checkout.Session
+        const userId = session.metadata?.supabase_user_id
+        if (userId) {
+          void captureServerEvent("checkout_expired", userId, {
+            plan: "pro",
+            context: session.metadata?.onboarding_product_id
+              ? "onboarding"
+              : "dashboard",
+            product_id: session.metadata?.onboarding_product_id,
+          })
+        }
+        break
+      }
+
       case "customer.subscription.created": {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
@@ -133,7 +223,8 @@ export async function POST(req: NextRequest) {
         // in "trialing" for its first 7 days, and reading only "active" here
         // would flip a mid-trial user's tier back to "free" the moment
         // Stripe fires this event.
-        const isEntitled = subscription.status === "active" || subscription.status === "trialing"
+        const isEntitled =
+          subscription.status === "active" || subscription.status === "trialing"
         const tier: BillingTier = isEntitled
           ? (getTierFromPriceId(item.price?.id ?? "") ?? "free")
           : "free"

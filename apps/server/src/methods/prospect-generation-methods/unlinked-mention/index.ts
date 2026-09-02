@@ -9,8 +9,14 @@ import { createLogger } from "../../../helpers/logger.js"
 import type { FilterSettings } from "../competitor-backlink/filter-backlinks.js"
 import { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
 import { persistAndEnrich } from "../shared/persist-and-enrich.js"
-import type { EmailSettings, ProspectCreatedPayload } from "../shared/prospect-types.js"
-import { emptyStrategyFunnel, type StrategyResult } from "../shared/strategy-result.js"
+import type {
+  EmailSettings,
+  ProspectCreatedPayload,
+} from "../shared/prospect-types.js"
+import {
+  emptyStrategyFunnel,
+  type StrategyResult,
+} from "../shared/strategy-result.js"
 import { resolveSenderName } from "../shared/resolve-sender-name.js"
 import { scoreSiteRelevance } from "../shared/score-site-relevance.js"
 import {
@@ -21,7 +27,11 @@ import {
 } from "../shared/discovery-candidate-backlog.js"
 import { extractDomainFromUrl, isNoiseDomain } from "../shared/url-filters.js"
 import { checkMention } from "./check-mention-client.js"
-import { enrichMention, type Product, type QualifiedMention } from "./enrichment.js"
+import {
+  enrichMention,
+  type Product,
+  type QualifiedMention,
+} from "./enrichment.js"
 import {
   completeProspectRun,
   createProspectRun,
@@ -29,7 +39,10 @@ import {
   getLastCompletedRunDate,
   selectQueriesForRun,
 } from "./prospect-run-tracking.js"
-import { scoreMentionRelevance, type MentionCandidate } from "./score-mention-relevance.js"
+import {
+  scoreMentionRelevance,
+  type MentionCandidate,
+} from "./score-mention-relevance.js"
 
 const log = createLogger("discover-unlinked-mentions")
 
@@ -44,19 +57,29 @@ export async function discoverUnlinkedMentions(
   emailSettings: EmailSettings = {},
   limits: { maxCandidates?: number; maxProspects?: number } = {},
   budget?: { remaining: number },
-  onProspectCreated?: (p: ProspectCreatedPayload) => void
+  onProspectCreated?: (p: ProspectCreatedPayload) => void,
+  enrichmentBudget?: { remaining: number }
 ): Promise<StrategyResult> {
   const maxCandidates = limits.maxCandidates ?? MAX_CANDIDATES_TO_SCRAPE
   const maxProspects = limits.maxProspects ?? MAX_PROSPECTS_PER_RUN
   const ownDomain = extractDomainFromUrl(product.website_url)
   const productName = product.product_name?.trim() ?? ""
 
-  log.info("discovery started", { productId: product.id, ownDomain, productName })
+  log.info("discovery started", {
+    productId: product.id,
+    ownDomain,
+    productName,
+  })
 
   if (!ownDomain || !productName) {
-    log.info("missing domain or product name, skipping", { productId: product.id })
+    log.info("missing domain or product name, skipping", {
+      productId: product.id,
+    })
     const runId = await createProspectRun(product.id, [], [])
-    if (runId) await completeProspectRun(runId, 0, 0, { skip_reason: "missing_domain_or_name" })
+    if (runId)
+      await completeProspectRun(runId, 0, 0, {
+        skip_reason: "missing_domain_or_name",
+      })
     return { prospectsCreated: 0, totalCostUsd: 0 }
   }
 
@@ -76,7 +99,11 @@ export async function discoverUnlinkedMentions(
     `"${productName}" pricing -site:${ownDomain}`,
     `"${productName}" tutorial -site:${ownDomain}`,
   ]
-  const queries = await selectQueriesForRun(product.id, queryPool, MAX_QUERIES_PER_RUN)
+  const queries = await selectQueriesForRun(
+    product.id,
+    queryPool,
+    MAX_QUERIES_PER_RUN
+  )
 
   const lastRunDate = await getLastCompletedRunDate(product.id)
   if (lastRunDate) {
@@ -108,13 +135,19 @@ export async function discoverUnlinkedMentions(
             )
           } catch (err) {
             serpFailures += 1
-            log.warn("SERP query failed", { productId: product.id, keyword, error: String(err) })
+            log.warn("SERP query failed", {
+              productId: product.id,
+              keyword,
+              error: String(err),
+            })
             return []
           }
         })
       )
     )
-    const serpResults = serpBatches.flatMap((batch) => batch.flatMap((item) => item.results ?? []))
+    const serpResults = serpBatches.flatMap((batch) =>
+      batch.flatMap((item) => item.results ?? [])
+    )
 
     // 2. Dedup by domain, drop own domain + big aggregators/socials.
     const byDomain = new Map<string, MentionCandidate & { domain: string }>()
@@ -140,11 +173,20 @@ export async function discoverUnlinkedMentions(
         .from("backlink_prospects")
         .select("found_url, domain")
         .eq("product_id", product.id)
-        .in("domain", gathered.map((c) => c.domain))
+        .in(
+          "domain",
+          gathered.map((c) => c.domain)
+        )
 
-      const existingUrls = new Set((existingProspects ?? []).map((r) => r.found_url))
-      const existingDomains = new Set((existingProspects ?? []).map((r) => r.domain))
-      freshCandidates = gathered.filter((c) => !existingUrls.has(c.url) && !existingDomains.has(c.domain))
+      const existingUrls = new Set(
+        (existingProspects ?? []).map((r) => r.found_url)
+      )
+      const existingDomains = new Set(
+        (existingProspects ?? []).map((r) => r.domain)
+      )
+      freshCandidates = gathered.filter(
+        (c) => !existingUrls.has(c.url) && !existingDomains.has(c.domain)
+      )
     }
     await storeDiscoveryCandidates(
       product.id,
@@ -155,16 +197,23 @@ export async function discoverUnlinkedMentions(
         priorityScore: freshCandidates.length - index,
       }))
     )
-    const claimed = await claimDiscoveryCandidates(product.id, "unlinked_mention", maxCandidates)
-    const candidates = claimed.length > 0
-      ? claimed.map((candidate) => ({
-          url: candidate.url,
-          domain: candidate.domain,
-          title: candidate.title ?? "",
-          snippet: candidate.snippet ?? "",
-          backlogId: candidate.id,
-        }))
-      : freshCandidates.slice(0, maxCandidates).map((candidate) => ({ ...candidate, backlogId: null }))
+    const claimed = await claimDiscoveryCandidates(
+      product.id,
+      "unlinked_mention",
+      maxCandidates
+    )
+    const candidates =
+      claimed.length > 0
+        ? claimed.map((candidate) => ({
+            url: candidate.url,
+            domain: candidate.domain,
+            title: candidate.title ?? "",
+            snippet: candidate.snippet ?? "",
+            backlogId: candidate.id,
+          }))
+        : freshCandidates
+            .slice(0, maxCandidates)
+            .map((candidate) => ({ ...candidate, backlogId: null }))
 
     log.info("candidates gathered", {
       productId: product.id,
@@ -179,7 +228,11 @@ export async function discoverUnlinkedMentions(
     funnel.serp_failures = serpFailures
 
     if (candidates.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          ...funnel,
+          qualified: 0,
+        })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -207,7 +260,11 @@ export async function discoverUnlinkedMentions(
 
     let qualified: QualifiedMention[] = checked
       .filter((c) => c.result?.qualified)
-      .map((c) => ({ ...c.candidate, contact: c.result!.contact, domainRating: null }))
+      .map((c) => ({
+        ...c.candidate,
+        contact: c.result!.contact,
+        domainRating: null,
+      }))
 
     log.info("mention check complete", {
       productId: product.id,
@@ -219,10 +276,15 @@ export async function discoverUnlinkedMentions(
 
     // 4. Domain rating — only when the user has set a DR floor.
     if (settings.dr_min > 0 && qualified.length > 0) {
-      const drByDomain = await enrichDomainRatings([...new Set(qualified.map((q) => q.domain))])
+      const drByDomain = await enrichDomainRatings([
+        ...new Set(qualified.map((q) => q.domain)),
+      ])
       log.info("domain ratings fetched", {
         productId: product.id,
-        ratings: [...drByDomain.entries()].map(([domain, dr]) => ({ domain, dr })),
+        ratings: [...drByDomain.entries()].map(([domain, dr]) => ({
+          domain,
+          dr,
+        })),
       })
       qualified = qualified
         .map((q) => ({ ...q, domainRating: drByDomain.get(q.domain) ?? null }))
@@ -233,28 +295,45 @@ export async function discoverUnlinkedMentions(
           if (settings.dr_max !== null && dr > settings.dr_max) return false
           return true
         })
-      log.info("dr filter applied", { productId: product.id, dr_min: settings.dr_min, kept: qualified.length })
+      log.info("dr filter applied", {
+        productId: product.id,
+        dr_min: settings.dr_min,
+        kept: qualified.length,
+      })
       funnel.after_dr = qualified.length
     }
 
     if (qualified.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          ...funnel,
+          qualified: 0,
+        })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
     // 5. Relevance scoring.
-    const { results: scored, totalCost: scoringCost } = await scoreMentionRelevance(
-      qualified.map((q) => ({ url: q.url, title: q.title, snippet: q.snippet })),
-      product
-    )
+    const { results: scored, totalCost: scoringCost } =
+      await scoreMentionRelevance(
+        qualified.map((q) => ({
+          url: q.url,
+          title: q.title,
+          snippet: q.snippet,
+        })),
+        product
+      )
     totalCostUsd += scoringCost
 
     const scoreByUrl = new Map(scored.map((s) => [s.url, s]))
     const passing = qualified
-      .filter((q) => (scoreByUrl.get(q.url)?.relevanceScore ?? 0) >= MIN_RELEVANCE_SCORE)
+      .filter(
+        (q) =>
+          (scoreByUrl.get(q.url)?.relevanceScore ?? 0) >= MIN_RELEVANCE_SCORE
+      )
       .sort(
         (a, b) =>
-          (scoreByUrl.get(b.url)?.relevanceScore ?? 0) - (scoreByUrl.get(a.url)?.relevanceScore ?? 0)
+          (scoreByUrl.get(b.url)?.relevanceScore ?? 0) -
+          (scoreByUrl.get(a.url)?.relevanceScore ?? 0)
       )
       .slice(0, maxProspects)
 
@@ -266,7 +345,11 @@ export async function discoverUnlinkedMentions(
     funnel.after_scoring = passing.length
 
     if (passing.length === 0) {
-      if (runId) await completeProspectRun(runId, 0, totalCostUsd, { ...funnel, qualified: 0 })
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          ...funnel,
+          qualified: 0,
+        })
       return { prospectsCreated: 0, totalCostUsd }
     }
 
@@ -281,31 +364,41 @@ export async function discoverUnlinkedMentions(
       title: item.title || "",
       snippet: item.snippet || "",
     }))
-    const { results: siteRelevanceResults, cost: siteRelevanceCost } = await scoreSiteRelevance(
-      siteRelevanceInputs,
-      product
-    )
+    const { results: siteRelevanceResults, cost: siteRelevanceCost } =
+      await scoreSiteRelevance(siteRelevanceInputs, product)
     totalCostUsd += siteRelevanceCost
 
     const enrichLimit = pLimit(5)
     const persistence = await persistAndEnrich({
       productId: product.id,
-      candidates: newItems.map((item) => ({ item, foundUrl: item.url, domain: item.domain })),
+      candidates: newItems.map((item) => ({
+        item,
+        foundUrl: item.url,
+        domain: item.domain,
+      })),
       budget,
+      enrichmentBudget,
       enrichLimit,
       buildBareRow: ({ item, domain }) => {
-      const sr = siteRelevanceResults.get(item.url)
-      return {
-        product_id: product.id,
-        domain,
-        domain_rating: item.domainRating,
-        found_url: item.url,
-        target_url: product.website_url,
-        tier: "unlinked_mention" as const,
-        status: "new" as const,
-        site_relevance_score: sr?.score ?? null,
-        enrichment_status: "pending" as const,
-      }
+        const sr = siteRelevanceResults.get(item.url)
+        return {
+          product_id: product.id,
+          domain,
+          domain_rating: item.domainRating,
+          found_url: item.url,
+          target_url: product.website_url,
+          tier: "unlinked_mention" as const,
+          status: "new" as const,
+          site_relevance_score: sr?.score ?? null,
+          enrichment_status: "pending" as const,
+          raw_metadata: {
+            outreach_context: {
+              opportunityType: "unlinked_mention",
+              title: item.title,
+              foundUrl: item.url,
+            },
+          },
+        }
       },
       enrich: ({ item }) => enrichMention(item, product, sender, emailSettings),
       onProspectCreated,
@@ -314,7 +407,10 @@ export async function discoverUnlinkedMentions(
     const prospectsCreated = persistence.prospectsInserted
     const enrichedWithContact = persistence.contactReady
 
-    log.info("rows upserted", { productId: product.id, inserted: prospectsCreated })
+    log.info("rows upserted", {
+      productId: product.id,
+      inserted: prospectsCreated,
+    })
 
     if (runId)
       await completeProspectRun(runId, prospectsCreated, totalCostUsd, {

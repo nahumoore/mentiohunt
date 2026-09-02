@@ -27,16 +27,21 @@ type ProspectSequence = Pick<
   | "attempt_count"
 >
 
-type ClaimedSequence = ProspectSequence & Pick<Tables<"prospect_sequences">, "status">
+type ClaimedSequence = ProspectSequence &
+  Pick<Tables<"prospect_sequences">, "status">
 
 type ProspectContext = Pick<
   Tables<"backlink_prospects">,
   "id" | "product_id" | "contact_email" | "status"
 >
 
-type ProductContext = Pick<Tables<"products">, "id" | "user_id" | "product_name" | "website_url">
+type ProductContext = Pick<
+  Tables<"products">,
+  "id" | "user_id" | "product_name" | "website_url"
+>
 
-type AccountContext = OutreachEmailAccount & Pick<Tables<"email_accounts">, "daily_send_cap" | "status">
+type AccountContext = OutreachEmailAccount &
+  Pick<Tables<"email_accounts">, "daily_send_cap" | "status">
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
@@ -56,8 +61,13 @@ function isAccountConfigurationError(error: unknown): boolean {
 /** Prospect ids owned (via product) by a given user — covers both a paid
  * user's own mailbox and a free user's shared public-pool sends, since
  * ownership lives on the prospect/product, not on email_accounts.user_id. */
-export async function loadProspectIdsForUser(userId: string): Promise<string[]> {
-  const { data: products } = await supabaseAdmin.from("products").select("id").eq("user_id", userId)
+export async function loadProspectIdsForUser(
+  userId: string
+): Promise<string[]> {
+  const { data: products } = await supabaseAdmin
+    .from("products")
+    .select("id")
+    .eq("user_id", userId)
   const productIds = products?.map((p) => p.id) ?? []
   if (!productIds.length) return []
 
@@ -72,10 +82,17 @@ export async function loadProspectIdsForUser(userId: string): Promise<string[]> 
 const STALE_LOCK_MINUTES = 10
 
 async function failStaleLocks(): Promise<void> {
-  const staleBefore = new Date(Date.now() - STALE_LOCK_MINUTES * 60 * 1000).toISOString()
+  const staleBefore = new Date(
+    Date.now() - STALE_LOCK_MINUTES * 60 * 1000
+  ).toISOString()
   const { data, error } = await supabaseAdmin
     .from("prospect_sequences")
-    .update({ status: "failed", locked_at: null, last_error: "Delivery outcome unknown after worker interruption; not retried to prevent duplicates." })
+    .update({
+      status: "failed",
+      locked_at: null,
+      last_error:
+        "Delivery outcome unknown after worker interruption; not retried to prevent duplicates.",
+    })
     .eq("status", "sending")
     .lt("locked_at", staleBefore)
     .select("id, prospect_id, step")
@@ -89,12 +106,18 @@ async function failStaleLocks(): Promise<void> {
     for (const sequence of data) {
       await supabaseAdmin
         .from("prospect_sequences")
-        .update({ status: "skipped", last_error: "Previous delivery outcome is unknown." })
+        .update({
+          status: "skipped",
+          last_error: "Previous delivery outcome is unknown.",
+        })
         .eq("prospect_id", sequence.prospect_id)
         .gt("step", sequence.step)
         .eq("status", "pending")
     }
-    log.warn("marked stale sends as delivery-unknown", { count: data.length, ids: data.map((row) => row.id) })
+    log.warn("marked stale sends as delivery-unknown", {
+      count: data.length,
+      ids: data.map((row) => row.id),
+    })
   }
 }
 
@@ -121,20 +144,32 @@ async function recordEvent({
   })
 
   if (error) {
-    log.warn("failed to record outreach event", { sequenceId: sequence.id, eventType, error: error.message })
+    log.warn("failed to record outreach event", {
+      sequenceId: sequence.id,
+      eventType,
+      error: error.message,
+    })
   }
 }
 
-async function deferForAccountSpacing(sequence: ProspectSequence): Promise<void> {
+async function deferForAccountSpacing(
+  sequence: ProspectSequence
+): Promise<void> {
   const scheduledAt = buildCapacityReschedule().toISOString()
   const { error } = await supabaseAdmin
     .from("prospect_sequences")
-    .update({ scheduled_at: scheduledAt, last_deferred_at: new Date().toISOString() })
+    .update({
+      scheduled_at: scheduledAt,
+      last_deferred_at: new Date().toISOString(),
+    })
     .eq("id", sequence.id)
     .eq("status", "pending")
 
   if (error) {
-    log.warn("failed to defer sequence for account spacing", { sequenceId: sequence.id, error: error.message })
+    log.warn("failed to defer sequence for account spacing", {
+      sequenceId: sequence.id,
+      error: error.message,
+    })
     return
   }
 
@@ -146,14 +181,22 @@ async function deferForAccountSpacing(sequence: ProspectSequence): Promise<void>
   })
 }
 
-async function claimSequence(sequence: ProspectSequence): Promise<ClaimedSequence | null> {
-  const { data, error } = await supabaseAdmin.rpc("claim_prospect_outreach_sequence", {
-    p_sequence_id: sequence.id,
-    p_spacing_seconds: 300,
-  })
+async function claimSequence(
+  sequence: ProspectSequence
+): Promise<ClaimedSequence | null> {
+  const { data, error } = await supabaseAdmin.rpc(
+    "claim_prospect_outreach_sequence",
+    {
+      p_sequence_id: sequence.id,
+      p_spacing_seconds: 300,
+    }
+  )
 
   if (error) {
-    log.warn("failed to claim sequence", { sequenceId: sequence.id, error: error.message })
+    log.warn("failed to claim sequence", {
+      sequenceId: sequence.id,
+      error: error.message,
+    })
     return null
   }
 
@@ -178,7 +221,10 @@ async function loadContext(sequence: ProspectSequence): Promise<{
     .maybeSingle()
 
   if (prospectError || !prospect) {
-    log.warn("missing prospect for sequence", { sequenceId: sequence.id, error: prospectError?.message })
+    log.warn("missing prospect for sequence", {
+      sequenceId: sequence.id,
+      error: prospectError?.message,
+    })
     return null
   }
 
@@ -189,7 +235,11 @@ async function loadContext(sequence: ProspectSequence): Promise<{
     .maybeSingle()
 
   if (productError || !product) {
-    log.warn("missing product for sequence", { sequenceId: sequence.id, productId: prospect.product_id, error: productError?.message })
+    log.warn("missing product for sequence", {
+      sequenceId: sequence.id,
+      productId: prospect.product_id,
+      error: productError?.message,
+    })
     return null
   }
 
@@ -199,32 +249,51 @@ async function loadContext(sequence: ProspectSequence): Promise<{
     .eq("product_id", product.id)
     .maybeSingle()
 
-  const fallbackSignature = [product.product_name, product.website_url].filter(Boolean).join("\n")
+  const fallbackSignature = [product.product_name, product.website_url]
+    .filter(Boolean)
+    .join("\n")
   const signature = outreachSettings?.signature_enabled
     ? outreachSettings.signature_text?.trim() || fallbackSignature
     : null
 
   const { data: account, error: accountError } = await supabaseAdmin
     .from("email_accounts")
-    .select("id, email, name, is_public, smtp_host, smtp_port, smtp_user, smtp_pass, daily_send_cap, status")
+    .select(
+      "id, email, name, is_public, smtp_host, smtp_port, smtp_user, smtp_pass, daily_send_cap, status"
+    )
     .eq("id", sequence.email_account_id)
     .maybeSingle()
 
   if (accountError || !account || account.status !== "active") {
-    log.warn("email account unavailable for sequence", { sequenceId: sequence.id, accountId: sequence.email_account_id, error: accountError?.message })
+    log.warn("email account unavailable for sequence", {
+      sequenceId: sequence.id,
+      accountId: sequence.email_account_id,
+      error: accountError?.message,
+    })
     return null
   }
 
   const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("name, email, tier, active_trial, outreach_paused_at, manual_approval_at")
+    .select(
+      "name, email, tier, active_trial, onboarding_completed, outreach_paused_at, manual_approval_at"
+    )
     .eq("id", product.user_id)
     .maybeSingle()
 
-  const senderName = profile?.name?.trim() || profile?.email?.split("@")[0] || null
-  const ownerEligible = profile !== undefined && profile !== null && (profile.tier !== "free" || profile.active_trial)
-  const outreachPaused = profile?.outreach_paused_at !== null && profile?.outreach_paused_at !== undefined
-  const manualApproval = profile?.manual_approval_at !== null && profile?.manual_approval_at !== undefined
+  const senderName =
+    profile?.name?.trim() || profile?.email?.split("@")[0] || null
+  const ownerEligible =
+    profile !== undefined &&
+    profile !== null &&
+    profile.onboarding_completed &&
+    (profile.tier !== "free" || profile.active_trial)
+  const outreachPaused =
+    profile?.outreach_paused_at !== null &&
+    profile?.outreach_paused_at !== undefined
+  const manualApproval =
+    profile?.manual_approval_at !== null &&
+    profile?.manual_approval_at !== undefined
   let previousMessageId: string | null = null
   if (sequence.step > 1) {
     const { data: previous } = await supabaseAdmin
@@ -239,7 +308,17 @@ async function loadContext(sequence: ProspectSequence): Promise<{
     previousMessageId = previous?.message_id ?? null
   }
 
-  return { prospect, product, account, senderName, signature, previousMessageId, ownerEligible, outreachPaused, manualApproval }
+  return {
+    prospect,
+    product,
+    account,
+    senderName,
+    signature,
+    previousMessageId,
+    ownerEligible,
+    outreachPaused,
+    manualApproval,
+  }
 }
 
 async function isSuppressed(email: string): Promise<boolean> {
@@ -252,15 +331,22 @@ async function isSuppressed(email: string): Promise<boolean> {
   return !!data
 }
 
-async function markDeliveryFailed(sequence: ClaimedSequence, error: unknown): Promise<void> {
+async function markDeliveryFailed(
+  sequence: ClaimedSequence,
+  error: unknown
+): Promise<void> {
   const message = error instanceof Error ? error.message : String(error)
   await supabaseAdmin
     .from("prospect_sequences")
     .update({
-    status: "failed",
-    locked_at: null,
-    last_error: `Delivery failed or is uncertain; not retried automatically: ${message}`.slice(0, 1000),
-  })
+      status: "failed",
+      locked_at: null,
+      last_error:
+        `Delivery failed or is uncertain; not retried automatically: ${message}`.slice(
+          0,
+          1000
+        ),
+    })
     .eq("id", sequence.id)
 
   await supabaseAdmin
@@ -278,7 +364,11 @@ async function markDeliveryFailed(sequence: ClaimedSequence, error: unknown): Pr
   })
 }
 
-async function skipSequence(sequence: ClaimedSequence, reason: string, recipientEmail?: string | null): Promise<void> {
+async function skipSequence(
+  sequence: ClaimedSequence,
+  reason: string,
+  recipientEmail?: string | null
+): Promise<void> {
   await supabaseAdmin
     .from("prospect_sequences")
     .update({ status: "skipped", locked_at: null, last_error: reason })
@@ -286,7 +376,10 @@ async function skipSequence(sequence: ClaimedSequence, reason: string, recipient
 
   await supabaseAdmin
     .from("prospect_sequences")
-    .update({ status: "skipped", last_error: "Previous sequence step was skipped." })
+    .update({
+      status: "skipped",
+      last_error: "Previous sequence step was skipped.",
+    })
     .eq("prospect_id", sequence.prospect_id)
     .gt("step", sequence.step)
     .eq("status", "pending")
@@ -305,15 +398,25 @@ async function skipSequence(sequence: ClaimedSequence, reason: string, recipient
  * only "trial_expired" rows are picked up by the resume sweep/Stripe webhook in
  * trial-sequences.ts, so anything marked "skipped" here would stay stuck forever
  * even after the owner upgrades. */
-async function pauseSequenceForTrialExpiry(sequence: ClaimedSequence, recipientEmail?: string | null): Promise<void> {
+async function pauseSequenceForTrialExpiry(
+  sequence: ClaimedSequence,
+  recipientEmail?: string | null
+): Promise<void> {
   await supabaseAdmin
     .from("prospect_sequences")
-    .update({ status: "trial_expired", locked_at: null, last_error: "Owner's free trial has expired." })
+    .update({
+      status: "trial_expired",
+      locked_at: null,
+      last_error: "Owner's free trial has expired.",
+    })
     .eq("id", sequence.id)
 
   await supabaseAdmin
     .from("prospect_sequences")
-    .update({ status: "trial_expired", last_error: "Owner's free trial has expired." })
+    .update({
+      status: "trial_expired",
+      last_error: "Owner's free trial has expired.",
+    })
     .eq("prospect_id", sequence.prospect_id)
     .gt("step", sequence.step)
     .eq("status", "pending")
@@ -334,7 +437,11 @@ async function pauseSequenceForTrialExpiry(sequence: ClaimedSequence, recipientE
 async function repauseSequence(sequence: ClaimedSequence): Promise<void> {
   await supabaseAdmin
     .from("prospect_sequences")
-    .update({ status: "account_paused", locked_at: null, last_error: "Outreach paused by account owner." })
+    .update({
+      status: "account_paused",
+      locked_at: null,
+      last_error: "Outreach paused by account owner.",
+    })
     .eq("id", sequence.id)
 }
 
@@ -342,7 +449,9 @@ async function repauseSequence(sequence: ClaimedSequence): Promise<void> {
  * to send themselves instead of auto-sending it. Unlike repauseSequence,
  * this is expected to be resolved by the owner clicking "Send" (which flips
  * the row back to "pending"), not by a bulk resume sweep. */
-async function holdSequenceForApproval(sequence: ClaimedSequence): Promise<void> {
+async function holdSequenceForApproval(
+  sequence: ClaimedSequence
+): Promise<void> {
   await supabaseAdmin
     .from("prospect_sequences")
     .update({ status: "awaiting_approval", locked_at: null, last_error: null })
@@ -359,13 +468,22 @@ async function processSequence(sequence: ProspectSequence): Promise<boolean> {
   try {
     const context = await loadContext(claimed)
     if (!context) {
-      await skipSequence(claimed, "Missing prospect, product, profile, or active email account.")
+      await skipSequence(
+        claimed,
+        "Missing prospect, product, profile, or active email account."
+      )
       return false
     }
 
-    const recipientEmail = context.prospect.contact_email ? normalizeEmail(context.prospect.contact_email) : null
+    const recipientEmail = context.prospect.contact_email
+      ? normalizeEmail(context.prospect.contact_email)
+      : null
     if (!recipientEmail || !claimed.subject?.trim() || !claimed.body?.trim()) {
-      await skipSequence(claimed, "Missing recipient, subject, or body.", recipientEmail)
+      await skipSequence(
+        claimed,
+        "Missing recipient, subject, or body.",
+        recipientEmail
+      )
       return false
     }
 
@@ -434,7 +552,9 @@ async function processSequence(sequence: ProspectSequence): Promise<boolean> {
         classification: "sent",
         message_id: result.messageId,
         in_reply_to: context.previousMessageId,
-        references: context.previousMessageId ? [context.previousMessageId] : null,
+        references: context.previousMessageId
+          ? [context.previousMessageId]
+          : null,
         from_email: context.account.email,
         from_name: context.senderName,
         to_emails: [recipientEmail],
@@ -458,15 +578,25 @@ async function processSequence(sequence: ProspectSequence): Promise<boolean> {
         recipientEmail,
         metadata: { messageId: result.messageId, step: claimed.step },
       })
-      log.success("sent prospect outreach email", { sequenceId: claimed.id, prospectId: claimed.prospect_id, step: claimed.step })
+      log.success("sent prospect outreach email", {
+        sequenceId: claimed.id,
+        prospectId: claimed.prospect_id,
+        step: claimed.step,
+      })
       return true
     } catch (error) {
-      log.warn("failed to send prospect outreach email", { sequenceId: claimed.id, error: String(error) })
+      log.warn("failed to send prospect outreach email", {
+        sequenceId: claimed.id,
+        error: String(error),
+      })
 
       if (isAccountConfigurationError(error)) {
         await supabaseAdmin
           .from("email_accounts")
-          .update({ status: "error", error_message: String(error).slice(0, 1000) })
+          .update({
+            status: "error",
+            error_message: String(error).slice(0, 1000),
+          })
           .eq("id", context.account.id)
       }
 
@@ -474,13 +604,19 @@ async function processSequence(sequence: ProspectSequence): Promise<boolean> {
       return false
     }
   } catch (error) {
-    log.warn("unexpected error processing prospect sequence", { sequenceId: claimed.id, error: String(error) })
+    log.warn("unexpected error processing prospect sequence", {
+      sequenceId: claimed.id,
+      error: String(error),
+    })
     await markDeliveryFailed(claimed, error)
     return false
   }
 }
 
-export async function runProspectOutreachSender(userId?: string, bypassSendWindow = false): Promise<void> {
+export async function runProspectOutreachSender(
+  userId?: string,
+  bypassSendWindow = false
+): Promise<void> {
   await failStaleLocks()
 
   if (!bypassSendWindow && !isWithinUtcSendWindow()) {
@@ -497,10 +633,15 @@ export async function runProspectOutreachSender(userId?: string, bypassSendWindo
     }
   }
 
-  const batchLimit = Math.max(1, MAX_SENDS_PER_TICK - Math.floor(Math.random() * 3))
+  const batchLimit = Math.max(
+    1,
+    MAX_SENDS_PER_TICK - Math.floor(Math.random() * 3)
+  )
   let query = supabaseAdmin
     .from("prospect_sequences")
-    .select("id, prospect_id, email_account_id, step, subject, body, attempt_count")
+    .select(
+      "id, prospect_id, email_account_id, step, subject, body, attempt_count"
+    )
     .eq("status", "pending")
     .lte("scheduled_at", new Date().toISOString())
     // Order by created_at, not scheduled_at: spacing-deferrals rewrite scheduled_at
@@ -542,5 +683,10 @@ export async function runProspectOutreachSender(userId?: string, bypassSendWindo
     }
   }
 
-  log.info("sender tick complete", { scanned: dueSequences.length, sent: sendsThisTick, accountsUsed: sentAccountIds.size, batchLimit })
+  log.info("sender tick complete", {
+    scanned: dueSequences.length,
+    sent: sendsThisTick,
+    accountsUsed: sentAccountIds.size,
+    batchLimit,
+  })
 }

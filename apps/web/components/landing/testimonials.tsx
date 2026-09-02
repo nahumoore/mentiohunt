@@ -9,60 +9,43 @@ import Metrobi from "../custom-icons/trusted/metrobi"
 
 const testimonials = [
   {
-    quote:
-      "I was spending hours every week searching for backlink opportunities. Mentiohunt gave me back that time and actually found better prospects than I would have found on my own.",
+    quote: "I actually like this tool, good job!",
     author: "Alex Chen",
-    role: "Founder, Stackwise",
     avatar: "/landing/user_1.webp",
   },
   {
-    quote:
-      "We dropped our link building agency because we had no idea what we were paying for. Mentiohunt shows us the fit, the placement, and why it makes sense — before anything goes live.",
-    author: "Sarah Mitchell",
-    role: "Growth Lead, LaunchPad",
+    quote: "Mentiohunt found us opportunities we weren't knew we had",
+    author: "Daniel Mitchell",
     avatar: "/landing/user_2.webp",
   },
   {
-    quote:
-      "Finally, something that explains WHY an opportunity matters. The reasoning behind each recommendation helps me prioritize what actually moves the needle.",
+    quote: "I'm getting responses every single day. Good job Nicolas!",
     author: "Marcus Johnson",
-    role: "Solo Founder, IndieHacker",
     avatar: "/landing/user_3.webp",
   },
   {
     quote:
-      "I've tried every backlink tool out there. Mentiohunt is the only one that actually tells you what to do next. No more staring at spreadsheets wondering what to do.",
+      "I've tried every backlink tool out there. Mentiohunt is the only one that actually tells you what to do next",
     author: "Elena Rodriguez",
-    role: "CMO, ScaleLab",
     avatar: "/landing/user_4.webp",
   },
   {
     quote:
-      "The opportunity rationale is what sold me. I can see the fit, the angle, and the next outreach move without building another research spreadsheet.",
-    author: "Nina Patel",
-    role: "Founder, RelayKit",
+      "I love that I can see the fit, the angle, and the next outreach move.",
+    author: "@joeeemi_",
     avatar: "/landing/user_5.webp",
   },
   {
     quote:
-      "We're a two-person team. There's no way we'd run link building ourselves. Mentiohunt handles the prospecting and outreach — we monitor the queue and cancel what doesn't make sense.",
-    author: "Owen Brooks",
-    role: "Growth, Draftbase",
+      "We're a two-person team. There's no way we'd run link building ourselves. Mentiohunt handles the prospecting and outreach, we monitor the queue and cancel what doesn't make sense.",
+    author: "@leo_kenn22",
     avatar: "/landing/user_6.jpg",
   },
   {
     quote:
-      "I used to dread link building because it meant managing another campaign. Now I spend maybe 15 minutes a week reviewing what Mentiohunt surfaced. Everything else is handled.",
-    author: "Maya Torres",
-    role: "Solo Founder, Northstar",
-    avatar: "/landing/user_7.jpg",
-  },
-  {
-    quote:
-      "We stopped chasing random link lists. The scoring and reasoning helped our small team focus on opportunities that actually made sense for our product.",
-    author: "Leo Martin",
-    role: "Marketing Lead, Vectorly",
-    avatar: "/landing/user_8.jpg",
+      "I'm on the personal development niche and this tool found a backlink opportunity on one of the highest authority sites in my niche, and 12 days later, I did my first collaboration with them without paying for it",
+    author: "Logan Stuart",
+    avatar: "/landing/user-testimonial.webp",
   },
 ]
 
@@ -92,7 +75,7 @@ export function Testimonials() {
             Founder feedback
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
-          <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
+          <h2 className="mt-5 font-[family-name:var(--font-figtree),var(--font-sans)] text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
             Loved by founders who build backlinks without running outreach
             themselves.
           </h2>
@@ -153,11 +136,8 @@ function TestimonialMarquee({
                   className="size-12 rounded-full border-2 border-blaze-orange/20 object-cover"
                 />
                 <div>
-                  <p className="font-heading font-semibold text-foreground">
+                  <p className="font-[family-name:var(--font-figtree),var(--font-sans)] font-semibold text-foreground">
                     {testimonial.author}
-                  </p>
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    {testimonial.role}
                   </p>
                 </div>
               </div>

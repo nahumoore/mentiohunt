@@ -129,14 +129,14 @@ export function Comparisons() {
           <div className="mx-auto mt-3 h-px w-12 bg-[var(--color-blaze-orange)]/60" />
           <h2
             id="comparisons-title"
-            className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]"
+            className="mt-5 font-[family-name:var(--font-figtree),var(--font-sans)] text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]"
           >
             More transparent than an agency. Less work than outreach software.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Agencies are opaque. Outreach software still makes you run
-            campaigns. Mentiohunt handles outreach through the first reply
-            while you monitor the queue and cancel anything that isn&apos;t a fit.
+            Mentiohunt is automated link-building software with an agent that
+            operates the workflow for you. It keeps the visibility of a tool
+            without turning you into the outreach operator.
           </p>
         </div>
 

@@ -49,7 +49,7 @@ Three broad buckets currently exist:
 | Pitchbox | Outreach tool | ~$550/mo | N/A (you operate) | No | ❌ Requires specialist |
 | Respona | Outreach tool | ~$99/mo | N/A (you operate) | No | ❌ Requires specialist |
 | FATJOE | Marketplace | Pay-per-link | No | No | ⚠️ Low quality signal |
-| **Mentiohunt** | **Managed autopilot** | **TBD** | **Yes (core UX)** | **Yes** | **✅ Direct target** |
+| **Mentiohunt** | **Managed autopilot** | **$49/mo (Pro)** | **Yes (core UX)** | **Yes** | **✅ Direct target** |
 
 ### The shared weakness: recycled domain inventory
 

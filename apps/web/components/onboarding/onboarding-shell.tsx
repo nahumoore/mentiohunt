@@ -8,17 +8,12 @@ import { OnboardingVisual } from "@/components/onboarding/onboarding-visual"
 export function OnboardingShell({
   stepIndex,
   lastStepIndex,
-  finalStepLabel,
   isSigningOut,
   onSignOut,
   children,
 }: {
   stepIndex: number
   lastStepIndex: number
-  /** Overrides the numeric "Step X / Y" label — used for the final trial-start
-   *  screen, which sits past the counted setup steps and shouldn't read as an
-   *  extra numbered step. */
-  finalStepLabel?: string
   isSigningOut: boolean
   onSignOut: () => void
   children: ReactNode
@@ -34,7 +29,8 @@ export function OnboardingShell({
           <div
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
             style={{
-              background: "linear-gradient(135deg, var(--blaze-orange), var(--amber-flame))",
+              background:
+                "linear-gradient(135deg, var(--blaze-orange), var(--amber-flame))",
             }}
           >
             <IconBrandMentiohunt className="h-5 w-5 text-white" />
@@ -52,15 +48,9 @@ export function OnboardingShell({
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-md">
             <div className="mb-2 text-[0.7rem] font-bold tracking-wide uppercase">
-              {finalStepLabel ? (
-                <span className="text-primary">{finalStepLabel}</span>
-              ) : (
-                <>
-                  <span className="text-muted-foreground">Step </span>
-                  <span className="text-primary">{stepNumber}</span>
-                  <span className="text-muted-foreground"> / {totalSteps}</span>
-                </>
-              )}
+              <span className="text-muted-foreground">Step </span>
+              <span className="text-primary">{stepNumber}</span>
+              <span className="text-muted-foreground"> / {totalSteps}</span>
             </div>
             <div className="mb-8 h-1 w-full rounded-full bg-border">
               <div

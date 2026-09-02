@@ -12,12 +12,10 @@ import {
   IconLink,
   IconList,
   IconMailFast,
-  IconWorldSearch,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import { useEffect, useRef, useState, type ComponentType } from "react"
 
-import { Button } from "@workspace/ui/components/button"
 import { IconBrandGoogle } from "@/components/custom-icons/brand-google"
 import { getContactAvatarUrl } from "@/consts/contact-avatar"
 
@@ -30,31 +28,31 @@ type Step = {
 
 const steps: Step[] = [
   {
-    eyebrow: "Setup",
-    title: "Tell us where to look",
+    eyebrow: "Give the agent your content",
+    title: "Choose the articles to promote",
     description:
-      "Add your product URL and we crawl your entire site — every page. We learn what you do, what you already rank for, and map out the opportunities worth targeting.",
+      "Connect your site or submit article URLs. The agent learns what each page covers, who it helps, and why another article might cite it.",
     Illustration: SetupIllustration,
   },
   {
-    eyebrow: "Discovery",
-    title: "We find matching opportunities",
+    eyebrow: "Research",
+    title: "Find pages where your content belongs",
     description:
-      "Every day we surface new placements for your pages — searching Google, digging into competitor backlink profiles, and scanning relevant directories and resource pages.",
+      "Every day, Mentiohunt researches existing articles, roundups, resource pages, and competitor backlinks to find natural citation opportunities.",
     Illustration: DiscoveryIllustration,
   },
   {
-    eyebrow: "Enrichment",
-    title: "We enrich each opportunity",
+    eyebrow: "Qualify",
+    title: "Explain the fit and find the right person",
     description:
-      "For every fit we find, we add the prospect's name, bio, and role — plus the best available contact email — so the automated sequence has the context it needs to start.",
+      "For every match, the agent explains the topic and audience overlap, then finds and verifies the person most likely to make the editorial decision.",
     Illustration: EnrichmentIllustration,
   },
   {
-    eyebrow: "Action",
-    title: "We send it, you monitor",
+    eyebrow: "Outreach",
+    title: "Run outreach until the first reply",
     description:
-      "Each opportunity comes with a ready email draft that sends itself — the contact, the send, and the pre-reply follow-ups are all handled automatically. Once a site owner replies, you take the thread over yourself. Cancel anything that isn't a fit; placement timelines depend on the site owner's response.",
+      "The agent drafts, sends, and follows up automatically. You monitor the queue and cancel anything that is not a fit. When a site owner replies, automation stops and you take over personally.",
     Illustration: ActionIllustration,
   },
 ]
@@ -78,7 +76,9 @@ function SetupIllustration() {
       <div className="relative space-y-6">
         {/* URL input — hero element */}
         <div className="space-y-2.5">
-          <p className="text-[0.65rem] font-bold tracking-widest text-black/40 uppercase">Your product URL</p>
+          <p className="text-[0.65rem] font-bold tracking-widest text-black/40 uppercase">
+            Your site or article URL
+          </p>
           <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-blaze-orange)]/25 bg-orange-50/50 px-5 py-4 ring-1 ring-[var(--color-blaze-orange)]/10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -88,8 +88,10 @@ function SetupIllustration() {
               height={18}
               className="shrink-0 rounded-sm"
             />
-            <span className="flex-1 text-base font-semibold text-black/80">notion.so</span>
-            <span className="rounded-full bg-[var(--color-blaze-orange)] px-3 py-1 text-[0.62rem] font-bold text-white uppercase tracking-wide shadow-[0_4px_12px_-4px_rgba(255,84,0,0.5)]">
+            <span className="flex-1 text-base font-semibold text-black/80">
+              notion.so/blog/project-management
+            </span>
+            <span className="rounded-full bg-[var(--color-blaze-orange)] px-3 py-1 text-[0.62rem] font-bold tracking-wide text-white uppercase shadow-[0_4px_12px_-4px_rgba(255,84,0,0.5)]">
               Scanning
             </span>
           </div>
@@ -97,13 +99,25 @@ function SetupIllustration() {
 
         {/* Pages discovered list */}
         <div className="space-y-2">
-          <p className="text-[0.65rem] font-bold tracking-widest text-black/40 uppercase">Pages discovered</p>
+          <p className="text-[0.65rem] font-bold tracking-widest text-black/40 uppercase">
+            Pages discovered
+          </p>
           <div className="divide-y divide-black/5 overflow-hidden rounded-2xl border border-black/6 bg-gray-50">
             {scannedPages.map((page, i) => (
-              <div key={page.path} className="flex items-center gap-3 px-4 py-3">
-                <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-blaze-orange)]" style={{ opacity: 1 - i * 0.14 }} />
-                <span className="flex-1 truncate font-mono text-xs text-black/60">notion.so{page.path}</span>
-                <span className="text-[0.6rem] font-bold text-black/30 uppercase">{page.label}</span>
+              <div
+                key={page.path}
+                className="flex items-center gap-3 px-4 py-3"
+              >
+                <div
+                  className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-blaze-orange)]"
+                  style={{ opacity: 1 - i * 0.14 }}
+                />
+                <span className="flex-1 truncate font-mono text-xs text-black/60">
+                  notion.so{page.path}
+                </span>
+                <span className="text-[0.6rem] font-bold text-black/30 uppercase">
+                  {page.label}
+                </span>
               </div>
             ))}
           </div>
@@ -111,9 +125,16 @@ function SetupIllustration() {
 
         {/* Topics detected */}
         <div className="space-y-2.5">
-          <p className="text-[0.65rem] font-bold tracking-widest text-black/40 uppercase">Topics detected</p>
+          <p className="text-[0.65rem] font-bold tracking-widest text-black/40 uppercase">
+            Topics detected
+          </p>
           <div className="flex flex-wrap gap-2">
-            {["project management", "team wiki", "knowledge base", "productivity app"].map((kw) => (
+            {[
+              "project management",
+              "team wiki",
+              "knowledge base",
+              "productivity app",
+            ].map((kw) => (
               <span
                 key={kw}
                 className="rounded-full border border-[var(--color-blaze-orange)]/15 bg-[var(--color-blaze-orange)]/6 px-3 py-1.5 text-[0.7rem] font-semibold text-[var(--color-blaze-orange)]"
@@ -136,10 +157,30 @@ const agentToolCalls = [
 ]
 
 const discoveredOpportunities = [
-  { domain: "zapier.com", title: "Best productivity apps for teams in 2025", type: "Listicle", score: "94" },
-  { domain: "g2.com", title: "Notion alternatives & competitors", type: "Comparison", score: "89" },
-  { domain: "producthunt.com", title: "Top note-taking tools", type: "Directory", score: "85" },
-  { domain: "atlassian.com", title: "Best project management software", type: "Round-up", score: "82" },
+  {
+    domain: "zapier.com",
+    title: "Best productivity apps for teams in 2025",
+    type: "Listicle",
+    score: "94",
+  },
+  {
+    domain: "g2.com",
+    title: "Notion alternatives & competitors",
+    type: "Comparison",
+    score: "89",
+  },
+  {
+    domain: "producthunt.com",
+    title: "Top note-taking tools",
+    type: "Directory",
+    score: "85",
+  },
+  {
+    domain: "atlassian.com",
+    title: "Best project management software",
+    type: "Round-up",
+    score: "82",
+  },
 ]
 
 function DiscoveryIllustration() {
@@ -161,10 +202,15 @@ function DiscoveryIllustration() {
 
         {/* Opportunities */}
         <div className="space-y-2">
-          <p className="text-[0.65rem] font-bold tracking-widest text-black/40 uppercase">4 opportunities found</p>
+          <p className="text-[0.65rem] font-bold tracking-widest text-black/40 uppercase">
+            4 opportunities found
+          </p>
           <div className="divide-y divide-black/5 overflow-hidden rounded-2xl border border-black/6 bg-gray-50">
             {discoveredOpportunities.map((opp) => (
-              <div key={opp.domain} className="flex items-center gap-3 px-4 py-3">
+              <div
+                key={opp.domain}
+                className="flex items-center gap-3 px-4 py-3"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={`https://www.google.com/s2/favicons?domain=${opp.domain}&sz=32`}
@@ -174,10 +220,14 @@ function DiscoveryIllustration() {
                   className="shrink-0 rounded-sm"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold text-black/75">{opp.title}</p>
-                  <p className="mt-0.5 text-[0.6rem] font-bold text-black/35 uppercase">{opp.domain} · {opp.type}</p>
+                  <p className="truncate text-xs font-semibold text-black/75">
+                    {opp.title}
+                  </p>
+                  <p className="mt-0.5 text-[0.6rem] font-bold text-black/35 uppercase">
+                    {opp.domain} · {opp.type}
+                  </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-[var(--color-blaze-orange)]/10 px-2.5 py-1 text-[0.68rem] font-bold tabular-nums text-[var(--color-blaze-orange)]">
+                <span className="shrink-0 rounded-full bg-[var(--color-blaze-orange)]/10 px-2.5 py-1 text-[0.68rem] font-bold text-[var(--color-blaze-orange)] tabular-nums">
                   {opp.score}
                 </span>
               </div>
@@ -265,10 +315,16 @@ function EnrichmentIllustration() {
               className="shrink-0 rounded-sm"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-black/75">{example.title}</p>
-              <p className="mt-0.5 text-[0.6rem] font-bold text-black/35 uppercase">{example.domain} · {example.type}</p>
+              <p className="truncate text-xs font-semibold text-black/75">
+                {example.title}
+              </p>
+              <p className="mt-0.5 text-[0.6rem] font-bold text-black/35 uppercase">
+                {example.domain} · {example.type}
+              </p>
             </div>
-            <span className="shrink-0 rounded-full bg-[var(--color-blaze-orange)]/10 px-2.5 py-1 text-[0.68rem] font-bold tabular-nums text-[var(--color-blaze-orange)]">{example.score}</span>
+            <span className="shrink-0 rounded-full bg-[var(--color-blaze-orange)]/10 px-2.5 py-1 text-[0.68rem] font-bold text-[var(--color-blaze-orange)] tabular-nums">
+              {example.score}
+            </span>
           </motion.div>
         </AnimatePresence>
 
@@ -293,17 +349,27 @@ function EnrichmentIllustration() {
                 className="h-10 w-10 shrink-0 rounded-full border border-black/8 bg-gray-100"
               />
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-black/80">{example.contact.name}</p>
-                <p className="text-[0.65rem] text-black/45">{example.contact.role}</p>
+                <p className="text-sm font-semibold text-black/80">
+                  {example.contact.name}
+                </p>
+                <p className="text-[0.65rem] text-black/45">
+                  {example.contact.role}
+                </p>
               </div>
             </div>
             {/* Bio */}
-            <p className="mt-3 text-xs leading-5 text-black/50">{example.contact.bio}</p>
+            <p className="mt-3 text-xs leading-5 text-black/50">
+              {example.contact.bio}
+            </p>
             {/* Email */}
             <div className="mt-3 flex items-center gap-2 border-t border-black/5 pt-3">
               <IconMailFast className="h-3.5 w-3.5 shrink-0 text-black/30" />
-              <span className="flex-1 truncate text-xs font-semibold text-black/65">{example.contact.email}</span>
-              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[0.6rem] font-bold uppercase tracking-wide text-emerald-600">Verified</span>
+              <span className="flex-1 truncate text-xs font-semibold text-black/65">
+                {example.contact.email}
+              </span>
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[0.6rem] font-bold tracking-wide text-emerald-600 uppercase">
+                Verified
+              </span>
             </div>
           </motion.div>
         </AnimatePresence>
@@ -317,7 +383,8 @@ function EnrichmentIllustration() {
               className="h-1 rounded-full transition-all duration-500"
               style={{
                 width: i === active ? "1.5rem" : "0.375rem",
-                backgroundColor: i === active ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.12)",
+                backgroundColor:
+                  i === active ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.12)",
               }}
             />
           ))}
@@ -346,7 +413,9 @@ function ActionIllustration() {
           />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-black/80">Marcus Webb</p>
-            <p className="text-[0.65rem] text-black/40">Head of Content · Zapier</p>
+            <p className="text-[0.65rem] text-black/40">
+              Head of Content · Zapier
+            </p>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -362,23 +431,36 @@ function ActionIllustration() {
         <div className="rounded-2xl border border-black/6 bg-gray-50">
           <div className="space-y-0 divide-y divide-black/5 px-4">
             <div className="flex items-center gap-3 py-2.5">
-              <span className="w-12 shrink-0 text-[0.6rem] font-bold tracking-widest text-black/30 uppercase">To</span>
-              <span className="truncate text-xs font-semibold text-black/70">m.webb@zapier.com</span>
+              <span className="w-12 shrink-0 text-[0.6rem] font-bold tracking-widest text-black/30 uppercase">
+                To
+              </span>
+              <span className="truncate text-xs font-semibold text-black/70">
+                m.webb@zapier.com
+              </span>
             </div>
             <div className="flex items-center gap-3 py-2.5">
-              <span className="w-12 shrink-0 text-[0.6rem] font-bold tracking-widest text-black/30 uppercase">Subject</span>
-              <span className="truncate text-xs font-semibold text-black/70">Quick suggestion for your productivity roundup</span>
+              <span className="w-12 shrink-0 text-[0.6rem] font-bold tracking-widest text-black/30 uppercase">
+                Subject
+              </span>
+              <span className="truncate text-xs font-semibold text-black/70">
+                Quick suggestion for your productivity roundup
+              </span>
             </div>
           </div>
-          <div className="border-t border-black/5 px-4 py-4 space-y-3">
+          <div className="space-y-3 border-t border-black/5 px-4 py-4">
             <p className="text-sm leading-6 text-black/50">Hi Marcus,</p>
             <p className="text-sm leading-6 text-black/50">
-              I was reading your Zapier roundup on productivity apps — great list. I think Notion would be a natural fit in there, especially for the teams-of-10+ crowd who need docs, wikis, and tasks in one place.
+              I was reading your Zapier roundup on productivity apps — great
+              list. I noticed one spot where our guide to remote team
+              productivity would give readers useful research and examples.
             </p>
             <p className="text-sm leading-6 text-black/50">
-              Happy to write a short blurb you can drop straight in, or link to whichever page works best for you. In return, I&apos;d be glad to feature Zapier in our own resource section.
+              If it feels useful, I can send over the exact section and source
+              details. You can decide whether it belongs in the article.
             </p>
-            <p className="text-sm leading-6 text-black/50">Worth a quick reply?</p>
+            <p className="text-sm leading-6 text-black/50">
+              Worth a quick reply?
+            </p>
           </div>
         </div>
 
@@ -389,8 +471,12 @@ function ActionIllustration() {
             Sending automatically
           </div>
           <button className="rounded-2xl border border-black/8 bg-gray-50 px-5 py-3 text-sm font-semibold text-black/40 transition-colors hover:text-black/60">
-            Pass
+            Cancel
           </button>
+        </div>
+        <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-700">
+          <IconArrowRight className="h-4 w-4 shrink-0" />
+          First reply → automation stops, you take over
         </div>
       </div>
     </div>
@@ -425,23 +511,22 @@ export function HowItWorks() {
     >
       {/* Header */}
       <div className="px-4 pt-20 pb-10 text-center sm:pt-24 sm:pb-14">
-        <span className="text-[0.7rem] font-bold text-white/60 uppercase tracking-widest">
+        <span className="text-[0.7rem] font-bold tracking-widest text-white/60 uppercase">
           How it works
         </span>
         <div className="mx-auto mt-3 h-px w-12 bg-white/30" />
-        <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl lg:text-[42px]">
-          One simple flow for backlink placement
+        <h2 className="mt-5 font-[family-name:var(--font-figtree),var(--font-sans)] text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl lg:text-[42px]">
+          One simple flow for relevant backlink outreach
         </h2>
         <p className="mt-4 text-base leading-7 text-white/75 sm:text-lg">
-          Set your targeting once. Mentiohunt turns it into a daily queue of
-          relevant opportunities and ready-to-review actions.
+          Give the agent your articles once. Mentiohunt turns them into a daily
+          queue of relevant opportunities and ready-to-review actions.
         </p>
       </div>
 
       {/* Scroll driver — 400vh gives each step 75vh of scroll travel */}
       <div ref={scrollRef} style={{ height: `${steps.length * 100}vh` }}>
-        <div className="sticky top-0 h-screen flex flex-col">
-
+        <div className="sticky top-0 flex h-screen flex-col">
           {/* Step indicator */}
           <div className="flex justify-center pt-6">
             <div className="flex items-center gap-2">
@@ -451,7 +536,10 @@ export function HowItWorks() {
                   className="h-1 rounded-full transition-all duration-500"
                   style={{
                     width: i === activeIndex ? "2rem" : "0.375rem",
-                    backgroundColor: i === activeIndex ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.3)",
+                    backgroundColor:
+                      i === activeIndex
+                        ? "rgba(255,255,255,0.9)"
+                        : "rgba(255,255,255,0.3)",
                   }}
                 />
               ))}
@@ -473,18 +561,18 @@ export function HowItWorks() {
                   <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-20">
                     {/* Text */}
                     <div>
-                      <div className="flex items-center gap-3 mb-5">
+                      <div className="mb-5 flex items-center gap-3">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-[0.6rem] font-bold text-white">
                           {activeIndex + 1}
                         </span>
-                        <p className="text-[0.7rem] font-bold text-white/65 uppercase tracking-widest">
+                        <p className="text-[0.7rem] font-bold tracking-widest text-white/65 uppercase">
                           {step.eyebrow}
                         </p>
                       </div>
-                      <h3 className="font-heading text-2xl font-semibold tracking-tight text-balance text-white sm:text-3xl lg:text-[2.25rem]">
+                      <h3 className="font-[family-name:var(--font-figtree),var(--font-sans)] text-2xl font-semibold tracking-tight text-balance text-white sm:text-3xl lg:text-[2.25rem]">
                         {step.title}
                       </h3>
-                      <p className="mt-4 max-w-lg text-base font-semibold leading-7 text-white/75">
+                      <p className="mt-4 max-w-lg text-base leading-7 font-semibold text-white/75">
                         {step.description}
                       </p>
                       <div className="mt-6 h-px w-10 bg-white/25" />
@@ -507,7 +595,7 @@ export function HowItWorks() {
 
       {/* CTA */}
       <div className="px-4 pt-10 pb-24 text-center sm:pb-32">
-        <p className="mb-6 text-sm font-semibold text-white/50 uppercase tracking-widest">
+        <p className="mb-6 text-sm font-semibold tracking-widest text-white/50 uppercase">
           Ready to start?
         </p>
         <motion.div
@@ -520,13 +608,15 @@ export function HowItWorks() {
             href="/signup"
             className="group relative inline-flex items-center gap-3 rounded-full bg-white px-10 py-5 text-lg font-bold text-[var(--color-blaze-orange)] shadow-[0_16px_48px_-12px_rgba(0,0,0,0.4)] transition-all duration-300 hover:scale-[1.04] hover:shadow-[0_24px_64px_-12px_rgba(0,0,0,0.5)] active:scale-[0.98]"
           >
-            <span>Start discovering opportunities</span>
+            <span>Start my backlink discovery</span>
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-blaze-orange)] text-white transition-transform duration-300 group-hover:translate-x-1">
               <IconArrowRight className="h-4 w-4" />
             </span>
           </Link>
         </motion.div>
-        <p className="mt-5 text-sm text-white/45">Setup in 2 minutes</p>
+        <p className="mt-5 text-sm text-white/45">
+          Connect your content in 2 minutes
+        </p>
       </div>
     </section>
   )

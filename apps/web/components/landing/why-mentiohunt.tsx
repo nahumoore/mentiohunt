@@ -109,7 +109,7 @@ function ToolStackIllustration() {
           <span className="flex-1 text-sm font-semibold text-foreground">
             Mentiohunt
           </span>
-          <span className="font-heading text-2xl font-bold text-[var(--color-blaze-orange)]">
+          <span className="font-[family-name:var(--font-figtree),var(--font-sans)] text-2xl font-bold text-[var(--color-blaze-orange)]">
             $49/mo
           </span>
         </div>
@@ -563,7 +563,7 @@ function BenefitRow({ benefit, flip }: { benefit: Benefit; flip: boolean }) {
         <p className="mb-4 text-[0.7rem] font-bold text-[var(--color-blaze-orange)] uppercase">
           {benefit.eyebrow}
         </p>
-        <h3 className="font-heading text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
+        <h3 className="font-[family-name:var(--font-figtree),var(--font-sans)] text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
           {benefit.title}
         </h3>
         <p className="mt-3 max-w-lg text-base leading-7 text-muted-foreground">
@@ -594,7 +594,7 @@ export function WhyMentiohunt() {
             Why Mentiohunt
           </span>
           <div className="mx-auto mt-3 h-px w-12 bg-blaze-orange/60" />
-          <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
+          <h2 className="mt-5 font-[family-name:var(--font-figtree),var(--font-sans)] text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
             Everything you need.{" "}
             <span className="text-red-500">Nothing you don&apos;t.</span>
           </h2>

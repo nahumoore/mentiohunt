@@ -1,12 +1,5 @@
-import { FREE_TRIAL_DAYS } from "@/consts/billing"
 import { supabaseServer } from "@/lib/supabase/server"
 import type { TablesInsert } from "@workspace/supabase/database-types"
-
-function getFreeTrialEndsAt(startedAt: Date) {
-  const endsAt = new Date(startedAt)
-  endsAt.setDate(endsAt.getDate() + FREE_TRIAL_DAYS)
-  return endsAt.toISOString()
-}
 
 type SupabaseServerClient = Awaited<ReturnType<typeof supabaseServer>>
 type AuthUser = NonNullable<
@@ -32,16 +25,15 @@ export async function handlePostSignin(
       (user.user_metadata?.full_name as string | undefined) ??
       (user.user_metadata?.name as string | undefined) ??
       null
-    const trialStartedAt = new Date().toISOString()
     const profileInsert: TablesInsert<"profiles"> = {
       id: user.id,
       email: user.email,
       name,
       onboarding_completed: false,
       tier: "free",
-      active_trial: true,
-      billing_period_start_at: trialStartedAt,
-      billing_period_end_at: getFreeTrialEndsAt(new Date(trialStartedAt)),
+      active_trial: false,
+      billing_period_start_at: null,
+      billing_period_end_at: null,
     }
 
     const { error: insertError } = await supabase
@@ -60,7 +52,8 @@ export async function handlePostSignin(
         { user_id: user.id, type: "onboarding", next_send_at: nextSendAt },
         { onConflict: "user_id,type", ignoreDuplicates: true }
       )
-    if (seqError) console.error("Failed to create email sequence:", seqError.message)
+    if (seqError)
+      console.error("Failed to create email sequence:", seqError.message)
 
     return { redirect: "onboarding" }
   }

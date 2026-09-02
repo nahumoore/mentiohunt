@@ -5,13 +5,22 @@ import { createLogger } from "../helpers/logger.js"
 import { discoverBrokenLinkBuilding } from "../methods/prospect-generation-methods/broken-link-building/index.js"
 import { discoverCompetitorBacklinks } from "../methods/prospect-generation-methods/competitor-backlink/index.js"
 import type { FilterSettings } from "../methods/prospect-generation-methods/competitor-backlink/filter-backlinks.js"
-import { extractCompetitorDomain, isBlockedCompetitorDomain } from "../methods/prospect-generation-methods/competitor-backlink/extract-backlinks.js"
+import {
+  extractCompetitorDomain,
+  isBlockedCompetitorDomain,
+} from "../methods/prospect-generation-methods/competitor-backlink/extract-backlinks.js"
 import { discoverListicleRoundups } from "../methods/prospect-generation-methods/listicle-roundup/index.js"
 import { discoverResourcePageInclusions } from "../methods/prospect-generation-methods/resource-page-inclusion/index.js"
 import { discoverUnlinkedMentions } from "../methods/prospect-generation-methods/unlinked-mention/index.js"
-import { crawlProductPages, type CrawlProductPagesResult } from "../methods/product-pages/crawl-product-pages.js"
+import {
+  crawlProductPages,
+  type CrawlProductPagesResult,
+} from "../methods/product-pages/crawl-product-pages.js"
 import { ALL_OPPORTUNITY_TYPES } from "../methods/prospect-generation-methods/shared/opportunity-types.js"
-import type { EmailSettings, ProspectCreatedPayload } from "../methods/prospect-generation-methods/shared/prospect-types.js"
+import type {
+  EmailSettings,
+  ProspectCreatedPayload,
+} from "../methods/prospect-generation-methods/shared/prospect-types.js"
 import {
   emptyStrategyFunnel,
   type StrategyResult,
@@ -26,10 +35,20 @@ import {
   orderStrategiesByStaleness,
   type RotationHistoryRun,
 } from "../methods/prospect-generation-methods/shared/strategy-rotation.js"
-import { assignSequences, createSequencesForProspect } from "../processes/onboarding/prospect-sequences.js"
+import {
+  assignSequences,
+  createSequencesForProspect,
+} from "../processes/onboarding/prospect-sequences.js"
 import { resolveEmailAccount } from "../processes/onboarding/resolve-email-account.js"
-import { claimDailyExecution, countDailySendReady, finishDailyExecution } from "./daily-discovery-accounting.js"
-import { DEFAULT_DAILY_DISCOVERY_SETTINGS, remainingDailyBudget } from "./daily-discovery-policy.js"
+import {
+  claimDailyExecution,
+  countDailySendReady,
+  finishDailyExecution,
+} from "./daily-discovery-accounting.js"
+import {
+  DEFAULT_DAILY_DISCOVERY_SETTINGS,
+  remainingDailyBudget,
+} from "./daily-discovery-policy.js"
 import {
   configurationReasonForSourceSkips,
   DailyDiscoveryStopController,
@@ -83,7 +102,10 @@ type StrategyRunOptions = {
 
 type StrategyHandler = {
   /** Cheap precondition — a strategy that can only no-op shouldn't consume the product's daily slot. */
-  isRunnable: (product: DiscoveryProduct, adaptive?: boolean) => Promise<boolean> | boolean
+  isRunnable: (
+    product: DiscoveryProduct,
+    adaptive?: boolean
+  ) => Promise<boolean> | boolean
   discover: (
     product: DiscoveryProduct,
     filterSettings: FilterSettings,
@@ -96,11 +118,18 @@ type StrategyHandler = {
 const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
   competitor_backlink: {
     isRunnable: (product, adaptive) =>
-      adaptive || (product.competitors ?? []).some((competitor) => {
+      adaptive ||
+      (product.competitors ?? []).some((competitor) => {
         const domain = extractCompetitorDomain(competitor)
         return Boolean(domain) && !isBlockedCompetitorDomain(domain)
       }),
-    discover: (product, filterSettings, emailSettings, onProspectCreated, options) =>
+    discover: (
+      product,
+      filterSettings,
+      emailSettings,
+      onProspectCreated,
+      options
+    ) =>
       discoverCompetitorBacklinks(
         { ...product, competitors: product.competitors ?? [] },
         filterSettings,
@@ -108,7 +137,10 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         options?.adaptive
           ? {
               maxCompetitors: 5,
-              maxProspects: Math.min(options.budget?.remaining ?? 20, options.targetRemaining ?? 10),
+              maxProspects: Math.min(
+                options.budget?.remaining ?? 20,
+                options.targetRemaining ?? 10
+              ),
               includeIntersection: true,
               refreshCompetitors: true,
               shouldStop: options.shouldStop,
@@ -120,7 +152,13 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
   },
   unlinked_mention: {
     isRunnable: (product) => (product.product_name?.trim() ?? "") !== "",
-    discover: (product, filterSettings, emailSettings, onProspectCreated, options) =>
+    discover: (
+      product,
+      filterSettings,
+      emailSettings,
+      onProspectCreated,
+      options
+    ) =>
       discoverUnlinkedMentions(
         product,
         filterSettings,
@@ -134,12 +172,20 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
   },
   listicle_roundup: {
     isRunnable: (product) => (product.product_name?.trim() ?? "") !== "",
-    discover: (product, filterSettings, emailSettings, onProspectCreated, options) =>
+    discover: (
+      product,
+      filterSettings,
+      emailSettings,
+      onProspectCreated,
+      options
+    ) =>
       discoverListicleRoundups(
         product,
         filterSettings,
         emailSettings,
-        options?.adaptive ? { maxCandidates: 50, maxProspects: options.budget?.remaining } : {},
+        options?.adaptive
+          ? { maxCandidates: 50, maxProspects: options.budget?.remaining }
+          : {},
         options?.budget,
         onProspectCreated
       ),
@@ -154,22 +200,32 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         .eq("is_target", true)
       return (count ?? 0) > 0
     },
-    discover: (product, filterSettings, emailSettings, onProspectCreated, options) =>
+    discover: (
+      product,
+      filterSettings,
+      emailSettings,
+      onProspectCreated,
+      options
+    ) =>
       discoverResourcePageInclusions(
         product,
         filterSettings,
         emailSettings,
-        options?.adaptive ? { maxCandidates: 50, maxProspects: options.budget?.remaining } : {},
+        options?.adaptive
+          ? { maxCandidates: 50, maxProspects: options.budget?.remaining }
+          : {},
         options?.budget,
         onProspectCreated
       ),
   },
   broken_link_building: {
     isRunnable: async (product) => {
-      const hasUsableCompetitor = (product.competitors ?? []).some((competitor) => {
-        const domain = extractCompetitorDomain(competitor)
-        return Boolean(domain) && !isBlockedCompetitorDomain(domain)
-      })
+      const hasUsableCompetitor = (product.competitors ?? []).some(
+        (competitor) => {
+          const domain = extractCompetitorDomain(competitor)
+          return Boolean(domain) && !isBlockedCompetitorDomain(domain)
+        }
+      )
       if (!hasUsableCompetitor) return false
       const { count } = await supabaseAdmin
         .from("product_pages")
@@ -183,12 +239,20 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         .in("page_type", ["article", "resource", "free_tool", "manual"])
       return (count ?? 0) > 0
     },
-    discover: (product, filterSettings, emailSettings, onProspectCreated, options) =>
+    discover: (
+      product,
+      filterSettings,
+      emailSettings,
+      onProspectCreated,
+      options
+    ) =>
       discoverBrokenLinkBuilding(
         { ...product, competitors: product.competitors ?? [] },
         filterSettings,
         emailSettings,
-        options?.adaptive ? { maxCompetitors: 3, maxProspects: options.budget?.remaining } : {},
+        options?.adaptive
+          ? { maxCompetitors: 3, maxProspects: options.budget?.remaining }
+          : {},
         options?.budget,
         onProspectCreated
       ),
@@ -215,7 +279,10 @@ async function selectStrategyForRun(
     .limit(100)
 
   if (error) {
-    log.warn("failed to load run history for rotation", { productId: product.id, error: error.message })
+    log.warn("failed to load run history for rotation", {
+      productId: product.id,
+      error: error.message,
+    })
   }
 
   const history = (runs ?? []) as RotationHistoryRun[]
@@ -232,8 +299,12 @@ async function selectStrategyForRun(
       continue
     }
 
-    if (await STRATEGY_HANDLERS[strategy].isRunnable(product, false)) return strategy
-    log.info("strategy not runnable, trying next", { productId: product.id, strategy })
+    if (await STRATEGY_HANDLERS[strategy].isRunnable(product, false))
+      return strategy
+    log.info("strategy not runnable, trying next", {
+      productId: product.id,
+      strategy,
+    })
   }
 
   return null
@@ -245,14 +316,19 @@ async function loadStrategyHistory(
 ): Promise<RotationHistoryRun[]> {
   const { data, error } = await supabaseAdmin
     .from("backlink_prospect_runs")
-    .select("strategy, started_at, status, prospects_created, cost_usd, metadata, error")
+    .select(
+      "strategy, started_at, status, prospects_created, cost_usd, metadata, error"
+    )
     .eq("product_id", productId)
     .in("strategy", enabled)
     .order("started_at", { ascending: false })
     .limit(100)
 
   if (error) {
-    log.warn("failed to load adaptive run history", { productId, error: error.message })
+    log.warn("failed to load adaptive run history", {
+      productId,
+      error: error.message,
+    })
     return []
   }
 
@@ -282,12 +358,15 @@ async function getUnrunnableReason(
   strategy: RotationStrategy,
   adaptive: boolean
 ): Promise<string | null> {
-  if (await STRATEGY_HANDLERS[strategy].isRunnable(product, adaptive)) return null
+  if (await STRATEGY_HANDLERS[strategy].isRunnable(product, adaptive))
+    return null
   if (strategy === "competitor_backlink") {
     return "competitor_backlink_requires_product_name_or_valid_competitor"
   }
-  if (strategy === "unlinked_mention") return "unlinked_mention_requires_product_name"
-  if (strategy === "listicle_roundup") return "listicle_roundup_requires_product_name"
+  if (strategy === "unlinked_mention")
+    return "unlinked_mention_requires_product_name"
+  if (strategy === "listicle_roundup")
+    return "listicle_roundup_requires_product_name"
   if (strategy === "resource_page_inclusion") {
     return "resource_page_inclusion_requires_crawled_target_page"
   }
@@ -313,7 +392,11 @@ async function buildAdaptiveStrategyQueue(
   for (const strategy of preferred) {
     const unrunnableReason = await getUnrunnableReason(product, strategy, true)
     if (unrunnableReason) {
-      log.info("adaptive source not runnable", { productId: product.id, strategy, reason: unrunnableReason })
+      log.info("adaptive source not runnable", {
+        productId: product.id,
+        strategy,
+        reason: unrunnableReason,
+      })
       skips.push({ strategy, status: "skipped", skipReason: unrunnableReason })
       continue
     }
@@ -322,8 +405,15 @@ async function buildAdaptiveStrategyQueue(
     if (strategy === "unlinked_mention") {
       const decision = getUnlinkedMentionDecision(history)
       if (!decision.shouldRun) {
-        log.info("adaptive source skipped: low-volume probe not due", { productId: product.id, strategy })
-        skips.push({ strategy, status: "skipped", skipReason: decision.skipReason! })
+        log.info("adaptive source skipped: low-volume probe not due", {
+          productId: product.id,
+          strategy,
+        })
+        skips.push({
+          strategy,
+          status: "skipped",
+          skipReason: decision.skipReason!,
+        })
         continue
       }
       explorationProbe = decision.explorationProbe
@@ -331,14 +421,28 @@ async function buildAdaptiveStrategyQueue(
     if (strategy === "broken_link_building") {
       const decision = getBrokenLinkCadenceDecision(history)
       if (!decision.shouldRun) {
-        log.info("adaptive source skipped: weekly scan not due", { productId: product.id, strategy })
-        skips.push({ strategy, status: "skipped", skipReason: decision.skipReason! })
+        log.info("adaptive source skipped: weekly scan not due", {
+          productId: product.id,
+          strategy,
+        })
+        skips.push({
+          strategy,
+          status: "skipped",
+          skipReason: decision.skipReason!,
+        })
         continue
       }
     }
     if (isStrategyCoolingDown(history, strategy)) {
-      log.info("adaptive source cooling down", { productId: product.id, strategy })
-      skips.push({ strategy, status: "skipped", skipReason: "source_zero_yield_cooldown" })
+      log.info("adaptive source cooling down", {
+        productId: product.id,
+        strategy,
+      })
+      skips.push({
+        strategy,
+        status: "skipped",
+        skipReason: "source_zero_yield_cooldown",
+      })
       continue
     }
     entries.push({ strategy, explorationProbe })
@@ -348,7 +452,9 @@ async function buildAdaptiveStrategyQueue(
 }
 
 function commonFunnelFields(result: StrategyResult): PersistedStrategyFunnel {
-  const funnel = result.funnel ?? emptyStrategyFunnel({ exhausted: result.prospectsCreated === 0 })
+  const funnel =
+    result.funnel ??
+    emptyStrategyFunnel({ exhausted: result.prospectsCreated === 0 })
   return {
     candidatesGathered: funnel.candidatesGathered,
     candidatesFetched: funnel.candidatesFetched,
@@ -369,7 +475,9 @@ function commonFunnelFields(result: StrategyResult): PersistedStrategyFunnel {
   }
 }
 
-async function ensureProductReadiness(product: DiscoveryProduct): Promise<string[]> {
+async function ensureProductReadiness(
+  product: DiscoveryProduct
+): Promise<string[]> {
   const validCompetitors = (product.competitors ?? [])
     .map(extractCompetitorDomain)
     .filter((domain) => domain && !isBlockedCompetitorDomain(domain))
@@ -383,7 +491,10 @@ async function ensureProductReadiness(product: DiscoveryProduct): Promise<string
       .eq("crawl_status", "crawled")
       .eq("is_target", true)
     if (error) {
-      log.warn("readiness target-page check failed", { productId: product.id, error: error.message })
+      log.warn("readiness target-page check failed", {
+        productId: product.id,
+        error: error.message,
+      })
       return 0
     }
     return count ?? 0
@@ -402,35 +513,49 @@ async function ensureProductReadiness(product: DiscoveryProduct): Promise<string
     const attemptedAt = new Date().toISOString()
     try {
       const retry = await crawlProductPages(product.id, { crawlLimit: 50 })
-      log.info("automatic target-page readiness retry complete", { productId: product.id, ...retry })
+      log.info("automatic target-page readiness retry complete", {
+        productId: product.id,
+        ...retry,
+      })
       lastCrawlRetry = { ...retry, attemptedAt }
       crawledTargets = await getCrawledTargetCount()
     } catch (error) {
-      log.warn("automatic target-page readiness retry failed", { productId: product.id, error: String(error) })
+      log.warn("automatic target-page readiness retry failed", {
+        productId: product.id,
+        error: String(error),
+      })
       lastCrawlRetry = { error: String(error), attemptedAt }
     }
   }
 
   if (crawledTargets === 0) reasons.push("no_crawled_target_pages")
-  if ((product.target_keywords ?? []).length === 0) reasons.push("no_target_keywords")
-  if (validCompetitors.length < 3) reasons.push("fewer_than_three_configured_competitors")
+  if ((product.target_keywords ?? []).length === 0)
+    reasons.push("no_target_keywords")
+  if (validCompetitors.length < 3)
+    reasons.push("fewer_than_three_configured_competitors")
 
-  const { error: statusError } = await supabaseAdmin.rpc("merge_discovery_status", {
-    p_product_id: product.id,
-    p_updates: {
-      daily_readiness: {
-        checked_at: new Date().toISOString(),
-        ready: reasons.length === 0,
-        reasons,
-        crawled_target_pages: crawledTargets,
-        valid_competitors: validCompetitors.length,
-        target_keywords: (product.target_keywords ?? []).length,
-        ...(lastCrawlRetry ? { last_crawl_retry: lastCrawlRetry } : {}),
+  const { error: statusError } = await supabaseAdmin.rpc(
+    "merge_discovery_status",
+    {
+      p_product_id: product.id,
+      p_updates: {
+        daily_readiness: {
+          checked_at: new Date().toISOString(),
+          ready: reasons.length === 0,
+          reasons,
+          crawled_target_pages: crawledTargets,
+          valid_competitors: validCompetitors.length,
+          target_keywords: (product.target_keywords ?? []).length,
+          ...(lastCrawlRetry ? { last_crawl_retry: lastCrawlRetry } : {}),
+        },
       },
-    },
-  })
+    }
+  )
   if (statusError) {
-    log.warn("failed to persist discovery readiness", { productId: product.id, error: statusError.message })
+    log.warn("failed to persist discovery readiness", {
+      productId: product.id,
+      error: statusError.message,
+    })
   }
 
   return reasons
@@ -480,19 +605,24 @@ export async function runDiscoveryForProduct(
   }
 
   if (!settings) {
-    const { data: insertedSettings, error: insertSettingsError } = await supabaseAdmin
-      .from("backlink_prospects_settings")
-      .insert({
-        product_id: product.id,
-        opportunity_types: ALL_OPPORTUNITY_TYPES,
-        adaptive_discovery_enabled: DEFAULT_DAILY_DISCOVERY_SETTINGS.adaptiveDiscoveryEnabled,
-        daily_discovery_target: DEFAULT_DAILY_DISCOVERY_SETTINGS.target,
-        daily_discovery_candidate_cap: DEFAULT_DAILY_DISCOVERY_SETTINGS.candidateCap,
-        daily_discovery_attempt_cap: DEFAULT_DAILY_DISCOVERY_SETTINGS.attemptCap,
-        daily_discovery_cost_cap_usd: DEFAULT_DAILY_DISCOVERY_SETTINGS.costCapUsd,
-      })
-      .select(settingsFields)
-      .single()
+    const { data: insertedSettings, error: insertSettingsError } =
+      await supabaseAdmin
+        .from("backlink_prospects_settings")
+        .insert({
+          product_id: product.id,
+          opportunity_types: ALL_OPPORTUNITY_TYPES,
+          adaptive_discovery_enabled:
+            DEFAULT_DAILY_DISCOVERY_SETTINGS.adaptiveDiscoveryEnabled,
+          daily_discovery_target: DEFAULT_DAILY_DISCOVERY_SETTINGS.target,
+          daily_discovery_candidate_cap:
+            DEFAULT_DAILY_DISCOVERY_SETTINGS.candidateCap,
+          daily_discovery_attempt_cap:
+            DEFAULT_DAILY_DISCOVERY_SETTINGS.attemptCap,
+          daily_discovery_cost_cap_usd:
+            DEFAULT_DAILY_DISCOVERY_SETTINGS.costCapUsd,
+        })
+        .select(settingsFields)
+        .single()
 
     if (insertSettingsError || !insertedSettings) {
       // A concurrent creator may have won the unique product_id insert. Reload
@@ -526,13 +656,17 @@ export async function runDiscoveryForProduct(
   }
 
   const opportunityTypes = settings?.opportunity_types ?? ALL_OPPORTUNITY_TYPES
-  const enabled = ROTATION_STRATEGIES.filter((s) => opportunityTypes.includes(s))
+  const enabled = ROTATION_STRATEGIES.filter((s) =>
+    opportunityTypes.includes(s)
+  )
 
   const adaptive = settings.adaptive_discovery_enabled
   const dailyTarget = Math.max(1, settings.daily_discovery_target)
   const attemptCap = Math.max(dailyTarget, settings.daily_discovery_attempt_cap)
   const costCapUsd = Math.max(0.01, settings.daily_discovery_cost_cap_usd)
-  const claim = adaptive ? await claimDailyExecution(product.id, dailyTarget) : null
+  const claim = adaptive
+    ? await claimDailyExecution(product.id, dailyTarget)
+    : null
 
   if (adaptive && !claim) {
     return {
@@ -651,8 +785,13 @@ export async function runDiscoveryForProduct(
   const strategies = strategyEntries.map(({ strategy }) => strategy)
 
   if (strategies.length === 0) {
-    const configurationReason = configurationReasonForSourceSkips(enabled, adaptiveQueue.skips)
-    const emptyQueueStopReason = configurationReason ? "configuration_error" : "sources_exhausted"
+    const configurationReason = configurationReasonForSourceSkips(
+      enabled,
+      adaptiveQueue.skips
+    )
+    const emptyQueueStopReason = configurationReason
+      ? "configuration_error"
+      : "sources_exhausted"
     if (claim) {
       await finishDailyExecution(claim, {
         readyCount: claim.readyCount,
@@ -673,7 +812,8 @@ export async function runDiscoveryForProduct(
       emailSent: false,
       readinessReasons,
       stopReason: emptyQueueStopReason,
-      skipped: configurationReason ?? "all discovery sources cooling down or not due",
+      skipped:
+        configurationReason ?? "all discovery sources cooling down or not due",
     }
   }
 
@@ -745,19 +885,25 @@ export async function runDiscoveryForProduct(
   const ranStrategies: RotationStrategy[] = []
   const digestBreakdown: { strategy: RotationStrategy; count: number }[] = []
   const strategyFunnels: PersistedStrategyFunnel[] = [...adaptiveQueue.skips]
-  let activeAllocation: ReturnType<DailyDiscoveryStopController["allocate"]> = null
+  let activeAllocation: ReturnType<DailyDiscoveryStopController["allocate"]> =
+    null
 
   try {
     for (const entry of strategyEntries) {
       const { strategy } = entry
       if (stopController?.shouldStop()) break
 
-      const resourcePerformance = getStrategyPerformance(history, "resource_page_inclusion")
-      const higherYieldSourceRunnable = strategy === "resource_page_inclusion"
-        && strategyEntries.some((candidate) =>
-          candidate.strategy !== "resource_page_inclusion"
-          && getStrategyPerformance(history, candidate.strategy).readyPerAttempt
-            > resourcePerformance.readyPerAttempt
+      const resourcePerformance = getStrategyPerformance(
+        history,
+        "resource_page_inclusion"
+      )
+      const higherYieldSourceRunnable =
+        strategy === "resource_page_inclusion" &&
+        strategyEntries.some(
+          (candidate) =>
+            candidate.strategy !== "resource_page_inclusion" &&
+            getStrategyPerformance(history, candidate.strategy)
+              .readyPerAttempt > resourcePerformance.readyPerAttempt
         )
       const allocation = stopController?.allocate(strategy, {
         history,
@@ -794,7 +940,9 @@ export async function runDiscoveryForProduct(
         }
       )
       const sequenceResults = await Promise.allSettled(seqPromises)
-      const sequenceFailures = sequenceResults.filter((sequenceResult) => sequenceResult.status === "rejected").length
+      const sequenceFailures = sequenceResults.filter(
+        (sequenceResult) => sequenceResult.status === "rejected"
+      ).length
       if (sequenceFailures > 0) {
         log.warn("some discovered prospects did not become send-ready", {
           productId: product.id,
@@ -802,9 +950,12 @@ export async function runDiscoveryForProduct(
           sequenceFailures,
         })
       }
-      if (claim) readyToday = await countDailySendReady(product.id, claim.quotaDate)
+      if (claim)
+        readyToday = await countDailySendReady(product.id, claim.quotaDate)
       stopController?.reconcileReadyCount(readyToday)
-      const attemptsUsed = allocation ? stopController?.commit(allocation, result.totalCostUsd) ?? 0 : 0
+      const attemptsUsed = allocation
+        ? (stopController?.commit(allocation, result.totalCostUsd) ?? 0)
+        : 0
       activeAllocation = null
       sendReadyCreated = Math.max(0, readyToday - (claim?.readyCount ?? 0))
       ranStrategies.push(strategy)
@@ -875,11 +1026,18 @@ export async function runDiscoveryForProduct(
     if (claim) {
       try {
         readyToday = await countDailySendReady(product.id, claim.quotaDate)
-        const enrichmentAttempts = Math.max(0, dailyBudget.attemptsRemaining - (stopController?.attemptsRemaining ?? 0))
+        const enrichmentAttempts = Math.max(
+          0,
+          dailyBudget.attemptsRemaining -
+            (stopController?.attemptsRemaining ?? 0)
+        )
         await finishDailyExecution(claim, {
           readyCount: readyToday,
           enrichmentAttempts,
-          insertedNotReadyCount: Math.max(0, prospectsCreated - Math.max(0, readyToday - claim.readyCount)),
+          insertedNotReadyCount: Math.max(
+            0,
+            prospectsCreated - Math.max(0, readyToday - claim.readyCount)
+          ),
           costUsd: totalCostUsd,
           strategyFunnels,
           stopReason: "transport_failure",
@@ -898,10 +1056,14 @@ export async function runDiscoveryForProduct(
 
   const stopReason = !adaptive
     ? undefined
-    : stopController?.stopReason ?? ("sources_exhausted" as DailyDiscoveryStopReason)
+    : (stopController?.stopReason ??
+      ("sources_exhausted" as DailyDiscoveryStopReason))
 
   if (claim && stopReason) {
-    const enrichmentAttempts = Math.max(0, dailyBudget.attemptsRemaining - (stopController?.attemptsRemaining ?? 0))
+    const enrichmentAttempts = Math.max(
+      0,
+      dailyBudget.attemptsRemaining - (stopController?.attemptsRemaining ?? 0)
+    )
     await finishDailyExecution(claim, {
       readyCount: readyToday,
       enrichmentAttempts,
@@ -940,13 +1102,17 @@ export async function runDiscoveryForProduct(
  * until their ready-opportunity, candidate, or cost cap is reached. Other
  * products retain the least-recently-run single-source rotation.
  */
-export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }): Promise<void> {
+export async function runDailyBacklinkDiscovery(options?: {
+  paidOnly?: boolean
+}): Promise<void> {
   const paidOnly = options?.paidOnly ?? false
   log.info("starting", { paidOnly })
 
   const { data: products, error } = await supabaseAdmin
     .from("products")
-    .select("id, user_id, product_name, product_description, website_url, competitors, target_keywords")
+    .select(
+      "id, user_id, product_name, product_description, website_url, competitors, target_keywords"
+    )
 
   if (error) {
     log.error("failed to fetch products", { error: error.message })
@@ -959,13 +1125,16 @@ export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }
     name: string | null
     tier: string
     active_trial: boolean
+    onboarding_completed: boolean
     deactivated_at: string | null
     outreach_paused_at: string | null
   }
   const userIds = [...new Set((products ?? []).map((p) => p.user_id))]
   const { data: profiles, error: profilesError } = await supabaseAdmin
     .from("profiles")
-    .select("id, email, name, tier, active_trial, deactivated_at, outreach_paused_at")
+    .select(
+      "id, email, name, tier, active_trial, onboarding_completed, deactivated_at, outreach_paused_at"
+    )
     .in("id", userIds)
 
   if (profilesError) {
@@ -973,7 +1142,9 @@ export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }
     return
   }
 
-  const profileById = new Map((profiles ?? []).map((p) => [p.id, p as ProfileFields]))
+  const profileById = new Map(
+    (profiles ?? []).map((p) => [p.id, p as ProfileFields])
+  )
   const withProfile = (products ?? []).map((p) => ({
     product: {
       id: p.id,
@@ -989,6 +1160,7 @@ export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }
 
   const eligible = withProfile.filter(({ profile }) => {
     if (profile === undefined) return false
+    if (!profile.onboarding_completed) return false
     if (profile.deactivated_at !== null) return false
     if (profile.outreach_paused_at !== null) return false
     if (paidOnly) return profile.tier !== "free" && !profile.active_trial
@@ -1008,10 +1180,16 @@ export async function runDailyBacklinkDiscovery(options?: { paidOnly?: boolean }
         try {
           const result = await runDiscoveryForProduct(product, profile)
           if (result.skipped) {
-            log.info("product skipped", { productId: product.id, reason: result.skipped })
+            log.info("product skipped", {
+              productId: product.id,
+              reason: result.skipped,
+            })
           }
         } catch (err) {
-          log.error("discovery failed", { productId: product.id, error: String(err) })
+          log.error("discovery failed", {
+            productId: product.id,
+            error: String(err),
+          })
         }
       })
     )

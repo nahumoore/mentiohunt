@@ -9,6 +9,10 @@ import { runProspectOutreachSender } from "./prospect-outreach-sender.js"
 import { runProspectOutreachMonitor } from "./prospect-outreach-monitor.js"
 import { checkScraperPoolHealth } from "./scraper-pool-health-monitor.js"
 import { resumeEligibleTrialExpiredSequences } from "../helpers/outreach/trial-sequences.js"
+import { sendTrialEndingReminders } from "./trial-ending-reminders.js"
+import { createLogger } from "../helpers/logger.js"
+
+const log = createLogger("scheduled-jobs")
 
 export function registerJobs(): void {
   cron.schedule("15 0,8,16 * * *", async () => {
@@ -21,6 +25,15 @@ export function registerJobs(): void {
   console.log(
     "[cron] Scheduled: free trial deactivation (00:15, 08:15, 16:15 UTC)"
   )
+
+  cron.schedule("35 * * * *", async () => {
+    try {
+      await sendTrialEndingReminders()
+    } catch (err) {
+      log.error("trial-ending reminders failed", { error: String(err) })
+    }
+  })
+  log.info("scheduled trial-ending reminders", { schedule: "35 * * * *" })
 
   cron.schedule("0 * * * *", async () => {
     try {
@@ -65,7 +78,9 @@ export function registerJobs(): void {
       console.error("[cron] Error running daily backlink discovery:", err)
     }
   })
-  console.log("[cron] Scheduled: daily backlink discovery, all active users (07:03 UTC)")
+  console.log(
+    "[cron] Scheduled: daily backlink discovery, all active users (07:03 UTC)"
+  )
 
   cron.schedule("3 19 * * *", async () => {
     try {
@@ -74,7 +89,9 @@ export function registerJobs(): void {
       console.error("[cron] Error running paid-only backlink discovery:", err)
     }
   })
-  console.log("[cron] Scheduled: 2nd backlink discovery run, paid users only (19:03 UTC)")
+  console.log(
+    "[cron] Scheduled: 2nd backlink discovery run, paid users only (19:03 UTC)"
+  )
 
   cron.schedule("30 3 * * *", async () => {
     try {
@@ -92,7 +109,9 @@ export function registerJobs(): void {
       console.error("[cron] Error running link tracker confirmation pass:", err)
     }
   })
-  console.log("[cron] Scheduled: link tracker confirmation pass, force_dynamic (15:30 UTC)")
+  console.log(
+    "[cron] Scheduled: link tracker confirmation pass, force_dynamic (15:30 UTC)"
+  )
 
   cron.schedule("0 17 * * *", async () => {
     try {
@@ -122,5 +141,7 @@ export function registerJobs(): void {
       console.error("[cron] Error running data retention cleanup:", err)
     }
   })
-  console.log("[cron] Scheduled: data retention cleanup, outreach_events + route_execution_logs (04:15 UTC)")
+  console.log(
+    "[cron] Scheduled: data retention cleanup, outreach_events + route_execution_logs (04:15 UTC)"
+  )
 }

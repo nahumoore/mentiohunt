@@ -9,6 +9,7 @@ const ELEVATIONVIBE_FAVICON =
 export function BigTestimonial() {
   return (
     <section
+      id="case-study"
       aria-labelledby="big-testimonial-title"
       className="relative overflow-hidden bg-background py-10 sm:py-12 lg:py-14"
     >
@@ -35,24 +36,25 @@ export function BigTestimonial() {
                 <div className="mb-4 flex items-center gap-3">
                   <IconQuote className="h-8 w-8 shrink-0 text-[var(--color-blaze-orange)]/45" />
                   <p className="text-[0.65rem] font-bold text-[var(--color-blaze-orange)] uppercase">
-                    Testimonial
+                    Real campaign result
                   </p>
                 </div>
 
-                <blockquote>
-                  <h2
-                    id="big-testimonial-title"
-                    className="font-heading text-2xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-3xl lg:text-[2.45rem]"
-                  >
-                    This tool found an opportunity on one of the sites with
-                    most authority in my niche, and I got a backlink in 12
-                    days without paying for it, crazy!
-                  </h2>
+                <h2
+                  id="big-testimonial-title"
+                  className="font-[family-name:var(--font-figtree),var(--font-sans)] text-2xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-3xl lg:text-[2.45rem]"
+                >
+                  3 contextual backlinks in the first month.
+                </h2>
+                <blockquote className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
+                  “Mentiohunt found one of the highest-authority sites in my
+                  niche, and I earned a backlink in 12 days without paying for
+                  the placement.”
                 </blockquote>
               </div>
 
               <div className="mt-6">
-                <p className="font-heading text-base font-semibold tracking-tight text-foreground">
+                <p className="font-[family-name:var(--font-figtree),var(--font-sans)] text-base font-semibold tracking-tight text-foreground">
                   Logan Stuart
                 </p>
                 <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">

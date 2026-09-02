@@ -7,9 +7,19 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 export const runtime = "nodejs"
+// The generation call plus a possible retry can run ~30s each; the platform
+// default (10-15s) was silently killing the request before the model replied.
+export const maxDuration = 60
 
+// How many competitors we ask the model for. The client step schema accepts up
+// to 10; DNS validation and dedupe below can shave a couple off, so the user
+// typically lands on ~8-10 and tops up the rest by hand.
+const TARGET_COMPETITORS = 10
+
+// Lenient on count — if a provider under-delivers we return what we got rather
+// than 502 the whole request. The JSON schema below is what pushes for 10.
 const competitorsSchema = z.object({
-  competitors: z.array(z.string().min(3)).min(2).max(5),
+  competitors: z.array(z.string().min(3)).min(2).max(TARGET_COMPETITORS),
 })
 
 const RESPONSE_SCHEMA = {
@@ -19,8 +29,8 @@ const RESPONSE_SCHEMA = {
   properties: {
     competitors: {
       type: "array",
-      minItems: 2,
-      maxItems: 5,
+      minItems: TARGET_COMPETITORS,
+      maxItems: TARGET_COMPETITORS,
       items: {
         type: "string",
       },
@@ -30,10 +40,13 @@ const RESPONSE_SCHEMA = {
 
 const GENERATE_OPTIONS: Pick<
   Parameters<typeof generateText>[0],
-  "model" | "fallbackModels" | "timeoutMs" | "responseFormat"
+  "model" | "fallbackModels" | "reasoningEnabled" | "timeoutMs" | "responseFormat"
 > = {
   model: OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO,
-  fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH],
+  fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.OPENAI_GPT_5_6_LUNA],
+  // Picking competitor domains is simple extraction — the model's reasoning
+  // phase adds ~15s here for no quality gain, so switch it off.
+  reasoningEnabled: false,
   timeoutMs: 30_000,
   responseFormat: {
     type: "json_schema",
@@ -57,7 +70,7 @@ const systemInstructions = [
   "Return JSON only with this exact shape:",
   '{"competitors":["example.com"]}',
   "Rules:",
-  "- competitors must contain 2 to 5 unique root domains of real products that serve the same audience and solve the same problem.",
+  `- competitors must contain exactly ${TARGET_COMPETITORS} unique root domains of real products that serve the same audience and solve the same problem. If fewer than ${TARGET_COMPETITORS} direct competitors exist, fill the remaining slots with the closest adjacent tools in the same space — but never invent a domain you are not confident is real.`,
   "- Match the input site's scale and niche. Exclude category-dominant marketplaces, directories, and aggregators (e.g. Angi, HomeAdvisor, Yelp, Thumbtack, Google, Amazon) even if they compete for the same customers — their backlinks are generic directory badges, not niche editorial mentions, so they make poor mining targets for a smaller site.",
   "- For a local or regional business, prefer other local/regional competitors or niche content sites in the same space over national platforms.",
   "- Return root domains only (e.g. 'example.com'), never full URLs, paths, or subpages.",
@@ -77,10 +90,12 @@ function extractJsonObject(input: string): string {
 
 /**
  * One retry only — onboarding is a synchronous wait for the user, not a
- * background job. Domains still invalid after this are dropped; the user
- * fills gaps in manually rather than the whole request failing.
+ * background job. Runs when the first pass came back with unresolvable domains
+ * or simply short of TARGET_COMPETITORS; it asks the model to keep the good
+ * ones and fill the list back up to the target. Anything still missing after
+ * this is left for the user to add by hand.
  */
-async function retryInvalidDomains({
+async function topUpCompetitors({
   input,
   valid,
   invalid,
@@ -94,13 +109,14 @@ async function retryInvalidDomains({
   const retryInput = [
     input,
     "",
-    "You previously suggested these root domains:",
-    [...valid, ...invalid].map(extractHostname).join(", "),
-    "",
-    `These do not resolve to a real domain and must be replaced: ${invalid.map(extractHostname).join(", ")}.`,
     `Keep these unchanged, they're valid: ${valid.map(extractHostname).join(", ") || "(none)"}.`,
-    "Replace only the invalid ones with different real competitor domains. Return the same JSON shape with 2 to 5 total unique root domains.",
-  ].join("\n")
+    invalid.length > 0
+      ? `These do not resolve to a real domain — drop them and do not suggest them again: ${invalid.map(extractHostname).join(", ")}.`
+      : "",
+    `Return the same JSON shape with ${TARGET_COMPETITORS} total unique root domains: the valid ones above plus enough additional real competitor domains to reach ${TARGET_COMPETITORS}. Never invent a domain you are not confident is real.`,
+  ]
+    .filter(Boolean)
+    .join("\n")
 
   try {
     const retryOutput = await generateText({ input: retryInput, systemInstructions, ...GENERATE_OPTIONS })
@@ -116,11 +132,11 @@ async function retryInvalidDomains({
           .map((c) => normalizeCompetitorUrl(c))
           .filter((c) => c && extractHostname(c) !== extractHostname(websiteUrl))
       )
-    ).slice(0, 5)
+    ).slice(0, TARGET_COMPETITORS)
 
     const retryValidation = await validateDomains(retryCompetitors)
 
-    return Array.from(new Set([...valid, ...retryValidation.valid])).slice(0, 5)
+    return Array.from(new Set([...valid, ...retryValidation.valid])).slice(0, TARGET_COMPETITORS)
   } catch {
     return valid
   }
@@ -171,14 +187,14 @@ export async function POST(request: Request) {
           return [normalized]
         })
       )
-    ).slice(0, 5)
+    ).slice(0, TARGET_COMPETITORS)
 
     const { valid, invalid } = await validateDomains(firstPass)
 
     let competitors = valid
 
-    if (invalid.length > 0 || invalidCandidates.length > 0) {
-      competitors = await retryInvalidDomains({
+    if (invalid.length > 0 || invalidCandidates.length > 0 || valid.length < TARGET_COMPETITORS) {
+      competitors = await topUpCompetitors({
         input,
         valid,
         invalid: [...invalidCandidates, ...invalid],

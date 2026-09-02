@@ -31,13 +31,13 @@ export function Pricing() {
         <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background to-transparent" />
       </div>
 
-      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-blaze-orange/20 bg-blaze-orange/8 px-3 py-1 text-xs font-bold text-blaze-orange uppercase">
             <IconSparkles className="h-3.5 w-3.5" />
-            {FREE_TRIAL_DAYS}-day free trial
+            Preview first, then {FREE_TRIAL_DAYS} days free
           </span>
-          <h2 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
+          <h2 className="mt-5 font-[family-name:var(--font-figtree),var(--font-sans)] text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[42px]">
             Start with the plan that gets your{" "}
             <span className="bg-gradient-to-r from-[var(--color-blaze-orange-2)] via-[var(--color-harvest-orange)] to-[var(--color-amber-flame)] bg-clip-text text-transparent">
               backlink pipeline moving.
@@ -45,9 +45,8 @@ export function Pricing() {
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
             Two simple plans for backlink outreach autopilot. We discover
-            opportunities and run outreach automatically through the first
-            reply — you monitor the queue and cancel anything that isn&apos;t a
-            fit.
+            opportunities and run outreach automatically through the first reply
+            — you monitor the queue and cancel anything that isn&apos;t a fit.
           </p>
         </div>
 
@@ -79,7 +78,7 @@ export function Pricing() {
                   <p className="mt-4 text-sm font-medium text-muted-foreground line-through">
                     ${plan.originalPrice}/month
                   </p>
-                  <h3 className="mt-1 font-heading text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
+                  <h3 className="mt-1 font-[family-name:var(--font-figtree),var(--font-sans)] text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
                     ${plan.price}
                     <span className="ml-1 text-base font-medium tracking-normal text-muted-foreground">
                       /month
@@ -135,7 +134,7 @@ export function Pricing() {
                       : "border border-border bg-background text-foreground hover:border-blaze-orange/30 hover:text-blaze-orange"
                   }`}
                 >
-                  Start free trial
+                  See my opportunities
                   <IconArrowRight className="ml-2 h-4 w-4 transition duration-200 group-hover:translate-x-1" />
                 </Link>
               </article>

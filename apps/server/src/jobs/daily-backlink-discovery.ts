@@ -1,10 +1,6 @@
 import { supabaseAdmin } from "@workspace/supabase/admin"
 import pLimit from "p-limit"
-import { sendBrokenLinkAlertEmail } from "../helpers/emails/send-broken-link-alert.js"
-import { sendCompetitorBacklinkAlertEmail } from "../helpers/emails/send-competitor-backlink-alert.js"
-import { sendListicleAlertEmail } from "../helpers/emails/send-listicle-alert.js"
-import { sendResourcePageInclusionAlertEmail } from "../helpers/emails/send-resource-page-inclusion-alert.js"
-import { sendUnlinkedMentionAlertEmail } from "../helpers/emails/send-unlinked-mention-alert.js"
+import { sendDiscoveryDigestAlertEmail } from "../helpers/emails/send-discovery-digest-alert.js"
 import { createLogger } from "../helpers/logger.js"
 import { discoverBrokenLinkBuilding } from "../methods/prospect-generation-methods/broken-link-building/index.js"
 import { discoverCompetitorBacklinks } from "../methods/prospect-generation-methods/competitor-backlink/index.js"
@@ -59,6 +55,15 @@ const ROTATION_STRATEGIES: RotationStrategy[] = [
   "broken_link_building",
 ]
 
+/** Human-readable names for the per-strategy lines in the daily digest email. */
+const STRATEGY_LABELS: Record<RotationStrategy, string> = {
+  competitor_backlink: "Competitor backlinks",
+  unlinked_mention: "Unlinked mentions",
+  listicle_roundup: "Listicles & roundups",
+  resource_page_inclusion: "Resource pages",
+  broken_link_building: "Broken links",
+}
+
 export type DiscoveryProduct = {
   id: string
   user_id: string
@@ -86,13 +91,6 @@ type StrategyHandler = {
     onProspectCreated?: (p: ProspectCreatedPayload) => void,
     options?: StrategyRunOptions
   ) => Promise<StrategyResult>
-  sendAlert: (args: {
-    to: string
-    userId: string
-    userName: string | null
-    productName: string
-    prospectsCreated: number
-  }) => Promise<void>
 }
 
 const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
@@ -119,7 +117,6 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         options?.budget,
         onProspectCreated
       ),
-    sendAlert: sendCompetitorBacklinkAlertEmail,
   },
   unlinked_mention: {
     isRunnable: (product) => (product.product_name?.trim() ?? "") !== "",
@@ -134,7 +131,6 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         options?.budget,
         onProspectCreated
       ),
-    sendAlert: sendUnlinkedMentionAlertEmail,
   },
   listicle_roundup: {
     isRunnable: (product) => (product.product_name?.trim() ?? "") !== "",
@@ -147,7 +143,6 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         options?.budget,
         onProspectCreated
       ),
-    sendAlert: sendListicleAlertEmail,
   },
   resource_page_inclusion: {
     isRunnable: async (product) => {
@@ -168,7 +163,6 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         options?.budget,
         onProspectCreated
       ),
-    sendAlert: sendResourcePageInclusionAlertEmail,
   },
   broken_link_building: {
     isRunnable: async (product) => {
@@ -198,7 +192,6 @@ const STRATEGY_HANDLERS: Record<RotationStrategy, StrategyHandler> = {
         options?.budget,
         onProspectCreated
       ),
-    sendAlert: sendBrokenLinkAlertEmail,
   },
 }
 
@@ -750,6 +743,7 @@ export async function runDiscoveryForProduct(
   let totalCostUsd = 0
   let emailSent = false
   const ranStrategies: RotationStrategy[] = []
+  const digestBreakdown: { strategy: RotationStrategy; count: number }[] = []
   const strategyFunnels: PersistedStrategyFunnel[] = [...adaptiveQueue.skips]
   let activeAllocation: ReturnType<DailyDiscoveryStopController["allocate"]> = null
 
@@ -839,20 +833,8 @@ export async function runDiscoveryForProduct(
         ...result,
       })
 
-      if (result.prospectsCreated > 0 && profile?.email) {
-        await STRATEGY_HANDLERS[strategy].sendAlert({
-          to: profile.email,
-          userId: product.user_id,
-          userName: profile.name,
-          productName: product.product_name,
-          prospectsCreated: result.prospectsCreated,
-        })
-        emailSent = true
-      } else if (result.prospectsCreated > 0) {
-        log.warn("no profile email, skipping alert", {
-          productId: product.id,
-          userId: product.user_id,
-        })
+      if (result.prospectsCreated > 0) {
+        digestBreakdown.push({ strategy, count: result.prospectsCreated })
       }
     }
 
@@ -863,6 +845,27 @@ export async function runDiscoveryForProduct(
         stopController?.reconcileReadyCount(readyToday)
         sendReadyCreated = Math.max(0, readyToday - claim.readyCount)
       }
+    }
+
+    // One digest per product per run — replaces the previous one-email-per-strategy
+    // behaviour that spammed users on multi-strategy adaptive runs.
+    if (digestBreakdown.length > 0 && profile?.email) {
+      await sendDiscoveryDigestAlertEmail({
+        to: profile.email,
+        userId: product.user_id,
+        userName: profile.name,
+        productName: product.product_name,
+        breakdown: digestBreakdown.map(({ strategy, count }) => ({
+          label: STRATEGY_LABELS[strategy],
+          count,
+        })),
+      })
+      emailSent = true
+    } else if (digestBreakdown.length > 0) {
+      log.warn("no profile email, skipping alert", {
+        productId: product.id,
+        userId: product.user_id,
+      })
     }
   } catch (error) {
     if (activeAllocation) {

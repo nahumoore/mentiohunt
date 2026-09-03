@@ -29,13 +29,19 @@ const log = createLogger("onboarding-jobs")
 // applies, so raising it adds no extra SERP/DataForSEO calls, only cheap
 // fetch/scoring on candidates already paid for.
 const ONBOARDING_BACKLINK_LIMITS_BASE = { maxProspects: 10, fetchLimit: 35 }
-const ONBOARDING_MENTION_LIMITS = { maxCandidates: 15, maxProspects: 10 }
-const ONBOARDING_LISTICLE_LIMITS = { maxCandidates: 25, maxProspects: 10 }
+// Competitors are processed under a bounded concurrency in preview mode
+// (see `concurrency` below) rather than one at a time — that serial loop
+// was the second-largest stall after page categorization.
+const ONBOARDING_BACKLINK_CONCURRENCY = 3
+const ONBOARDING_MENTION_LIMITS = { maxCandidates: 30, maxProspects: 10 }
+const ONBOARDING_LISTICLE_LIMITS = { maxCandidates: 45, maxProspects: 10 }
 
 // resource_page_inclusion and broken_link_building both require crawled
-// product_pages rows, so they run in a second stage after the crawl (stage 1
-// below) finishes, instead of racing it.
-const ONBOARDING_RPI_LIMITS = { maxProspects: 10 }
+// product_pages rows, so they run in a second stage after target pages are
+// selected, rather than racing stage 1 (see the `onTargetPagesReady` signal
+// below) — that race is why neither method could ever produce results
+// during onboarding before this change.
+const ONBOARDING_RPI_LIMITS = { maxCandidates: 40, maxPages: 5, maxProspects: 15 }
 // At most three competitors can contribute ten backlink opportunities each,
 // the mention/listicle/resource strategies can contribute ten each, and
 // broken-link building can contribute five per competitor. This is a display
@@ -138,13 +144,17 @@ export async function runOnboardingJobs(
         }
       : undefined
 
-  const [
-    backlinkDiscoveryResult,
-    mentionDiscoveryResult,
-    listicleDiscoveryResult,
-    pagesResult,
-  ] = await Promise.allSettled([
-    (async () => {
+  // Resolved by crawlProductPages as soon as target pages are selected and
+  // persisted (crawl_status='crawled'), rather than waiting for the whole
+  // crawl (including page categorization) to finish. Stage 2 below races on
+  // this so resource-page/broken-link discovery can start within seconds of
+  // target-page selection instead of after the full crawl settles.
+  let resolveTargetPagesReady: (pagesSelected: number) => void = () => {}
+  const targetPagesReadyPromise = new Promise<number>((resolve) => {
+    resolveTargetPagesReady = resolve
+  })
+
+  const backlinkPromise = (async () => {
       if (!product || !opportunityTypes.includes("competitor_backlink")) {
         if (!product)
           log.warn("discoverCompetitorBacklinks: product not found, skipping", {
@@ -159,6 +169,9 @@ export async function runOnboardingJobs(
         const onboardingBacklinkLimits = {
           ...ONBOARDING_BACKLINK_LIMITS_BASE,
           maxCompetitors: Math.max(1, Math.min(3, competitors.length)),
+          // Only safe without a budget/shouldStop — preview passes neither.
+          // The daily job passes a budget and keeps its serial loop.
+          ...(previewMode ? { concurrency: ONBOARDING_BACKLINK_CONCURRENCY } : {}),
         }
         const result = await discoverCompetitorBacklinks(
           { ...product, competitors },
@@ -181,8 +194,9 @@ export async function runOnboardingJobs(
         })
         throw err
       }
-    })(),
-    (async () => {
+  })()
+
+  const mentionPromise = (async () => {
       if (!product || !opportunityTypes.includes("unlinked_mention")) {
         if (!product)
           log.warn("discoverUnlinkedMentions: product not found, skipping", {
@@ -197,7 +211,7 @@ export async function runOnboardingJobs(
           product,
           filterSettings,
           emailSettings,
-          ONBOARDING_MENTION_LIMITS,
+          { ...ONBOARDING_MENTION_LIMITS, keepUnknownDr: previewMode },
           undefined,
           onProspectCreated,
           enrichmentBudget
@@ -214,8 +228,9 @@ export async function runOnboardingJobs(
         })
         throw err
       }
-    })(),
-    (async () => {
+  })()
+
+  const listiclePromise = (async () => {
       if (!product || !opportunityTypes.includes("listicle_roundup")) {
         if (!product)
           log.warn("discoverListicleRoundups: product not found, skipping", {
@@ -230,7 +245,7 @@ export async function runOnboardingJobs(
           product,
           filterSettings,
           emailSettings,
-          ONBOARDING_LISTICLE_LIMITS,
+          { ...ONBOARDING_LISTICLE_LIMITS, keepUnknownDr: previewMode },
           undefined,
           onProspectCreated,
           enrichmentBudget
@@ -247,39 +262,54 @@ export async function runOnboardingJobs(
         })
         throw err
       }
-    })(),
-    (async () => {
-      const t = Date.now()
-      log.info("crawlProductPages START", { productId, pageLimit })
-      try {
-        const result = await crawlProductPages(productId, {
-          crawlLimit: pageLimit,
-          autoDiscover: autoDiscoverPages,
-        })
-        log.success("crawlProductPages done", {
-          durationMs: Date.now() - t,
-          ...result,
-        })
-        return result
-      } catch (err) {
-        log.error("crawlProductPages FAILED", {
-          durationMs: Date.now() - t,
-          error: String(err),
-        })
-        throw err
-      }
-    })(),
+  })()
+
+  const crawlPromise = (async () => {
+    const t = Date.now()
+    log.info("crawlProductPages START", { productId, pageLimit })
+    try {
+      const result = await crawlProductPages(productId, {
+        crawlLimit: pageLimit,
+        autoDiscover: autoDiscoverPages,
+        previewMode,
+        onTargetPagesReady: resolveTargetPagesReady,
+      })
+      log.success("crawlProductPages done", {
+        durationMs: Date.now() - t,
+        ...result,
+      })
+      return result
+    } catch (err) {
+      log.error("crawlProductPages FAILED", {
+        durationMs: Date.now() - t,
+        error: String(err),
+      })
+      throw err
+    }
+  })()
+
+  // Stage 2 only needs to know whether target pages exist, not the full
+  // crawl result — start it as soon as either the crawl signals target-page
+  // selection or (if it never selects any) the crawl itself settles,
+  // whichever comes first. In preview mode this is what lets resource-page
+  // and broken-link discovery start within seconds of target-page selection
+  // instead of after the full page-categorization pass finishes.
+  const earlyPagesSelected = await Promise.race([
+    targetPagesReadyPromise,
+    crawlPromise.then((r) => r.pagesSelected).catch(() => 0),
   ])
 
-  log.info("stage 1 (competitor/mention/listicle/crawl) END", {
-    durationMs: Date.now() - t0,
-  })
+  const stage1Promise = Promise.allSettled([
+    backlinkPromise,
+    mentionPromise,
+    listiclePromise,
+    crawlPromise,
+  ])
 
   // Stage 2: resource_page_inclusion and broken_link_building both require
-  // crawled product_pages rows, so they run only after the crawl above has
-  // resolved, rather than racing it inside the same Promise.allSettled — that
-  // race is why neither method could ever produce results during onboarding
-  // before this change.
+  // crawled product_pages rows. They run concurrently with the rest of
+  // stage 1 rather than after it, gated on `earlyPagesSelected` above instead
+  // of the full crawl result.
   let rpiResult = { prospectsCreated: 0, totalCostUsd: 0 }
   let blbResult = { prospectsCreated: 0, totalCostUsd: 0 }
   let rpiSettled:
@@ -289,10 +319,17 @@ export async function runOnboardingJobs(
     | PromiseSettledResult<{ prospectsCreated: number; totalCostUsd: number }>
     | undefined
 
-  const crawlProducedPages =
-    pagesResult.status === "fulfilled" && pagesResult.value.pagesSelected > 0
+  const crawlProducedPages = earlyPagesSelected > 0
 
-  if (product && crawlProducedPages) {
+  const stage2Promise = (async () => {
+    if (!product || !crawlProducedPages) {
+      log.info("skipping stage 2 — crawl produced no crawled pages", {
+        productId,
+      })
+      return
+    }
+    const stage2Product = product
+
     const t2 = Date.now()
     ;[rpiSettled, blbSettled] = await Promise.allSettled([
       (async () => {
@@ -302,7 +339,7 @@ export async function runOnboardingJobs(
         log.info("discoverResourcePageInclusions START", { productId })
         try {
           const result = await discoverResourcePageInclusions(
-            product,
+            stage2Product,
             filterSettings,
             emailSettings,
             ONBOARDING_RPI_LIMITS,
@@ -327,7 +364,7 @@ export async function runOnboardingJobs(
         }
       })(),
       (async () => {
-        const competitors = (product.competitors as string[]) ?? []
+        const competitors = (stage2Product.competitors as string[]) ?? []
         if (
           !opportunityTypes.includes("broken_link_building") ||
           competitors.length === 0
@@ -338,7 +375,7 @@ export async function runOnboardingJobs(
         log.info("discoverBrokenLinkBuilding START", { productId })
         try {
           const result = await discoverBrokenLinkBuilding(
-            { ...product, competitors },
+            { ...stage2Product, competitors },
             filterSettings,
             emailSettings,
             {
@@ -370,11 +407,24 @@ export async function runOnboardingJobs(
     log.info("stage 2 (resource_page_inclusion/broken_link_building) END", {
       durationMs: Date.now() - t2,
     })
-  } else {
-    log.info("skipping stage 2 — crawl produced no crawled pages", {
-      productId,
-    })
-  }
+  })()
+
+  const [
+    backlinkDiscoveryResult,
+    mentionDiscoveryResult,
+    listicleDiscoveryResult,
+    pagesResult,
+  ] = await stage1Promise
+
+  log.info("stage 1 (competitor/mention/listicle/crawl) END", {
+    durationMs: Date.now() - t0,
+  })
+
+  // Stage 2 was kicked off above as soon as `earlyPagesSelected` resolved —
+  // by the time stage 1 has settled it is usually done or close to it, but
+  // wait for it explicitly so rpiResult/blbResult/rpiSettled/blbSettled are
+  // final before they're read below.
+  await stage2Promise
 
   log.info("all jobs END", { durationMs: Date.now() - t0 })
 

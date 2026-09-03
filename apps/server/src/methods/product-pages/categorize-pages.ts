@@ -2,8 +2,9 @@ import pLimit from "p-limit"
 import { generateTextWithUsage } from "@workspace/openrouter/generate-text"
 import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { createLogger } from "../../helpers/logger.js"
-import { withLlmRetries } from "../../helpers/llm-retry.js"
+import { withLlmRetries, LLM_RETRY_DELAYS_MS } from "../../helpers/llm-retry.js"
 import { parseLlmJson } from "../../helpers/parse-llm-json.js"
+import { heuristicPageCategories } from "./heuristic-page-category.js"
 
 const log = createLogger("categorize-pages")
 
@@ -34,7 +35,11 @@ export type PageToClassify = {
   text: string
 }
 
-const BATCH_SIZE = 15
+// Was 15. Combined with `reasoningEnabled: false` below, a 6-page batch fits
+// comfortably inside its per-batch timeout instead of routinely exceeding it
+// on every model in the fallback chain (see the 2026-09-02 preview-speed
+// ticket: a single stuck 15-page batch cost ~700s across three attempts).
+const BATCH_SIZE = 6
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = []
@@ -119,23 +124,61 @@ const RESPONSE_FORMAT = {
 export async function categorizePages(
   pages: PageToClassify[],
   product: { product_name: string; product_description: string },
-  targetKeywords: string[] = []
+  targetKeywords: string[] = [],
+  options: { retryDelaysMs?: number[] } = {}
 ): Promise<{ results: PageCategorization[]; totalCost: number }> {
   if (pages.length === 0) return { results: [], totalCost: 0 }
 
+  const retryDelaysMs = options.retryDelaysMs ?? LLM_RETRY_DELAYS_MS
   const batches = chunk(pages, BATCH_SIZE)
   const limit = pLimit(5)
 
-  const batchResults = await Promise.all(
-    batches.map((batch) => limit(() => categorizeBatch(batch, product, targetKeywords)))
+  // A single stuck batch must never take the rest down with it — this run
+  // must never stall the whole preview/onboarding pass over one bad batch.
+  const settlements = await Promise.allSettled(
+    batches.map((batch) => limit(() => categorizeBatch(batch, product, targetKeywords, retryDelaysMs)))
   )
 
-  const results = batchResults.flatMap((r) => r.results)
+  const batchResults = settlements.map((settlement) => {
+    if (settlement.status === "fulfilled") return settlement.value
+    // categorizeBatch already swallows its own failures into
+    // { results: [], cost: 0 } — a rejection here would mean something
+    // outside that try/catch threw, which shouldn't happen, but fail open
+    // the same way rather than losing the whole batch.
+    log.warn("batch categorization rejected unexpectedly", {
+      error: String(settlement.reason),
+    })
+    return { results: [] as PageCategorization[], cost: 0 }
+  })
+
+  const categorizedByUrl = new Map(
+    batchResults.flatMap((r) => r.results).map((r) => [r.url, r])
+  )
   const totalCost = batchResults.reduce((sum, r) => sum + r.cost, 0)
+
+  // Fail open: any page a batch couldn't categorize (total model-chain
+  // failure, or a shape mismatch) still gets a heuristic guess rather than
+  // vanishing — a preview must never stall or silently drop pages because
+  // one classification batch is slow.
+  const uncategorized = pages.filter((p) => !categorizedByUrl.has(p.url))
+  if (uncategorized.length > 0) {
+    log.warn("falling back to heuristic categorization", {
+      total: pages.length,
+      uncategorized: uncategorized.length,
+    })
+    for (const heuristic of heuristicPageCategories(uncategorized, targetKeywords)) {
+      categorizedByUrl.set(heuristic.url, heuristic)
+    }
+  }
+
+  const results = pages
+    .map((p) => categorizedByUrl.get(p.url))
+    .filter((r): r is PageCategorization => r !== undefined)
 
   log.info("categorization complete", {
     total: pages.length,
     categorized: results.length,
+    heuristicFallbacks: uncategorized.length,
     cost_usd: totalCost.toFixed(4),
   })
 
@@ -145,7 +188,8 @@ export async function categorizePages(
 async function categorizeBatch(
   pages: PageToClassify[],
   product: { product_name: string; product_description: string },
-  targetKeywords: string[]
+  targetKeywords: string[],
+  retryDelaysMs: number[]
 ): Promise<{ results: PageCategorization[]; cost: number }> {
   // matchedKeywords is persisted verbatim and shown in the UI, so guard
   // against the model echoing back the "N. " ranking prefix we prompt it
@@ -176,87 +220,97 @@ async function categorizeBatch(
   const timeoutMs = 60_000 + pages.length * 4_000
 
   try {
-    return await withLlmRetries(log, async () => {
-      const input = `Pages:\n${JSON.stringify(payload, null, 2)}`
-      const systemInstructions = SYSTEM_INSTRUCTIONS(product, targetKeywords)
-      log.info("llm request", {
-        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
-        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
-        systemInstructions,
-        thinkingBudget: 1000,
-        timeoutMs,
-        input,
-      })
-      const { text, cost, modelUsed } = await generateTextWithUsage({
-        model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
-        fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
-        systemInstructions,
-        thinkingBudget: 1000,
-        timeoutMs,
-        input,
-        responseFormat: RESPONSE_FORMAT,
-      })
-
-      const parsed = parseLlmJson<{
-        results: {
-          id: string
-          pageType: string
-          keywords: string[]
-          priority: string
-          relevanceScore: number
-          matchedKeywords: string[]
-          reason: string
-        }[]
-      }>(text)
-
-      if (!Array.isArray(parsed?.results)) {
-        log.warn("unexpected response shape", { rawResponse: text })
-        throw new Error(`unexpected response shape: ${Object.keys(parsed ?? {}).join(",")}`)
-      }
-
-      const byId = new Map(parsed.results.map((r) => [r.id, r]))
-
-      const categorized: PageCategorization[] = pages
-        .map((page) => {
-          const r = byId.get(page.url)
-          if (!r) return null
-          return {
-            url: page.url,
-            pageType: r.pageType as ProductPageType,
-            keywords: r.keywords,
-            priority: r.priority as PagePriority,
-            relevanceScore: r.relevanceScore ?? 0,
-            matchedKeywords: (r.matchedKeywords ?? [])
-              .map(sanitizeMatchedKeyword)
-              .filter((k): k is string => k !== null),
-            reason: r.reason ?? "",
-          }
+    return await withLlmRetries(
+      log,
+      async () => {
+        const input = `Pages:\n${JSON.stringify(payload, null, 2)}`
+        const systemInstructions = SYSTEM_INSTRUCTIONS(product, targetKeywords)
+        log.info("llm request", {
+          model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+          fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
+          systemInstructions,
+          thinkingBudget: 1000,
+          reasoningEnabled: false,
+          timeoutMs,
+          input,
         })
-        .filter((r): r is PageCategorization => r !== null)
-
-      if (categorized.length < pages.length) {
-        log.warn("id mismatch: some pages uncategorized", {
-          sentIds: pages.map((p) => p.url),
-          returnedIds: parsed.results.map((r) => r.id),
-          missingIds: pages.filter((p) => !byId.has(p.url)).map((p) => p.url),
-          rawResponse: text,
+        const { text, cost, modelUsed } = await generateTextWithUsage({
+          model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH,
+          fallbackModels: [OPENROUTER_MODELS.QWEN_QWEN3_6_FLASH, OPENROUTER_MODELS.DEEPSEEK_DEEPSEEK_V4_PRO],
+          systemInstructions,
+          thinkingBudget: 1000,
+          // Page categorization is pure classification, not judgment — the
+          // reasoning phase buys nothing here but costs most of the latency.
+          // Docs on this option report deepseek-v4-pro dropping from ~17s to
+          // ~2s on classification prompts with no meaningful quality loss.
+          reasoningEnabled: false,
+          timeoutMs,
+          input,
+          responseFormat: RESPONSE_FORMAT,
         })
-      }
 
-      log.info("batch categorized", { model: modelUsed, pages: categorized.length })
+        const parsed = parseLlmJson<{
+          results: {
+            id: string
+            pageType: string
+            keywords: string[]
+            priority: string
+            relevanceScore: number
+            matchedKeywords: string[]
+            reason: string
+          }[]
+        }>(text)
 
-      for (const r of categorized) {
-        log.info("categorized page", {
-          url: r.url,
-          pageType: r.pageType,
-          priority: r.priority,
-          relevanceScore: r.relevanceScore,
-          keywords: r.keywords.slice(0, 3),
-        })
-      }
+        if (!Array.isArray(parsed?.results)) {
+          log.warn("unexpected response shape", { rawResponse: text })
+          throw new Error(`unexpected response shape: ${Object.keys(parsed ?? {}).join(",")}`)
+        }
 
-      return { results: categorized, cost }
-    })
+        const byId = new Map(parsed.results.map((r) => [r.id, r]))
+
+        const categorized: PageCategorization[] = pages
+          .map((page) => {
+            const r = byId.get(page.url)
+            if (!r) return null
+            return {
+              url: page.url,
+              pageType: r.pageType as ProductPageType,
+              keywords: r.keywords,
+              priority: r.priority as PagePriority,
+              relevanceScore: r.relevanceScore ?? 0,
+              matchedKeywords: (r.matchedKeywords ?? [])
+                .map(sanitizeMatchedKeyword)
+                .filter((k): k is string => k !== null),
+              reason: r.reason ?? "",
+            }
+          })
+          .filter((r): r is PageCategorization => r !== null)
+
+        if (categorized.length < pages.length) {
+          log.warn("id mismatch: some pages uncategorized", {
+            sentIds: pages.map((p) => p.url),
+            returnedIds: parsed.results.map((r) => r.id),
+            missingIds: pages.filter((p) => !byId.has(p.url)).map((p) => p.url),
+            rawResponse: text,
+          })
+        }
+
+        log.info("batch categorized", { model: modelUsed, pages: categorized.length })
+
+        for (const r of categorized) {
+          log.info("categorized page", {
+            url: r.url,
+            pageType: r.pageType,
+            priority: r.priority,
+            relevanceScore: r.relevanceScore,
+            keywords: r.keywords.slice(0, 3),
+          })
+        }
+
+        return { results: categorized, cost }
+      },
+      retryDelaysMs
+    )
   } catch (err) {
     log.warn("batch categorization failed", { error: String(err) })
     return { results: [], cost: 0 }

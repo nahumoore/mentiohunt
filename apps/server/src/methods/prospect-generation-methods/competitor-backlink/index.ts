@@ -57,6 +57,15 @@ export async function discoverCompetitorBacklinks(
     includeIntersection?: boolean
     refreshCompetitors?: boolean
     shouldStop?: () => boolean
+    /**
+     * Process up to N competitors concurrently instead of one at a time.
+     * Only honoured when neither `budget` nor `shouldStop` is passed — the
+     * serial loop's early-break depends on observing budget exhaustion
+     * between competitors, which a parallel loop can't do. Preview mode
+     * passes both a concurrency and neither budget nor shouldStop; the daily
+     * job passes a budget and keeps the serial loop.
+     */
+    concurrency?: number
   } = {},
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void,
@@ -206,53 +215,71 @@ export async function discoverCompetitorBacklinks(
   let intersectionCandidates = 0
   let transportFailures = competitorRefreshFailed ? 1 : 0
 
+  async function runCompetitor(competitorDomain: string): Promise<void> {
+    const result = await processCompetitor(
+      competitorDomain,
+      product,
+      settings,
+      sender,
+      emailSettings,
+      enrichLimit,
+      maxProspects,
+      budget,
+      onProspectCreated,
+      fetchLimit,
+      undefined,
+      targetPages,
+      enrichmentBudget
+    )
+    totalProspectsCreated += result.prospectsCreated
+    totalCostUsd += result.costUsd
+    transportFailures += result.transportFailures ?? 0
+    mozCursorsByDomain[competitorDomain] = result.nextCursor
+    if (result.nextCursor === null && result.funnel.extracted > 0) {
+      exhaustedCompetitorDomains.push(competitorDomain)
+    }
+    funnel.extracted += result.funnel.extracted
+    funnel.passedFilters += result.funnel.passedFilters
+    funnel.scoredTotal += result.funnel.scoredTotal
+    funnel.kept += result.funnel.kept
+    funnel.toEnrich += result.funnel.toEnrich
+    funnel.enrichedWithContact += result.funnel.enrichedWithContact
+    if (result.persistence) {
+      commonFunnel.prospectsInserted += result.persistence.prospectsInserted
+      commonFunnel.contactReady += result.persistence.contactReady
+      commonFunnel.emailNotFound += result.persistence.emailNotFound
+      commonFunnel.enrichmentFailures += result.persistence.enrichmentFailures
+      commonFunnel.persistenceFailures +=
+        result.persistence.persistenceFailures
+      commonFunnel.callbackFailures += result.persistence.callbackFailures
+      commonFunnel.duplicatesSkipped += result.persistence.duplicatesSkipped
+      commonFunnel.budgetSkipped += result.persistence.budgetSkipped
+    }
+  }
+
   try {
-    for (const competitorDomain of competitorsToProcess) {
-      if ((budget && budget.remaining <= 0) || limits.shouldStop?.()) {
-        log.info("daily candidate cap reached, stopping competitor expansion", {
-          productId: product.id,
-          competitorsProcessed: Object.keys(mozCursorsByDomain).length,
-        })
-        break
-      }
-      const result = await processCompetitor(
-        competitorDomain,
-        product,
-        settings,
-        sender,
-        emailSettings,
-        enrichLimit,
-        maxProspects,
-        budget,
-        onProspectCreated,
-        fetchLimit,
-        undefined,
-        targetPages,
-        enrichmentBudget
+    if (limits.concurrency && !budget && !limits.shouldStop) {
+      // Safe only without a budget/shouldStop to observe between
+      // competitors — see the doc comment on `concurrency` above. Each
+      // competitor's aggregation into the shared counters above happens
+      // synchronously once its own await resolves, so this is race-free
+      // despite running concurrently.
+      const competitorLimit = pLimit(limits.concurrency)
+      await Promise.all(
+        competitorsToProcess.map((domain) =>
+          competitorLimit(() => runCompetitor(domain))
+        )
       )
-      totalProspectsCreated += result.prospectsCreated
-      totalCostUsd += result.costUsd
-      transportFailures += result.transportFailures ?? 0
-      mozCursorsByDomain[competitorDomain] = result.nextCursor
-      if (result.nextCursor === null && result.funnel.extracted > 0) {
-        exhaustedCompetitorDomains.push(competitorDomain)
-      }
-      funnel.extracted += result.funnel.extracted
-      funnel.passedFilters += result.funnel.passedFilters
-      funnel.scoredTotal += result.funnel.scoredTotal
-      funnel.kept += result.funnel.kept
-      funnel.toEnrich += result.funnel.toEnrich
-      funnel.enrichedWithContact += result.funnel.enrichedWithContact
-      if (result.persistence) {
-        commonFunnel.prospectsInserted += result.persistence.prospectsInserted
-        commonFunnel.contactReady += result.persistence.contactReady
-        commonFunnel.emailNotFound += result.persistence.emailNotFound
-        commonFunnel.enrichmentFailures += result.persistence.enrichmentFailures
-        commonFunnel.persistenceFailures +=
-          result.persistence.persistenceFailures
-        commonFunnel.callbackFailures += result.persistence.callbackFailures
-        commonFunnel.duplicatesSkipped += result.persistence.duplicatesSkipped
-        commonFunnel.budgetSkipped += result.persistence.budgetSkipped
+    } else {
+      for (const competitorDomain of competitorsToProcess) {
+        if ((budget && budget.remaining <= 0) || limits.shouldStop?.()) {
+          log.info("daily candidate cap reached, stopping competitor expansion", {
+            productId: product.id,
+            competitorsProcessed: Object.keys(mozCursorsByDomain).length,
+          })
+          break
+        }
+        await runCompetitor(competitorDomain)
       }
     }
 

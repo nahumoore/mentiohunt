@@ -7,7 +7,7 @@ import {
 import { runApifyActor } from "../../../helpers/actors/run-apify-actor.js"
 import { createLogger } from "../../../helpers/logger.js"
 import type { FilterSettings } from "../competitor-backlink/filter-backlinks.js"
-import { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
+import { filterCandidatesByDrRange } from "../shared/enrich-domain-ratings.js"
 import { persistAndEnrich } from "../shared/persist-and-enrich.js"
 import type {
   EmailSettings,
@@ -55,7 +55,12 @@ export async function discoverUnlinkedMentions(
   product: Product,
   settings: FilterSettings,
   emailSettings: EmailSettings = {},
-  limits: { maxCandidates?: number; maxProspects?: number } = {},
+  limits: {
+    maxCandidates?: number
+    maxProspects?: number
+    /** Preview mode only — see filterCandidatesByDrRange's doc comment. */
+    keepUnknownDr?: boolean
+  } = {},
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void,
   enrichmentBudget?: { remaining: number }
@@ -197,12 +202,22 @@ export async function discoverUnlinkedMentions(
         priorityScore: freshCandidates.length - index,
       }))
     )
+    // Claim/slice a wider pre-DR pool than maxCandidates — the DR filter
+    // below drops most of it before the expensive checkMention scrape.
+    const preDrCap = maxCandidates * 2
     const claimed = await claimDiscoveryCandidates(
       product.id,
       "unlinked_mention",
-      maxCandidates
+      preDrCap
     )
-    const candidates =
+    type MentionBacklogCandidate = {
+      url: string
+      domain: string
+      title: string
+      snippet: string
+      backlogId: string | null
+    }
+    const candidatesPreDr: MentionBacklogCandidate[] =
       claimed.length > 0
         ? claimed.map((candidate) => ({
             url: candidate.url,
@@ -212,7 +227,7 @@ export async function discoverUnlinkedMentions(
             backlogId: candidate.id,
           }))
         : freshCandidates
-            .slice(0, maxCandidates)
+            .slice(0, preDrCap)
             .map((candidate) => ({ ...candidate, backlogId: null }))
 
     log.info("candidates gathered", {
@@ -221,11 +236,42 @@ export async function discoverUnlinkedMentions(
       serpResults: serpResults.length,
       uniqueDomains: byDomain.size,
       alreadyStored: gathered.length - freshCandidates.length,
-      toScrape: candidates.length,
+      preDrPool: candidatesPreDr.length,
     })
     funnel.candidates_gathered = byDomain.size
     funnel.after_dedupe = freshCandidates.length
     funnel.serp_failures = serpFailures
+
+    if (candidatesPreDr.length === 0) {
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          ...funnel,
+          qualified: 0,
+        })
+      return { prospectsCreated: 0, totalCostUsd }
+    }
+
+    // 2c. Domain rating — resolved and filtered before the expensive
+    // checkMention browser crawl, so an out-of-range domain never costs a
+    // scrape or a score. No-ops when the user hasn't set a DR range.
+    const drFiltered = await filterCandidatesByDrRange(
+      candidatesPreDr,
+      (c) => c.domain,
+      settings,
+      { keepUnknown: limits.keepUnknownDr ?? false }
+    )
+    log.info("dr filter applied (pre-scrape)", {
+      productId: product.id,
+      dr_min: settings.dr_min,
+      dr_max: settings.dr_max,
+      before: candidatesPreDr.length,
+      outOfRange: drFiltered.outOfRange,
+      unresolved: drFiltered.unresolved,
+      kept: drFiltered.kept.length,
+    })
+    funnel.after_dr = drFiltered.kept.length
+
+    const candidates = drFiltered.kept.slice(0, maxCandidates)
 
     if (candidates.length === 0) {
       if (runId)
@@ -258,12 +304,15 @@ export async function discoverUnlinkedMentions(
         .map((item) => item.candidate.backlogId as string)
     )
 
-    let qualified: QualifiedMention[] = checked
+    // Domain rating was already resolved and filtered pre-scrape (2c) — carry
+    // it through rather than dropping it, so persistence still writes a real
+    // value instead of null.
+    const qualified: QualifiedMention[] = checked
       .filter((c) => c.result?.qualified)
       .map((c) => ({
         ...c.candidate,
         contact: c.result!.contact,
-        domainRating: null,
+        domainRating: c.candidate.domainRating,
       }))
 
     log.info("mention check complete", {
@@ -273,35 +322,6 @@ export async function discoverUnlinkedMentions(
     })
     funnel.after_mention_check = qualified.length
     funnel.transport_failures = checked.filter((c) => c.result === null).length
-
-    // 4. Domain rating — only when the user has set a DR floor.
-    if (settings.dr_min > 0 && qualified.length > 0) {
-      const drByDomain = await enrichDomainRatings([
-        ...new Set(qualified.map((q) => q.domain)),
-      ])
-      log.info("domain ratings fetched", {
-        productId: product.id,
-        ratings: [...drByDomain.entries()].map(([domain, dr]) => ({
-          domain,
-          dr,
-        })),
-      })
-      qualified = qualified
-        .map((q) => ({ ...q, domainRating: drByDomain.get(q.domain) ?? null }))
-        .filter((q) => {
-          const dr = q.domainRating
-          if (dr === null) return false
-          if (dr < settings.dr_min) return false
-          if (settings.dr_max !== null && dr > settings.dr_max) return false
-          return true
-        })
-      log.info("dr filter applied", {
-        productId: product.id,
-        dr_min: settings.dr_min,
-        kept: qualified.length,
-      })
-      funnel.after_dr = qualified.length
-    }
 
     if (qualified.length === 0) {
       if (runId)

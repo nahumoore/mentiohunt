@@ -26,7 +26,8 @@ import {
   storeDiscoveryCandidates,
 } from "../shared/discovery-candidate-backlog.js"
 import { extractDomainFromUrl, isNoiseDomain } from "../shared/url-filters.js"
-import { enrichDomainRatings, enrichResourceInclusion } from "./enrichment.js"
+import { enrichResourceInclusion } from "./enrichment.js"
+import { filterCandidatesByDrRange } from "../shared/enrich-domain-ratings.js"
 import { limitNumber, normalizeUrl, queryKey } from "./helpers.js"
 import {
   completeProspectRun,
@@ -327,15 +328,18 @@ export async function discoverResourcePageInclusions(
         metadata: { targetPage: candidate.targetPage },
       }))
     )
+    // Claim/slice a wider pre-DR pool than maxCandidates — the DR filter
+    // below drops out-of-range domains before any page fetch or LLM score.
+    const preDrCap = maxCandidates * 2
     const claimed = await claimDiscoveryCandidates(
       product.id,
       "resource_page_inclusion",
-      maxCandidates
+      preDrCap
     )
     type ResourceBacklogCandidate = ResourceInclusionCandidate & {
       backlogId: string | null
     }
-    const candidates: ResourceBacklogCandidate[] =
+    const candidatesPreDr: ResourceBacklogCandidate[] =
       claimed.length > 0
         ? claimed.flatMap((candidate) => {
             const targetPage = candidate.metadata?.targetPage as
@@ -357,7 +361,7 @@ export async function discoverResourcePageInclusions(
             ]
           })
         : freshCandidates
-            .slice(0, maxCandidates)
+            .slice(0, preDrCap)
             .map((candidate) => ({ ...candidate, backlogId: null }))
 
     log.info("candidates gathered", {
@@ -366,8 +370,46 @@ export async function discoverResourcePageInclusions(
       queries: queryPlan.length,
       uniquePairs: gathered.length,
       alreadyStored: gathered.length - freshCandidates.length,
-      toFetch: candidates.length,
+      preDrPool: candidatesPreDr.length,
     })
+
+    if (candidatesPreDr.length === 0) {
+      await completeProspectRun(runId, 0, totalCostUsd, {
+        candidates_gathered: gathered.length,
+        already_stored: gathered.length,
+      })
+      return {
+        prospectsCreated: 0,
+        totalCostUsd,
+        runInput,
+        dryRun,
+        candidatesFound: gathered.length,
+        candidatesScored: 0,
+      }
+    }
+
+    // Domain rating — resolved and filtered before any page fetch or LLM
+    // score. Keeps unknown-DR domains (no Ahrefs data yet, or lookup
+    // failure) rather than discarding them — unlike listicle/mention, this
+    // strategy has always treated an unresolved rating as "don't discard",
+    // and that stays true here.
+    const drFiltered = await filterCandidatesByDrRange(
+      candidatesPreDr,
+      (c) => c.domain,
+      settings,
+      { keepUnknown: true }
+    )
+    log.info("dr filter applied (pre-fetch)", {
+      productId: product.id,
+      dr_min: settings.dr_min,
+      dr_max: settings.dr_max,
+      before: candidatesPreDr.length,
+      outOfRange: drFiltered.outOfRange,
+      unresolved: drFiltered.unresolved,
+      kept: drFiltered.kept.length,
+    })
+
+    const candidates = drFiltered.kept.slice(0, maxCandidates)
 
     if (candidates.length === 0) {
       await completeProspectRun(runId, 0, totalCostUsd, {
@@ -384,7 +426,7 @@ export async function discoverResourcePageInclusions(
       }
     }
 
-    const fetchLimit = pLimit(5)
+    const fetchLimit = pLimit(8)
     const fetched = await Promise.all(
       candidates.map((candidate) =>
         fetchLimit(async () => {
@@ -400,7 +442,7 @@ export async function discoverResourcePageInclusions(
       )
     )
     const withContent = fetched.filter(
-      (c): c is ResourceBacklogCandidate => c !== null
+      (c): c is (typeof candidates)[number] => c !== null
     )
     const failedBacklogIds = candidates
       .filter(
@@ -446,7 +488,7 @@ export async function discoverResourcePageInclusions(
         bestByDomain.set(item.domain, item)
     }
 
-    let qualified = [...bestByDomain.values()]
+    const qualified = [...bestByDomain.values()]
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .slice(0, maxProspects)
 
@@ -466,28 +508,11 @@ export async function discoverResourcePageInclusions(
       }
     }
 
-    if (settings.dr_min > 0 || settings.dr_max !== null) {
-      const beforeCount = qualified.length
-      const drByDomain = await enrichDomainRatings([
-        ...new Set(qualified.map((q) => q.domain)),
-      ])
-      qualified = qualified
-        .map((q) => ({ ...q, domainRating: drByDomain.get(q.domain) ?? null }))
-        .filter((q) => {
-          const dr = q.domainRating
-          if (dr === null) return true // no Ahrefs/Moz data - already passed relevance scoring, don't discard
-          if (dr < settings.dr_min) return false
-          if (settings.dr_max !== null && dr > settings.dr_max) return false
-          return true
-        }) as ScoredResourceInclusionCandidate[]
-      log.info("dr filter applied", {
-        dr_min: settings.dr_min,
-        dr_max: settings.dr_max,
-        before: beforeCount,
-        after: qualified.length,
-        ratings: [...drByDomain.entries()],
-      })
-    }
+    // Domain rating was already resolved and filtered pre-fetch, above —
+    // it's carried through via the untyped `domainRating` field that
+    // survived scoreResourcePageInclusion's `{...item, ...}` spread (see the
+    // `itemWithDr` cast in buildBareRow below), so there's nothing left to
+    // do here.
 
     const siteRelevanceInputs = qualified.map((item) => ({
       id: item.url,

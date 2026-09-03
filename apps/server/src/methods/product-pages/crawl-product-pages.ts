@@ -4,6 +4,7 @@ import { fetchSitemapUrls, filterContentUrls } from "../../helpers/sitemap.js"
 import { fetchPageContent } from "../../helpers/scraper-content-client.js"
 import { createLogger } from "../../helpers/logger.js"
 import { categorizePages, type PageToClassify } from "./categorize-pages.js"
+import { heuristicPageCategories } from "./heuristic-page-category.js"
 import { discoverSitemapUrls } from "./discover-sitemap.js"
 import { rankCandidateUrls } from "./rank-candidate-urls.js"
 
@@ -13,6 +14,12 @@ const CRAWL_CONCURRENCY = 10
 // Mirrors MAX_TRACKED_PAGES in apps/web/consts/billing.ts — server code can't
 // import from apps/web, so keep both at 5 if this changes.
 const DEFAULT_KEEP_TOP = 5
+// Preview mode only: categorizing every crawled candidate buys nothing when
+// only `keepTop` (5) can ever be selected as a target page — cap the LLM
+// pass to the candidates the heuristic ranker already thinks are best, and
+// heuristically categorize the rest instead of spending an LLM call on them.
+const PREVIEW_CATEGORIZE_LIMIT = 12
+const PREVIEW_RETRY_DELAYS_MS = [3_000]
 
 export type CrawlProductPagesResult = {
   candidatesFound: number
@@ -32,10 +39,31 @@ const EMPTY_RESULT: CrawlProductPagesResult = {
 
 export async function crawlProductPages(
   productId: string,
-  options: { crawlLimit: number; keepTop?: number; autoDiscover?: boolean }
+  options: {
+    crawlLimit: number
+    keepTop?: number
+    autoDiscover?: boolean
+    previewMode?: boolean
+    /**
+     * Fires at most once, as soon as target pages exist and are persisted
+     * with `crawl_status: 'crawled'` — either from the manual-page branch or
+     * from `reconcileTargetPages` at the end of auto-discovery, whichever
+     * happens first. Lets callers (see run-onboarding-jobs.ts) start
+     * resource-page/broken-link discovery without waiting for the full
+     * categorization pass to finish.
+     */
+    onTargetPagesReady?: (pagesSelected: number) => void
+  }
 ): Promise<CrawlProductPagesResult> {
-  const { crawlLimit, keepTop = DEFAULT_KEEP_TOP, autoDiscover = true } = options
-  log.info("START", { productId, crawlLimit, keepTop, autoDiscover })
+  const { crawlLimit, keepTop = DEFAULT_KEEP_TOP, autoDiscover = true, previewMode = false } = options
+  log.info("START", { productId, crawlLimit, keepTop, autoDiscover, previewMode })
+
+  let targetPagesSignaled = false
+  function signalTargetPagesReady(pagesSelected: number) {
+    if (targetPagesSignaled || pagesSelected === 0) return
+    targetPagesSignaled = true
+    options.onTargetPagesReady?.(pagesSelected)
+  }
 
   const { data: product, error: productError } = await supabaseAdmin
     .from("products")
@@ -106,7 +134,8 @@ export async function crawlProductPages(
       const { results: categorized, totalCost } = await categorizePages(
         succeededManual,
         { product_name: product.product_name, product_description: product.product_description },
-        targetKeywords
+        targetKeywords,
+        previewMode ? { retryDelaysMs: PREVIEW_RETRY_DELAYS_MS } : {}
       )
       manualCost = totalCost
 
@@ -137,6 +166,11 @@ export async function crawlProductPages(
           }
         })
       )
+
+      // These rows are now is_target + crawl_status='crawled' — stage 2
+      // discovery (resource pages, broken links) can start immediately
+      // instead of waiting for auto-discovery's categorization pass.
+      signalTargetPagesReady(succeededManual.length)
     }
   }
 
@@ -200,12 +234,27 @@ export async function crawlProductPages(
 
       log.info("crawl complete", { total: crawled.length, ok: succeeded.length, failed: autoFailed })
 
-      const { results: categorized, totalCost } = await categorizePages(
-        succeeded,
+      // `succeeded` is already best-first (it was crawled in `candidates`
+      // order, which rankCandidateUrls sorted by heuristic score) — in
+      // preview mode only the top slice is worth an LLM categorization call
+      // since at most `remaining` (≤ keepTop) can ever become a target page.
+      const toCategorizeWithLlm = previewMode
+        ? succeeded.slice(0, PREVIEW_CATEGORIZE_LIMIT)
+        : succeeded
+      const heuristicOnly = previewMode ? succeeded.slice(PREVIEW_CATEGORIZE_LIMIT) : []
+
+      const { results: llmCategorized, totalCost } = await categorizePages(
+        toCategorizeWithLlm,
         { product_name: product.product_name, product_description: product.product_description },
-        targetKeywords
+        targetKeywords,
+        previewMode ? { retryDelaysMs: PREVIEW_RETRY_DELAYS_MS } : {}
       )
       autoCost = totalCost
+
+      const categorized =
+        heuristicOnly.length > 0
+          ? [...llmCategorized, ...heuristicPageCategories(heuristicOnly, targetKeywords)]
+          : llmCategorized
 
       const crawledByUrl = new Map(succeeded.map((p) => [p.url, p]))
 
@@ -231,6 +280,7 @@ export async function crawlProductPages(
 
   const usedPriorities = new Set(manualUrls.map((p) => p.priority))
   await reconcileTargetPages(productId, top, usedPriorities)
+  signalTargetPagesReady(manualUrls.length + top.length)
 
   const result: CrawlProductPagesResult = {
     candidatesFound,

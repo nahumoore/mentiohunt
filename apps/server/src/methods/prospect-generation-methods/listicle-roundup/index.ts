@@ -7,7 +7,7 @@ import {
 import { runApifyActor } from "../../../helpers/actors/run-apify-actor.js"
 import { createLogger } from "../../../helpers/logger.js"
 import type { FilterSettings } from "../competitor-backlink/filter-backlinks.js"
-import { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
+import { filterCandidatesByDrRange } from "../shared/enrich-domain-ratings.js"
 import { persistAndEnrich } from "../shared/persist-and-enrich.js"
 import type {
   EmailSettings,
@@ -53,7 +53,12 @@ export async function discoverListicleRoundups(
   product: Product,
   settings: FilterSettings,
   emailSettings: EmailSettings = {},
-  limits: { maxCandidates?: number; maxProspects?: number } = {},
+  limits: {
+    maxCandidates?: number
+    maxProspects?: number
+    /** Preview mode only — see filterCandidatesByDrRange's doc comment. */
+    keepUnknownDr?: boolean
+  } = {},
   budget?: { remaining: number },
   onProspectCreated?: (p: ProspectCreatedPayload) => void,
   enrichmentBudget?: { remaining: number }
@@ -234,12 +239,24 @@ export async function discoverListicleRoundups(
         metadata: { query_appearances: candidate.appearances },
       }))
     )
+    // Claim/slice a wider pre-DR pool than maxCandidates — the DR filter
+    // below drops most of it before any fetch or LLM call happens, so
+    // maxCandidates worth of *qualified* candidates needs a larger starting
+    // pool to draw from.
+    const preDrCap = maxCandidates * 2
     const claimed = await claimDiscoveryCandidates(
       product.id,
       "listicle_roundup",
-      maxCandidates
+      preDrCap
     )
-    const candidates =
+    type ListicleBacklogCandidate = {
+      url: string
+      domain: string
+      title: string
+      snippet: string
+      backlogId: string | null
+    }
+    const candidatesPreDr: ListicleBacklogCandidate[] =
       claimed.length > 0
         ? claimed.map((candidate) => ({
             url: candidate.url,
@@ -249,7 +266,7 @@ export async function discoverListicleRoundups(
             backlogId: candidate.id,
           }))
         : freshCandidates
-            .slice(0, maxCandidates)
+            .slice(0, preDrCap)
             .map((candidate) => ({ ...candidate, backlogId: null }))
 
     log.info("candidates gathered", {
@@ -258,11 +275,43 @@ export async function discoverListicleRoundups(
       serpResults: serpResults.length,
       uniqueUrls: byUrl.size,
       alreadyStored: byUrl.size - freshCandidates.length,
-      toFetch: candidates.length,
+      preDrPool: candidatesPreDr.length,
     })
     funnel.candidates_gathered = byUrl.size
     funnel.after_dedupe = freshCandidates.length
     funnel.serp_failures = serpFailures
+
+    if (candidatesPreDr.length === 0) {
+      if (runId)
+        await completeProspectRun(runId, 0, totalCostUsd, {
+          ...funnel,
+          qualified: 0,
+        })
+      return { prospectsCreated: 0, totalCostUsd }
+    }
+
+    // 2c. Domain rating — resolved and filtered before any page fetch or LLM
+    // scoring happens, so a candidate excluded by the DR range never costs a
+    // fetch or a score. No-ops (keeps everything) when the user hasn't set a
+    // DR range.
+    const drFiltered = await filterCandidatesByDrRange(
+      candidatesPreDr,
+      (c) => c.domain,
+      settings,
+      { keepUnknown: limits.keepUnknownDr ?? false }
+    )
+    log.info("dr filter applied (pre-fetch)", {
+      productId: product.id,
+      dr_min: settings.dr_min,
+      dr_max: settings.dr_max,
+      before: candidatesPreDr.length,
+      outOfRange: drFiltered.outOfRange,
+      unresolved: drFiltered.unresolved,
+      kept: drFiltered.kept.length,
+    })
+    funnel.after_dr = drFiltered.kept.length
+
+    const candidates = drFiltered.kept.slice(0, maxCandidates)
 
     if (candidates.length === 0) {
       if (runId)
@@ -278,7 +327,11 @@ export async function discoverListicleRoundups(
     // are lost and to what (client timeout vs server 502/CF block vs other) —
     // safe to mutate across the concurrent callbacks since Node runs them on a
     // single thread with no await between the read and write.
-    const fetchLimit = pLimit(5)
+    // Every candidate reaching this point already passed the DR filter, so
+    // there's no wasted fetch cost in raising concurrency — bounded well
+    // under the shared scraperLightLimit (16) even with other strategies
+    // running concurrently in the same preview.
+    const fetchLimit = pLimit(8)
     const outcomeCounts: Record<string, number> = {}
     const fetched = await Promise.all(
       candidates.map((c) =>
@@ -341,14 +394,17 @@ export async function discoverListicleRoundups(
     const contentByUrl = new Map(
       withContent.map((f) => [f.candidate.url, f.candidate])
     )
-    let qualified: QualifiedListicle[] = scored
+    // Domain rating was already resolved and filtered pre-fetch (2c) — carry
+    // it through rather than dropping it, so persistence still writes a real
+    // value instead of null.
+    const qualified: QualifiedListicle[] = scored
       .filter((s) => s.relevanceScore >= MIN_RELEVANCE_SCORE)
       .map((s) => {
         const candidate = contentByUrl.get(s.url)!
         return {
           ...s,
           domain: candidate.domain,
-          domainRating: null,
+          domainRating: candidate.domainRating,
         }
       })
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
@@ -360,37 +416,6 @@ export async function discoverListicleRoundups(
       qualified: qualified.length,
     })
     funnel.after_scoring = qualified.length
-
-    if (qualified.length === 0) {
-      if (runId)
-        await completeProspectRun(runId, 0, totalCostUsd, {
-          ...funnel,
-          qualified: 0,
-        })
-      return { prospectsCreated: 0, totalCostUsd }
-    }
-
-    // 5. Domain rating — only when the user has set a DR floor.
-    if (settings.dr_min > 0) {
-      const drByDomain = await enrichDomainRatings([
-        ...new Set(qualified.map((q) => q.domain)),
-      ])
-      qualified = qualified
-        .map((q) => ({ ...q, domainRating: drByDomain.get(q.domain) ?? null }))
-        .filter((q) => {
-          const dr = q.domainRating
-          if (dr === null) return false
-          if (dr < settings.dr_min) return false
-          if (settings.dr_max !== null && dr > settings.dr_max) return false
-          return true
-        })
-      log.info("dr filter applied", {
-        productId: product.id,
-        dr_min: settings.dr_min,
-        kept: qualified.length,
-      })
-      funnel.after_dr = qualified.length
-    }
 
     if (qualified.length === 0) {
       if (runId)

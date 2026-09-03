@@ -2,7 +2,10 @@ const STOPWORDS = new Set([
   "a", "an", "the", "of", "for", "to", "and", "or", "in", "on", "with", "how", "what", "why",
 ])
 
-function tokenize(text: string): string[] {
+// Exported so `heuristic-page-category.ts` can score title/description text
+// with the same token rules used here for URL slugs, rather than
+// reimplementing tokenization.
+export function tokenize(text: string): string[] {
   return text
     .toLowerCase()
     .split(/[^a-z0-9]+/)
@@ -19,15 +22,20 @@ function pathTokens(pathname: string): string[] {
 
 /**
  * Cheap, no-LLM pre-rank of sitemap URLs against a keyword set, using slug
- * token overlap only — this is what keeps the crawl budget bounded before
- * any scraping happens. Always keeps the homepage as a candidate even at
- * score 0, since it's always a legitimate fallback target.
+ * token overlap only. Shared by two callers: `rankCandidateUrls` uses it to
+ * keep the crawl budget bounded before any scraping happens, and the preview
+ * fail-open path (`heuristic-page-category.ts`) reuses the same scoring to
+ * guess a page's relevance when LLM categorization has exhausted its
+ * retries.
  *
  * `keywords` arrives in priority order (index 0 = priority 1, highest), so
  * each keyword's contribution is weighted by its rank — a priority-1 slug
  * match outranks a priority-5 match on an otherwise identical URL.
  */
-export function rankCandidateUrls(urls: string[], keywords: string[], limit: number): string[] {
+export function rankCandidateUrlsScored(
+  urls: string[],
+  keywords: string[]
+): { url: string; score: number; isHomepage: boolean }[] {
   const keywordTokenSets = keywords.map((k, i) => ({
     phrase: k.toLowerCase().replace(/\s+/g, "-"),
     tokens: new Set(tokenize(k)),
@@ -66,6 +74,17 @@ export function rankCandidateUrls(urls: string[], keywords: string[], limit: num
   })
 
   scored.sort((a, b) => b.score - a.score || a.index - b.index)
+
+  return scored.map(({ url, score, isHomepage }) => ({ url, score, isHomepage }))
+}
+
+/**
+ * Slices `rankCandidateUrlsScored` down to `limit`, always keeping the
+ * homepage as a candidate even at score 0 since it's always a legitimate
+ * fallback target.
+ */
+export function rankCandidateUrls(urls: string[], keywords: string[], limit: number): string[] {
+  const scored = rankCandidateUrlsScored(urls, keywords)
 
   const top = scored.slice(0, limit)
   if (!top.some((s) => s.isHomepage)) {

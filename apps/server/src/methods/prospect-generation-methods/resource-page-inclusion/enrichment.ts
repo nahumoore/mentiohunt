@@ -7,8 +7,6 @@ import type { Product } from "./types.js"
 
 const log = createLogger("resource-page-inclusion-enrichment")
 
-export { enrichDomainRatings } from "../shared/enrich-domain-ratings.js"
-
 export async function enrichResourceInclusion(
   item: ScoredResourceInclusionCandidate,
   product: Product,

@@ -41,39 +41,43 @@ function step0Content(
   productName: string | null
 ): EmailContent {
   const name = firstName ?? "there"
-  const greeting = spin("{Hi|Hello|Hey}")
-  const signoff = spin("{Best|Cheers|Thanks}")
+  const greeting = spin("{Hi|Hey}")
+  const signoff = spin("{Cheers|Thanks}")
 
   switch (stage) {
     case "stuck_onboarding":
       return {
         subject: spin(
-          "{quick question from the founder|hey, a quick thing|a second of your time}"
+          "{how did setup go?|anything I can help with?|a question about Mentiohunt}"
         ),
-        previewText: "you started signing up, wondering what happened",
-        body: `${greeting} ${name} - Nico here, founder of Mentiohunt :)
+        previewText: "did you get stuck setting things up?",
+        body: `${greeting} ${name},
 
-You started setting up but didn't finish. Did something feel confusing, or did life just get busy? Either way, a few words are more than enough.
+I'm Nico, the founder of Mentiohunt.
 
-Thanks for signing up!
+Looks like you started setting things up but didn't get to the end. Did something trip you up, or did you just get pulled into something else?
 
-${signoff} <3
+If you got stuck, tell me where. Happy to help.
+
+${signoff},
 Nico
 Founder @ Mentiohunt`,
       }
     case "onboarding_payment_pending":
       return {
         subject: spin(
-          "{one last step|quick question about your setup|what got in the way?}"
+          "{a question about the trial|anything unclear about the trial?|how did setup go?}"
         ),
-        previewText: "your setup is saved — what stopped you at the last step?",
-        body: `${greeting} ${name} - Nico here, founder of Mentiohunt :)
+        previewText: "was there anything that made you hesitate?",
+        body: `${greeting} ${name},
 
-You made it through setup and your product is saved, but it looks like you didn't finish the last step. Was it the card requirement, the trial terms, or did something else get in the way?
+I'm Nico, the founder of Mentiohunt.
 
-Reply with one line — I genuinely want to know.
+Your product setup is saved, but it looks like you haven't started the trial. Was it being asked for a card, something about the trial, or something else?
 
-${signoff} <3
+I'd love to understand what made you hesitate. It helps me figure out what to improve.
+
+${signoff},
 Nico
 Founder @ Mentiohunt`,
       }
@@ -83,27 +87,27 @@ Founder @ Mentiohunt`,
           ? pick(
               `an update on ${productName}`,
               "quick heads up",
-              "quick thing from the founder"
+              "how the search is going"
             )
           : spin(
-              "{a quick update|quick heads up|quick thing from the founder}"
+              "{a quick update|quick heads up|how the search is going}"
             ),
         previewText: "still searching, no opportunities found yet",
-        body: `${greeting} ${name} - Nico here, founder of Mentiohunt :)
+        body: `${greeting} ${name},
+
+I'm Nico, the founder of Mentiohunt.
 
 ${
   productName
-    ? `We finished setting up ${productName}, but haven't found any solid link building opportunities yet — we keep searching daily.`
-    : `We finished onboarding, but haven't found any solid link building opportunities yet — we keep searching daily.`
+    ? `${productName} is set up, but we haven't found any sites that look like a good fit yet. We're still searching every day.`
+    : `You're all set up, but we haven't found any sites that look like a good fit yet. We're still searching every day.`
 }
 
-That happens sometimes with a newer or more specific niche. Nothing wrong on your end, just wanted you to know it's not stuck.
+I know it's not much fun to sign up and then wait for results. I wanted to let you know where things stand.
 
-Anything I can help with in the meantime? One line is enough.
+Are there any sites you'd love to see your product mentioned on? That would give me a better idea of what you're looking for.
 
-Thanks for giving Mentiohunt a try!
-
-${signoff} <3
+${signoff},
 Nico
 Founder @ Mentiohunt`,
       }
@@ -111,27 +115,29 @@ Founder @ Mentiohunt`,
       return {
         subject: productName
           ? pick(
-              `your results for ${productName} are waiting`,
-              "just a heads up",
-              "quick thing from the founder"
+              `found some opportunities for ${productName}`,
+              "your first opportunities are ready",
+              "got a chance to take a look?"
             )
           : spin(
-              "{your results are waiting|just a heads up|quick thing from the founder}"
+              "{your first opportunities are ready|some sites to take a look at|got a chance to take a look?}"
             ),
         previewText: "your backlink opportunities are ready to review",
-        body: `${greeting} ${name} - Nico here, founder of Mentiohunt :)
+        body: `${greeting} ${name},
+
+I'm Nico, the founder of Mentiohunt.
 
 ${
   productName
-    ? `You finished setting up ${productName} but haven't checked your results yet. Your link building opportunities are ready to review.`
-    : `You finished onboarding but haven't checked your results yet. Your link building opportunities are ready to review.`
+    ? `We've found some link building opportunities for ${productName}. Have you had a chance to take a look?`
+    : `We've found some link building opportunities for your product. Have you had a chance to take a look?`
 }
 
-Anything getting in the way? One line is enough.
+I'd love to hear whether these are the kinds of sites you had in mind.
 
 Thanks for giving Mentiohunt a try!
 
-${signoff} <3
+${signoff},
 Nico
 Founder @ Mentiohunt`,
       }
@@ -140,24 +146,26 @@ Founder @ Mentiohunt`,
         subject: productName
           ? pick(
               `how's the link building for ${productName} going?`,
-              "quick check-in from the founder",
+              "what do you think of the sites so far?",
               "how's it going so far?"
             )
           : spin(
-              "{how's Mentiohunt going?|quick check-in from the founder|how's it going so far?}"
+              "{how's Mentiohunt going?|what do you think of the sites so far?|how's it going so far?}"
             ),
-        previewText: "you've been exploring link building, a quick check-in",
-        body: `${greeting} ${name} - Nico here :)
+        previewText: "are we finding the kinds of sites you had in mind?",
+        body: `${greeting} ${name},
+
+I'm Nico, the founder of Mentiohunt.
 
 ${
   productName
-    ? `I can see you've been looking at the link building opportunities we found for ${productName}. Are the sites we're surfacing actually a fit, or is anything feeling off?`
-    : `I can see you've been looking at your link building opportunities. Are the results relevant to your site, or is anything feeling off?`
+    ? `How do you feel about the sites we've found for ${productName}? Are they places you'd want your product mentioned?`
+    : `How do you feel about the sites we've found for you? Are they places you'd want your product mentioned?`
 }
 
-Thanks for giving Mentiohunt a try!
+If we're missing the mark, I'd love an example so I can understand why.
 
-${signoff} <3
+${signoff},
 Nico
 Founder @ Mentiohunt`,
       }
@@ -170,21 +178,21 @@ function step1Content(
   productName: string | null
 ): EmailContent {
   const name = firstName ?? "there"
-  const greeting = spin("{Hi again|Hey again|Hello again}")
-  const signoff = spin("{Best|Cheers|Thanks}")
+  const greeting = spin("{Hi|Hey}")
+  const signoff = spin("{Cheers|Thanks}")
 
   switch (stage) {
     case "stuck_onboarding":
       return {
         subject: spin(
-          "{was my last email too much?|honest question|still here if you need help}"
+          "{did you get stuck somewhere?|how can I help with setup?|still here if you need help}"
         ),
         previewText: "just trying to figure out what got in the way",
         body: `${greeting} ${name},
 
-I'm just trying to figure out what actually got in the way. Was the setup confusing, or did something break on our end? I'd rather know than guess.
+Following up on my last email. Was there a part of setup that didn't make sense, or did something break?
 
-A few words are more than enough :)
+I'm still working on making this easier, so even a rough description would help.
 
 ${signoff},
 Nico
@@ -193,14 +201,14 @@ Founder @ Mentiohunt`,
     case "onboarding_payment_pending":
       return {
         subject: spin(
-          "{did the last step give you pause?|still thinking it over?|honest question}"
+          "{any questions about the trial?|still thinking it over?|anything I can clear up?}"
         ),
         previewText: "was anything unclear about finishing your setup?",
         body: `${greeting} ${name},
 
-You got through the setup, but didn't make it past the last step. Was anything unclear about the trial, the card requirement, or what happens next?
+Was there anything you wanted to know before starting the trial? Maybe what happens after it ends, or why we ask for a card?
 
-No pressure — just reply with whatever came to mind.
+Happy to talk it through if that would help.
 
 ${signoff},
 Nico
@@ -208,13 +216,13 @@ Founder @ Mentiohunt`,
       }
     case "onboarding_done_no_prospects":
       return {
-        subject: spin("{still on it|quick update|honest update}"),
+        subject: spin("{still looking for a good fit|a search update|a note on your results}"),
         previewText: "still searching, no strong fits yet",
         body: `${greeting} ${name},
 
-Still haven't surfaced opportunities for ${productName ?? "your product"} — we keep searching daily, but no strong fits yet.
+We still haven't found a good fit for ${productName ?? "your product"}. The search runs every day, but I know you're here for results.
 
-If you want, reply and tell me more about ${productName ?? "your product"} or who you're trying to reach. That helps me tune the search.
+Could you tell me a little about who you're trying to reach? That would help me see what we might be missing.
 
 ${signoff},
 Nico
@@ -223,15 +231,15 @@ Founder @ Mentiohunt`,
     case "onboarding_done_no_action":
       return {
         subject: spin(
-          "{did anything catch your eye?|a few days in, curious|honest question}"
+          "{did anything catch your eye?|what do you think so far?|had a chance to look?}"
         ),
         previewText:
           "curious whether the results felt relevant to your product",
         body: `${greeting} ${name},
 
-It's been a few days. Did you get a chance to look at your opportunities? I'm curious whether the results felt relevant to ${productName ?? "your product"} or totally off.
+Did you get a chance to look at the sites we found for ${productName ?? "your product"}? I'm curious whether any caught your eye.
 
-If something looked wrong, reply and tell me. That directly helps me improve the matching.
+If they weren't what you expected, what would a better fit look like?
 
 ${signoff},
 Nico
@@ -243,17 +251,17 @@ Founder @ Mentiohunt`,
           ? pick(
               `are the opportunities a fit for ${productName}?`,
               "how are the link building results?",
-              "quick one"
+              "any sites we should be finding?"
             )
           : spin(
-              "{how are the link building results?|honest question|quick one}"
+              "{how are the link building results?|are we finding the right sites?|any sites we should be finding?}"
             ),
         previewText: "curious if the opportunities are a good fit",
         body: `${greeting} ${name},
 
-You've been looking at the link building side for a few days. Are the opportunities a good fit for ${productName ?? "your site"}, or are too many of them off-target?
+Now that you've had a bit of time with Mentiohunt, are we finding the right kinds of sites for ${productName ?? "your product"}?
 
-Honest feedback helps me tune the discovery logic. Just reply.
+If there's a site you'd love us to find more like, send it my way. A concrete example helps me a lot.
 
 ${signoff},
 Nico
@@ -268,21 +276,21 @@ function step2Content(
   productName: string | null
 ): EmailContent {
   const name = firstName ?? "there"
-  const greeting = spin("{Hi again|Hey again|Hello again}")
-  const signoff = spin("{Best|Cheers|Thanks}")
+  const greeting = spin("{Hi|Hey}")
+  const signoff = spin("{Cheers|Thanks}")
 
   switch (stage) {
     case "stuck_onboarding":
       return {
-        subject: spin("{before I let you go|one last thing|last one from me}"),
-        previewText: "a quick onboarding check-in",
+        subject: spin("{could setup be easier?|a question about getting started|what would have helped?}"),
+        previewText: "was setup more work than you expected?",
         body: `${greeting} ${name},
 
-I wanted to check in before I leave you to it.
+Was getting started with Mentiohunt more work than you expected?
 
-If there was a reason you dropped off, even one word helps (bad UX / too confusing / just didn't need it). Your account is still there if you ever want to give it another shot :)
+If you remember where it got frustrating, I'd like to hear about it. And if you just didn't need it, that's useful to know too.
 
-Either way, appreciate you for trying it.
+Your account is still there if you want to give it another go.
 
 ${signoff},
 Nico
@@ -291,14 +299,14 @@ Founder @ Mentiohunt`,
     case "onboarding_payment_pending":
       return {
         subject: spin(
-          "{should I change the last step?|one onboarding question|before I let you go}"
+          "{what would have helped you decide?|a question about getting started|did you see enough to try it?}"
         ),
         previewText: "what would have helped you finish setup?",
         body: `${greeting} ${name},
 
-One onboarding question: what would have helped you finish the last step? Was it the card requirement, the price, the trial terms, or something else?
+Did you get enough of a feel for Mentiohunt to decide whether it's worth trying?
 
-Even one word helps me improve this.
+I'm wondering if we ask you to start a trial before you've seen enough. What would you have wanted to see first?
 
 ${signoff},
 Nico
@@ -307,16 +315,16 @@ Founder @ Mentiohunt`,
     default:
       return {
         subject: spin(
-          "{before I let you go|one thing|one week in, quick question}"
+          "{what's missing for you?|a week in, what do you think?|what would make this more useful?}"
         ),
         previewText: "one question after your first week",
         body: `${greeting} ${name},
 
-I wanted to check in before I leave you to it.
+You've had about a week with Mentiohunt now. What would make it more useful for ${productName ?? "you"}?
 
-One question: what's the one thing that would make Mentiohunt noticeably more useful for ${productName ?? "you"}? Could be a missing feature, something confusing, or a workflow that doesn't quite fit.
+Could be something you expected it to do, something confusing, or a part that takes too much of your time.
 
-I'm building this for founders like you, so your answer directly shapes what gets built next :)
+I'm figuring out what to work on next, and I'd love to hear what matters to you.
 
 ${signoff},
 Nico
@@ -331,18 +339,18 @@ function step3Content(
   productName: string | null
 ): EmailContent {
   const name = firstName ?? "there"
-  const signoff = spin("{Best|Cheers|Thanks}")
+  const signoff = spin("{Cheers|Thanks}")
 
   switch (stage) {
     case "stuck_onboarding":
       return {
-        subject: spin("{what stopped you?|one direct question|before I close this out}"),
-        previewText: "what got in the way of continuing with onboarding?",
+        subject: spin("{one last note from me|thanks for trying Mentiohunt|anything you wish had been easier?}"),
+        previewText: "thanks for giving it a look",
         body: `Hey ${name},
 
-One direct question before I close this out: what stopped you from continuing with onboarding?
+This is my last follow-up. Thanks for giving Mentiohunt a look.
 
-Was it confusing, too much work, something that broke, or simply not the right time? Reply with one word if that's all you have — it still helps.
+If there's something you wish had been easier about getting started, I'm all ears. And if the timing just wasn't right, I get it.
 
 ${signoff},
 Nico
@@ -350,13 +358,13 @@ Founder @ Mentiohunt`,
       }
     case "onboarding_payment_pending":
       return {
-        subject: spin("{what stopped you at the last step?|one direct question|still thinking it over?}"),
-        previewText: "what would have helped you finish onboarding?",
+        subject: spin("{one last note about the trial|thanks for checking out Mentiohunt|anything else I can help with?}"),
+        previewText: "your setup is saved if you want to come back",
         body: `Hey ${name},
 
-One direct question before I close this out: what stopped you from continuing with onboarding?
+This is my last follow-up about the trial. Your product setup is saved if you want to come back to it.
 
-Your product setup is saved, and the card step is the only thing left. Was it the card requirement, the trial terms, the price, or something else? Reply with one word if that's all you have.
+If the price, the card requirement, or anything else put you off, I'd appreciate hearing about it. It helps me understand what needs work.
 
 ${signoff},
 Nico
@@ -364,13 +372,13 @@ Founder @ Mentiohunt`,
       }
     default:
       return {
-        subject: spin("{one last question|before I close this out|quick final check-in}"),
+        subject: spin("{one last note from me|thanks for trying Mentiohunt|anything you want me to know?}"),
         previewText: "what would make Mentiohunt more useful?",
         body: `Hey ${name},
 
-One last question: what's the one thing that would make Mentiohunt more useful for ${productName ?? "you"}?
+I'll leave you to it after this, but I'd still love to know what would make Mentiohunt more useful for ${productName ?? "you"}.
 
-A missing feature, something confusing, or a workflow that didn't fit — reply with whatever comes to mind.
+If something comes to mind, now or later, just reply here. Thanks for giving it a try.
 
 ${signoff},
 Nico

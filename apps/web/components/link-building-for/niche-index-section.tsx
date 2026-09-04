@@ -1,4 +1,5 @@
 import { IconCalendar, IconClock } from "@tabler/icons-react"
+import Image from "next/image"
 import Link from "next/link"
 
 import type { BlogPostMeta } from "@/lib/mdx"
@@ -63,14 +64,26 @@ export function LinkBuildingForNicheIndexSection({
                 <Link
                   key={guide.slug}
                   href={`/link-building-for/${guide.slug}`}
-                  className="group relative overflow-hidden rounded-[1.9rem] border border-border/80 bg-card/95 p-6 shadow-[0_20px_70px_-48px_rgba(17,17,17,0.35)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[var(--color-blaze-orange)]/28 hover:shadow-[0_28px_90px_-44px_rgba(255,96,0,0.38)]"
+                  className="group relative overflow-hidden rounded-[1.9rem] border border-border/80 bg-card/95 shadow-[0_20px_70px_-48px_rgba(17,17,17,0.35)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[var(--color-blaze-orange)]/28 hover:shadow-[0_28px_90px_-44px_rgba(255,96,0,0.38)]"
                 >
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     <div className="absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top_right,var(--color-amber-glow)_0%,transparent_70%)] opacity-20" />
                     <div className="absolute right-0 bottom-0 h-24 w-24 rounded-full bg-[var(--color-princeton-orange)]/8 blur-3xl" />
                   </div>
 
-                  <div className="relative">
+                  {guide.image && (
+                    <div className="relative aspect-[16/9] overflow-hidden border-b border-border/70 bg-muted">
+                      <Image
+                        src={guide.image}
+                        alt={guide.imageAlt ?? guide.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.035]"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-black/5 to-transparent" />
+                    </div>
+                  )}
+
+                  <div className="relative p-6">
                     <div className="flex items-start justify-between gap-4">
                       <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blaze-orange)]/18 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-[0.68rem] font-bold text-[var(--color-princeton-orange)] uppercase">
                         <Icon className="h-4 w-4" />

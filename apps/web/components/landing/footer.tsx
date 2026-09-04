@@ -14,14 +14,15 @@ const productLinks = [
     href: `/features/${f.slug}`,
     label: f.shortTitle,
   })),
-  { href: "/#case-study", label: "Customer Results" },
-  { href: "/#pricing", label: "Pricing" },
+  { href: "/case-studies", label: "Customer Results" },
+  { href: "/pricing", label: "Pricing" },
 ]
 
 const resourceLinks = [
   { href: "/blog", label: "Blog" },
   { href: "/case-studies", label: "Case Studies" },
   { href: "/backlinks-from", label: "Backlinks From" },
+  { href: "/link-building-for", label: "Link Building by Industry" },
   { href: "/outreach-templates", label: "Outreach Templates" },
   { href: "/free-tools", label: "Free Tools" },
   { href: pathFor(2026), label: "Link Building Statistics" },

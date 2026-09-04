@@ -9,6 +9,7 @@ Mentiohunt automates backlink prospecting and outreach for founder-led B2B SaaS 
 - When making changes, always explain system behavior instead of code changes, like if the user doesn't had coding knowledge.
 - Don't use `claude-in-chrome` without user permission.
 - When talking about support messages, they are on the DB `packages/supabase/database-types.ts`
+- Shared, cross-agent memory lives in `memory/` (see `memory/README.md`). Check it before a non-trivial change in an area it might cover. After finishing a non-trivial change, ask the user whether it's worth a memory entry — don't add one without asking first.
 
 ## Current Repo Shape
 

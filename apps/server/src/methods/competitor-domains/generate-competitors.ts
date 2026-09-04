@@ -3,6 +3,15 @@ import { OPENROUTER_MODELS } from "@workspace/openrouter/models"
 import { extractPageContent } from "../../helpers/html-extract.js"
 import { createLogger } from "../../helpers/logger.js"
 import { withLlmRetries } from "../../helpers/llm-retry.js"
+import { isBlockedCompetitorDomain } from "../prospect-generation-methods/competitor-backlink/extract-backlinks.js"
+
+// Below this many characters of homepage text, the LLM has too little to work
+// with and tends to invent plausible-sounding but wrong competitors (e.g. a
+// random-string subdomain with an almost-empty homepage).
+const MIN_PAGE_TEXT_CHARS = 300
+// Fewer than this many real competitors surviving the domain/blocklist screen
+// means the identification is not trustworthy enough to build a result on.
+const MIN_TRUSTED_COMPETITORS = 2
 
 const log = createLogger("generate-backlink-competitors")
 
@@ -69,7 +78,31 @@ async function readWebsite(url: string) {
   return extractPageContent(html)
 }
 
-export async function generateCompetitorDomains(websiteUrl: string): Promise<string[]> {
+export type CompetitorConfidence = "high" | "low"
+
+export type GenerateCompetitorDomainsResult = {
+  domains: string[]
+  confidence: CompetitorConfidence
+}
+
+/**
+ * Confidence is "low" when the homepage had too little text for the LLM to
+ * reliably identify competitors, or when fewer than MIN_TRUSTED_COMPETITORS
+ * real competitors survived the domain/blocklist screen — either signals
+ * that whatever domains came back are more guess than identification.
+ */
+export function assessCompetitorConfidence(
+  pageTextLength: number,
+  survivingDomainCount: number
+): CompetitorConfidence {
+  if (pageTextLength < MIN_PAGE_TEXT_CHARS) return "low"
+  if (survivingDomainCount < MIN_TRUSTED_COMPETITORS) return "low"
+  return "high"
+}
+
+export async function generateCompetitorDomains(
+  websiteUrl: string
+): Promise<GenerateCompetitorDomainsResult> {
   const websiteDomain = normalizeDomain(websiteUrl)
   const page = await readWebsite(websiteUrl)
 
@@ -114,21 +147,29 @@ export async function generateCompetitorDomains(websiteUrl: string): Promise<str
   })
   const rawCompetitors = Array.isArray(parsed.competitors) ? parsed.competitors : []
 
-  const competitors = Array.from(
+  const survivors = Array.from(
     new Set(
       rawCompetitors
         .filter((value): value is string => typeof value === "string")
         .map(normalizeDomain)
-        .filter((domain) => domain && domain !== websiteDomain)
+        .filter((domain) => domain && domain !== websiteDomain && !isBlockedCompetitorDomain(domain))
     )
-  ).slice(0, 3)
+  )
 
-  if (competitors.length === 0) {
-    log.warn("no competitors survived filtering", { websiteDomain, rawCompetitors, model: modelUsed })
-    throw new Error("Failed to generate competitors")
+  const confidence = assessCompetitorConfidence(page.text.length, survivors.length)
+  const competitors = survivors.slice(0, 3)
+
+  if (confidence === "low") {
+    log.warn("low-confidence competitor identification", {
+      websiteDomain,
+      rawCompetitors,
+      survivors,
+      textLength: page.text.length,
+      model: modelUsed,
+    })
+  } else {
+    log.info("competitors generated", { websiteDomain, competitors, model: modelUsed })
   }
 
-  log.info("competitors generated", { websiteDomain, competitors, model: modelUsed })
-
-  return competitors
+  return { domains: competitors, confidence }
 }

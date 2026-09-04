@@ -36,10 +36,14 @@ const RESPONSE_FORMAT = {
   },
 }
 
-function buildInput(productName: string, siteContext?: SiteContext): string {
+function buildInput(productName: string, siteContext?: SiteContext, productDescription?: string): string {
   const lines = [`Product name: ${productName}`]
 
-  if (siteContext?.metaDescription) lines.push(`Meta description: ${siteContext.metaDescription}`)
+  // A pre-derived, LLM-summarized description is more informative than the
+  // raw meta description for thin/generic-titled sites — prefer it when given.
+  if (productDescription) lines.push(`Product description: ${productDescription}`)
+  else if (siteContext?.metaDescription) lines.push(`Meta description: ${siteContext.metaDescription}`)
+
   if (siteContext?.h1?.length) lines.push(`Headings: ${siteContext.h1.slice(0, 3).join(" | ")}`)
   if (siteContext?.paragraphs?.length) {
     lines.push(`Page content: ${siteContext.paragraphs.slice(0, 3).join(" ").slice(0, 800)}`)
@@ -55,11 +59,14 @@ function fallbackNiches(productName: string): string[] {
 
 export async function deriveNiches(
   productName: string,
-  siteContext?: SiteContext
+  siteContext?: SiteContext,
+  options?: { productDescription?: string; allowBrandFallback?: boolean }
 ): Promise<{ niches: string[]; cost: number }> {
+  const allowBrandFallback = options?.allowBrandFallback ?? true
+
   try {
     const { niches, cost } = await withLlmRetries(log, async () => {
-      const input = buildInput(productName, siteContext)
+      const input = buildInput(productName, siteContext, options?.productDescription)
       log.info("llm request", { model: OPENROUTER_MODELS.Z_AI_GLM_4_7_FLASH, input })
 
       const { text, cost: callCost, modelUsed } = await generateTextWithUsage({
@@ -89,10 +96,10 @@ export async function deriveNiches(
       return { niches: cleaned, cost: callCost }
     })
 
-    if (niches.length === 0) return { niches: fallbackNiches(productName), cost }
+    if (niches.length === 0) return { niches: allowBrandFallback ? fallbackNiches(productName) : [], cost }
     return { niches, cost }
   } catch (err) {
-    log.warn("niche derivation failed, falling back to product name", { error: String(err) })
-    return { niches: fallbackNiches(productName), cost: 0 }
+    log.warn("niche derivation failed", { error: String(err), allowBrandFallback })
+    return { niches: allowBrandFallback ? fallbackNiches(productName) : [], cost: 0 }
   }
 }

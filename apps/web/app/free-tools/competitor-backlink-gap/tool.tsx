@@ -9,6 +9,7 @@ import {
   IconCheck,
   IconCopy,
   IconExternalLink,
+  IconInfoCircle,
   IconLock,
   IconLoader2,
   IconSearch,
@@ -65,10 +66,6 @@ const gapTypeColors: Record<string, string> = {
     "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300",
   "Niche Blog":
     "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  Community:
-    "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300",
-  "Competitor Blog":
-    "border-fuchsia-500/25 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300",
 }
 
 function normalizeDomain(rawUrl: string) {
@@ -92,6 +89,7 @@ export function CompetitorBacklinkGap() {
   const [competitors, setCompetitors] = useState<Competitor[]>([])
   const [summary, setSummary] = useState<Summary | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [lowConfidenceMessage, setLowConfidenceMessage] = useState<string | null>(null)
   const [copiedAll, setCopiedAll] = useState(false)
   const resultsRef = useRef<HTMLElement>(null)
 
@@ -177,34 +175,48 @@ export function CompetitorBacklinkGap() {
     setStageIndex(0)
     setCopiedAll(false)
     setError(null)
+    setLowConfidenceMessage(null)
     setPhase("loading")
 
-    const [res] = await Promise.all([
-      fetch("/api/free-tool/competitor-backlink-gap", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: trimmedUrl }),
-      }),
-      new Promise((resolve) => window.setTimeout(resolve, 3800)),
-    ])
+    try {
+      const [res] = await Promise.all([
+        fetch("/api/free-tool/competitor-backlink-gap", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: trimmedUrl }),
+        }),
+        new Promise((resolve) => window.setTimeout(resolve, 3800)),
+      ])
 
-    if (!res.ok) {
-      const data = (await res.json()) as { error?: string }
-      setError(data.error ?? "Something went wrong. Please try again.")
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string }
+        if (res.status === 422 && data.code === "low_confidence") {
+          setLowConfidenceMessage(
+            data.error ??
+              "We couldn't confidently identify competitors from that page. Try your main marketing URL."
+          )
+        } else {
+          setError(data.error ?? "Something went wrong. Please try again.")
+        }
+        setPhase("idle")
+        return
+      }
+
+      const data = (await res.json()) as {
+        competitors: Competitor[]
+        summary: Summary
+      }
+      setCompetitors(data.competitors)
+      setSummary(data.summary)
+      setPhase("results")
+    } catch {
+      setError("Something went wrong. Please try again.")
       setPhase("idle")
-      return
     }
-
-    const data = (await res.json()) as {
-      competitors: Competitor[]
-      summary: Summary
-    }
-    setCompetitors(data.competitors)
-    setSummary(data.summary)
-    setPhase("results")
   }
 
   const hasResults = phase === "results"
+  const hasNoGaps = hasResults && (summary?.totalGaps ?? 0) === 0
 
   return (
     <>
@@ -270,6 +282,19 @@ export function CompetitorBacklinkGap() {
                   stroke={2.2}
                 />
                 <p className="text-sm leading-6 text-destructive">{error}</p>
+              </div>
+            ) : null}
+
+            {lowConfidenceMessage ? (
+              <div className="mt-5 flex items-start gap-3 rounded-[1rem] border border-amber-500/25 bg-amber-500/8 px-4 py-3">
+                <IconInfoCircle
+                  size={18}
+                  className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+                  stroke={2.2}
+                />
+                <p className="text-sm leading-6 text-amber-700 dark:text-amber-300">
+                  {lowConfidenceMessage}
+                </p>
               </div>
             ) : null}
 
@@ -373,22 +398,36 @@ export function CompetitorBacklinkGap() {
                     table of filtered backlink opportunities.
                   </p>
                 </div>
+              ) : hasNoGaps ? (
+                <div className="rounded-[2rem] border border-dashed border-amber-500/30 bg-card/70 p-8 text-center shadow-sm">
+                  <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    <IconInfoCircle size={24} stroke={2.4} />
+                  </div>
+                  <h3 className="mt-5 font-heading text-2xl font-semibold tracking-[-0.045em]">
+                    No relevant gaps found for {websiteDomain}.
+                  </h3>
+                  <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
+                    We couldn&apos;t confidently find relevant opportunities for this
+                    site — this usually means the site is very new or the URL we read
+                    had little content. Try your main marketing URL.
+                  </p>
+                </div>
               ) : (
                 <>
                   <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <StatCard
-                      label="Link gaps found"
+                      label="Relevant link gaps"
                       value={String(summary?.totalGaps ?? 0)}
                       icon={IconTarget}
                       tone="orange"
                       footnote={`across ${summary?.competitorsFound ?? 0} competitors`}
                     />
                     <StatCard
-                      label="High-priority gaps"
+                      label="Strong fit"
                       value={String(summary?.highPriority ?? 0)}
                       icon={IconBolt}
                       tone="amber"
-                      footnote="DR 20-65 · realistic to earn"
+                      footnote="score 4-5 · best pitch odds"
                     />
                     <StatCard
                       label="Avg domain rating"
@@ -419,7 +458,7 @@ export function CompetitorBacklinkGap() {
 
                         <div className="flex flex-wrap items-center gap-2">
                           <div className="rounded-full border border-[var(--color-blaze-orange)]/20 bg-[var(--color-blaze-orange)]/8 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-princeton-orange)]">
-                            DR 20-65 only
+                            DR 20+
                           </div>
                           <div className="rounded-full border border-border bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground">
                             {competitors.length} competitors scanned
@@ -588,6 +627,9 @@ export function CompetitorBacklinkGap() {
                                   {gap.name ?? gap.domain}
                                 </h4>
                                 <p className="mt-1 text-sm text-muted-foreground">{gap.domain}</p>
+                                {gap.reason ? (
+                                  <p className="mt-2 text-xs leading-5 text-muted-foreground">{gap.reason}</p>
+                                ) : null}
                               </div>
                               <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[0.65rem] font-semibold uppercase text-muted-foreground">
                                 {String(index + 1).padStart(2, "0")}

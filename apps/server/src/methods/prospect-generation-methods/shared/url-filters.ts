@@ -63,3 +63,53 @@ export function isNoisyUrl(url: string): boolean {
 
   return NOISE_PATH_SEGMENTS.some((seg) => path.includes(seg))
 }
+
+const SPAM_TITLE_PHRASES = [
+  "pbn",
+  "buy backlinks",
+  "backlinks for sale",
+  "aged domain",
+  "aged domains",
+  "dofollow backlinks",
+  "boost your google rankings",
+  "high da backlinks",
+  "link building service",
+]
+
+// Two or more pictographic emoji in a title is a strong spam/link-farm signal
+// (e.g. "🏆🏆Boost your Google rankings with Premium PBN") that legitimate
+// editorial titles essentially never trigger.
+const EMOJI_PATTERN = /\p{Extended_Pictographic}/gu
+
+// Opaque, machine-generated path shapes used by link-farm/PBN sites:
+// /page-<32 hex>.html, /all/<n>/<n>.html, or any bare 24+ hex-char segment.
+const OPAQUE_PATH_PATTERNS = [
+  /\/page-[0-9a-f]{32}\.html/i,
+  /\/all\/\d+\/\d+\.html/i,
+  /\/[0-9a-f]{24,}(?:[/.]|$)/i,
+]
+
+/**
+ * True when a linking page shows spam/link-farm signals that the plain
+ * domain/path noise filter (`isNoisyUrl`) does not catch — PBN and
+ * backlink-selling phrasing in the title, emoji-stuffed titles, and
+ * opaque/hashed path shapes used by auto-generated pages.
+ */
+export function isSpammyLinkPage(input: { url: string; title?: string | null }): boolean {
+  const title = (input.title ?? "").toLowerCase()
+
+  if (title) {
+    if (SPAM_TITLE_PHRASES.some((phrase) => title.includes(phrase))) return true
+    const emojiMatches = input.title?.match(EMOJI_PATTERN)
+    if (emojiMatches && emojiMatches.length >= 2) return true
+  }
+
+  let path = ""
+  try {
+    path = new URL(input.url).pathname
+  } catch {
+    path = input.url
+  }
+
+  return OPAQUE_PATH_PATTERNS.some((pattern) => pattern.test(path))
+}

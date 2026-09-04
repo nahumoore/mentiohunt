@@ -65,13 +65,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const productName = siteDetails.title?.trim()
-  if (!productName) {
-    return NextResponse.json(
-      { error: "Couldn't read your site's title. Try the canonical URL." },
-      { status: 422 }
-    )
-  }
+  // The server derives a real product name/description from siteContext when
+  // the title is thin or missing — no need to hard-fail here.
+  const productName = siteDetails.title?.trim() || new URL(url).hostname
 
   let serverRes: Response
   try {

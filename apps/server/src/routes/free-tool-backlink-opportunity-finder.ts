@@ -2,8 +2,8 @@ import { timingSafeEqual } from "node:crypto"
 import { Router, type IRouter } from "express"
 import { withRouteLog } from "../helpers/logger.js"
 import { checkRateLimit } from "../helpers/rate-limit.js"
+import { parseSiteContext } from "../helpers/site-context.js"
 import { findBacklinkOpportunitiesByUrl } from "../methods/backlink-opportunities/find-backlink-opportunities-by-url.js"
-import type { SiteContext } from "../methods/backlink-opportunities/types.js"
 
 export const freeToolBacklinkOpportunityFinderRouter: IRouter = Router()
 
@@ -16,20 +16,6 @@ function verifyApiKey(provided: string | undefined, expected: string): boolean {
     return timingSafeEqual(a, b)
   } catch {
     return false
-  }
-}
-
-function parseSiteContext(raw: unknown): SiteContext | undefined {
-  if (!raw || typeof raw !== "object") return undefined
-  const obj = raw as Record<string, unknown>
-
-  return {
-    title: typeof obj.title === "string" ? obj.title : null,
-    metaDescription: typeof obj.metaDescription === "string" ? obj.metaDescription : null,
-    h1: Array.isArray(obj.h1) ? obj.h1.filter((value): value is string => typeof value === "string") : [],
-    paragraphs: Array.isArray(obj.paragraphs)
-      ? obj.paragraphs.filter((value): value is string => typeof value === "string")
-      : [],
   }
 }
 
@@ -73,6 +59,8 @@ freeToolBacklinkOpportunityFinderRouter.post(
           found: result.found,
           scored: result.scored,
           highFit: result.highFit,
+          returned: result.returned,
+          lowConfidence: result.lowConfidence,
         },
       })
     } catch (err) {

@@ -25,13 +25,28 @@ Ecommerce, agencies, real estate, startups were **not re-checked live this sessi
 | 1 | `/link-building-for/lawyers` | 140 | ~3 refdomains avg | 100% legal-marketing agencies, no giants | **Build first** — easiest confirmed |
 | 2 | `/link-building-for/saas` | 110 | ~5 refdomains avg | Mostly agency blogs + **one Wix page** | Build second — still soft, but not the zero-competition read from before |
 | 3 | `/link-building-for/real-estate` | 50 | ~1 refdomain avg | Real-estate-marketing niche sites only (not rechecked live, July 21 note) | Build third |
-| 4 | `/link-building-for/startups` | 40 | not pulled | Not SERP-checked | Build after above prove out |
-| 5 | `/link-building-for/ecommerce` | 170 | ~4 refdomains avg | July 21 note: neilpatel.com, wix.com, conductor.com present — **harder than KD implies**. Not rechecked live. | Hold — volume looks good but treat the July 21 warning as current until rechecked |
+| 4 | `/link-building-for/startups` | 40 | not pulled | **Checked live 2026-09-03.** Page 1 is entirely link-building/SEO agencies and tools (Respona, LinkDoctor, Linkyjuice, Bulldog, Collaborator.pro, PressWhizz, RankOMedia, DigiMinds, Above Apex, LinkBuilder.io) — this is their own service-page content, same risk pattern as the "agencies" skip below, just less direct. | **Deprioritize** — low volume (40/mo) doesn't justify competing against agencies' home-turf content |
+| 5 | `/link-building-for/ecommerce` | 170 | ~4 refdomains avg | **Rechecked live 2026-09-03 — confirmed harder than KD implies.** neilpatel.com, wix.com, conductor.com, yotpo.com, practicalecommerce.com all present alongside agencies. | **Hold** — most generalist-authority-heavy SERP in the batch, needs real content investment not the cheap-page approach |
 | — | `/link-building-for/agencies` | 70 | ~100 refdomains avg | Entire page 1 is competing link-building agencies (Loganix, Omniscient, KlientBoost, Siege Media, uSERP) — this is their own acquisition content | **Skip** — real competitors, not soft |
 | — | `/link-building-for/local-seo` | 170 | not pulled | Different intent (discipline, not industry) — awkward as this slug | Reframe as blog angle, not a niche-template page |
 | — | `/link-building-for/b2b`, `/link-building-for/small-business` | too low/unconfirmed | — | — | Skip |
 
-Long-tail industries (dentists, healthcare, hvac, automotive, photographers — all 10-30/mo): don't build standalone. Batch into one `/link-building-for/local-businesses` page as subsections once the top 3 prove out.
+Long-tail industries (dentists, hvac, automotive, photographers — all 10-30/mo): don't build standalone. Batch into one `/link-building-for/local-businesses` page as subsections once the top 3 prove out.
+
+## New candidate niches (SERP-scanned 2026-09-03, volume not yet pulled)
+
+Live SERP composition only — no Apify key or DataForSEO MCP access this session, so treat these as "worth pulling real volume/KD for" rather than a committed build order. Ranked by SERP softness, the harder signal to get anyway.
+
+| Niche | SERP composition | Verdict |
+|---|---|---|
+| `/link-building-for/insurance` | 100% insurance-marketing niche agencies (Sure Oak, Uppercut SEO, SERPsGrowth, Jenesis Digital, Digital Web Solutions, Lemonet, Stellar SEO, Intergrowth, Leadsurance, Trufla, LinkGraph, IgniteVisibility) — zero giants across 4 query variants, softest of the new batch | **Shipped 2026-09-03** — `insurance.mdx` built |
+| `/link-building-for/contractors` | 100% construction/remodeling niche agencies (OneBaseMedia, LinkDoctor, Relentless Digital, ContractingEmpire, SERPsGrowth, BuilderGrowthEngine, TheHoth, WebFX, LinkGraph) across 4 query variants — no giants | **Shipped 2026-09-03** — `contractors.mdx` built |
+| `/link-building-for/healthcare` | 100% healthcare-marketing niche agencies (LinkDoctor, RankOMedia, OutreachDesk, GrowResolve, SERPsGrowth) — no giants, but YMYL content bar applies | Strong candidate — pull volume next |
+| `/link-building-for/fintech` | 100% niche agencies (Sure Oak, Awisee, Anthroly, Juicify, SERPsGrowth, LinkPanda, LinkBuilder.io) — no giants, and closer to Mentiohunt's actual B2B SaaS audience than lawyers/real-estate | Strong candidate — pull volume next |
+| `/link-building-for/financial-advisors` | SmartAsset present — a genuine high-authority consumer-finance media site, not an agency | Caution — same pattern as ecommerce's neilpatel/wix problem |
+| `/link-building-for/accountants` | Loganix present — the same real link-building competitor already named as the reason `agencies` was skipped | Caution — real competitor, not soft |
+| `/link-building-for/hr-software` | Search Engine Land present — a major generalist SEO authority site | Caution — same pattern as ecommerce/financial-advisors |
+| `/link-building-for/restaurants` | Soft (all niche local-marketing agencies), but a local-consumer vertical, not B2B | Route into the `local-businesses` batch page instead of a standalone build |
 
 ## Template B — `/outreach-templates/[type]` landing pages
 
@@ -56,7 +71,7 @@ Long-tail industries (dentists, healthcare, hvac, automotive, photographers — 
 - [x] `/alternatives` pages
 - [x] `/blog/how-to-find-backlink-opportunities` — pillar for `/backlinks-from/` cluster
 - [x] Template B — `/outreach-templates/[type]`: `backlink-request`, `blogger-outreach`, `broken-link-building`, `guest-post` all shipped. Only `podcast` (10/mo, lowest-priority in the table above) remains unbuilt.
-- [x] Template A — `/link-building-for/[niche]`: route built (2026-08-22), modeled on the `/backlinks-from/[slug]` pattern (shared `lib/mdx.ts` loader, `getAllResources("link-building-for")`, MDX in `resources/link-building-for/`). `lawyers` and `saas` shipped — both the top two picks from the ranked table above. Hub + both slugs wired into `app/sitemap.ts`. `real-estate`, `startups`, and `ecommerce` remain unbuilt.
+- [x] Template A — `/link-building-for/[niche]`: route built (2026-08-22), modeled on the `/backlinks-from/[slug]` pattern (shared `lib/mdx.ts` loader, `getAllResources("link-building-for")`, MDX in `resources/link-building-for/`). `lawyers` and `saas` shipped — both the top two picks from the ranked table above. `real-estate` shipped 2026-09-03 — live SERP re-check confirmed the July 21 read (100% real-estate-marketing niche sites, no generalist giants). Hub + all three slugs wired into `app/sitemap.ts` (auto-discovered via `getAllResources`, no manual sitemap edit needed). `startups` and `ecommerce` remain unbuilt.
   - `saas.mdx` was deliberately written as the short, tactic-ranked "which one wins" version of the exact-match keyword, distinct from the deeper `/blog/saas-backlink-building` playbook — each links to the other rather than competing for the same query, to avoid the landing-page-vs-blog-post overlap flagged elsewhere in this doc.
 
 **Unresolved as of 2026-08-22:**
@@ -75,7 +90,10 @@ Long-tail industries (dentists, healthcare, hvac, automotive, photographers — 
 - [x] Build the `/link-building-for/[niche]` route/template (2026-08-22)
 - [x] Build `/link-building-for/lawyers` first — cheapest, cleanest confirmed win (2026-08-22)
 - [x] Build `/link-building-for/saas` second (2026-08-22)
-- [ ] Build `/link-building-for/real-estate` — re-check its SERP live before committing (currently running on July 21 data only)
-- [ ] Re-check `/link-building-for/ecommerce` SERP live before committing (currently running on July 21 data only, flagged harder than KD implies)
+- [x] Build `/link-building-for/real-estate` — SERP re-checked live and confirmed (2026-09-03)
+- [x] Re-check `/link-building-for/ecommerce` SERP live — confirmed harder than KD implies (2026-09-03): neilpatel.com, wix.com, conductor.com, yotpo.com (high-DA ecommerce SaaS), and practicalecommerce.com (established publication) all present, plus agency-tier sites. More generalist authority in the mix than lawyers/saas/real-estate. Holding.
+- [x] Re-check `/link-building-for/startups` SERP live — confirmed a different risk (2026-09-03): entire page 1 is link-building/SEO agencies' own service pages, same pattern as the `agencies` skip. Deprioritized given only 40/mo volume.
+- [x] SERP-scan new candidate niches for Template A (2026-09-03) — see "New candidate niches" section below. `insurance`, `contractors`, `healthcare`, `fintech` came back soft (niche-agency-only SERPs); `financial-advisors`, `accountants`, `hr-software` flagged for a real authority/competitor in the mix; `restaurants` soft but low-ICP, routed to the future `local-businesses` batch page instead.
+- [ ] Pull real volume/KD for the 4 soft-SERP candidates (`insurance`, `contractors`, `healthcare`, `fintech`) before committing to a build order — no Apify key or DataForSEO MCP access this session, so only SERP composition is confirmed, not demand size.
 - [ ] Decide what to do about `/outreach-templates/blogger-outreach` vs `/blog/link-building-outreach-email` — both live, both ranking past position 40 with zero clicks on the same topic (see "Unresolved" note above). `outreach-email-content-cluster.md` doesn't exist to resolve this against, so this needs a fresh call, not just a reconciliation.
 - [ ] Build `/outreach-templates/podcast` — lowest priority, 10/mo volume, only if capacity allows

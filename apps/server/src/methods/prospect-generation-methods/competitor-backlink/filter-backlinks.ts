@@ -1,6 +1,6 @@
 import type { BacklinkItem } from "./extract-backlinks.js"
 import { createLogger } from "../../../helpers/logger.js"
-import { extractDomainFromUrl, isNoisyUrl } from "../shared/url-filters.js"
+import { extractDomainFromUrl, isNoisyUrl, isSpammyLinkPage } from "../shared/url-filters.js"
 
 const log = createLogger("filter-backlinks")
 
@@ -45,12 +45,24 @@ export function filterBacklinks(
     dropped: drFiltered.length - noiseFiltered.length,
   })
 
+  // Remove PBN/link-farm pages the plain noise filter misses (spam title
+  // phrasing, emoji-stuffed titles, opaque/hashed path shapes).
+  const spamFiltered = noiseFiltered.filter(
+    (item) => !isSpammyLinkPage({ url: item.urlFrom, title: item.title })
+  )
+
+  log.info("spam screen", {
+    before: noiseFiltered.length,
+    after: spamFiltered.length,
+    dropped: noiseFiltered.length - spamFiltered.length,
+  })
+
   // Drop backlinks that originate from the product's own site — a self-referencing
   // comparison/blog page is not an outreach prospect, it's the user's own domain.
   const normalizedOwnDomain = ownDomain ? extractDomainFromUrl(ownDomain) : null
   const clean = normalizedOwnDomain
-    ? noiseFiltered.filter((item) => extractDomainFromUrl(item.urlFrom) !== normalizedOwnDomain)
-    : noiseFiltered
+    ? spamFiltered.filter((item) => extractDomainFromUrl(item.urlFrom) !== normalizedOwnDomain)
+    : spamFiltered
 
   if (normalizedOwnDomain) {
     log.info("own-domain filter", {

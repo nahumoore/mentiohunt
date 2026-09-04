@@ -27,9 +27,17 @@ export type FindBacklinkOpportunitiesResult = {
   found: number
   scored: number
   highFit: number
+  returned: number
+  lowConfidence: boolean
   opportunities: BacklinkOpportunity[]
 }
 
+// Only the first `queryTemplatesPerNiche` (4) templates are used per niche —
+// order matters. Kept the two footprint templates that reliably return
+// results; dropped "useful links"/"software list" (near-empty results or the
+// aggregator hubs themselves) in favor of editorial surfaces that actually
+// accept additions from small, newer products: niche blogs, alternatives
+// roundups, newsletters, podcasts.
 export const OPPORTUNITY_QUERY_TEMPLATES: {
   query: string
   footprintLabel: string
@@ -41,29 +49,29 @@ export const OPPORTUNITY_QUERY_TEMPLATES: {
     type: "Resource Page",
   },
   {
-    query: '"{niche}" "useful links"',
-    footprintLabel: "useful links page",
-    type: "Resource Page",
-  },
-  {
     query: '"{niche}" ("best tools" OR "top tools")',
     footprintLabel: "tool roundup",
     type: "Link Roundup",
   },
   {
-    query: '"{niche}" ("recommended tools" OR "software list")',
-    footprintLabel: "software list",
-    type: "Link Roundup",
-  },
-  {
-    query: '"{niche}" blog -"write for us"',
-    footprintLabel: "niche blog",
+    query: 'best "{niche}" blogs',
+    footprintLabel: "niche blog roundup",
     type: "Niche Blog",
   },
   {
-    query: '"{niche}" "guest post"',
-    footprintLabel: "guest post page",
-    type: "Guest Post",
+    query: '"{niche}" alternatives',
+    footprintLabel: "alternatives roundup",
+    type: "Link Roundup",
+  },
+  {
+    query: '"{niche}" newsletter',
+    footprintLabel: "newsletter",
+    type: "Niche Blog",
+  },
+  {
+    query: '"{niche}" podcast',
+    footprintLabel: "podcast",
+    type: "Niche Blog",
   },
 ]
 
@@ -74,4 +82,6 @@ export const DEFAULT_LIMITS = {
   maxCandidates: 40,
   maxOpportunities: 10,
   country: "US",
+  scoreFloor: 50,
+  drFloor: 15,
 }

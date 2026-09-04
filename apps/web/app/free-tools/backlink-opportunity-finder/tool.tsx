@@ -36,6 +36,8 @@ type Summary = {
   found: number
   scored: number
   highFit: number
+  returned?: number
+  lowConfidence?: boolean
 }
 
 const loadingStages = [
@@ -171,6 +173,8 @@ export function BacklinkOpportunityFinder() {
         found?: number
         scored?: number
         highFit?: number
+        returned?: number
+        lowConfidence?: boolean
       }
       setOpportunities(data.opportunities)
       setSummary(
@@ -178,6 +182,8 @@ export function BacklinkOpportunityFinder() {
           found: data.found ?? data.opportunities.length,
           scored: data.scored ?? data.opportunities.length,
           highFit: data.highFit ?? data.opportunities.filter((item) => item.score >= 75).length,
+          returned: data.returned ?? data.opportunities.length,
+          lowConfidence: data.lowConfidence ?? false,
         }
       )
       setPhase("results")
@@ -462,8 +468,8 @@ export function BacklinkOpportunityFinder() {
 
                   <div className="grid gap-4 sm:grid-cols-3">
                     <StatCard
-                      label="Opportunities found"
-                      value={String(summary?.found ?? 0)}
+                      label="Relevant opportunities"
+                      value={String(summary?.returned ?? opportunities.length)}
                       icon={IconWorldSearch}
                       tone="orange"
                       footnote="relevant to your niche"
@@ -485,14 +491,16 @@ export function BacklinkOpportunityFinder() {
                   </div>
 
                   {opportunities.length === 0 ? (
-                    <div className="rounded-[2rem] border border-border bg-card/70 p-8 text-center">
+                    <div className="rounded-[2rem] border border-dashed border-amber-500/30 bg-card/70 p-8 text-center">
                       <h3 className="font-heading text-2xl font-semibold tracking-[-0.045em]">
-                        No opportunities surfaced yet.
+                        {summary?.lowConfidence
+                          ? `No relevant opportunities found for ${websiteDomain}.`
+                          : "No opportunities surfaced yet."}
                       </h3>
                       <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
-                        We couldn&apos;t identify strong backlink targets from
-                        this scan. Sign up to unlock deeper discovery with
-                        competitor analysis and keyword targeting.
+                        {summary?.lowConfidence
+                          ? "We couldn't confidently find relevant opportunities for this site — this usually means the site is very new or the URL we read had little content. Try your main marketing URL."
+                          : "We couldn't identify strong backlink targets from this scan. Sign up to unlock deeper discovery with competitor analysis and keyword targeting."}
                       </p>
                     </div>
                   ) : (

@@ -6,8 +6,7 @@ import { supabaseAdmin } from "@workspace/supabase/admin"
 import type { Tables } from "@workspace/supabase/database-types"
 
 import { PreviewAutoRefresh } from "@/components/onboarding/preview-auto-refresh"
-import { PreviewProof } from "@/components/onboarding/preview-proof"
-import { StartOutreachButton } from "@/components/onboarding/start-outreach-button"
+import { PreviewResults } from "@/components/onboarding/preview/preview-results"
 import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
 import { supabaseServer } from "@/lib/supabase/server"
 import { captureServerEvent } from "@/lib/server-analytics"
@@ -15,55 +14,6 @@ import { captureServerEvent } from "@/lib/server-analytics"
 export const metadata: Metadata = {
   title: "Your opportunity preview",
   robots: { index: false, follow: false },
-}
-
-function opportunityText(tier: string) {
-  if (tier === "unlinked_mention") {
-    return {
-      reason:
-        "This page already mentions your market, so a useful source link is a natural fit.",
-      angle: "Offer your target page as the missing supporting source.",
-    }
-  }
-  if (tier === "listicle_roundup") {
-    return {
-      reason:
-        "This roundup reaches readers who are actively comparing products like yours.",
-      angle:
-        "Pitch a concise addition that highlights your clearest differentiator.",
-    }
-  }
-  if (tier === "resource_page_inclusion") {
-    return {
-      reason:
-        "This curated page covers the same topic as one of your strongest resources.",
-      angle:
-        "Offer the selected resource as a useful addition for its readers.",
-    }
-  }
-  if (tier === "broken_link_building") {
-    return {
-      reason:
-        "This page links to a resource that no longer works, and you have a relevant replacement.",
-      angle:
-        "Point out the broken link and offer your selected page as a low-pressure replacement.",
-    }
-  }
-  return {
-    reason:
-      "This site already links to a close competitor and is relevant to your category.",
-    angle: "Suggest your target page as a complementary or fresher resource.",
-  }
-}
-
-function tierLabel(tier: string) {
-  const labels: Record<string, string> = {
-    unlinked_mention: "Unlinked mention",
-    listicle_roundup: "Listicle roundup",
-    resource_page_inclusion: "Resource page",
-    broken_link_building: "Broken link",
-  }
-  return labels[tier] ?? "Competitor backlink"
 }
 
 export default async function OnboardingPreviewPage({
@@ -247,163 +197,55 @@ export default async function OnboardingPreviewPage({
     )
   }
 
+  // Failed runs and empty results share the same quiet, single-card treatment —
+  // neither one has a list to sell, so they skip the paywall layout entirely.
+  if (preview.status === "failed" || prospects.length === 0) {
+    return (
+      <main className="min-h-screen bg-background px-5 py-10 sm:px-8 sm:py-16">
+        <PreviewAutoRefresh
+          previewId={preview.id}
+          status={preview.status}
+          resultCount={preview.result_count}
+        />
+        <div className="mx-auto max-w-5xl">
+          <p className="text-sm font-semibold text-primary">
+            Personalized preview
+          </p>
+          <section className="mt-4 rounded-3xl border border-border bg-card p-8">
+            <h1 className="font-heading text-3xl font-semibold">
+              {preview.status === "failed"
+                ? "We couldn't finish this analysis"
+                : "No strong matches yet"}
+            </h1>
+            <p className="mt-3 max-w-xl leading-7 text-muted-foreground">
+              {preview.status === "failed"
+                ? "Your setup is safely stored. Our team can retry the preview without making you enter it again."
+                : "We're not going to pretend weak results are opportunities. Your setup is saved so this run can be investigated and retried."}
+            </p>
+          </section>
+        </div>
+      </main>
+    )
+  }
+
   return (
-    <main className="min-h-screen bg-background px-5 py-10 sm:px-8 sm:py-16">
+    <>
       <PreviewAutoRefresh
         previewId={preview.id}
         status={preview.status}
         resultCount={preview.result_count}
       />
-      <div className="mx-auto max-w-5xl">
-        <p className="text-sm font-semibold text-primary">
-          Personalized preview
-        </p>
-        {preview.status === "failed" ? (
-          <section className="mt-4 rounded-3xl border border-border bg-card p-8">
-            <h1 className="font-heading text-3xl font-semibold">
-              We couldn&apos;t finish this analysis
-            </h1>
-            <p className="mt-3 text-muted-foreground">
-              Your setup is safely stored. Our team can retry the preview
-              without making you enter it again.
-            </p>
-          </section>
-        ) : (
-          <>
-            <div className="mt-3 flex flex-wrap items-end justify-between gap-5">
-              <div>
-                <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-5xl">
-                  Opportunities for {product.product_name}
-                </h1>
-                <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-                  These are real matches from the initial analysis of{" "}
-                  {product.website_url}. Nothing has been sent.
-                </p>
-              </div>
-              <span className="rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
-                {prospects.length} matches
-              </span>
-            </div>
-
-            {prospects.length === 0 ? (
-              <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-                <h2 className="font-heading text-xl font-semibold">
-                  No strong matches yet
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  We&apos;re not going to pretend weak results are
-                  opportunities. Your setup is saved so this run can be
-                  investigated and retried.
-                </p>
-              </div>
-            ) : (
-              <div className="mt-8 grid gap-4">
-                {prospects.map((prospect) => {
-                  const copy = opportunityText(prospect.tier)
-                  const isTopFit = prospect.site_relevance_score === 5
-                  return (
-                    <article
-                      key={prospect.id}
-                      className="relative rounded-2xl border border-border bg-card p-6"
-                    >
-                      {isTopFit && (
-                        <span
-                          className="absolute top-[18px] bottom-[18px] left-0 w-[3px] rounded-r bg-primary"
-                          aria-hidden
-                        />
-                      )}
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="flex items-center gap-3.5">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] border border-border bg-white">
-                            {/* Google's favicon service isn't in next.config
-                                remotePatterns, so this stays a plain img. */}
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={`https://www.google.com/s2/favicons?domain=${prospect.domain ?? product.website_url}&sz=64`}
-                              alt=""
-                              className="h-[22px] w-[22px]"
-                            />
-                          </span>
-                          <div>
-                            <h2 className="text-base font-semibold">
-                              {prospect.domain ?? "Relevant site"}
-                            </h2>
-                            <p className="mt-0.5 text-xs break-all text-muted-foreground">
-                              {prospect.found_url}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 text-xs">
-                          {prospect.domain_rating !== null && (
-                            <span className="rounded-full bg-primary/10 px-2.5 py-1.5 font-semibold text-primary">
-                              DR {prospect.domain_rating}
-                            </span>
-                          )}
-                          {prospect.site_relevance_score !== null && (
-                            <span className="rounded-full bg-primary/10 px-2.5 py-1.5 font-semibold text-primary">
-                              Fit {prospect.site_relevance_score}/5
-                            </span>
-                          )}
-                          <span className="rounded-full bg-muted px-2.5 py-1.5 font-semibold text-muted-foreground">
-                            {tierLabel(prospect.tier)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="mt-5 grid gap-4 border-t border-border/70 pt-5 sm:grid-cols-3">
-                        <div>
-                          <p className="text-xs font-bold text-muted-foreground uppercase">
-                            Promote
-                          </p>
-                          <p className="mt-1 text-sm break-all">
-                            {prospect.target_url ?? product.website_url}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-muted-foreground uppercase">
-                            Why it fits
-                          </p>
-                          <p className="mt-1 text-sm leading-6">
-                            {copy.reason}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-muted-foreground uppercase">
-                            Suggested angle
-                          </p>
-                          <p className="mt-1 text-sm leading-6">{copy.angle}</p>
-                        </div>
-                      </div>
-                    </article>
-                  )
-                })}
-              </div>
-            )}
-
-            {prospects.length > 0 && <PreviewProof />}
-
-            {prospects.length > 0 && (
-              <section className="mt-10 rounded-3xl border border-border bg-card p-7 sm:p-9">
-                <h2 className="font-heading text-2xl font-semibold">
-                  Ready for Mentiohunt to run the outreach?
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Your preview stays available if you leave or cancel Checkout.
-                </p>
-                <div className="mt-6">
-                  <StartOutreachButton productId={preview.product_id} />
-                </div>
-                <p className="mt-4 max-w-3xl text-xs leading-5 text-muted-foreground">
-                  $0 today. Card required. Your trial ends {trialEnd}, then $
-                  {pro.price}/month. The subscription renews automatically
-                  unless you cancel from Billing before then. We&apos;ll email
-                  you about 2 days before the trial ends.
-                </p>
-              </section>
-            )}
-          </>
-        )}
-      </div>
-    </main>
+      <PreviewResults
+        productName={product.product_name}
+        websiteUrl={product.website_url}
+        siteHost={siteHost}
+        prospects={prospects}
+        trialEndsOn={trialEnd}
+        planPrice={pro.price}
+        trialDays={FREE_TRIAL_DAYS}
+        productId={preview.product_id}
+      />
+    </>
   )
 }
 

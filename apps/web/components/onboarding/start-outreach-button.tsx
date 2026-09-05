@@ -6,7 +6,13 @@ import { Button } from "@workspace/ui/components/button"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { useState } from "react"
 
-export function StartOutreachButton({ productId }: { productId: string }) {
+export function StartOutreachButton({
+  productId,
+  label = "Start outreach free for 7 days",
+}: {
+  productId: string
+  label?: string
+}) {
   const [pending, setPending] = useState(false)
 
   const start = async () => {
@@ -35,9 +41,7 @@ export function StartOutreachButton({ productId }: { productId: string }) {
       }}
     >
       {pending && <IconLoader2 className="h-4 w-4 animate-spin" />}
-      {pending
-        ? "Opening secure checkout..."
-        : "Start outreach free for 7 days"}
+      {pending ? "Opening secure checkout..." : label}
     </Button>
   )
 }

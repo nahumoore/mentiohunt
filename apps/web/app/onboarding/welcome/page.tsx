@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 
+import { CheckoutConversionTracker } from "@/components/onboarding/checkout-conversion-tracker"
 import { ReferralSourceForm } from "@/components/onboarding/referral-source-form"
+import { FREE_TRIAL_DAYS, PLANS } from "@/consts/billing"
 import { supabaseServer } from "@/lib/supabase/server"
 
 export const metadata: Metadata = {
@@ -35,15 +37,24 @@ export default async function OnboardingWelcomePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("onboarding_completed, referral_source")
+    .select("onboarding_completed, referral_source, tier, active_trial")
     .eq("id", user.id)
     .maybeSingle()
 
   if (!profile?.onboarding_completed) redirect("/onboarding")
   if (profile.referral_source) redirect("/dashboard/prospects")
 
+  const plan = PLANS.find((p) => p.tier === profile.tier) ?? PLANS[0]!
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-background">
+      <CheckoutConversionTracker
+        userId={user.id}
+        plan={plan.tier}
+        value={Number(plan.price)}
+        isTrialing={!!profile.active_trial}
+        trialDays={FREE_TRIAL_DAYS}
+      />
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute -top-24 left-1/2 h-[520px] w-[720px] -translate-x-1/2 rounded-full bg-princeton-orange/7 blur-[100px]" />
         <div className="absolute -bottom-32 right-[15%] h-[320px] w-[420px] rounded-full bg-blaze-orange/5 blur-[100px]" />

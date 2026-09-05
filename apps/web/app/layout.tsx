@@ -1,4 +1,4 @@
-import { GoogleAnalytics } from "@next/third-parties/google"
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Metadata } from "next"
@@ -52,6 +52,9 @@ export default function RootLayout({
         "font-sans"
       )}
     >
+      {process.env.NODE_ENV !== "development" && (
+        <GoogleTagManager gtmId="GTM-TC66Z7LR" />
+      )}
       <body className="overflow-x-hidden">
         <PostHogProvider>{children}</PostHogProvider>
         <Toaster richColors position="top-right" />

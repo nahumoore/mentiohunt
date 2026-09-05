@@ -30,6 +30,8 @@ export const EVENTS = {
   ONBOARDING_PREVIEW_VIEWED: "onboarding_preview_viewed",
   ONBOARDING_TRIAL_CTA_CLICKED: "onboarding_trial_cta_clicked",
   REFERRAL_SOURCE_SUBMITTED: "referral_source_submitted",
+  CHECKOUT_COMPLETED: "checkout_completed",
+  TRIAL_STARTED: "trial_started",
 
   // Activation — how a new user gets from "signed up" to "understands this"
   WALKTHROUGH_SHOWN: "walkthrough_shown",
